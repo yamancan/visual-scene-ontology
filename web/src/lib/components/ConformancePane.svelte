@@ -49,30 +49,49 @@
 				{/if}
 
 				{#if extraction}
-					<div
-						class="mt-2 flex flex-col gap-1 border-t border-(--border-1) pt-3 font-mono text-[10px] tabular text-(--fg-4)"
-					>
-						<div class="flex justify-between">
-							<span>model</span><span class="text-(--fg-3)">{extraction.model}</span>
-						</div>
-						<div class="flex justify-between">
-							<span>latency</span><span class="text-(--fg-3)"
-								>{((extraction.latency_ms ?? 0) / 1000).toFixed(2)}s</span
-							>
-						</div>
-						<div class="flex justify-between">
-							<span>retries</span><span class="text-(--fg-3)"
-								>{extraction.shacl_retries ?? 0}</span
-							>
-						</div>
-						<div class="flex justify-between">
-							<span>tokens in/out</span><span class="text-(--fg-3)"
-								>{extraction.input_tokens ?? 0} / {extraction.output_tokens ?? 0}</span
-							>
-						</div>
-					</div>
+					<dl class="meta">
+						<dt>model</dt>
+						<dd title={extraction.model}>{extraction.model}</dd>
+						<dt>latency</dt>
+						<dd>{((extraction.latency_ms ?? 0) / 1000).toFixed(2)}s</dd>
+						<dt>retries</dt>
+						<dd>{extraction.shacl_retries ?? 0}</dd>
+						<dt>tokens</dt>
+						<dd>{extraction.input_tokens ?? 0} <span class="sep">/</span> {extraction.output_tokens ?? 0}</dd>
+					</dl>
 				{/if}
 			</div>
 		{/if}
 	</div>
 </section>
+
+<style>
+	.meta {
+		display: grid;
+		grid-template-columns: 4.5rem 1fr;
+		column-gap: var(--s3);
+		row-gap: 4px;
+		margin-top: var(--s2);
+		padding-top: var(--s3);
+		border-top: 1px solid var(--border-1);
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		font-variant-numeric: tabular-nums;
+	}
+	.meta dt {
+		color: var(--fg-4);
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+	.meta dd {
+		color: var(--fg-2);
+		margin: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		min-width: 0;
+	}
+	.meta dd .sep {
+		color: var(--fg-4);
+	}
+</style>

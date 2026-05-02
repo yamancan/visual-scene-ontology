@@ -108,14 +108,18 @@
 
 	$effect(() => {
 		const env = scene.envelope;
-		if (env?.graph && dims.w > 0) build(env.graph.nodes, env.graph.edges);
+		if (env?.graph) build(env.graph.nodes, env.graph.edges);
 	});
 
 	onMount(() => {
 		if (!svgEl) return;
+		// Seed dims synchronously so the first build() doesn't run with {0,0}.
+		const r0 = svgEl.getBoundingClientRect();
+		if (r0.width > 0 && r0.height > 0) dims = { w: r0.width, h: r0.height };
 		const ro = new ResizeObserver((entries) => {
 			for (const e of entries) {
 				const r = e.contentRect;
+				if (r.width === 0 || r.height === 0) continue;
 				dims = { w: r.width, h: r.height };
 				if (sim) {
 					sim.force('center', forceCenter(r.width / 2, r.height / 2));
