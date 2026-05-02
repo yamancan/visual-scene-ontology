@@ -1,0 +1,4 @@
+{
+	"_doc": "Curated demo images shown below the dropzone. To add: drop a jpeg/png in this directory, then add an entry below. Recommended: 6 entries, license-clean, <500 KB each. The UI hides this strip when entries is empty.",
+	"entries": []
+}
