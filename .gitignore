@@ -17,3 +17,6 @@ dist/
 tools/extractor/baseline/images/*
 !tools/extractor/baseline/images/.gitkeep
 tools/extractor/baseline/results*.csv
+
+# Rust build artifacts
+cli/target/
