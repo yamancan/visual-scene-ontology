@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vson.dev/v1/schema/vson-output.schema.json",
+  "title": "VSON Extractor Response Envelope",
+  "description": "JSON envelope returned by an image-to-VSON extractor (e.g. vson generate). Carries the canonical Penman text, the derived Turtle, optional structured graph, and metadata. A consumer that only wants the graph reads .vson_p; a consumer that wants triples reads .vson_t; a consumer that wants nodes/edges for a UI reads .graph.",
+  "type": "object",
+  "required": ["scene_id", "version", "vson_p", "vson_t", "conformance"],
+  "additionalProperties": false,
+  "properties": {
+    "scene_id": {
+      "type": "string",
+      "description": "Stable identifier for this scene. URL-safe, document-unique.",
+      "pattern": "^[A-Za-z0-9_-]{1,64}$",
+      "examples": ["throne_room_01", "user-upload-2026-05-02"]
+    },
+    "version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "VSON spec version. Producers MUST emit \"1.0\" for v1.0 conformance."
+    },
+    "source": {
+      "type": "object",
+      "description": "Provenance of the scene. Required when extracted from an image.",
+      "properties": {
+        "kind": { "enum": ["image", "video_frame", "synthetic", "hand_authored"] },
+        "uri":  { "type": "string", "format": "uri" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "width_px":  { "type": "integer", "minimum": 1 },
+        "height_px": { "type": "integer", "minimum": 1 },
+        "captured_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["kind"]
+    },
+    "vson_p": {
+      "type": "string",
+      "description": "VSON-P (Penman) authoring form. SHOULD be the canonical authoring artifact. Consumers MUST round-trip vson_p -> vson_t via the reference transpiler and SHOULD NOT diverge from vson_t.",
+      "minLength": 3,
+      "examples": ["(s / Composition :viewedBy (c / CameraView :angle eye_level) :depicts (a / PhysicalObject :class Apple))"]
+    },
+    "vson_t": {
+      "type": "string",
+      "description": "VSON-T (Turtle 1.2 / Turtle-star) form derived from vson_p. Consumers MAY parse this directly with rdflib or any Turtle parser.",
+      "minLength": 3
+    },
+    "graph": {
+      "type": "object",
+      "description": "Optional structured projection for UI clients. Lossy w.r.t. RDF semantics (no RDF-star annotations). Use vson_t for full fidelity.",
+      "required": ["nodes", "edges"],
+      "additionalProperties": false,
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/GraphNode" }
+        },
+        "edges": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/GraphEdge" }
+        }
+      }
+    },
+    "conformance": {
+      "type": "object",
+      "description": "SHACL conformance report. Producers MUST run validation before emitting; consumers MAY trust the conforms flag without re-validating.",
+      "required": ["conforms"],
+      "additionalProperties": false,
+      "properties": {
+        "conforms": { "type": "boolean" },
+        "violations": {
+          "type": "array",
+          "description": "Empty when conforms=true.",
+          "items": { "$ref": "#/$defs/Violation" }
+        }
+      }
+    },
+    "extraction": {
+      "type": "object",
+      "description": "Optional metadata about how this VSON document was produced.",
+      "additionalProperties": false,
+      "properties": {
+        "model": { "type": "string", "examples": ["claude-opus-4-7"] },
+        "prompt_version": { "type": "string", "examples": ["orchestrator-system@1.0"] },
+        "shacl_retries": { "type": "integer", "minimum": 0 },
+        "latency_ms": { "type": "integer", "minimum": 0 },
+        "input_tokens": { "type": "integer", "minimum": 0 },
+        "output_tokens": { "type": "integer", "minimum": 0 },
+        "confidence_overall": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    }
+  },
+  "$defs": {
+    "GraphNode": {
+      "type": "object",
+      "required": ["id", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "id":   { "type": "string", "pattern": "^[A-Za-z_][\\w-]*$" },
+        "kind": {
+          "enum": [
+            "Composition", "SceneContext", "VisualStyle", "CameraView",
+            "PhysicalObject", "Aggregate", "Substance",
+            "Event", "Process", "Stative",
+            "Quality", "SpatialFact", "Annotation"
+          ]
+        },
+        "class": { "type": "string", "description": "Domain class for PhysicalObject / Aggregate / Substance." },
+        "traits": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "individuation": { "enum": ["Generic", "Named", "Kind", "Skolem"] },
+            "animacy":       { "enum": ["Agentive", "Inert"] },
+            "countability":  { "enum": ["Count", "Mass", "Collective"] },
+            "affordance":    { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": { "type": ["string", "number", "boolean", "null"] }
+        },
+        "bbox2d": {
+          "type": "string",
+          "pattern": "^(0|0\\.\\d+|1|1\\.0+),(0|0\\.\\d+|1|1\\.0+),(0|0\\.\\d+|1|1\\.0+),(0|0\\.\\d+|1|1\\.0+)$",
+          "description": "Normalized x,y,w,h in [0,1]."
+        }
+      }
+    },
+    "GraphEdge": {
+      "type": "object",
+      "required": ["from", "to", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "from":  { "type": "string" },
+        "to":    { "type": "string" },
+        "label": { "type": "string", "description": "VSO/Allen/RCC predicate local name (e.g. depicts, agent, before, EC)." },
+        "qualifiers": {
+          "type": "object",
+          "description": "Edge-level annotations (probability, viewer, manner, ...).",
+          "additionalProperties": { "type": ["string", "number", "boolean"] }
+        }
+      }
+    },
+    "Violation": {
+      "type": "object",
+      "required": ["message", "shape"],
+      "additionalProperties": false,
+      "properties": {
+        "message": { "type": "string" },
+        "shape":   { "type": "string", "examples": ["vss:DirectionalNeedsViewerShape"] },
+        "focus_node":  { "type": "string" },
+        "result_path": { "type": "string" },
+        "severity":    { "enum": ["Violation", "Warning", "Info"], "default": "Violation" }
+      }
+    }
+  }
+}

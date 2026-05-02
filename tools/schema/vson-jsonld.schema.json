@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vson.dev/v1/schema/vson-jsonld.schema.json",
+  "title": "VSON Scene as JSON-LD",
+  "description": "JSON-LD projection of a VSON v1.0 scene. The @context binds local keys to VSO/Allen/RCC IRIs so consumers can either (a) parse with a JSON-LD processor and get the same RDF graph as vson_t, or (b) walk the JSON tree directly. Note: this schema is structural only -- well-formedness is enforced by SHACL on the graph, not by JSON Schema.",
+  "type": "object",
+  "required": ["@context", "@type"],
+  "properties": {
+    "@context": {
+      "oneOf": [
+        { "type": "string", "format": "uri", "const": "https://vson.dev/v1/context.jsonld" },
+        { "type": "object" }
+      ]
+    },
+    "@id":   { "type": "string" },
+    "@type": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "array", "items": { "type": "string" } }
+      ]
+    },
+    "depicts":   { "$ref": "#/$defs/Refs" },
+    "framedBy":  { "$ref": "#/$defs/Refs" },
+    "viewedBy":  { "$ref": "#/$defs/Ref" },
+    "rendersAs": { "$ref": "#/$defs/Ref" },
+    "hasQuality":{ "$ref": "#/$defs/Refs" },
+    "hasFact":   { "$ref": "#/$defs/Refs" },
+    "occurs":    { "$ref": "#/$defs/Refs" }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "Ref": {
+      "oneOf": [
+        { "type": "string", "description": "An @id reference (IRI or blank-node label)." },
+        { "type": "object", "description": "Inline object." }
+      ]
+    },
+    "Refs": {
+      "oneOf": [
+        { "$ref": "#/$defs/Ref" },
+        { "type": "array", "items": { "$ref": "#/$defs/Ref" } }
+      ]
+    }
+  }
+}
