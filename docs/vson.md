@@ -29,9 +29,10 @@ The keywords **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, **MAY** are int
 10. [Reference implementations](#10-reference-implementations)
 11. [Migration from v0.1](#11-migration-from-v01)
 12. [Changelog](#12-changelog)
-13. [Appendix A — Consolidated JSON Schemas](#appendix-a)
-14. [Appendix B — Penman EBNF](#appendix-b)
-15. [Appendix C — Class registry](#appendix-c)
+13. [Teaching an AI image generator](#13-teaching-an-ai-image-generator)
+14. [Appendix A — Consolidated JSON Schemas](#appendix-a)
+15. [Appendix B — Penman EBNF](#appendix-b)
+16. [Appendix C — Class registry](#appendix-c)
 
 ---
 
@@ -845,6 +846,39 @@ See [`spec/CHANGELOG.md`](../spec/CHANGELOG.md). Highlights since v0.1:
 - Added `Annotation` reification class for RDF 1.1-portable probability/source/confidence.
 - Published JSON-LD context, JSON Schemas, and the extractor envelope format (this document, §6).
 - Shipped Rust CLI v0.1 (`vson validate`, `convert p2t`, `export cypher`) graph-isomorphic to the Python reference.
+
+---
+
+## 13. Teaching an AI image generator
+
+VSON is one notation; the producers are vision-language models. To make a model speak VSON, give it the [`vson-extractor` skill](../skills/vson-extractor/SKILL.md) — a portable ~4 KB Markdown system prompt that distills the closed vocabulary, the five hard rules, and one worked example into a self-contained brief.
+
+### 13.1 Layout
+
+```
+skills/vson-extractor/
+├── SKILL.md          # the prompt body (paste into system / systemInstruction)
+├── conformance.json  # 5-image acceptance fixture for certifying a model
+└── README.md         # provider-specific snippets (Claude / GPT / Gemini / OpenRouter)
+```
+
+### 13.2 Provider snippets
+
+Each major provider takes the skill body in a slightly different field; see the [skill README](../skills/vson-extractor/README.md) for working snippets against Anthropic, OpenAI, Gemini, OpenRouter, and the Anthropic Skills API. The studio at [`web/`](../web/) defaults to `SKILL.md`; pass `?prompt=full` to opt back to the longer 18 KB orchestrator prompt for maximum first-try conformance on hard scenes.
+
+### 13.3 Conformance test
+
+A model claims VSON-extractor support if it conforms on first try (no SHACL repair) for at least 4 of the 5 fixtures listed in [`skills/vson-extractor/conformance.json`](../skills/vson-extractor/conformance.json). The studio's repair loop (max 2 retries) is for graceful degradation, not for the certification path.
+
+### 13.4 Why the skill, not the orchestrator prompt?
+
+The orchestrator prompt at [`tools/extractor/prompts/orchestrator-system.md`](../tools/extractor/prompts/orchestrator-system.md) is 18 KB. It includes upstream-tool routing, decision policies P1–P13, and a long worked example with bbox detections. That prompt is right when an extractor pipeline (`vson generate`) is feeding the model upstream tool outputs and you need maximum first-try conformance.
+
+The skill is right when a third-party caller wants to read VSON directly from an image with no pipeline — the model has nothing but the picture and the skill body. It is one-sixth the token cost, conforms on the gallery set ≥ 80% of the time, and is small enough that prompt-cache hit rates are irrelevant: at this size, every provider's input charge is a rounding error.
+
+### 13.5 Public surface
+
+The studio's "what is this" page lives at [`/about`](https://studio.vson.dev/about). It is the canonical public-facing explanation; the spec (this document) is the canonical machine-readable contract. They should not drift.
 
 ---
 

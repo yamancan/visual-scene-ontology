@@ -45,6 +45,7 @@
 			<span class="sep">·</span>
 		{/if}
 		<ModelPicker />
+		<a class="about-link font-mono" href="/about">about</a>
 	</div>
 </header>
 
@@ -129,6 +130,17 @@
 	.sep {
 		color: var(--border-2);
 		font-size: var(--text-2xs);
+	}
+	.about-link {
+		font-size: var(--text-2xs);
+		color: var(--fg-4);
+		text-decoration: none;
+		padding: 4px 6px;
+		border-radius: var(--radius-sm);
+		transition: color var(--duration-fast) var(--ease-out);
+	}
+	.about-link:hover {
+		color: var(--fg-1);
 	}
 	@media (max-width: 640px) {
 		.brand-meta {
