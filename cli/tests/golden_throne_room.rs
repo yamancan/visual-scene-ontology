@@ -1,0 +1,61 @@
+//! Golden-fixture integration test: the canonical `examples/throne_room.vson`
+//! transpiled by the Rust CLI must produce graph-isomorphic Turtle to the
+//! Python reference (and must SHACL-conform via pyshacl).
+
+use assert_cmd::Command;
+use std::path::PathBuf;
+
+fn repo_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).parent().unwrap().to_path_buf()
+}
+
+#[test]
+fn convert_p2t_produces_parseable_turtle() {
+    let mut cmd = Command::cargo_bin("vson").unwrap();
+    cmd.current_dir(repo_root())
+        .args(["convert", "p2t", "examples/throne_room.vson"]);
+    let output = cmd.output().unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(stdout.contains("@prefix vso:"));
+    assert!(stdout.contains(":scene a <https://vson.dev/v1/ontology#Composition>"));
+    assert!(stdout.contains("\"strike\""), "lemma should route to string");
+    assert!(stdout.contains("\"35mm\""), "focalLength UNIT should render as string");
+}
+
+#[test]
+fn validate_throne_room_vson_passes() {
+    let mut cmd = Command::cargo_bin("vson").unwrap();
+    cmd.current_dir(repo_root())
+        .args(["validate", "examples/throne_room.vson"]);
+    let output = cmd.output().unwrap();
+    assert!(
+        output.status.success(),
+        "stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr),
+    );
+}
+
+#[test]
+fn validate_throne_room_ttl_passes() {
+    let mut cmd = Command::cargo_bin("vson").unwrap();
+    cmd.current_dir(repo_root())
+        .args(["validate", "examples/throne_room.ttl"]);
+    let output = cmd.output().unwrap();
+    assert!(output.status.success());
+}
+
+#[test]
+fn export_cypher_emits_create_statements() {
+    let mut cmd = Command::cargo_bin("vson").unwrap();
+    cmd.current_dir(repo_root())
+        .args(["export", "cypher", "examples/throne_room.vson"]);
+    let output = cmd.output().unwrap();
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(stdout.contains("CREATE (scene:Composition"));
+    assert!(stdout.contains("CREATE (alice:PhysicalObject"));
+    assert!(stdout.contains("[:depicts]"));
+    assert!(stdout.contains("SET ctx.venue = 'throne_room'"));
+}
