@@ -20,25 +20,40 @@ VSON does not invent a parser, grammar, or formal semantics. It rides on:
 ## Layout
 
 ```
-spec/         VSON v1.0 specification
-ontology/     VSO TBox (OWL 2 RL) + VSV vocabulary
-shapes/       SHACL shapes for well-formedness
-examples/     Throne-room scene in VSON-T (Turtle-star) and VSON-P (Penman)
-tools/penman/ Reference Penman ↔ Turtle-star transpiler (Python)
-tests/        Round-trip and SHACL conformance tests
+spec/             VSON v1.0 specification
+ontology/         VSO TBox (OWL 2 RL) + VSV vocabulary
+shapes/           SHACL shapes for well-formedness
+examples/         Throne-room scene in VSON-T (Turtle-star) and VSON-P (Penman)
+cli/              `vson` Rust CLI (validate / convert / export cypher)
+tools/penman/     Reference Penman ↔ Turtle-star transpiler (Python)
+                  + routing-tables.json (single source of truth for both impls)
+tools/extractor/  Image-to-graph extractor — orchestrator prompts + bare-VLM baseline
+tests/            Round-trip and SHACL conformance tests
+docs/strategy/    Productization plan, UI flows, extractor architecture
 ```
 
 ## Quick start
 
 ```bash
-# Round-trip the throne-room example
-python3 tools/penman/vson_penman.py to-turtle examples/throne_room.vson > /tmp/round.ttl
-diff <(python3 tools/penman/vson_penman.py normalize examples/throne_room.ttl) \
-     <(python3 tools/penman/vson_penman.py normalize /tmp/round.ttl)
+# Build the Rust CLI (~30s cold)
+cd cli && cargo build --release && cd ..
+pip install pyshacl rdflib   # required for `vson validate`
 
-# Validate against SHACL (requires pyshacl)
-pyshacl -s shapes/vson-shapes.ttl -e ontology/vso.ttl examples/throne_room.ttl
+# Validate the canonical scene
+cli/target/release/vson validate examples/throne_room.ttl
+
+# Transpile Penman -> Turtle
+cli/target/release/vson convert p2t examples/throne_room.vson > /tmp/scene.ttl
+
+# Export to Cypher
+cli/target/release/vson export cypher examples/throne_room.vson > scene.cypher
+
+# Run all tests (Python + Rust)
+make check        # 17 Python tests
+make cli-check    # 19 Rust tests + graph-iso parity vs Python ref
 ```
+
+See [`cli/README.md`](cli/README.md) for full CLI documentation.
 
 ## Contribution boundary
 
