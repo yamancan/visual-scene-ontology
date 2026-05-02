@@ -41,7 +41,7 @@
 			const res = await fetch('/api/extract', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ image_b64: b64, mime, source_uri: e.path })
+				body: JSON.stringify({ image_b64: b64, mime, source_uri: e.path, model: scene.model })
 			});
 			if (!res.ok) {
 				scene.setError(`extract failed · ${res.status}`);
@@ -58,34 +58,82 @@
 </script>
 
 {#if entries.length > 0}
-	<div class="flex w-full max-w-[480px] flex-col gap-2">
-		<span class="px-1 text-[11px] uppercase tracking-wider text-(--fg-4)">or try</span>
-		<div class="grid grid-cols-6 gap-1.5">
+	<div class="demos">
+		<span class="demos-label font-mono">or try one</span>
+		<div class="demos-grid" style:grid-template-columns="repeat({entries.length}, 1fr)">
 			{#each entries as entry (entry.path)}
 				<button
 					type="button"
-					class="group relative aspect-square overflow-hidden rounded border border-(--border-1) transition-colors hover:border-(--accent)"
+					class="thumb"
+					class:loading={loading === entry.path}
 					onclick={() => runDemo(entry)}
 					disabled={loading !== null}
 					aria-label={entry.label ?? entry.path}
 					title={entry.label ?? entry.path}
 				>
-					<img
-						src={entry.path}
-						alt=""
-						class="h-full w-full object-cover transition-opacity"
-						class:opacity-40={loading === entry.path}
-						loading="lazy"
-					/>
+					<img src={entry.path} alt="" loading="lazy" />
 					{#if loading === entry.path}
-						<div
-							class="absolute inset-0 flex items-center justify-center font-mono text-[10px] text-(--accent)"
-						>
-							•••
-						</div>
+						<div class="thumb-overlay font-mono">•••</div>
 					{/if}
 				</button>
 			{/each}
 		</div>
 	</div>
 {/if}
+
+<style>
+	.demos {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--s3);
+		width: 100%;
+		max-width: 480px;
+	}
+	.demos-label {
+		font-size: var(--text-2xs);
+		color: var(--fg-4);
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+	}
+	.demos-grid {
+		display: grid;
+		gap: var(--s2);
+		width: 100%;
+	}
+	.thumb {
+		position: relative;
+		aspect-ratio: 1;
+		overflow: hidden;
+		border: 1px solid var(--border-1);
+		border-radius: var(--radius-sm);
+		background: var(--bg-1);
+		cursor: pointer;
+		padding: 0;
+		transition:
+			border-color var(--duration-fast) var(--ease-out),
+			transform var(--duration-fast) var(--ease-out);
+	}
+	.thumb:hover:not([disabled]) {
+		border-color: var(--accent);
+		transform: translateY(-1px);
+	}
+	.thumb img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: opacity var(--duration-fast) var(--ease-out);
+	}
+	.thumb.loading img {
+		opacity: 0.35;
+	}
+	.thumb-overlay {
+		position: absolute;
+		inset: 0;
+		display: grid;
+		place-items: center;
+		font-size: var(--text-xs);
+		color: var(--accent);
+		letter-spacing: 0.2em;
+	}
+</style>

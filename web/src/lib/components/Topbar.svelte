@@ -1,54 +1,142 @@
 <script lang="ts">
 	import { scene } from '$lib/scene.svelte';
+	import ModelPicker from './ModelPicker.svelte';
 
 	let conforms = $derived(scene.envelope?.conformance.conforms ?? null);
 	let triples = $derived(scene.envelope?.vson_t ? countTriples(scene.envelope.vson_t) : 0);
 	let latency = $derived(scene.envelope?.extraction?.latency_ms ?? 0);
 
 	function countTriples(turtle: string): number {
-		// Each Turtle statement ends with " .". Conservative count.
 		return (turtle.match(/\s\.\s*\n/g) || []).length;
 	}
 </script>
 
-<header
-	class="flex h-10 select-none items-center justify-between border-b border-(--border-1) bg-(--bg-0) px-4 text-(--fg-3)"
->
-	<div class="flex items-center gap-4">
+<header class="topbar">
+	<div class="topbar-left">
 		<button
-			class="text-(--fg-0) tracking-tight transition-colors hover:text-(--accent)"
+			class="brand"
 			onclick={() => scene.reset()}
-			aria-label="Reset"
+			aria-label={scene.envelope ? 'Reset' : 'vson'}
 		>
-			vson
+			<span class="brand-mark font-mono">v</span>
+			<span class="brand-name">vson</span>
 		</button>
 		{#if scene.envelope}
-			<span class="text-(--fg-4)">·</span>
-			<span class="font-mono text-[12px] tabular text-(--fg-3)"
-				>{scene.envelope.scene_id}</span
-			>
+			<span class="brand-meta font-mono">{scene.envelope.scene_id}</span>
 		{/if}
 	</div>
 
-	<div class="flex items-center gap-4 text-[12px]">
+	<div class="topbar-right">
 		{#if scene.envelope}
-			<span class="flex items-center gap-1.5 tabular text-(--fg-3)">
-				<span
-					class="dot"
-					style:background={conforms ? 'var(--success)' : 'var(--danger)'}
-				></span>
-				{conforms ? 'conforms' : `${scene.envelope.conformance.violations?.length ?? 0} violations`}
+			<span class="stat" title={conforms ? 'SHACL: passes' : 'SHACL: violations present'}>
+				<span class="dot" style:background={conforms ? 'var(--success)' : 'var(--danger)'}></span>
+				<span class="font-mono">
+					{conforms ? 'conforms' : `${scene.envelope.conformance.violations?.length ?? 0} violations`}
+				</span>
 			</span>
-			<span class="text-(--fg-4)">·</span>
-			<span class="font-mono tabular text-(--fg-3)"
-				>{triples} <span class="text-(--fg-4)">triples</span></span
-			>
-			<span class="text-(--fg-4)">·</span>
-			<span class="font-mono tabular text-(--fg-3)"
-				>{(latency / 1000).toFixed(1)}<span class="text-(--fg-4)">s</span></span
-			>
-		{:else}
-			<span class="text-[12px] text-(--fg-4)">drop image · graph out</span>
+			<span class="sep">·</span>
+			<span class="stat font-mono tabular">
+				{triples}<span class="dim">&nbsp;triples</span>
+			</span>
+			<span class="sep">·</span>
+			<span class="stat font-mono tabular">
+				{(latency / 1000).toFixed(1)}<span class="dim">s</span>
+			</span>
+			<span class="sep">·</span>
 		{/if}
+		<ModelPicker />
 	</div>
 </header>
+
+<style>
+	.topbar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		height: 48px;
+		padding: 0 var(--s5);
+		background: color-mix(in srgb, var(--bg-0) 88%, transparent);
+		backdrop-filter: saturate(140%) blur(8px);
+		-webkit-backdrop-filter: saturate(140%) blur(8px);
+		border-bottom: 1px solid var(--border-0);
+		user-select: none;
+	}
+	.topbar-left {
+		display: flex;
+		align-items: center;
+		gap: var(--s3);
+	}
+	.topbar-right {
+		display: flex;
+		align-items: center;
+		gap: var(--s3);
+	}
+	.brand {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--s2);
+		background: transparent;
+		border: 0;
+		cursor: pointer;
+		padding: 0;
+	}
+	.brand-mark {
+		display: grid;
+		place-items: center;
+		width: 18px;
+		height: 18px;
+		border-radius: var(--radius-sm);
+		background: var(--accent);
+		color: var(--accent-fg);
+		font-size: 11px;
+		font-weight: 700;
+	}
+	.brand-name {
+		font-size: var(--text-base);
+		font-weight: 600;
+		color: var(--fg-0);
+		letter-spacing: -0.01em;
+		transition: color var(--duration-fast) var(--ease-out);
+	}
+	.brand:hover .brand-name {
+		color: var(--fg-1);
+	}
+	.brand-meta {
+		padding-left: var(--s3);
+		margin-left: var(--s1);
+		border-left: 1px solid var(--border-1);
+		font-size: var(--text-2xs);
+		color: var(--fg-4);
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+	.stat {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--s2);
+		font-size: var(--text-2xs);
+		color: var(--fg-2);
+	}
+	.stat .dim {
+		color: var(--fg-4);
+	}
+	.dot {
+		display: inline-block;
+		width: 6px;
+		height: 6px;
+		border-radius: 9999px;
+	}
+	.sep {
+		color: var(--border-2);
+		font-size: var(--text-2xs);
+	}
+	@media (max-width: 640px) {
+		.brand-meta {
+			display: none;
+		}
+		.stat:nth-of-type(n + 2),
+		.sep {
+			display: none;
+		}
+	}
+</style>

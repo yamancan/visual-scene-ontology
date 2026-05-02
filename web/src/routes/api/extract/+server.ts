@@ -24,6 +24,7 @@ interface ExtractBody {
 	image_b64: string;
 	mime: 'image/jpeg' | 'image/png';
 	source_uri?: string;
+	model?: string;
 }
 
 function extractPenman(text: string): string | null {
@@ -60,8 +61,10 @@ export const POST: RequestHandler = async ({ request }) => {
 	let inputTokens = 0;
 	let outputTokens = 0;
 
+	const model = body.model && body.model.includes('/') ? body.model : undefined;
 	try {
 		const initial = await chat({
+			model,
 			messages: [
 				{
 					role: 'system',
@@ -107,6 +110,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			: `SHACL violations:\n${conformance!.report}`;
 		try {
 			const repair = await chat({
+				model,
 				messages: [
 					{
 						role: 'system',
@@ -151,7 +155,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		graph: walkPenmanToGraph(penmanText),
 		conformance: { conforms, ...(violations.length ? { violations } : {}) },
 		extraction: {
-			model: DEFAULT_MODEL,
+			model: model ?? DEFAULT_MODEL,
 			prompt_version: 'orchestrator-system@1.0',
 			shacl_retries: retries,
 			latency_ms: Date.now() - t0,

@@ -8,7 +8,7 @@
 
 import { env } from '$env/dynamic/private';
 
-export const DEFAULT_MODEL = env.OPENROUTER_MODEL || 'anthropic/claude-opus-4.6';
+export const DEFAULT_MODEL = env.OPENROUTER_MODEL || 'google/gemini-2.5-flash';
 
 export interface ChatTextBlock {
 	type: 'text';

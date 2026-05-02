@@ -11,7 +11,7 @@
 
 	async function handleFile(file: File) {
 		if (!ACCEPT.includes(file.type)) {
-			dropError = `unsupported format · ${file.type || 'unknown'} · use jpeg or png`;
+			dropError = `unsupported · ${file.type || 'unknown'} · use jpeg or png`;
 			return;
 		}
 		if (file.size > 5 * 1024 * 1024) {
@@ -28,7 +28,7 @@
 			const res = await fetch('/api/extract', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ image_b64: b64, mime })
+				body: JSON.stringify({ image_b64: b64, mime, model: scene.model })
 			});
 			if (!res.ok) {
 				const text = await res.text();
@@ -58,7 +58,7 @@
 	}
 </script>
 
-<div class="flex w-full max-w-[480px] flex-col items-stretch gap-3">
+<div class="zone-wrap">
 	<button
 		type="button"
 		onclick={() => inputEl?.click()}
@@ -68,22 +68,20 @@
 		}}
 		ondragleave={() => (dragOver = false)}
 		ondrop={onDrop}
-		class="group flex h-[280px] w-full flex-col items-center justify-center gap-3 rounded-md border border-dashed transition-all duration-200"
-		class:border-color-border={!dragOver}
-		class:border-color-accent={dragOver}
-		style:border-color={dragOver ? 'var(--accent)' : 'var(--border-1)'}
-		style:background={dragOver ? 'var(--accent-bg)' : 'var(--bg-1)'}
+		class="zone"
+		class:active={dragOver}
+		aria-label="Upload image"
 	>
-		<svg
-			width="32"
-			height="32"
-			viewBox="0 0 32 32"
-			fill="none"
-			class="transition-colors"
-			style:color={dragOver ? 'var(--accent)' : 'var(--fg-4)'}
-			aria-hidden="true"
-		>
-			<rect x="6" y="8" width="20" height="16" rx="1.5" stroke="currentColor" stroke-width="1.2" />
+		<svg width="28" height="28" viewBox="0 0 32 32" fill="none" class="zone-icon" aria-hidden="true">
+			<rect
+				x="6"
+				y="8"
+				width="20"
+				height="16"
+				rx="1.5"
+				stroke="currentColor"
+				stroke-width="1.2"
+			/>
 			<circle cx="12" cy="14" r="1.6" fill="currentColor" />
 			<path
 				d="M9 22 L14 16 L19 21 L23 17 L26 20"
@@ -93,11 +91,9 @@
 				stroke-linejoin="round"
 			/>
 		</svg>
-		<div class="flex flex-col items-center gap-1">
-			<span class="text-(--fg-0) text-[15px] tracking-tight">
-				{dragOver ? 'release to extract' : 'drop an image'}
-			</span>
-			<span class="text-[12px] text-(--fg-4)">jpeg or png · up to 5 MB</span>
+		<div class="zone-copy">
+			<span class="zone-title">{dragOver ? 'release to extract' : 'drop image'}</span>
+			<span class="zone-meta font-mono">jpeg or png · ≤5 MB</span>
 		</div>
 	</button>
 	<input
@@ -108,12 +104,72 @@
 		onchange={onChange}
 	/>
 	{#if dropError}
-		<p
-			class="font-mono px-1 text-[12px]"
-			style:color="var(--danger)"
-			role="alert"
-		>
-			{dropError}
-		</p>
+		<p class="zone-err font-mono" role="alert">{dropError}</p>
 	{/if}
 </div>
+
+<style>
+	.zone-wrap {
+		display: flex;
+		flex-direction: column;
+		gap: var(--s3);
+		width: 100%;
+		max-width: 480px;
+	}
+	.zone {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: var(--s4);
+		height: 240px;
+		padding: var(--s6);
+		background: var(--bg-1);
+		border: 1px dashed var(--border-1);
+		border-radius: var(--radius);
+		cursor: pointer;
+		transition:
+			background var(--duration-normal) var(--ease-out),
+			border-color var(--duration-normal) var(--ease-out),
+			transform var(--duration-normal) var(--ease-out);
+	}
+	.zone:hover {
+		border-color: var(--border-2);
+		background: var(--bg-2);
+	}
+	.zone.active {
+		background: var(--accent-bg);
+		border-color: var(--accent);
+		transform: scale(1.005);
+	}
+	.zone-icon {
+		color: var(--fg-4);
+		transition: color var(--duration-normal) var(--ease-out);
+	}
+	.zone:hover .zone-icon,
+	.zone.active .zone-icon {
+		color: var(--accent);
+	}
+	.zone-copy {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 4px;
+	}
+	.zone-title {
+		font-size: var(--text-base);
+		color: var(--fg-0);
+		letter-spacing: -0.005em;
+	}
+	.zone-meta {
+		font-size: var(--text-2xs);
+		color: var(--fg-4);
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+	.zone-err {
+		padding: 0 var(--s2);
+		font-size: var(--text-2xs);
+		color: var(--danger);
+	}
+</style>
