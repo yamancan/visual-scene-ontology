@@ -86,6 +86,25 @@ export interface ParsedViolation {
 	severity?: 'Violation' | 'Warning' | 'Info';
 }
 
+// Strip pyshacl's IRI/blank-node decoration down to the bare local name so
+// the UI can match it against graph node ids. Examples seen in the wild:
+//   "<http://vson.dev/scene/2026-05-02#sf1>"  → "sf1"
+//   "vson:sf1"                                 → "sf1"
+//   "_:b0"                                     → "b0"
+//   "sf1"                                      → "sf1"
+export function localName(raw: string): string {
+	let s = raw.trim();
+	if (s.startsWith('<') && s.endsWith('>')) s = s.slice(1, -1);
+	const hash = s.lastIndexOf('#');
+	if (hash >= 0) s = s.slice(hash + 1);
+	const slash = s.lastIndexOf('/');
+	if (slash >= 0) s = s.slice(slash + 1);
+	const colon = s.lastIndexOf(':');
+	if (colon >= 0) s = s.slice(colon + 1);
+	if (s.startsWith('_:')) s = s.slice(2);
+	return s;
+}
+
 export function parseViolationReport(report: string): ParsedViolation[] {
 	const out: ParsedViolation[] = [];
 	const blocks = report.split(/Constraint (?:Violation|Warning) in /);
@@ -93,8 +112,10 @@ export function parseViolationReport(report: string): ParsedViolation[] {
 		const b = blocks[i];
 		const shape = (b.match(/^([A-Za-z]+ConstraintComponent)/) || [, 'unknown'])[1];
 		const message = (b.match(/Message:\s*(.+)/) || [, ''])[1].trim();
-		const focus_node = (b.match(/Focus Node:\s*(.+)/) || [, ''])[1].trim() || undefined;
-		const result_path = (b.match(/Result Path:\s*(.+)/) || [, ''])[1].trim() || undefined;
+		const fnRaw = (b.match(/Focus Node:\s*(.+)/) || [, ''])[1].trim();
+		const focus_node = fnRaw ? localName(fnRaw) : undefined;
+		const rpRaw = (b.match(/Result Path:\s*(.+)/) || [, ''])[1].trim();
+		const result_path = rpRaw ? localName(rpRaw) : undefined;
 		const severityRaw = (b.match(/Severity:\s*sh:(\w+)/) || [, ''])[1];
 		const severity = severityRaw
 			? ((severityRaw[0].toUpperCase() + severityRaw.slice(1)) as

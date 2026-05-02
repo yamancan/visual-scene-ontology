@@ -25,18 +25,29 @@
 			</div>
 		</section>
 
-		<button
-			type="button"
-			class="rail-toggle font-mono"
-			onclick={() => (railOpen = !railOpen)}
-			aria-label={railOpen ? 'Hide right rail' : 'Show right rail'}
-			title={railOpen ? 'Hide rail' : 'Show rail'}
-		>
-			{railOpen ? '›' : '‹'}
-		</button>
-
 		<aside class="rail" aria-hidden={!railOpen}>
-			<TabsRail />
+			<button
+				type="button"
+				class="rail-toggle"
+				onclick={() => (railOpen = !railOpen)}
+				aria-label={railOpen ? 'Hide right rail' : 'Show right rail'}
+				aria-expanded={railOpen}
+				title={railOpen ? 'Hide rail' : 'Show rail'}
+			>
+				<svg width="10" height="14" viewBox="0 0 10 14" aria-hidden="true">
+					<path
+						d={railOpen ? 'M3 2 L7 7 L3 12' : 'M7 2 L3 7 L7 12'}
+						stroke="currentColor"
+						stroke-width="1.5"
+						fill="none"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					/>
+				</svg>
+			</button>
+			<div class="rail-inner">
+				<TabsRail />
+			</div>
 		</aside>
 	</main>
 
@@ -55,12 +66,12 @@
 	}
 	.body {
 		display: grid;
-		grid-template-columns: minmax(0, 1.4fr) 0 minmax(360px, 0.9fr);
+		grid-template-columns: minmax(0, 1.4fr) minmax(360px, 0.9fr);
 		min-height: 0;
 		position: relative;
 	}
 	.body.rail-collapsed {
-		grid-template-columns: minmax(0, 1fr) 0 0;
+		grid-template-columns: minmax(0, 1fr) 0;
 	}
 	.graph {
 		display: flex;
@@ -93,19 +104,28 @@
 		position: relative;
 	}
 	.rail {
+		position: relative;
+		min-height: 0;
+		min-width: 0;
+		overflow: visible;
+		display: flex;
+		flex-direction: column;
+	}
+	.rail-inner {
+		flex: 1;
 		min-height: 0;
 		min-width: 0;
 		overflow: hidden;
 		transition: opacity var(--duration-fast) var(--ease-out);
 	}
-	.body.rail-collapsed .rail {
+	.body.rail-collapsed .rail-inner {
 		opacity: 0;
 		pointer-events: none;
 	}
 	.rail-toggle {
 		position: absolute;
 		top: 50%;
-		right: calc(min(360px, 38%) - 12px);
+		left: -12px;
 		transform: translateY(-50%);
 		z-index: 5;
 		width: 22px;
@@ -117,13 +137,12 @@
 		border: 1px solid var(--border-1);
 		border-radius: var(--radius-sm);
 		cursor: pointer;
-		font-size: 14px;
-		line-height: 1;
 		transition:
 			color var(--duration-fast) var(--ease-out),
 			background var(--duration-fast) var(--ease-out);
 	}
 	.body.rail-collapsed .rail-toggle {
+		left: auto;
 		right: 8px;
 	}
 	.rail-toggle:hover {
@@ -138,25 +157,26 @@
 	@media (max-width: 900px) {
 		.body {
 			grid-template-columns: 1fr;
-			grid-template-rows: minmax(40vh, 1fr) auto minmax(30vh, 1fr);
+			grid-template-rows: minmax(40vh, 1fr) minmax(30vh, 1fr);
 		}
 		.body.rail-collapsed {
 			grid-template-columns: 1fr;
-			grid-template-rows: 1fr auto 0;
+			grid-template-rows: 1fr 0;
 		}
 		.graph {
 			border-right: 0;
 			border-bottom: 1px solid var(--border-1);
 		}
 		.rail-toggle {
-			top: 40vh;
-			right: 50%;
-			transform: translateX(50%) rotate(90deg);
+			top: -12px;
+			left: 50%;
+			transform: translateX(-50%) rotate(90deg);
 		}
 		.body.rail-collapsed .rail-toggle {
 			top: auto;
+			left: 50%;
+			right: auto;
 			bottom: 8px;
-			right: 50%;
 		}
 	}
 </style>

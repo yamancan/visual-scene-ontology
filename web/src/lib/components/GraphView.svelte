@@ -156,7 +156,14 @@
 			}
 		});
 		ro.observe(svgEl);
-		return () => ro.disconnect();
+		// Wheel must be non-passive so we can preventDefault page scroll while
+		// zooming. Svelte's `onwheel=` would attach as passive by default in
+		// some browsers; manual addEventListener guarantees the right mode.
+		svgEl.addEventListener('wheel', onWheel, { passive: false });
+		return () => {
+			ro.disconnect();
+			svgEl?.removeEventListener('wheel', onWheel);
+		};
 	});
 
 	onDestroy(() => {
@@ -277,7 +284,6 @@
 		class="canvas"
 		role="img"
 		aria-label="Scene graph"
-		onwheel={onWheel}
 		onpointerdown={onPointerDown}
 		onpointermove={onPointerMove}
 		onpointerup={onPointerUp}
@@ -394,18 +400,34 @@
 		<button
 			type="button"
 			onclick={() => zoomBy(1.25)}
-			title="Zoom in (or scroll up)">+</button
+			title="Zoom in (or scroll up)"
+			aria-label="zoom in"
 		>
+			<svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true">
+				<path d="M6 2 V10 M2 6 H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+			</svg>
+		</button>
 		<button
 			type="button"
 			onclick={() => zoomBy(0.8)}
-			title="Zoom out (or scroll down)">−</button
+			title="Zoom out (or scroll down)"
+			aria-label="zoom out"
 		>
-		<button
-			type="button"
-			onclick={resetView}
-			title="Reset view">⌖</button
-		>
+			<svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true">
+				<path d="M2 6 H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+			</svg>
+		</button>
+		<button type="button" onclick={resetView} title="Reset view" aria-label="reset view">
+			<svg width="12" height="12" viewBox="0 0 14 14" aria-hidden="true">
+				<circle cx="7" cy="7" r="3.2" stroke="currentColor" stroke-width="1.4" fill="none" />
+				<path
+					d="M7 1 V3 M7 11 V13 M1 7 H3 M11 7 H13"
+					stroke="currentColor"
+					stroke-width="1.4"
+					stroke-linecap="round"
+				/>
+			</svg>
+		</button>
 		<span class="zoom-readout font-mono">{Math.round(zoom * 100)}%</span>
 	</div>
 

@@ -10,6 +10,12 @@
 		const i = s.indexOf(':');
 		return i >= 0 ? s.slice(i + 1) : s;
 	}
+
+	function jumpToNode(id: string | undefined) {
+		if (!id) return;
+		scene.setSelected(id);
+		scene.setRailTab('penman');
+	}
 </script>
 
 <section class="wrap">
@@ -41,8 +47,8 @@
 							{#if v.focus_node}
 								<button
 									class="viol-focus font-mono"
-									onclick={() => scene.setSelected(v.focus_node ?? null)}
-									title="Highlight in graph"
+									onclick={() => jumpToNode(v.focus_node)}
+									title="Jump to this node in the graph + Penman"
 								>
 									{v.focus_node}
 								</button>
