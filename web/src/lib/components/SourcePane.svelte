@@ -1,8 +1,10 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { scene } from '$lib/scene.svelte';
 	import { copyText } from '$lib/utils';
 
 	let copied = $state(false);
+	let containerEl: HTMLDivElement | undefined = $state();
 	let lines = $derived((scene.envelope?.vson_p ?? '').split('\n'));
 
 	async function doCopy() {
@@ -13,28 +15,24 @@
 		}
 	}
 
-	// Single-pass tokenizer. Each match emits an HTML segment in order; the
-	// gaps between matches are HTML-escaped and emitted verbatim. Avoids the
-	// regex-stacking bug where a later .replace() matched substrings inside
-	// an earlier .replace()'s injected <span> tags.
+	// Single-pass tokenizer. Captures groups in order: comment, string, role,
+	// "/ Concept", and a bare lowercase id (for var declarations + reentrancy).
 	const TOKEN_RE = new RegExp(
 		[
 			'(#[^\\n]*)', // 1: comment
 			'("(?:[^"\\\\]|\\\\.)*")', // 2: string
 			'(:[A-Za-z_][\\w-]*)', // 3: role
-			'(\\/\\s+)([A-Z][\\w-]*)' // 4+5: "/ Concept"
+			'(\\/\\s+)([A-Z][\\w-]*)', // 4+5: / Concept
+			'\\b([a-z][\\w-]*)\\b' // 6: var / bareword
 		].join('|'),
 		'g'
 	);
 
 	function escapeHtml(s: string): string {
-		return s
-			.replace(/&/g, '&amp;')
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;');
+		return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 	}
 
-	function highlight(line: string): string {
+	function highlight(line: string, sel: string | null): string {
 		let out = '';
 		let last = 0;
 		for (const m of line.matchAll(TOKEN_RE)) {
@@ -45,41 +43,168 @@
 			else if (m[3]) out += `<span class="src-rl">${escapeHtml(m[3])}</span>`;
 			else if (m[4] && m[5])
 				out += `${escapeHtml(m[4])}<span class="src-cn">${escapeHtml(m[5])}</span>`;
+			else if (m[6]) {
+				const v = m[6];
+				const cls = sel && v === sel ? 'src-vr src-vr-sel' : 'src-vr';
+				out += `<span class="${cls}">${escapeHtml(v)}</span>`;
+			}
 			last = idx + m[0].length;
 		}
 		if (last < line.length) out += escapeHtml(line.slice(last));
 		return out;
 	}
+
+	// Highlight whole line if it declares the selected var, e.g. matches
+	// "(<sel> /" anywhere on the line (the var declaration).
+	function declaresSelected(line: string, sel: string | null): boolean {
+		if (!sel) return false;
+		const re = new RegExp(`\\(\\s*${sel.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')}\\s*\\/`);
+		return re.test(line);
+	}
+
+	// On selection change, scroll the declaring line into view.
+	$effect(() => {
+		const sel = scene.selectedNodeId;
+		if (!sel || !containerEl) return;
+		tick().then(() => {
+			const target = containerEl?.querySelector<HTMLElement>('.ln.declares');
+			if (target)
+				target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+		});
+	});
 </script>
 
-<section class="flex h-full flex-col bg-(--bg-1)">
-	<header class="flex h-7 items-center justify-between border-b border-(--border-1) px-3">
-		<span class="font-mono text-[10px] uppercase tracking-wider text-(--fg-4)">vson-p</span>
-		<button
-			class="font-mono text-[10px] uppercase tracking-wider text-(--fg-4) transition-colors hover:text-(--accent)"
-			onclick={doCopy}
-		>
-			{copied ? 'copied' : 'copy'}
+<section class="wrap">
+	<header class="head">
+		<span class="head-label font-mono">{lines.length} lines</span>
+		{#if scene.selectedNodeId}
+			<button
+				class="clear-sel"
+				onclick={() => scene.setSelected(null)}
+				title="Clear selection"
+			>
+				<span class="font-mono">{scene.selectedNodeId}</span>
+				<svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true">
+					<path d="M2 2 L8 8 M8 2 L2 8" stroke="currentColor" stroke-width="1.4" />
+				</svg>
+			</button>
+		{/if}
+		<button class="copy" onclick={doCopy}>
+			{copied ? 'copied' : 'copy penman'}
 		</button>
 	</header>
-
-	<div class="flex-1 overflow-auto">
-		<pre class="font-mono text-[12px] leading-[1.55]">{#each lines as line, i (i)}<div
-					class="flex items-start"
-					><span
-						class="select-none px-3 text-right text-(--fg-4) tabular"
-						style:min-width="3rem">{i + 1}</span
-					><code class="whitespace-pre pr-4">{@html highlight(line) || ' '}</code></div
+	<div bind:this={containerEl} class="body">
+		<pre class="code">{#each lines as line, i (i)}{@const decl = declaresSelected(line, scene.selectedNodeId)}<div
+					class="ln"
+					class:declares={decl}
+					><span class="lno">{i + 1}</span><code class="ltxt"
+						>{@html highlight(line, scene.selectedNodeId) || ' '}</code
+					></div
 				>{/each}</pre>
 	</div>
 </section>
 
 <style>
+	.wrap {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		min-height: 0;
+	}
+	.head {
+		display: flex;
+		align-items: center;
+		gap: var(--s2);
+		padding: var(--s2) var(--s3);
+		border-bottom: 1px solid var(--border-1);
+		flex-shrink: 0;
+	}
+	.head-label {
+		font-size: 10px;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--fg-4);
+	}
+	.clear-sel {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		margin-left: auto;
+		padding: 2px 6px;
+		font-size: 10px;
+		color: var(--accent);
+		background: var(--accent-bg, color-mix(in srgb, var(--accent) 12%, transparent));
+		border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border-1));
+		border-radius: var(--radius-full);
+		cursor: pointer;
+	}
+	.clear-sel:hover {
+		background: color-mix(in srgb, var(--accent) 22%, transparent);
+	}
+	.copy {
+		font-family: var(--font-mono);
+		font-size: 10px;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--fg-4);
+		background: transparent;
+		border: 0;
+		cursor: pointer;
+		padding: 2px 6px;
+		border-radius: var(--radius-sm);
+		transition: color var(--duration-fast) var(--ease-out);
+	}
+	.copy:not(:disabled):hover {
+		color: var(--accent);
+	}
+	.head .copy {
+		margin-left: auto;
+	}
+	.head:has(.clear-sel) .copy {
+		margin-left: 0;
+	}
+	.body {
+		flex: 1;
+		overflow: auto;
+		min-height: 0;
+	}
+	.code {
+		margin: 0;
+		padding: var(--s2) 0;
+		font-family: var(--font-mono);
+		font-size: 12px;
+		line-height: 1.6;
+	}
+	.ln {
+		display: flex;
+		align-items: flex-start;
+		padding: 0 0;
+		transition: background var(--duration-fast) var(--ease-out);
+	}
+	.ln.declares {
+		background: color-mix(in srgb, var(--accent) 10%, transparent);
+		box-shadow: inset 2px 0 0 var(--accent);
+	}
+	.lno {
+		flex-shrink: 0;
+		min-width: 2.6rem;
+		padding: 0 var(--s3);
+		text-align: right;
+		color: var(--fg-4);
+		user-select: none;
+		font-variant-numeric: tabular-nums;
+	}
+	.ltxt {
+		white-space: pre;
+		padding-right: var(--s4);
+		color: var(--fg-1);
+	}
 	:global(.src-rl) {
 		color: var(--node-quality);
 	}
 	:global(.src-cn) {
 		color: var(--accent);
+		font-weight: 500;
 	}
 	:global(.src-st) {
 		color: var(--fg-3);
@@ -87,5 +212,14 @@
 	:global(.src-cm) {
 		color: var(--fg-4);
 		font-style: italic;
+	}
+	:global(.src-vr) {
+		color: var(--fg-2);
+	}
+	:global(.src-vr-sel) {
+		color: var(--accent);
+		background: color-mix(in srgb, var(--accent) 18%, transparent);
+		border-radius: 2px;
+		padding: 0 2px;
 	}
 </style>

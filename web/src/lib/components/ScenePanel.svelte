@@ -1,33 +1,162 @@
 <script lang="ts">
 	import GraphView from './GraphView.svelte';
-	import SourcePane from './SourcePane.svelte';
-	import ConformancePane from './ConformancePane.svelte';
+	import TabsRail from './TabsRail.svelte';
+	import SceneHeader from './SceneHeader.svelte';
 	import ExportRow from './ExportRow.svelte';
 	import { scene } from '$lib/scene.svelte';
+
+	let railOpen = $state(true);
+	let nodeCount = $derived(scene.envelope?.graph?.nodes.length ?? 0);
 </script>
 
-<div class="grid h-full grid-cols-3 gap-px bg-(--border-1)">
-	<div class="relative flex flex-col bg-(--bg-0)">
-		<header class="flex h-7 items-center justify-between border-b border-(--border-1) px-3">
-			<span class="font-mono text-[10px] uppercase tracking-wider text-(--fg-4)"
-				>graph</span
-			>
-			{#if scene.imagePreview}
-				<img
-					src={scene.imagePreview}
-					alt="source"
-					class="h-5 w-5 rounded object-cover ring-1 ring-(--border-1)"
-				/>
-			{/if}
-		</header>
-		<div class="flex-1 overflow-hidden">
-			<GraphView />
-		</div>
-		<footer class="border-t border-(--border-1)">
-			<ExportRow />
-		</footer>
-	</div>
+<div class="panel">
+	<SceneHeader />
 
-	<SourcePane />
-	<ConformancePane />
+	<main class="body" class:rail-collapsed={!railOpen}>
+		<section class="graph">
+			<header class="bar">
+				<span class="font-mono bar-label">graph</span>
+				<span class="bar-meta font-mono">
+					{nodeCount} nodes · drag · scroll = zoom
+				</span>
+			</header>
+			<div class="graph-host">
+				<GraphView />
+			</div>
+		</section>
+
+		<button
+			type="button"
+			class="rail-toggle font-mono"
+			onclick={() => (railOpen = !railOpen)}
+			aria-label={railOpen ? 'Hide right rail' : 'Show right rail'}
+			title={railOpen ? 'Hide rail' : 'Show rail'}
+		>
+			{railOpen ? '›' : '‹'}
+		</button>
+
+		<aside class="rail" aria-hidden={!railOpen}>
+			<TabsRail />
+		</aside>
+	</main>
+
+	<footer class="foot">
+		<ExportRow />
+	</footer>
 </div>
+
+<style>
+	.panel {
+		display: grid;
+		grid-template-rows: auto 1fr auto;
+		height: 100%;
+		min-height: 0;
+		background: var(--bg-0);
+	}
+	.body {
+		display: grid;
+		grid-template-columns: minmax(0, 1.4fr) 0 minmax(360px, 0.9fr);
+		min-height: 0;
+		position: relative;
+	}
+	.body.rail-collapsed {
+		grid-template-columns: minmax(0, 1fr) 0 0;
+	}
+	.graph {
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+		min-width: 0;
+		border-right: 1px solid var(--border-1);
+	}
+	.bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: var(--s2) var(--s3);
+		border-bottom: 1px solid var(--border-1);
+		flex-shrink: 0;
+	}
+	.bar-label {
+		font-size: 10px;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--fg-4);
+	}
+	.bar-meta {
+		font-size: 10px;
+		color: var(--fg-4);
+	}
+	.graph-host {
+		flex: 1;
+		min-height: 0;
+		position: relative;
+	}
+	.rail {
+		min-height: 0;
+		min-width: 0;
+		overflow: hidden;
+		transition: opacity var(--duration-fast) var(--ease-out);
+	}
+	.body.rail-collapsed .rail {
+		opacity: 0;
+		pointer-events: none;
+	}
+	.rail-toggle {
+		position: absolute;
+		top: 50%;
+		right: calc(min(360px, 38%) - 12px);
+		transform: translateY(-50%);
+		z-index: 5;
+		width: 22px;
+		height: 44px;
+		display: grid;
+		place-items: center;
+		background: var(--bg-1);
+		color: var(--fg-3);
+		border: 1px solid var(--border-1);
+		border-radius: var(--radius-sm);
+		cursor: pointer;
+		font-size: 14px;
+		line-height: 1;
+		transition:
+			color var(--duration-fast) var(--ease-out),
+			background var(--duration-fast) var(--ease-out);
+	}
+	.body.rail-collapsed .rail-toggle {
+		right: 8px;
+	}
+	.rail-toggle:hover {
+		color: var(--accent);
+		background: var(--bg-2);
+	}
+	.foot {
+		border-top: 1px solid var(--border-1);
+		background: var(--bg-1);
+		flex-shrink: 0;
+	}
+	@media (max-width: 900px) {
+		.body {
+			grid-template-columns: 1fr;
+			grid-template-rows: minmax(40vh, 1fr) auto minmax(30vh, 1fr);
+		}
+		.body.rail-collapsed {
+			grid-template-columns: 1fr;
+			grid-template-rows: 1fr auto 0;
+		}
+		.graph {
+			border-right: 0;
+			border-bottom: 1px solid var(--border-1);
+		}
+		.rail-toggle {
+			top: 40vh;
+			right: 50%;
+			transform: translateX(50%) rotate(90deg);
+		}
+		.body.rail-collapsed .rail-toggle {
+			top: auto;
+			bottom: 8px;
+			right: 50%;
+		}
+	}
+</style>

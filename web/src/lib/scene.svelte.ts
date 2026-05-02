@@ -14,6 +14,8 @@ function readStoredModel(): string {
 	}
 }
 
+export type RailTab = 'penman' | 'turtle' | 'conformance';
+
 function createSceneStore() {
 	let envelope = $state<VsonEnvelope | null>(null);
 	let status = $state<ExtractStatus>('idle');
@@ -21,6 +23,7 @@ function createSceneStore() {
 	let selectedNodeId = $state<string | null>(null);
 	let imagePreview = $state<string | null>(null);
 	let model = $state<string>(readStoredModel());
+	let railTab = $state<RailTab>('penman');
 
 	return {
 		get envelope() {
@@ -40,6 +43,9 @@ function createSceneStore() {
 		},
 		get model() {
 			return model;
+		},
+		get railTab() {
+			return railTab;
 		},
 		setEnvelope(e: VsonEnvelope | null) {
 			envelope = e;
@@ -65,12 +71,16 @@ function createSceneStore() {
 				/* ignore */
 			}
 		},
+		setRailTab(t: RailTab) {
+			railTab = t;
+		},
 		reset() {
 			envelope = null;
 			status = 'idle';
 			errorMsg = null;
 			selectedNodeId = null;
 			imagePreview = null;
+			railTab = 'penman';
 		}
 	};
 }

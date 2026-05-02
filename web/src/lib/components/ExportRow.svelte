@@ -88,7 +88,7 @@
 		display: flex;
 		align-items: center;
 		gap: var(--s3);
-		padding: var(--s2) var(--s3);
+		padding: var(--s2) var(--s5);
 		overflow-x: auto;
 	}
 	.label {

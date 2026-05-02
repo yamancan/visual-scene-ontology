@@ -199,6 +199,7 @@
 	--node-quality: var(--fg-2);
 	--node-perdurant: var(--warning);
 	--node-spatialfact: var(--success);
+	--node-annotation: color-mix(in srgb, var(--fg-3) 60%, var(--bg-2));
 }
 
 @media (prefers-reduced-motion: reduce) {
