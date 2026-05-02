@@ -47,13 +47,13 @@
 					imageDataUrl(e.path, e.mime),
 					fetch(e.envelope_path)
 				]);
-				if (envRes.ok) {
-					scene.setImagePreview(previewUrl);
-					scene.setEnvelope((await envRes.json()) as VsonEnvelope);
-					scene.setStatus('idle');
-					return;
+				if (!envRes.ok) {
+					throw new Error(`cached envelope missing · ${envRes.status}`);
 				}
-				// Fallback through to live extraction if the envelope is missing.
+				scene.setImagePreview(previewUrl);
+				scene.setEnvelope((await envRes.json()) as VsonEnvelope);
+				scene.setStatus('idle');
+				return;
 			}
 
 			const img = await fetch(e.path);
@@ -99,13 +99,10 @@
 					disabled={loading !== null}
 					aria-label={entry.label ?? entry.path}
 					title={entry.envelope_path
-						? `${entry.label ?? entry.path} · cached`
+						? `${entry.label ?? entry.path} · prebuilt`
 						: (entry.label ?? entry.path)}
 				>
 					<img src={entry.path} alt="" loading="lazy" />
-					{#if entry.envelope_path}
-						<span class="thumb-badge font-mono" aria-hidden="true">cached</span>
-					{/if}
 					{#if loading === entry.path}
 						<div class="thumb-overlay font-mono">•••</div>
 					{/if}
@@ -160,20 +157,6 @@
 	}
 	.thumb.loading img {
 		opacity: 0.35;
-	}
-	.thumb-badge {
-		position: absolute;
-		bottom: 4px;
-		right: 4px;
-		padding: 1px 5px;
-		font-size: 9px;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		color: var(--fg-1);
-		background: color-mix(in srgb, var(--bg-0) 70%, transparent);
-		border: 1px solid var(--border-1);
-		border-radius: var(--radius-sm);
-		backdrop-filter: blur(4px);
 	}
 	.thumb-overlay {
 		position: absolute;

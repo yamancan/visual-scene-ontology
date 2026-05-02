@@ -10,11 +10,15 @@
 
 import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const STATIC_DIR = resolve(__dirname, '../static');
+const DEMOS_DIR = resolve(__dirname, '../static/demos');
 const ENVELOPES_DIR = resolve(__dirname, '../static/demos/envelopes');
+const MANIFEST = resolve(DEMOS_DIR, 'manifest.json');
 
 interface Envelope {
 	scene_id: string;
@@ -25,6 +29,13 @@ interface Envelope {
 	graph?: { nodes: unknown[]; edges: unknown[] };
 	source?: { kind: string; sha256?: string };
 	extraction?: { model?: string; prompt_version?: string };
+}
+
+interface Manifest {
+	entries: Array<{
+		path: string;
+		envelope_path?: string;
+	}>;
 }
 
 function envelopeFiles(): string[] {
@@ -40,6 +51,19 @@ describe('cached demo envelopes', () => {
 
 	it('directory is well-formed (or absent)', () => {
 		expect(Array.isArray(files)).toBe(true);
+	});
+
+	it('manifest demos all point at baked envelopes', () => {
+		const manifest = JSON.parse(readFileSync(MANIFEST, 'utf8')) as Manifest;
+		expect(manifest.entries.length).toBeGreaterThan(0);
+
+		for (const entry of manifest.entries) {
+			expect(entry.envelope_path, `${entry.path} missing envelope_path`).toBeTruthy();
+			expect(
+				existsSync(resolve(STATIC_DIR, entry.envelope_path!.replace(/^\//, ''))),
+				`${entry.envelope_path} missing`
+			).toBe(true);
+		}
 	});
 
 	if (files.length === 0) {
@@ -93,6 +117,15 @@ describe('cached demo envelopes', () => {
 		for (const [sha, file] of Object.entries(idx)) {
 			expect(sha).toMatch(/^[a-f0-9]{64}$/);
 			expect(existsSync(resolve(ENVELOPES_DIR, file))).toBe(true);
+		}
+
+		const manifest = JSON.parse(readFileSync(MANIFEST, 'utf8')) as Manifest;
+		for (const entry of manifest.entries) {
+			const image = readFileSync(resolve(STATIC_DIR, entry.path.replace(/^\//, '')));
+			const sha = createHash('sha256').update(image).digest('hex');
+			expect(idx[sha], `${entry.path} missing from index.json`).toBe(
+				entry.envelope_path!.split('/').at(-1)
+			);
 		}
 	});
 });

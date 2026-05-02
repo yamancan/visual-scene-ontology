@@ -1,0 +1,255 @@
+{
+  "scene_id": "demo_kitchen_9t8G9Q7cpHNz",
+  "version": "1.0",
+  "source": {
+    "kind": "image",
+    "sha256": "4b73c6163fb862eca7e0045234386a6098d3e0377d9fc8fc00381d6101f50a5b",
+    "uri": "/demos/kitchen.jpg"
+  },
+  "vson_p": "(c / Composition\n   :framedBy (cam / CameraView :angle eye_level :focalLength 35mm :framing medium_shot)\n   :framedBy (ctx / SceneContext :venue kitchen :atmosphere domestic :timeOfDay day)\n   :framedBy (style / VisualStyle :aesthetic photographic :palette warm :medium digital)\n   :viewedBy cam\n   :depicts (counter / PhysicalObject :class Counter\n               :individuation Generic :animacy Inert :countability Count\n               :bbox2d \"0.00,0.55,1.00,0.45\"\n               :hasQuality (cq1 / Quality :dimension Material :value wood))\n   :depicts (kettle / PhysicalObject :class Kettle\n               :individuation Generic :animacy Inert :countability Count\n               :affordance Container :affordance Holdable\n               :bbox2d \"0.18,0.32,0.20,0.38\"\n               :hasQuality (kq1 / Quality :dimension Material :value metal))\n   :depicts (cup / PhysicalObject :class Cup\n               :individuation Generic :animacy Inert :countability Count\n               :affordance Container :affordance Holdable\n               :bbox2d \"0.52,0.50,0.10,0.18\"\n               :hasQuality (cq2 / Quality :dimension Material :value ceramic)\n               :hasQuality (cq3 / Quality :dimension Color :value white))\n   :depicts (bowl / PhysicalObject :class Bowl\n               :individuation Generic :animacy Inert :countability Count\n               :affordance Container\n               :bbox2d \"0.70,0.58,0.14,0.16\"\n               :hasQuality (bq1 / Quality :dimension Material :value ceramic))\n   :depicts (sf1 / SpatialFact :figure cup :ground counter :rcc EC :directional above :viewer cam)\n   :depicts (sf2 / SpatialFact :figure kettle :ground counter :rcc EC :directional above :viewer cam)\n   :depicts (sf3 / SpatialFact :figure bowl :ground counter :rcc EC :directional above :viewer cam))",
+  "vson_t": "@prefix vso:   <https://vson.dev/v1/ontology#> .\n@prefix allen: <https://vson.dev/v1/allen#> .\n@prefix rcc:   <https://vson.dev/v1/rcc8#> .\n@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n@prefix :      <https://example.org/scenes/anonymous#> .\n\n:c a <https://vson.dev/v1/ontology#Composition> .\n:cam a <https://vson.dev/v1/ontology#CameraView> .\n:cam <https://vson.dev/v1/ontology#angle> \"eye_level\" .\n:cam <https://vson.dev/v1/ontology#focalLength> \"35mm\" .\n:cam <https://vson.dev/v1/ontology#framing> \"medium_shot\" .\n:c <https://vson.dev/v1/ontology#framedBy> :cam .\n:ctx a <https://vson.dev/v1/ontology#SceneContext> .\n:ctx <https://vson.dev/v1/ontology#venue> \"kitchen\" .\n:ctx <https://vson.dev/v1/ontology#atmosphere> \"domestic\" .\n:ctx <https://vson.dev/v1/ontology#timeOfDay> \"day\" .\n:c <https://vson.dev/v1/ontology#framedBy> :ctx .\n:style a <https://vson.dev/v1/ontology#VisualStyle> .\n:style <https://vson.dev/v1/ontology#aesthetic> \"photographic\" .\n:style <https://vson.dev/v1/ontology#palette> \"warm\" .\n:style <https://vson.dev/v1/ontology#medium> \"digital\" .\n:c <https://vson.dev/v1/ontology#framedBy> :style .\n:c <https://vson.dev/v1/ontology#viewedBy> :cam .\n:counter a <https://vson.dev/v1/ontology#PhysicalObject> .\n:counter <https://vson.dev/v1/ontology#class> :Counter .\n:counter <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Generic> .\n:counter <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Inert> .\n:counter <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Count> .\n:counter <https://vson.dev/v1/ontology#bbox2d> \"0.00,0.55,1.00,0.45\" .\n:cq1 a <https://vson.dev/v1/ontology#Quality> .\n:cq1 <https://vson.dev/v1/ontology#dimension> <https://vson.dev/v1/ontology#Material> .\n:cq1 <https://vson.dev/v1/ontology#value> :wood .\n:counter <https://vson.dev/v1/ontology#hasQuality> :cq1 .\n:c <https://vson.dev/v1/ontology#depicts> :counter .\n:kettle a <https://vson.dev/v1/ontology#PhysicalObject> .\n:kettle <https://vson.dev/v1/ontology#class> :Kettle .\n:kettle <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Generic> .\n:kettle <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Inert> .\n:kettle <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Count> .\n:kettle <https://vson.dev/v1/ontology#affordance> <https://vson.dev/v1/ontology#Container> .\n:kettle <https://vson.dev/v1/ontology#affordance> <https://vson.dev/v1/ontology#Holdable> .\n:kettle <https://vson.dev/v1/ontology#bbox2d> \"0.18,0.32,0.20,0.38\" .\n:kq1 a <https://vson.dev/v1/ontology#Quality> .\n:kq1 <https://vson.dev/v1/ontology#dimension> <https://vson.dev/v1/ontology#Material> .\n:kq1 <https://vson.dev/v1/ontology#value> :metal .\n:kettle <https://vson.dev/v1/ontology#hasQuality> :kq1 .\n:c <https://vson.dev/v1/ontology#depicts> :kettle .\n:cup a <https://vson.dev/v1/ontology#PhysicalObject> .\n:cup <https://vson.dev/v1/ontology#class> :Cup .\n:cup <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Generic> .\n:cup <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Inert> .\n:cup <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Count> .\n:cup <https://vson.dev/v1/ontology#affordance> <https://vson.dev/v1/ontology#Container> .\n:cup <https://vson.dev/v1/ontology#affordance> <https://vson.dev/v1/ontology#Holdable> .\n:cup <https://vson.dev/v1/ontology#bbox2d> \"0.52,0.50,0.10,0.18\" .\n:cq2 a <https://vson.dev/v1/ontology#Quality> .\n:cq2 <https://vson.dev/v1/ontology#dimension> <https://vson.dev/v1/ontology#Material> .\n:cq2 <https://vson.dev/v1/ontology#value> :ceramic .\n:cup <https://vson.dev/v1/ontology#hasQuality> :cq2 .\n:cq3 a <https://vson.dev/v1/ontology#Quality> .\n:cq3 <https://vson.dev/v1/ontology#dimension> <https://vson.dev/v1/ontology#Color> .\n:cq3 <https://vson.dev/v1/ontology#value> :white .\n:cup <https://vson.dev/v1/ontology#hasQuality> :cq3 .\n:c <https://vson.dev/v1/ontology#depicts> :cup .\n:bowl a <https://vson.dev/v1/ontology#PhysicalObject> .\n:bowl <https://vson.dev/v1/ontology#class> :Bowl .\n:bowl <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Generic> .\n:bowl <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Inert> .\n:bowl <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Count> .\n:bowl <https://vson.dev/v1/ontology#affordance> <https://vson.dev/v1/ontology#Container> .\n:bowl <https://vson.dev/v1/ontology#bbox2d> \"0.70,0.58,0.14,0.16\" .\n:bq1 a <https://vson.dev/v1/ontology#Quality> .\n:bq1 <https://vson.dev/v1/ontology#dimension> <https://vson.dev/v1/ontology#Material> .\n:bq1 <https://vson.dev/v1/ontology#value> :ceramic .\n:bowl <https://vson.dev/v1/ontology#hasQuality> :bq1 .\n:c <https://vson.dev/v1/ontology#depicts> :bowl .\n:sf1 a <https://vson.dev/v1/ontology#SpatialFact> .\n:sf1 <https://vson.dev/v1/ontology#figure> :cup .\n:sf1 <https://vson.dev/v1/ontology#ground> :counter .\n:sf1 <https://vson.dev/v1/ontology#rcc> <https://vson.dev/v1/rcc8#EC> .\n:sf1 <https://vson.dev/v1/ontology#directional> <https://vson.dev/v1/ontology#above> .\n:sf1 <https://vson.dev/v1/ontology#viewer> :cam .\n:c <https://vson.dev/v1/ontology#depicts> :sf1 .\n:sf2 a <https://vson.dev/v1/ontology#SpatialFact> .\n:sf2 <https://vson.dev/v1/ontology#figure> :kettle .\n:sf2 <https://vson.dev/v1/ontology#ground> :counter .\n:sf2 <https://vson.dev/v1/ontology#rcc> <https://vson.dev/v1/rcc8#EC> .\n:sf2 <https://vson.dev/v1/ontology#directional> <https://vson.dev/v1/ontology#above> .\n:sf2 <https://vson.dev/v1/ontology#viewer> :cam .\n:c <https://vson.dev/v1/ontology#depicts> :sf2 .\n:sf3 a <https://vson.dev/v1/ontology#SpatialFact> .\n:sf3 <https://vson.dev/v1/ontology#figure> :bowl .\n:sf3 <https://vson.dev/v1/ontology#ground> :counter .\n:sf3 <https://vson.dev/v1/ontology#rcc> <https://vson.dev/v1/rcc8#EC> .\n:sf3 <https://vson.dev/v1/ontology#directional> <https://vson.dev/v1/ontology#above> .\n:sf3 <https://vson.dev/v1/ontology#viewer> :cam .\n:c <https://vson.dev/v1/ontology#depicts> :sf3 .\n",
+  "graph": {
+    "nodes": [
+      {
+        "id": "c",
+        "kind": "Composition"
+      },
+      {
+        "id": "cam",
+        "kind": "CameraView",
+        "properties": {
+          "angle": "eye_level",
+          "focalLength": "35mm",
+          "framing": "medium_shot"
+        }
+      },
+      {
+        "id": "ctx",
+        "kind": "SceneContext",
+        "properties": {
+          "venue": "kitchen",
+          "atmosphere": "domestic",
+          "timeOfDay": "day"
+        }
+      },
+      {
+        "id": "style",
+        "kind": "VisualStyle",
+        "properties": {
+          "aesthetic": "photographic",
+          "palette": "warm",
+          "medium": "digital"
+        }
+      },
+      {
+        "id": "counter",
+        "kind": "PhysicalObject",
+        "properties": {
+          "class": "Counter",
+          "bbox2d": "0.00,0.55,1.00,0.45",
+          "q_Material": "wood"
+        },
+        "class": "Counter",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        }
+      },
+      {
+        "id": "kettle",
+        "kind": "PhysicalObject",
+        "properties": {
+          "class": "Kettle",
+          "bbox2d": "0.18,0.32,0.20,0.38",
+          "q_Material": "metal"
+        },
+        "class": "Kettle",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count",
+          "affordance": [
+            "Container",
+            "Holdable"
+          ]
+        }
+      },
+      {
+        "id": "cup",
+        "kind": "PhysicalObject",
+        "properties": {
+          "class": "Cup",
+          "bbox2d": "0.52,0.50,0.10,0.18",
+          "q_Material": "ceramic",
+          "q_Color": "white"
+        },
+        "class": "Cup",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count",
+          "affordance": [
+            "Container",
+            "Holdable"
+          ]
+        }
+      },
+      {
+        "id": "bowl",
+        "kind": "PhysicalObject",
+        "properties": {
+          "class": "Bowl",
+          "bbox2d": "0.70,0.58,0.14,0.16",
+          "q_Material": "ceramic"
+        },
+        "class": "Bowl",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count",
+          "affordance": [
+            "Container"
+          ]
+        }
+      },
+      {
+        "id": "sf1",
+        "kind": "SpatialFact",
+        "properties": {
+          "rcc": "EC",
+          "directional": "above"
+        }
+      },
+      {
+        "id": "sf2",
+        "kind": "SpatialFact",
+        "properties": {
+          "rcc": "EC",
+          "directional": "above"
+        }
+      },
+      {
+        "id": "sf3",
+        "kind": "SpatialFact",
+        "properties": {
+          "rcc": "EC",
+          "directional": "above"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "c",
+        "to": "cam",
+        "label": "framedBy"
+      },
+      {
+        "from": "c",
+        "to": "ctx",
+        "label": "framedBy"
+      },
+      {
+        "from": "c",
+        "to": "style",
+        "label": "framedBy"
+      },
+      {
+        "from": "c",
+        "to": "cam",
+        "label": "viewedBy"
+      },
+      {
+        "from": "c",
+        "to": "counter",
+        "label": "depicts"
+      },
+      {
+        "from": "c",
+        "to": "kettle",
+        "label": "depicts"
+      },
+      {
+        "from": "c",
+        "to": "cup",
+        "label": "depicts"
+      },
+      {
+        "from": "c",
+        "to": "bowl",
+        "label": "depicts"
+      },
+      {
+        "from": "sf1",
+        "to": "cup",
+        "label": "figure"
+      },
+      {
+        "from": "sf1",
+        "to": "counter",
+        "label": "ground"
+      },
+      {
+        "from": "sf1",
+        "to": "cam",
+        "label": "viewer"
+      },
+      {
+        "from": "c",
+        "to": "sf1",
+        "label": "depicts"
+      },
+      {
+        "from": "sf2",
+        "to": "kettle",
+        "label": "figure"
+      },
+      {
+        "from": "sf2",
+        "to": "counter",
+        "label": "ground"
+      },
+      {
+        "from": "sf2",
+        "to": "cam",
+        "label": "viewer"
+      },
+      {
+        "from": "c",
+        "to": "sf2",
+        "label": "depicts"
+      },
+      {
+        "from": "sf3",
+        "to": "bowl",
+        "label": "figure"
+      },
+      {
+        "from": "sf3",
+        "to": "counter",
+        "label": "ground"
+      },
+      {
+        "from": "sf3",
+        "to": "cam",
+        "label": "viewer"
+      },
+      {
+        "from": "c",
+        "to": "sf3",
+        "label": "depicts"
+      }
+    ]
+  },
+  "conformance": {
+    "conforms": true
+  },
+  "extraction": {
+    "model": "fixture-bake",
+    "prompt_version": "skill@1.0.0",
+    "shacl_retries": 0,
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0
+  }
+}

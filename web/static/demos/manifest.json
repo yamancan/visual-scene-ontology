@@ -1,10 +1,40 @@
 {
-	"_doc": "Curated demo images shown below the dropzone. Each image is public-domain (Lorem Picsum / Unsplash). To swap one out, drop a jpeg/png in this directory and update the `path` here.",
-	"entries": [
-		{ "path": "/demos/kitchen.jpg", "label": "Kitchen", "mime": "image/jpeg" },
-		{ "path": "/demos/street.jpg", "label": "Street", "mime": "image/jpeg" },
-		{ "path": "/demos/forest.jpg", "label": "Forest", "mime": "image/jpeg" },
-		{ "path": "/demos/books.jpg", "label": "Bookshelf", "mime": "image/jpeg" },
-		{ "path": "/demos/lamp.jpg", "label": "Lamp", "mime": "image/jpeg" }
-	]
+  "_doc": "Curated demo images shown below the dropzone. Each entry includes a prebuilt envelope so sample clicks render instantly without a model call.",
+  "entries": [
+    {
+      "path": "/demos/kitchen.jpg",
+      "label": "Coffee Pour",
+      "mime": "image/jpeg",
+      "envelope_path": "/demos/envelopes/kitchen.json",
+      "model_used": "fixture-bake"
+    },
+    {
+      "path": "/demos/street.jpg",
+      "label": "Backlit Portrait",
+      "mime": "image/jpeg",
+      "envelope_path": "/demos/envelopes/street.json",
+      "model_used": "fixture-bake"
+    },
+    {
+      "path": "/demos/forest.jpg",
+      "label": "Fjord Overlook",
+      "mime": "image/jpeg",
+      "envelope_path": "/demos/envelopes/forest.json",
+      "model_used": "fixture-bake"
+    },
+    {
+      "path": "/demos/books.jpg",
+      "label": "Snow Traverse",
+      "mime": "image/jpeg",
+      "envelope_path": "/demos/envelopes/books.json",
+      "model_used": "fixture-bake"
+    },
+    {
+      "path": "/demos/lamp.jpg",
+      "label": "Forest Figure",
+      "mime": "image/jpeg",
+      "envelope_path": "/demos/envelopes/lamp.json",
+      "model_used": "fixture-bake"
+    }
+  ]
 }

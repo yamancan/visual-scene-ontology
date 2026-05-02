@@ -1,0 +1,241 @@
+{
+  "scene_id": "demo_forest_83zvPnQY3hBe",
+  "version": "1.0",
+  "source": {
+    "kind": "image",
+    "sha256": "1024478f7c40b7ebdea4a95689c0f6cddd74fddf4f3d7d4ca8ba8641027d0de8",
+    "uri": "/demos/forest.jpg"
+  },
+  "vson_p": "(c / Composition\n   :framedBy (cam / CameraView :angle eye_level :focalLength 50mm :framing wide_shot)\n   :framedBy (ctx / SceneContext :venue forest :atmosphere serene :timeOfDay day)\n   :framedBy (style / VisualStyle :aesthetic photographic :palette green :medium digital)\n   :viewedBy cam\n   :depicts (canopy / Aggregate :class TreeCanopy\n               :individuation Generic :animacy Inert :countability Collective\n               :bbox2d \"0.00,0.00,1.00,0.65\"\n               :hasQuality (gq1 / Quality :dimension Color :value green))\n   :depicts (trunk1 / PhysicalObject :class Tree\n               :individuation Generic :animacy Inert :countability Count\n               :bbox2d \"0.10,0.20,0.18,0.70\"\n               :hasQuality (tq1 / Quality :dimension Material :value bark))\n   :depicts (trunk2 / PhysicalObject :class Tree\n               :individuation Generic :animacy Inert :countability Count\n               :bbox2d \"0.55,0.18,0.20,0.72\")\n   :depicts (ground / Substance :class Soil\n               :individuation Generic :animacy Inert :countability Mass\n               :hasQuality (sq1 / Quality :dimension Color :value brown))\n   :depicts (sf1 / SpatialFact :figure trunk1 :ground ground :rcc EC :directional above :viewer cam)\n   :depicts (sf2 / SpatialFact :figure trunk2 :ground ground :rcc EC :directional above :viewer cam)\n   :depicts (sf3 / SpatialFact :figure canopy :ground trunk1 :rcc PO :directional above :viewer cam))",
+  "vson_t": "@prefix vso:   <https://vson.dev/v1/ontology#> .\n@prefix allen: <https://vson.dev/v1/allen#> .\n@prefix rcc:   <https://vson.dev/v1/rcc8#> .\n@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n@prefix :      <https://example.org/scenes/anonymous#> .\n\n:c a <https://vson.dev/v1/ontology#Composition> .\n:cam a <https://vson.dev/v1/ontology#CameraView> .\n:cam <https://vson.dev/v1/ontology#angle> \"eye_level\" .\n:cam <https://vson.dev/v1/ontology#focalLength> \"50mm\" .\n:cam <https://vson.dev/v1/ontology#framing> \"wide_shot\" .\n:c <https://vson.dev/v1/ontology#framedBy> :cam .\n:ctx a <https://vson.dev/v1/ontology#SceneContext> .\n:ctx <https://vson.dev/v1/ontology#venue> \"forest\" .\n:ctx <https://vson.dev/v1/ontology#atmosphere> \"serene\" .\n:ctx <https://vson.dev/v1/ontology#timeOfDay> \"day\" .\n:c <https://vson.dev/v1/ontology#framedBy> :ctx .\n:style a <https://vson.dev/v1/ontology#VisualStyle> .\n:style <https://vson.dev/v1/ontology#aesthetic> \"photographic\" .\n:style <https://vson.dev/v1/ontology#palette> \"green\" .\n:style <https://vson.dev/v1/ontology#medium> \"digital\" .\n:c <https://vson.dev/v1/ontology#framedBy> :style .\n:c <https://vson.dev/v1/ontology#viewedBy> :cam .\n:canopy a <https://vson.dev/v1/ontology#Aggregate> .\n:canopy <https://vson.dev/v1/ontology#class> :TreeCanopy .\n:canopy <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Generic> .\n:canopy <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Inert> .\n:canopy <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Collective> .\n:canopy <https://vson.dev/v1/ontology#bbox2d> \"0.00,0.00,1.00,0.65\" .\n:gq1 a <https://vson.dev/v1/ontology#Quality> .\n:gq1 <https://vson.dev/v1/ontology#dimension> <https://vson.dev/v1/ontology#Color> .\n:gq1 <https://vson.dev/v1/ontology#value> :green .\n:canopy <https://vson.dev/v1/ontology#hasQuality> :gq1 .\n:c <https://vson.dev/v1/ontology#depicts> :canopy .\n:trunk1 a <https://vson.dev/v1/ontology#PhysicalObject> .\n:trunk1 <https://vson.dev/v1/ontology#class> :Tree .\n:trunk1 <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Generic> .\n:trunk1 <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Inert> .\n:trunk1 <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Count> .\n:trunk1 <https://vson.dev/v1/ontology#bbox2d> \"0.10,0.20,0.18,0.70\" .\n:tq1 a <https://vson.dev/v1/ontology#Quality> .\n:tq1 <https://vson.dev/v1/ontology#dimension> <https://vson.dev/v1/ontology#Material> .\n:tq1 <https://vson.dev/v1/ontology#value> :bark .\n:trunk1 <https://vson.dev/v1/ontology#hasQuality> :tq1 .\n:c <https://vson.dev/v1/ontology#depicts> :trunk1 .\n:trunk2 a <https://vson.dev/v1/ontology#PhysicalObject> .\n:trunk2 <https://vson.dev/v1/ontology#class> :Tree .\n:trunk2 <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Generic> .\n:trunk2 <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Inert> .\n:trunk2 <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Count> .\n:trunk2 <https://vson.dev/v1/ontology#bbox2d> \"0.55,0.18,0.20,0.72\" .\n:c <https://vson.dev/v1/ontology#depicts> :trunk2 .\n:ground a <https://vson.dev/v1/ontology#Substance> .\n:ground <https://vson.dev/v1/ontology#class> :Soil .\n:ground <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Generic> .\n:ground <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Inert> .\n:ground <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Mass> .\n:sq1 a <https://vson.dev/v1/ontology#Quality> .\n:sq1 <https://vson.dev/v1/ontology#dimension> <https://vson.dev/v1/ontology#Color> .\n:sq1 <https://vson.dev/v1/ontology#value> :brown .\n:ground <https://vson.dev/v1/ontology#hasQuality> :sq1 .\n:c <https://vson.dev/v1/ontology#depicts> :ground .\n:sf1 a <https://vson.dev/v1/ontology#SpatialFact> .\n:sf1 <https://vson.dev/v1/ontology#figure> :trunk1 .\n:sf1 <https://vson.dev/v1/ontology#ground> :ground .\n:sf1 <https://vson.dev/v1/ontology#rcc> <https://vson.dev/v1/rcc8#EC> .\n:sf1 <https://vson.dev/v1/ontology#directional> <https://vson.dev/v1/ontology#above> .\n:sf1 <https://vson.dev/v1/ontology#viewer> :cam .\n:c <https://vson.dev/v1/ontology#depicts> :sf1 .\n:sf2 a <https://vson.dev/v1/ontology#SpatialFact> .\n:sf2 <https://vson.dev/v1/ontology#figure> :trunk2 .\n:sf2 <https://vson.dev/v1/ontology#ground> :ground .\n:sf2 <https://vson.dev/v1/ontology#rcc> <https://vson.dev/v1/rcc8#EC> .\n:sf2 <https://vson.dev/v1/ontology#directional> <https://vson.dev/v1/ontology#above> .\n:sf2 <https://vson.dev/v1/ontology#viewer> :cam .\n:c <https://vson.dev/v1/ontology#depicts> :sf2 .\n:sf3 a <https://vson.dev/v1/ontology#SpatialFact> .\n:sf3 <https://vson.dev/v1/ontology#figure> :canopy .\n:sf3 <https://vson.dev/v1/ontology#ground> :trunk1 .\n:sf3 <https://vson.dev/v1/ontology#rcc> <https://vson.dev/v1/rcc8#PO> .\n:sf3 <https://vson.dev/v1/ontology#directional> <https://vson.dev/v1/ontology#above> .\n:sf3 <https://vson.dev/v1/ontology#viewer> :cam .\n:c <https://vson.dev/v1/ontology#depicts> :sf3 .\n",
+  "graph": {
+    "nodes": [
+      {
+        "id": "c",
+        "kind": "Composition"
+      },
+      {
+        "id": "cam",
+        "kind": "CameraView",
+        "properties": {
+          "angle": "eye_level",
+          "focalLength": "50mm",
+          "framing": "wide_shot"
+        }
+      },
+      {
+        "id": "ctx",
+        "kind": "SceneContext",
+        "properties": {
+          "venue": "forest",
+          "atmosphere": "serene",
+          "timeOfDay": "day"
+        }
+      },
+      {
+        "id": "style",
+        "kind": "VisualStyle",
+        "properties": {
+          "aesthetic": "photographic",
+          "palette": "green",
+          "medium": "digital"
+        }
+      },
+      {
+        "id": "canopy",
+        "kind": "Aggregate",
+        "properties": {
+          "class": "TreeCanopy",
+          "bbox2d": "0.00,0.00,1.00,0.65",
+          "q_Color": "green"
+        },
+        "class": "TreeCanopy",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Collective"
+        }
+      },
+      {
+        "id": "trunk1",
+        "kind": "PhysicalObject",
+        "properties": {
+          "class": "Tree",
+          "bbox2d": "0.10,0.20,0.18,0.70",
+          "q_Material": "bark"
+        },
+        "class": "Tree",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        }
+      },
+      {
+        "id": "trunk2",
+        "kind": "PhysicalObject",
+        "properties": {
+          "class": "Tree",
+          "bbox2d": "0.55,0.18,0.20,0.72"
+        },
+        "class": "Tree",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        }
+      },
+      {
+        "id": "ground",
+        "kind": "Substance",
+        "properties": {
+          "class": "Soil",
+          "q_Color": "brown"
+        },
+        "class": "Soil",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Mass"
+        }
+      },
+      {
+        "id": "sf1",
+        "kind": "SpatialFact",
+        "properties": {
+          "rcc": "EC",
+          "directional": "above"
+        }
+      },
+      {
+        "id": "sf2",
+        "kind": "SpatialFact",
+        "properties": {
+          "rcc": "EC",
+          "directional": "above"
+        }
+      },
+      {
+        "id": "sf3",
+        "kind": "SpatialFact",
+        "properties": {
+          "rcc": "PO",
+          "directional": "above"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "c",
+        "to": "cam",
+        "label": "framedBy"
+      },
+      {
+        "from": "c",
+        "to": "ctx",
+        "label": "framedBy"
+      },
+      {
+        "from": "c",
+        "to": "style",
+        "label": "framedBy"
+      },
+      {
+        "from": "c",
+        "to": "cam",
+        "label": "viewedBy"
+      },
+      {
+        "from": "c",
+        "to": "canopy",
+        "label": "depicts"
+      },
+      {
+        "from": "c",
+        "to": "trunk1",
+        "label": "depicts"
+      },
+      {
+        "from": "c",
+        "to": "trunk2",
+        "label": "depicts"
+      },
+      {
+        "from": "c",
+        "to": "ground",
+        "label": "depicts"
+      },
+      {
+        "from": "sf1",
+        "to": "trunk1",
+        "label": "figure"
+      },
+      {
+        "from": "sf1",
+        "to": "ground",
+        "label": "ground"
+      },
+      {
+        "from": "sf1",
+        "to": "cam",
+        "label": "viewer"
+      },
+      {
+        "from": "c",
+        "to": "sf1",
+        "label": "depicts"
+      },
+      {
+        "from": "sf2",
+        "to": "trunk2",
+        "label": "figure"
+      },
+      {
+        "from": "sf2",
+        "to": "ground",
+        "label": "ground"
+      },
+      {
+        "from": "sf2",
+        "to": "cam",
+        "label": "viewer"
+      },
+      {
+        "from": "c",
+        "to": "sf2",
+        "label": "depicts"
+      },
+      {
+        "from": "sf3",
+        "to": "canopy",
+        "label": "figure"
+      },
+      {
+        "from": "sf3",
+        "to": "trunk1",
+        "label": "ground"
+      },
+      {
+        "from": "sf3",
+        "to": "cam",
+        "label": "viewer"
+      },
+      {
+        "from": "c",
+        "to": "sf3",
+        "label": "depicts"
+      }
+    ]
+  },
+  "conformance": {
+    "conforms": true
+  },
+  "extraction": {
+    "model": "fixture-bake",
+    "prompt_version": "skill@1.0.0",
+    "shacl_retries": 0,
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0
+  }
+}
