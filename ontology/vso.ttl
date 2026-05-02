@@ -1,0 +1,299 @@
+@prefix vso:   <https://vson.dev/v1/ontology#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix dc:    <http://purl.org/dc/terms/> .
+
+<https://vson.dev/v1/ontology>
+    a owl:Ontology ;
+    dc:title "Visual Scene Ontology (VSO) v1.0" ;
+    dc:description "OWL 2 RL ontology for visual scenes. DOLCE-aligned. Companion to VSV vocabulary and VSON-S shapes." ;
+    owl:versionInfo "1.0" .
+
+#################################################################
+# 1. Top-level taxonomy
+#################################################################
+
+vso:Entity        a owl:Class ; rdfs:label "Entity"        ; rdfs:comment "Top of the VSO entity taxonomy." .
+
+vso:Endurant      a owl:Class ; rdfs:subClassOf vso:Entity ; rdfs:label "Endurant"   ; rdfs:comment "Persists through time (DOLCE)." .
+vso:Perdurant     a owl:Class ; rdfs:subClassOf vso:Entity ; rdfs:label "Perdurant"  ; rdfs:comment "Occurs in time (DOLCE)." .
+vso:Quality       a owl:Class ; rdfs:subClassOf vso:Entity ; rdfs:label "Quality"    ; rdfs:comment "A property bearer (color, mood, weight)." .
+vso:Region        a owl:Class ; rdfs:subClassOf vso:Entity ; rdfs:label "Region"     ; rdfs:comment "A space or interval (positions, times, zones)." .
+
+# Endurants
+vso:PhysicalObject a owl:Class ; rdfs:subClassOf vso:Endurant ; rdfs:label "PhysicalObject" .
+vso:Aggregate      a owl:Class ; rdfs:subClassOf vso:Endurant ; rdfs:label "Aggregate"      ; rdfs:comment "Crowd, swarm, forest." .
+vso:Substance      a owl:Class ; rdfs:subClassOf vso:Endurant ; rdfs:label "Substance"      ; rdfs:comment "Mass nouns: water, smoke, blood." .
+
+# Perdurants
+vso:Event   a owl:Class ; rdfs:subClassOf vso:Perdurant ; rdfs:label "Event"   ; rdfs:comment "Punctual / completable occurrence." .
+vso:Process a owl:Class ; rdfs:subClassOf vso:Perdurant ; rdfs:label "Process" ; rdfs:comment "Durative occurrence." .
+vso:Stative a owl:Class ; rdfs:subClassOf vso:Perdurant ; rdfs:label "Stative" ; rdfs:comment "Gaze, hold, wear, believe — static condition." .
+
+# Endurants/Perdurants are disjoint (DOLCE)
+[] a owl:AllDisjointClasses ; owl:members ( vso:Endurant vso:Perdurant vso:Quality vso:Region ) .
+
+#################################################################
+# 2. Frame layer (perspectival; NOT an Entity)
+#################################################################
+
+vso:Frame          a owl:Class ; rdfs:label "Frame" ; rdfs:comment "Perspectival or organizational layer; not part of the depicted world." .
+vso:SceneContext   a owl:Class ; rdfs:subClassOf vso:Frame ; rdfs:label "SceneContext" .
+vso:VisualStyle    a owl:Class ; rdfs:subClassOf vso:Frame ; rdfs:label "VisualStyle" .
+vso:CameraView     a owl:Class ; rdfs:subClassOf vso:Frame ; rdfs:label "CameraView" .
+vso:Composition    a owl:Class ; rdfs:subClassOf vso:Frame ; rdfs:label "Composition" ; rdfs:comment "Mereological root for a scene." .
+
+# Frame is disjoint from Entity (the world ≠ the lens)
+vso:Frame  owl:disjointWith vso:Entity .
+
+#################################################################
+# 3. Reification node classes
+#################################################################
+
+vso:SpatialFact   a owl:Class ; rdfs:label "SpatialFact"
+                  ; rdfs:comment "Reified spatial relation between figure and ground; topological (RCC-8) and/or directional (with mandatory viewer) and/or proximal." .
+vso:Negation      a owl:Class ; rdfs:label "Negation"
+                  ; rdfs:comment "Reified negation of an RDF-star quoted triple." .
+vso:Quantification a owl:Class ; rdfs:label "Quantification" .
+vso:BeliefState   a owl:Class ; rdfs:label "BeliefState"
+                  ; rdfs:comment "Reified propositional attitude." .
+
+#################################################################
+# 4. Trait individuals (orthogonal axes)
+#################################################################
+
+vso:IndividuationKind a owl:Class .
+vso:Generic a vso:IndividuationKind .
+vso:Named   a vso:IndividuationKind .
+vso:Kind    a vso:IndividuationKind .
+vso:Skolem  a vso:IndividuationKind .
+
+vso:AnimacyKind a owl:Class .
+vso:Agentive a vso:AnimacyKind .
+vso:Inert    a vso:AnimacyKind .
+
+vso:CountabilityKind a owl:Class .
+vso:Count      a vso:CountabilityKind .
+vso:Mass       a vso:CountabilityKind .
+vso:Collective a vso:CountabilityKind .
+
+vso:Affordance a owl:Class .
+vso:Holdable   a vso:Affordance .
+vso:Wearable   a vso:Affordance .
+vso:Mountable  a vso:Affordance .
+vso:Container  a vso:Affordance .
+vso:Edible     a vso:Affordance .
+
+#################################################################
+# 5. Trait properties
+#################################################################
+
+vso:individuation a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:domain vso:Entity ;
+    rdfs:range  vso:IndividuationKind .
+
+vso:animacy       a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:domain vso:Entity ;
+    rdfs:range  vso:AnimacyKind .
+
+vso:countability  a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:domain vso:Entity ;
+    rdfs:range  vso:CountabilityKind .
+
+vso:affordance    a owl:ObjectProperty ;
+    rdfs:domain vso:Endurant ;
+    rdfs:range  vso:Affordance .
+
+#################################################################
+# 6. Frame-attachment properties
+#################################################################
+
+vso:framedBy   a owl:ObjectProperty ; rdfs:domain vso:Composition ; rdfs:range vso:Frame .
+vso:depicts    a owl:ObjectProperty ; rdfs:domain vso:Composition ; rdfs:range vso:Entity .
+vso:viewedBy   a owl:ObjectProperty ; rdfs:domain vso:Composition ; rdfs:range vso:CameraView .
+vso:rendersAs  a owl:ObjectProperty ; rdfs:domain vso:Composition ; rdfs:range vso:VisualStyle .
+
+#################################################################
+# 7. Quality attachment
+#################################################################
+
+vso:hasQuality a owl:ObjectProperty ;
+    rdfs:domain vso:Entity ;
+    rdfs:range  vso:Quality .
+
+vso:dimension a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:domain vso:Quality .
+
+vso:value a rdf:Property ;
+    rdfs:domain vso:Quality .
+
+# Common quality dimensions
+vso:Dimension a owl:Class .
+vso:Color      a vso:Dimension .
+vso:Weight     a vso:Dimension .
+vso:Material   a vso:Dimension .
+vso:Affect     a vso:Dimension .   # mood
+vso:Age        a vso:Dimension .
+vso:Role       a vso:Dimension .
+vso:Size       a vso:Dimension .
+vso:Enchantment a vso:Dimension .
+
+#################################################################
+# 8. Thematic-role properties (used on Event / Process / Stative)
+#################################################################
+
+vso:agent       a owl:ObjectProperty ; rdfs:range vso:Endurant .
+vso:patient     a owl:ObjectProperty ; rdfs:range vso:Endurant .
+vso:theme       a owl:ObjectProperty .
+vso:instrument  a owl:ObjectProperty ; rdfs:range vso:PhysicalObject .
+vso:recipient   a owl:ObjectProperty ; rdfs:range vso:Endurant .
+vso:source      a owl:ObjectProperty .
+vso:goal        a owl:ObjectProperty .
+vso:beneficiary a owl:ObjectProperty ; rdfs:range vso:Endurant .
+vso:experiencer a owl:ObjectProperty ; rdfs:range vso:Endurant .
+vso:stimulus    a owl:ObjectProperty .
+vso:location    a owl:ObjectProperty .
+vso:time        a rdf:Property .
+vso:manner      a rdf:Property .
+vso:cause       a owl:ObjectProperty ; rdfs:range vso:Perdurant .
+vso:result      a owl:ObjectProperty .
+vso:lemma       a owl:DatatypeProperty ; rdfs:range xsd:string ;
+                rdfs:comment "PropBank-style frame lemma identifier (e.g. 'strike', 'give-01')." .
+vso:holder      a owl:ObjectProperty ; rdfs:range vso:Endurant .
+
+#################################################################
+# 9. Stative possession (object-world, not graph)
+#################################################################
+
+vso:holds   a owl:ObjectProperty ; rdfs:domain vso:Endurant ; rdfs:range vso:PhysicalObject .
+vso:wears   a owl:ObjectProperty ; rdfs:domain vso:Endurant ; rdfs:range vso:PhysicalObject .
+vso:owns    a owl:ObjectProperty ; rdfs:domain vso:Endurant ; rdfs:range vso:Endurant .
+vso:carries a owl:ObjectProperty ; rdfs:domain vso:Endurant ; rdfs:range vso:PhysicalObject .
+
+#################################################################
+# 10. Mereology (with axioms)
+#################################################################
+
+vso:partOf       a owl:ObjectProperty , owl:TransitiveProperty .
+vso:hasPart      a owl:ObjectProperty , owl:TransitiveProperty ; owl:inverseOf vso:partOf .
+vso:properPartOf a owl:ObjectProperty , owl:TransitiveProperty ; rdfs:subPropertyOf vso:partOf .
+vso:overlaps     a owl:ObjectProperty , owl:SymmetricProperty .
+vso:disjoint     a owl:ObjectProperty , owl:SymmetricProperty .
+
+#################################################################
+# 11. Spatial — RCC-8 + directional + proximal
+#  (RCC-8 in companion file rcc8.ttl; directional/proximal here)
+#################################################################
+
+# Directional (frame-relative). These are RECORDED only on SpatialFact nodes
+# carrying a vso:viewer; the SHACL shape enforces this.
+vso:above       a owl:ObjectProperty .
+vso:below       a owl:ObjectProperty ; owl:inverseOf vso:above .
+vso:leftOf      a owl:ObjectProperty .
+vso:rightOf     a owl:ObjectProperty ; owl:inverseOf vso:leftOf .
+vso:inFrontOf   a owl:ObjectProperty .
+vso:behind      a owl:ObjectProperty ; owl:inverseOf vso:inFrontOf .
+
+# Proximal — symmetric (genuinely so, not by fiat)
+vso:near        a owl:ObjectProperty , owl:SymmetricProperty .
+vso:far         a owl:ObjectProperty , owl:SymmetricProperty .
+vso:adjacent    a owl:ObjectProperty , owl:SymmetricProperty .
+vso:nextTo      a owl:ObjectProperty , owl:SymmetricProperty .
+vso:facing      a owl:ObjectProperty , owl:SymmetricProperty .
+
+# SpatialFact structural properties
+vso:figure      a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain vso:SpatialFact .
+vso:ground      a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain vso:SpatialFact .
+vso:rcc         a owl:ObjectProperty ; rdfs:domain vso:SpatialFact .
+vso:directional a owl:ObjectProperty ; rdfs:domain vso:SpatialFact .
+vso:proximal    a owl:ObjectProperty ; rdfs:domain vso:SpatialFact .
+vso:viewer      a owl:ObjectProperty ; rdfs:domain vso:SpatialFact ; rdfs:range vso:CameraView .
+
+#################################################################
+# 12. Causal (distinct from action)
+#################################################################
+
+vso:causes   a owl:ObjectProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant .
+vso:enables  a owl:ObjectProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant .
+vso:prevents a owl:ObjectProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant .
+vso:triggers a owl:ObjectProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant .
+
+#################################################################
+# 13. Modal / propositional attitudes
+#################################################################
+
+vso:believes  a owl:ObjectProperty ; rdfs:domain vso:Endurant .
+vso:intends   a owl:ObjectProperty ; rdfs:domain vso:Endurant .
+vso:perceives a owl:ObjectProperty ; rdfs:domain vso:Endurant .
+vso:proposition a rdf:Property ; rdfs:domain vso:BeliefState .
+vso:negatedStatement a rdf:Property ; rdfs:domain vso:Negation .
+
+#################################################################
+# 14. Geometry
+#################################################################
+
+vso:bbox2d        a owl:DatatypeProperty ; rdfs:range xsd:string ;
+                  rdfs:comment "Bounding box in image coords as 'x,y,w,h' (pixels) or normalized 'nx,ny,nw,nh'." .
+vso:position3d    a owl:DatatypeProperty ; rdfs:range xsd:string ;
+                  rdfs:comment "World position 'x,y,z'." .
+vso:scale3d       a owl:DatatypeProperty ; rdfs:range xsd:string .
+vso:rotation      a owl:DatatypeProperty ; rdfs:range xsd:string ;
+                  rdfs:comment "Quaternion 'qx,qy,qz,qw' or Euler 'rx,ry,rz'." .
+vso:occludes      a owl:ObjectProperty ; rdfs:domain vso:PhysicalObject ; rdfs:range vso:PhysicalObject .
+vso:visibleFraction a owl:DatatypeProperty ; rdfs:range xsd:decimal .
+
+#################################################################
+# 15. Camera schema (USD-aligned)
+#################################################################
+
+vso:angle         a owl:DatatypeProperty ; rdfs:domain vso:CameraView .
+vso:focalLength   a owl:DatatypeProperty ; rdfs:domain vso:CameraView .
+vso:framing       a owl:DatatypeProperty ; rdfs:domain vso:CameraView .
+vso:lookAt        a owl:ObjectProperty   ; rdfs:domain vso:CameraView .
+vso:cameraPosition a owl:DatatypeProperty ; rdfs:domain vso:CameraView .
+
+#################################################################
+# 16. Style schema
+#################################################################
+
+vso:aesthetic a owl:DatatypeProperty ; rdfs:domain vso:VisualStyle .
+vso:palette   a owl:DatatypeProperty ; rdfs:domain vso:VisualStyle .
+vso:medium    a owl:DatatypeProperty ; rdfs:domain vso:VisualStyle .
+
+#################################################################
+# 17. Scene context schema
+#################################################################
+
+vso:venue      a owl:DatatypeProperty ; rdfs:domain vso:SceneContext .
+vso:atmosphere a owl:DatatypeProperty ; rdfs:domain vso:SceneContext .
+vso:timeOfDay  a owl:DatatypeProperty ; rdfs:domain vso:SceneContext .
+vso:weather    a owl:DatatypeProperty ; rdfs:domain vso:SceneContext .
+
+#################################################################
+# 18. Probability / provenance
+#
+# Two forms are supported for annotating an existing triple with confidence,
+# source, or probability:
+#
+#   (a) RDF-star quoted-triple syntax (canonical, RDF 1.2):
+#         << :strike vso:patient :boar >> vso:confidence "0.95"^^xsd:decimal .
+#
+#   (b) Explicit reified annotation (RDF 1.1 portable):
+#         :ann1 a vso:Annotation ;
+#            vso:annotatedSubject :strike ; vso:annotatedPredicate vso:patient ;
+#            vso:annotatedObject :boar ; vso:confidence "0.95"^^xsd:decimal .
+#
+# Both forms are conformant. Tooling SHOULD accept both and produce one
+# canonical form on output.
+#################################################################
+
+vso:Annotation         a owl:Class ; rdfs:label "Annotation"
+                       ; rdfs:comment "Reified annotation of a triple. Equivalent to an RDF-star quoted triple." .
+vso:annotatedSubject   a owl:ObjectProperty ; rdfs:domain vso:Annotation .
+vso:annotatedPredicate a owl:ObjectProperty ; rdfs:domain vso:Annotation .
+vso:annotatedObject    a owl:ObjectProperty ; rdfs:domain vso:Annotation .
+
+vso:probability a owl:DatatypeProperty ; rdfs:range xsd:decimal .
+vso:confidence  a owl:DatatypeProperty ; rdfs:range xsd:decimal .

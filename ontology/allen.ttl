@@ -1,0 +1,39 @@
+@prefix allen: <https://vson.dev/v1/allen#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix vso:   <https://vson.dev/v1/ontology#> .
+
+<https://vson.dev/v1/allen>
+    a owl:Ontology ;
+    rdfs:label "Allen interval algebra" ;
+    rdfs:comment "Allen's 13 base relations on time intervals, with declared inverses and transitivity where applicable." .
+
+# All Allen relations are object properties whose domain and range are vso:Perdurant
+# (events / processes / states all have temporal extent).
+
+allen:before        a owl:ObjectProperty , owl:TransitiveProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant .
+allen:after         a owl:ObjectProperty , owl:TransitiveProperty ; owl:inverseOf allen:before ;
+                    rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant .
+
+allen:meets         a owl:ObjectProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant .
+allen:metBy         a owl:ObjectProperty ; owl:inverseOf allen:meets ;
+                    rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant .
+
+allen:overlaps      a owl:ObjectProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant .
+allen:overlappedBy  a owl:ObjectProperty ; owl:inverseOf allen:overlaps ;
+                    rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant .
+
+allen:starts        a owl:ObjectProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant .
+allen:startedBy     a owl:ObjectProperty ; owl:inverseOf allen:starts ;
+                    rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant .
+
+allen:during        a owl:ObjectProperty , owl:TransitiveProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant .
+allen:contains      a owl:ObjectProperty , owl:TransitiveProperty ; owl:inverseOf allen:during ;
+                    rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant .
+
+allen:finishes      a owl:ObjectProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant .
+allen:finishedBy    a owl:ObjectProperty ; owl:inverseOf allen:finishes ;
+                    rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant .
+
+allen:equals        a owl:ObjectProperty , owl:SymmetricProperty , owl:TransitiveProperty ;
+                    rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant .
