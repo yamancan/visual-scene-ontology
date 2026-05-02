@@ -1,0 +1,114 @@
+@import 'tailwindcss';
+
+/*
+  VSON brand tokens. Colors per docs/strategy/productization.md:283-289.
+  Type per ui-flows.md:271-275. Motion per productization.md:293-299.
+  Tailwind 4 exposes these as utilities (bg-bg, text-fg, font-sans, etc.)
+  and as CSS variables for arbitrary values.
+*/
+@theme {
+	/* surfaces */
+	--color-bg: #0b0c0e;
+	--color-surface: #15171a;
+	--color-surface-2: #1c1f23;
+	--color-border: #23262b;
+	--color-border-muted: #1a1d22;
+
+	/* text */
+	--color-fg: #f4f4f2;
+	--color-fg-muted: #9ca0a7;
+	--color-fg-dim: #5d6168;
+
+	/* accents */
+	--color-accent: #d97706;
+	--color-accent-soft: #92400e;
+	--color-success: #65a30d;
+	--color-warning: #d97706;
+	--color-error: #dc2626;
+
+	/* node-kind palette (graph view) */
+	--color-node-frame: #6b7280;
+	--color-node-entity: #d97706;
+	--color-node-quality: #c8a07a;
+	--color-node-perdurant: #ea580c;
+	--color-node-spatialfact: #6366f1;
+
+	/* type — Inter for UI, JetBrains Mono for source/data */
+	--font-sans:
+		'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui,
+		sans-serif;
+	--font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo,
+		monospace;
+
+	/* motion */
+	--ease-snap: cubic-bezier(0.2, 0, 0, 1);
+	--ease-fluid: cubic-bezier(0.3, 0, 0, 1);
+}
+
+/* fonts: self-hosted variable. Files come from web/static/fonts/ */
+@font-face {
+	font-family: 'Inter Variable';
+	font-style: normal;
+	font-weight: 100 900;
+	font-display: swap;
+	src: url('/fonts/inter-variable.woff2') format('woff2-variations');
+}
+@font-face {
+	font-family: 'JetBrains Mono Variable';
+	font-style: normal;
+	font-weight: 100 800;
+	font-display: swap;
+	src: url('/fonts/jetbrains-mono-variable.woff2') format('woff2-variations');
+}
+
+@layer base {
+	html {
+		background: var(--color-bg);
+		color: var(--color-fg);
+		font-family: var(--font-sans);
+		font-feature-settings:
+			'cv02',
+			'cv03',
+			'cv04',
+			'cv11';
+		-webkit-font-smoothing: antialiased;
+		font-size: 14px;
+		line-height: 1.5;
+		text-rendering: optimizeLegibility;
+	}
+	body {
+		min-height: 100vh;
+	}
+	::selection {
+		background: var(--color-accent);
+		color: var(--color-bg);
+	}
+	button {
+		cursor: pointer;
+	}
+	*,
+	*::before,
+	*::after {
+		box-sizing: border-box;
+	}
+	*:focus-visible {
+		outline: 1px solid var(--color-accent);
+		outline-offset: 2px;
+	}
+}
+
+@layer utilities {
+	.font-mono {
+		font-family: var(--font-mono);
+		font-feature-settings: 'liga' 0;
+	}
+	.tabular {
+		font-variant-numeric: tabular-nums;
+	}
+	.dot {
+		display: inline-block;
+		width: 6px;
+		height: 6px;
+		border-radius: 9999px;
+	}
+}
