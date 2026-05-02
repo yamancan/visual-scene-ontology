@@ -1,0 +1,27 @@
+(scene / Composition
+   :framedBy (ctx / SceneContext :venue throne_room :atmosphere tense :timeOfDay dusk)
+   :framedBy (style / VisualStyle :aesthetic oil_painting :palette warm :medium canvas)
+   :framedBy (cam / CameraView :angle low :focalLength 35mm :framing medium_shot)
+   :rendersAs style
+   :viewedBy  cam
+   :hasQuality (cq1 / Quality :dimension Layout :value triangular)
+   :depicts (alice / PhysicalObject
+               :individuation Named :animacy Agentive :countability Count
+               :class Human
+               :hasQuality (a1 / Quality :dimension Affect :value joyful))
+   :depicts (bob / PhysicalObject
+               :individuation Named :animacy Agentive :countability Count
+               :class Human
+               :hasQuality (b1 / Quality :dimension Role :value knight))
+   :depicts (boar / PhysicalObject
+               :individuation Generic :animacy Agentive :countability Count
+               :class Animal)
+   :occurs (e1 / Event
+              :lemma charge
+              :agent boar
+              :patient bob)
+   :hasFact (sf1 / SpatialFact
+              :figure boar
+              :ground bob
+              :viewer cam
+              :directional in_front_of))
