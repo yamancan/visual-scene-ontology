@@ -1,0 +1,64 @@
+# VSON-P (Penman) authoring form — same scene as throne_room.ttl
+# Indentation is for humans; the parser ignores it.
+
+(scene / Composition
+   :framedBy (ctx / SceneContext :venue throne_room :atmosphere tense :timeOfDay dusk)
+   :framedBy (style / VisualStyle :aesthetic oil_painting :palette warm :medium canvas)
+   :framedBy (cam / CameraView :angle low :focalLength 35mm :framing medium_shot)
+   :rendersAs style
+   :viewedBy  cam
+   :hasQuality (cq1 / Quality :dimension Layout :value triangular)
+   :hasQuality (cq2 / Quality :dimension Focal  :value center)
+
+   :depicts (alice / PhysicalObject
+               :individuation Named :animacy Agentive :countability Count
+               :class Human
+               :hasQuality (a1 / Quality :dimension Affect :value joyful)
+               :hasQuality (a2 / Quality :dimension Age    :value 30)
+               :hasQuality (a3 / Quality :dimension Role   :value queen))
+
+   :depicts (bob / PhysicalObject
+               :individuation Named :animacy Agentive :countability Count
+               :class Human
+               :hasQuality (b1 / Quality :dimension Affect :value loyal)
+               :hasQuality (b2 / Quality :dimension Role   :value knight))
+
+   :depicts (boar / PhysicalObject
+               :individuation Generic :animacy Agentive :countability Count
+               :class Boar
+               :hasQuality (br1 / Quality :dimension ActionState :value charging))
+
+   :depicts (crown / PhysicalObject
+               :individuation Generic :animacy Inert :affordance Wearable
+               :class Crown
+               :hasQuality (c1 / Quality :dimension Color    :value red)
+               :hasQuality (c2 / Quality :dimension Material :value gold))
+
+   :depicts (sword / PhysicalObject
+               :individuation Generic :animacy Inert :affordance Holdable
+               :class Sword
+               :hasQuality (s1 / Quality :dimension Weight      :value heavy)
+               :hasQuality (s2 / Quality :dimension Enchantment :value lightning))
+
+   :depicts (strike / Event :lemma strike
+               :agent bob :patient boar :instrument sword :manner swift)
+
+   :depicts (charge / Event :lemma charge
+               :agent boar :goal bob)
+
+   :depicts (gaze / Stative :lemma look_at
+               :experiencer alice :stimulus bob)
+
+   :depicts (hold / Stative :lemma hold
+               :holder bob :theme sword)
+
+   :depicts (loc_crown / SpatialFact
+               :figure crown :ground alice
+               :rcc EC :directional above :viewer cam)
+
+   :depicts (pos_alice / SpatialFact
+               :figure alice :ground bob
+               :rcc DC :directional behind :viewer cam)
+
+   :causal   (charge :causes strike)
+   :temporal (charge :before strike))

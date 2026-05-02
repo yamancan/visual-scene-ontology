@@ -1,0 +1,174 @@
+# Worked example — VSON-T canonical (Turtle-star) form
+# Scene: tense throne room at dusk, oil-painting style, low-angle medium shot.
+# Queen Alice (joyful, 30) wears a red gold crown and stands behind knight Bob,
+# who swings a heavy enchanted sword to strike a charging boar.
+# Composition is triangular.
+
+@prefix vso:   <https://vson.dev/v1/ontology#> .
+@prefix allen: <https://vson.dev/v1/allen#> .
+@prefix rcc:   <https://vson.dev/v1/rcc8#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix :      <https://example.org/scenes/throne_room#> .
+
+#################################################################
+# Frame layer
+#################################################################
+
+:scene a vso:Composition ;
+    vso:framedBy :ctx, :style, :cam ;
+    vso:rendersAs :style ;
+    vso:viewedBy :cam ;
+    vso:depicts  :alice, :bob, :boar, :crown, :sword,
+                 :gaze_alice_bob, :hold_bob_sword,
+                 :loc_crown_alice, :pos_alice_bob,
+                 :strike, :charge ;
+    vso:hasQuality [ a vso:Quality ; vso:dimension :Layout ; vso:value "triangular" ] ,
+                   [ a vso:Quality ; vso:dimension :Focal  ; vso:value "center"     ] .
+
+:ctx a vso:SceneContext ;
+    vso:venue      "throne_room" ;
+    vso:atmosphere "tense" ;
+    vso:timeOfDay  "dusk" .
+
+:style a vso:VisualStyle ;
+    vso:aesthetic "oil_painting" ;
+    vso:palette   "warm" ;
+    vso:medium    "canvas" .
+
+:cam a vso:CameraView ;
+    vso:angle       "low" ;
+    vso:focalLength "35mm" ;
+    vso:framing     "medium_shot" .
+
+#################################################################
+# Entities — trait-bundle model (no v0.1 Object/Item/Unique/Attr split)
+#################################################################
+
+:alice a vso:PhysicalObject ;
+    vso:individuation vso:Named ;
+    vso:animacy       vso:Agentive ;
+    vso:countability  vso:Count ;
+    rdf:type          :Human ;
+    vso:hasQuality
+        [ a vso:Quality ; vso:dimension vso:Affect ; vso:value "joyful" ] ,
+        [ a vso:Quality ; vso:dimension vso:Age    ; vso:value 30        ] ,
+        [ a vso:Quality ; vso:dimension vso:Role   ; vso:value :queen    ] .
+
+:bob a vso:PhysicalObject ;
+    vso:individuation vso:Named ;
+    vso:animacy       vso:Agentive ;
+    vso:countability  vso:Count ;
+    rdf:type          :Human ;
+    vso:hasQuality
+        [ a vso:Quality ; vso:dimension vso:Affect ; vso:value "loyal" ] ,
+        [ a vso:Quality ; vso:dimension vso:Role   ; vso:value :knight ] .
+
+:boar a vso:PhysicalObject ;
+    vso:individuation vso:Generic ;
+    vso:animacy       vso:Agentive ;
+    vso:countability  vso:Count ;
+    rdf:type          :Boar ;
+    vso:hasQuality [ a vso:Quality ; vso:dimension :ActionState ; vso:value "charging" ] .
+
+:crown a vso:PhysicalObject ;
+    vso:individuation vso:Generic ;
+    vso:animacy       vso:Inert ;
+    vso:affordance    vso:Wearable ;
+    rdf:type          :Crown ;
+    vso:hasQuality
+        [ a vso:Quality ; vso:dimension vso:Color    ; vso:value "red"  ] ,
+        [ a vso:Quality ; vso:dimension vso:Material ; vso:value "gold" ] .
+
+:sword a vso:PhysicalObject ;
+    vso:individuation vso:Generic ;
+    vso:animacy       vso:Inert ;
+    vso:affordance    vso:Holdable ;
+    rdf:type          :Sword ;
+    vso:hasQuality
+        [ a vso:Quality ; vso:dimension vso:Weight       ; vso:value "heavy"     ] ,
+        [ a vso:Quality ; vso:dimension vso:Enchantment  ; vso:value "lightning" ] .
+
+#################################################################
+# Reified actions (Events) — fixes v0.1 dyadic-edge defect for arity≥3
+#################################################################
+
+:strike a vso:Event ;
+    vso:lemma      "strike" ;
+    vso:agent      :bob ;
+    vso:patient    :boar ;
+    vso:instrument :sword ;
+    vso:manner     "swift" .
+
+:charge a vso:Event ;
+    vso:lemma "charge" ;
+    vso:agent :boar ;
+    vso:goal  :bob .
+
+# Causation between events (distinct from action structure)
+:charge vso:causes :strike .
+
+# Temporal ordering (Allen interval algebra)
+:charge allen:before :strike .
+
+# Annotation on the strike's patient triple — high authorial confidence.
+# Canonical form is RDF-star quoted-triple syntax:
+#   << :strike vso:patient :boar >> vso:confidence "0.95"^^xsd:decimal .
+# The reified form below is RDF 1.1-portable and equivalent.
+
+:ann_strike_patient a vso:Annotation ;
+    vso:annotatedSubject   :strike ;
+    vso:annotatedPredicate vso:patient ;
+    vso:annotatedObject    :boar ;
+    vso:confidence         "0.95"^^xsd:decimal ;
+    vso:source             :artist .
+
+#################################################################
+# Stative relations — neither edge-as-action nor edge-as-spatial
+#################################################################
+
+:gaze_alice_bob a vso:Stative ;
+    vso:lemma       "look_at" ;
+    vso:experiencer :alice ;
+    vso:stimulus    :bob .
+
+:hold_bob_sword a vso:Stative ;
+    vso:lemma  "hold" ;
+    vso:holder :bob ;
+    vso:theme  :sword .
+
+#################################################################
+# Reified spatial facts — RCC-8 + directional + viewer (Talmy resolution)
+#################################################################
+
+# The crown is externally connected to (rests on) Alice; spatially above her
+# from the camera's viewpoint.
+:loc_crown_alice a vso:SpatialFact ;
+    vso:figure      :crown ;
+    vso:ground      :alice ;
+    vso:rcc         rcc:EC ;
+    vso:directional vso:above ;
+    vso:viewer      :cam .
+
+# Alice is positioned behind Bob (relative to the camera) — disconnected.
+:pos_alice_bob a vso:SpatialFact ;
+    vso:figure      :alice ;
+    vso:ground      :bob ;
+    vso:rcc         rcc:DC ;
+    vso:directional vso:behind ;
+    vso:viewer      :cam .
+
+#################################################################
+# Local taxonomy (extension under example namespace)
+#################################################################
+
+:Human    a rdfs:Class ; rdfs:subClassOf vso:PhysicalObject .
+:Boar     a rdfs:Class ; rdfs:subClassOf vso:PhysicalObject .
+:Crown    a rdfs:Class ; rdfs:subClassOf vso:PhysicalObject .
+:Sword    a rdfs:Class ; rdfs:subClassOf vso:PhysicalObject .
+
+# Extension dimensions used above
+:Layout      a vso:Dimension .
+:Focal       a vso:Dimension .
+:ActionState a vso:Dimension .
