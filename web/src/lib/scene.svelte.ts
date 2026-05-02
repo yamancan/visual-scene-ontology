@@ -49,6 +49,9 @@ function createSceneStore() {
 		},
 		setEnvelope(e: VsonEnvelope | null) {
 			envelope = e;
+			// Drop any selection from a previous scene — its var won't exist
+			// in the new graph and we'd silently render a non-match.
+			selectedNodeId = null;
 		},
 		setStatus(s: ExtractStatus) {
 			status = s;
