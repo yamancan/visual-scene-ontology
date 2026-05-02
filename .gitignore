@@ -9,3 +9,11 @@ __pycache__/
 *.egg-info/
 build/
 dist/
+
+# Local Claude Code settings (personal paths)
+.claude/
+
+# Baseline measurement artifacts (regenerated via extract.py --live)
+tools/extractor/baseline/images/*
+!tools/extractor/baseline/images/.gitkeep
+tools/extractor/baseline/results*.csv
