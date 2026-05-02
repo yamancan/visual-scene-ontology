@@ -7,6 +7,7 @@
 		path: string;
 		label?: string;
 		mime?: 'image/jpeg' | 'image/png';
+		envelope_path?: string;
 	}
 
 	let entries = $state<DemoEntry[]>([]);
@@ -23,10 +24,38 @@
 		}
 	});
 
+	async function imageDataUrl(path: string, mimeHint?: string): Promise<string> {
+		const img = await fetch(path);
+		if (!img.ok) throw new Error(`fetch ${path} → ${img.status}`);
+		const blob = await img.blob();
+		const mime = mimeHint ?? blob.type ?? 'image/jpeg';
+		const buf = await blob.arrayBuffer();
+		let bin = '';
+		const u8 = new Uint8Array(buf);
+		for (let i = 0; i < u8.length; i++) bin += String.fromCharCode(u8[i]);
+		return `data:${mime};base64,${btoa(bin)}`;
+	}
+
 	async function runDemo(e: DemoEntry) {
 		loading = e.path;
 		scene.setError(null);
 		try {
+			// Hot path: if a baked envelope exists, fetch it (~8 KB) and render
+			// without an LLM call. Costs nothing, works without an API key.
+			if (e.envelope_path) {
+				const [previewUrl, envRes] = await Promise.all([
+					imageDataUrl(e.path, e.mime),
+					fetch(e.envelope_path)
+				]);
+				if (envRes.ok) {
+					scene.setImagePreview(previewUrl);
+					scene.setEnvelope((await envRes.json()) as VsonEnvelope);
+					scene.setStatus('idle');
+					return;
+				}
+				// Fallback through to live extraction if the envelope is missing.
+			}
+
 			const img = await fetch(e.path);
 			if (!img.ok) throw new Error(`fetch ${e.path} → ${img.status}`);
 			const blob = await img.blob();
@@ -69,9 +98,14 @@
 					onclick={() => runDemo(entry)}
 					disabled={loading !== null}
 					aria-label={entry.label ?? entry.path}
-					title={entry.label ?? entry.path}
+					title={entry.envelope_path
+						? `${entry.label ?? entry.path} · cached`
+						: (entry.label ?? entry.path)}
 				>
 					<img src={entry.path} alt="" loading="lazy" />
+					{#if entry.envelope_path}
+						<span class="thumb-badge font-mono" aria-hidden="true">cached</span>
+					{/if}
 					{#if loading === entry.path}
 						<div class="thumb-overlay font-mono">•••</div>
 					{/if}
@@ -126,6 +160,20 @@
 	}
 	.thumb.loading img {
 		opacity: 0.35;
+	}
+	.thumb-badge {
+		position: absolute;
+		bottom: 4px;
+		right: 4px;
+		padding: 1px 5px;
+		font-size: 9px;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--fg-1);
+		background: color-mix(in srgb, var(--bg-0) 70%, transparent);
+		border: 1px solid var(--border-1);
+		border-radius: var(--radius-sm);
+		backdrop-filter: blur(4px);
 	}
 	.thumb-overlay {
 		position: absolute;

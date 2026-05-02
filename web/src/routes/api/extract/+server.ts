@@ -1,5 +1,7 @@
 import { json, error } from '@sveltejs/kit';
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import type { RequestHandler } from './$types';
 import type { VsonEnvelope } from '$lib/types';
@@ -11,8 +13,10 @@ import {
 } from '$lib/server/cli';
 import {
 	BARE_EXTRACT_USER,
-	ORCHESTRATOR_SYSTEM_PROMPT,
-	buildRepairPrompt
+	buildRepairPrompt,
+	promptVersionFor,
+	systemPromptFor,
+	type PromptVariant
 } from '$lib/server/prompt';
 import { DEFAULT_MODEL, OpenRouterError, chat } from '$lib/server/openrouter';
 import { shortId } from '$lib/utils';
@@ -25,6 +29,37 @@ interface ExtractBody {
 	mime: 'image/jpeg' | 'image/png';
 	source_uri?: string;
 	model?: string;
+	sha256?: string;
+	prompt?: 'skill' | 'full';
+}
+
+// Cached demo envelopes. SHA-256 of the bytes → envelope path. Loaded once,
+// served instantly without an LLM call. Defends the cache path against `curl`
+// callers who would otherwise bypass the client-side short-circuit.
+const DEMO_DIR = resolve(process.cwd(), 'static/demos/envelopes');
+
+function loadDemoMap(): Map<string, string> {
+	try {
+		const raw = readFileSync(resolve(DEMO_DIR, 'index.json'), 'utf8');
+		const idx = JSON.parse(raw) as Record<string, string>;
+		return new Map(Object.entries(idx));
+	} catch {
+		return new Map();
+	}
+}
+
+const DEMO_MAP: Map<string, string> = loadDemoMap();
+
+function tryServeDemo(sha: string | undefined): VsonEnvelope | null {
+	if (!sha || !DEMO_MAP.has(sha)) return null;
+	try {
+		const file = DEMO_MAP.get(sha);
+		if (!file) return null;
+		const raw = readFileSync(resolve(DEMO_DIR, file), 'utf8');
+		return JSON.parse(raw) as VsonEnvelope;
+	} catch {
+		return null;
+	}
 }
 
 function extractPenman(text: string): string | null {
@@ -37,7 +72,7 @@ function extractPenman(text: string): string | null {
 	return body.slice(start, end + 1).trim();
 }
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, url }) => {
 	let body: ExtractBody;
 	try {
 		body = (await request.json()) as ExtractBody;
@@ -50,11 +85,20 @@ export const POST: RequestHandler = async ({ request }) => {
 	if (body.mime !== 'image/jpeg' && body.mime !== 'image/png') {
 		throw error(400, 'mime must be image/jpeg or image/png');
 	}
-	// Approximate the decoded byte count from the base64 length.
 	const approxBytes = Math.floor((body.image_b64.length * 3) / 4);
 	if (approxBytes > MAX_BYTES) throw error(400, 'image exceeds 5 MB cap');
 
 	const sha256 = createHash('sha256').update(Buffer.from(body.image_b64, 'base64')).digest('hex');
+
+	// Cached-demo short-circuit. Trust either an explicit sha256 hint OR the
+	// hash we just computed; either way we re-verify against the whitelist.
+	const cached = tryServeDemo(body.sha256 ?? sha256);
+	if (cached) return json(cached);
+
+	const variant: PromptVariant =
+		body.prompt === 'full' || url.searchParams.get('prompt') === 'full' ? 'full' : 'skill';
+	const systemPrompt = systemPromptFor(variant);
+	const promptVersion = promptVersionFor(variant);
 
 	const t0 = Date.now();
 	let penmanText: string | null = null;
@@ -71,7 +115,7 @@ export const POST: RequestHandler = async ({ request }) => {
 					content: [
 						{
 							type: 'text',
-							text: ORCHESTRATOR_SYSTEM_PROMPT,
+							text: systemPrompt,
 							cache_control: { type: 'ephemeral' }
 						}
 					]
@@ -117,7 +161,7 @@ export const POST: RequestHandler = async ({ request }) => {
 						content: [
 							{
 								type: 'text',
-								text: ORCHESTRATOR_SYSTEM_PROMPT,
+								text: systemPrompt,
 								cache_control: { type: 'ephemeral' }
 							}
 						]
@@ -156,7 +200,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		conformance: { conforms, ...(violations.length ? { violations } : {}) },
 		extraction: {
 			model: model ?? DEFAULT_MODEL,
-			prompt_version: 'orchestrator-system@1.0',
+			prompt_version: promptVersion,
 			shacl_retries: retries,
 			latency_ms: Date.now() - t0,
 			input_tokens: inputTokens,
