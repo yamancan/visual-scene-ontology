@@ -9,8 +9,10 @@
 	let latency = $derived(env?.extraction?.latency_ms ?? 0);
 	let retries = $derived(env?.extraction?.shacl_retries ?? 0);
 	let model = $derived(env?.extraction?.model ?? scene.model);
+	let prebuilt = $derived(model === 'fixture-bake');
 
 	function shortModel(id: string): string {
+		if (id === 'fixture-bake') return 'prebuilt';
 		const i = id.indexOf('/');
 		return i >= 0 ? id.slice(i + 1) : id;
 	}
@@ -37,11 +39,11 @@
 					<span class="scene-id font-mono" title="scene id">{env.scene_id}</span>
 				</div>
 				<div class="meta-row sub">
-					<span class="font-mono" title="model"
-						>{shortModel(model)}</span
-					>
-					<span class="sep">·</span>
-					<span class="font-mono">{(latency / 1000).toFixed(2)}s</span>
+					<span class="font-mono" title={model}>{shortModel(model)}</span>
+					{#if !prebuilt}
+						<span class="sep">·</span>
+						<span class="font-mono">{(latency / 1000).toFixed(2)}s</span>
+					{/if}
 					{#if retries > 0}
 						<span class="sep">·</span>
 						<span class="font-mono retry">{retries} repair{retries > 1 ? 's' : ''}</span>

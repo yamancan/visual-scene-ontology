@@ -5,6 +5,7 @@
 	let conforms = $derived(env?.conformance.conforms ?? false);
 	let violations = $derived(env?.conformance.violations ?? []);
 	let extraction = $derived(env?.extraction);
+	let prebuilt = $derived(extraction?.model === 'fixture-bake');
 
 	function shortShape(s: string): string {
 		const i = s.indexOf(':');
@@ -76,33 +77,48 @@
 
 		{#if extraction}
 			<dl class="meta">
-				<div class="meta-row">
-					<dt>model</dt>
-					<dd title={extraction.model}>{extraction.model}</dd>
-				</div>
-				<div class="meta-row">
-					<dt>prompt</dt>
-					<dd>{extraction.prompt_version ?? '—'}</dd>
-				</div>
-				<div class="meta-row">
-					<dt>latency</dt>
-					<dd>{((extraction.latency_ms ?? 0) / 1000).toFixed(2)}s</dd>
-				</div>
-				<div class="meta-row">
-					<dt>repairs</dt>
-					<dd>
-						{extraction.shacl_retries ?? 0}
-						{#if (extraction.shacl_retries ?? 0) > 0}<span class="warn"> · used</span>{:else}<span class="ok"> · clean</span>{/if}
-					</dd>
-				</div>
-				<div class="meta-row">
-					<dt>tokens in</dt>
-					<dd>{(extraction.input_tokens ?? 0).toLocaleString()}</dd>
-				</div>
-				<div class="meta-row">
-					<dt>tokens out</dt>
-					<dd>{(extraction.output_tokens ?? 0).toLocaleString()}</dd>
-				</div>
+				{#if prebuilt}
+					<div class="meta-row">
+						<dt>source</dt>
+						<dd>prebuilt fixture</dd>
+					</div>
+					<div class="meta-row">
+						<dt>prompt</dt>
+						<dd>{extraction.prompt_version ?? 'skill@1.0.0'}</dd>
+					</div>
+					<div class="meta-row">
+						<dt>cost</dt>
+						<dd><span class="ok">$0 · cached</span></dd>
+					</div>
+				{:else}
+					<div class="meta-row">
+						<dt>model</dt>
+						<dd title={extraction.model}>{extraction.model}</dd>
+					</div>
+					<div class="meta-row">
+						<dt>prompt</dt>
+						<dd>{extraction.prompt_version ?? '—'}</dd>
+					</div>
+					<div class="meta-row">
+						<dt>latency</dt>
+						<dd>{((extraction.latency_ms ?? 0) / 1000).toFixed(2)}s</dd>
+					</div>
+					<div class="meta-row">
+						<dt>repairs</dt>
+						<dd>
+							{extraction.shacl_retries ?? 0}
+							{#if (extraction.shacl_retries ?? 0) > 0}<span class="warn"> · used</span>{:else}<span class="ok"> · clean</span>{/if}
+						</dd>
+					</div>
+					<div class="meta-row">
+						<dt>tokens in</dt>
+						<dd>{(extraction.input_tokens ?? 0).toLocaleString()}</dd>
+					</div>
+					<div class="meta-row">
+						<dt>tokens out</dt>
+						<dd>{(extraction.output_tokens ?? 0).toLocaleString()}</dd>
+					</div>
+				{/if}
 			</dl>
 		{/if}
 

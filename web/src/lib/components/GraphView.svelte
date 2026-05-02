@@ -102,19 +102,29 @@
 		const ringR = Math.min(W, H) * 0.32;
 		const cx = W / 2;
 		const cy = H / 2;
-		simNodes = nodes.map((n, i) => {
+		const builtNodes: SimNode[] = nodes.map((n, i) => {
 			const sn = makeNode(n);
 			const angle = (i / Math.max(1, nodes.length)) * Math.PI * 2;
 			sn.x = cx + Math.cos(angle) * ringR;
 			sn.y = cy + Math.sin(angle) * ringR;
 			return sn;
 		});
-		simEdges = edges.map((e) => ({ source: e.from, target: e.to, label: e.label }));
+		const builtEdges: SimEdge[] = edges.map((e) => ({
+			source: e.from,
+			target: e.to,
+			label: e.label
+		}));
+
 		if (sim) sim.stop();
-		sim = forceSimulation<SimNode, SimEdge>(simNodes)
+
+		// Run the simulation OFFLINE first so the graph appears already laid
+		// out — no fly-in animation. d3-force runs ~250 ticks against 11–50
+		// node graphs in ~5–15 ms, well below a frame budget. The user-facing
+		// animated phase that follows is short and cosmetic.
+		const offlineSim = forceSimulation<SimNode, SimEdge>(builtNodes)
 			.force(
 				'link',
-				forceLink<SimNode, SimEdge>(simEdges)
+				forceLink<SimNode, SimEdge>(builtEdges)
 					.id((d) => d.id)
 					.distance(120)
 					.strength(0.45)
@@ -127,19 +137,32 @@
 				'collide',
 				forceCollide<SimNode>().radius((d) => Math.max(d.w, d.h) / 2 + 14)
 			)
-			.alpha(1)
-			.alphaDecay(0.024)
+			.stop();
+		const ticks = Math.max(120, Math.min(360, nodes.length * 14));
+		for (let i = 0; i < ticks; i++) offlineSim.tick();
+
+		simNodes = builtNodes;
+		simEdges = builtEdges;
+		didFit = false;
+		// Fit immediately to the offline layout so the very first frame
+		// the user sees is already framed correctly.
+		queueMicrotask(() => {
+			if (!didFit && simNodes.length > 0) {
+				didFit = true;
+				fitToView(60);
+			}
+		});
+
+		// Continue with a low-alpha live simulation so per-node drag remains
+		// physically responsive; this also self-balances if anything was off.
+		sim = offlineSim
+			.alpha(0.04)
+			.alphaDecay(0.05)
 			.on('tick', () => {
 				if (frame) cancelAnimationFrame(frame);
 				frame = requestAnimationFrame(() => (tick += 1));
 			})
-			.on('end', () => {
-				if (!didFit) {
-					didFit = true;
-					fitToView(60);
-				}
-			});
-		didFit = false;
+			.restart();
 	}
 
 	function fitToView(padding = 40) {
@@ -158,7 +181,9 @@
 		const scale = Math.min(dims.w / contentW, dims.h / contentH, 1.1);
 		const cx = (minX + maxX) / 2;
 		const cy = (minY + maxY) / 2;
-		zoom = Math.max(0.4, scale);
+		// Keep card text legible — never auto-fit below 0.55. Users can
+		// still wheel-zoom out further if they want a bird's-eye view.
+		zoom = Math.max(0.55, scale);
 		panX = dims.w / 2 - cx * zoom;
 		panY = dims.h / 2 - cy * zoom;
 	}
@@ -179,14 +204,20 @@
 				const r = e.contentRect;
 				if (r.width === 0 || r.height === 0) continue;
 				const wasZero = dims.w === 0;
+				const prev = dims;
 				dims = { w: r.width, h: r.height };
-				// First dim-resolve: build now, no longer rely on the build effect
-				// having dims at envelope-set time.
 				if (wasZero && scene.envelope?.graph) {
 					build(scene.envelope.graph.nodes, scene.envelope.graph.edges);
-				} else if (sim) {
+					continue;
+				}
+				// Only re-center when the canvas changed by more than 10%; this
+				// stops the rail-toggle (which always nudges width) from
+				// re-animating the simulation on every click.
+				const dwRel = Math.abs(r.width - prev.w) / Math.max(1, prev.w);
+				const dhRel = Math.abs(r.height - prev.h) / Math.max(1, prev.h);
+				if (sim && (dwRel > 0.1 || dhRel > 0.1)) {
 					sim.force('center', forceCenter(r.width / 2, r.height / 2));
-					sim.alpha(0.3).restart();
+					sim.alpha(0.15).restart();
 				}
 			}
 		});
