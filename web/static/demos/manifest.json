@@ -1,4 +1,10 @@
 {
-	"_doc": "Curated demo images shown below the dropzone. To add: drop a jpeg/png in this directory, then add an entry below. Recommended: 6 entries, license-clean, <500 KB each. The UI hides this strip when entries is empty.",
-	"entries": []
+	"_doc": "Curated demo images shown below the dropzone. Each image is public-domain (Lorem Picsum / Unsplash). To swap one out, drop a jpeg/png in this directory and update the `path` here.",
+	"entries": [
+		{ "path": "/demos/kitchen.jpg", "label": "Kitchen", "mime": "image/jpeg" },
+		{ "path": "/demos/street.jpg", "label": "Street", "mime": "image/jpeg" },
+		{ "path": "/demos/forest.jpg", "label": "Forest", "mime": "image/jpeg" },
+		{ "path": "/demos/books.jpg", "label": "Bookshelf", "mime": "image/jpeg" },
+		{ "path": "/demos/lamp.jpg", "label": "Lamp", "mime": "image/jpeg" }
+	]
 }

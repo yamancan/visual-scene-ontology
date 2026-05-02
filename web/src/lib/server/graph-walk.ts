@@ -120,7 +120,9 @@ function asKind(concept: string | null): NodeKind | null {
 
 const TRAIT_KEYS = new Set(['individuation', 'animacy', 'countability', 'affordance']);
 
-// Roles whose target is a property literal (camera/scene/style schemas).
+// Roles whose target is a property literal (camera/scene/style schemas, plus
+// SpatialFact trait values rcc/directional/proximal which point at VSO IRIs
+// in the canonical Turtle but render as scalar properties in the graph view).
 const PROPERTY_ROLES = new Set([
 	'venue',
 	'atmosphere',
@@ -136,7 +138,10 @@ const PROPERTY_ROLES = new Set([
 	'manner',
 	'lemma',
 	'class',
-	'bbox2d'
+	'bbox2d',
+	'rcc',
+	'directional',
+	'proximal'
 ]);
 
 export function walkPenmanToGraph(src: string): SceneGraph {

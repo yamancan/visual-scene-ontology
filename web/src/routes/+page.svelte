@@ -20,31 +20,30 @@
 	<Topbar />
 	<main class="relative flex-1 overflow-hidden">
 		{#if scene.envelope}
-			<ScenePanel />
+			<div class="scene-enter h-full">
+				<ScenePanel />
+			</div>
 		{:else}
-			<div class="flex h-full w-full flex-col items-center justify-center px-6 py-10">
-				<div class="flex flex-col items-center gap-8">
-					<div class="flex flex-col items-center gap-2 text-center">
-						<h1 class="text-(--fg-0) text-[28px] font-medium tracking-tight">
-							drop image · graph out
-						</h1>
-						<p class="max-w-[420px] text-[13px] text-(--fg-3)">
-							upload an image, get a SHACL-conformant scene graph in
-							<span class="tabular text-(--fg-0)">~10s</span>. penman, turtle, json. no
+			<div class="hero">
+				<div class="hero-stack">
+					<span class="eyebrow">
+						<span class="eyebrow-dot"></span>
+						<span class="font-mono">vson · v1</span>
+					</span>
+
+					<div class="hero-copy">
+						<h1>Drop image, get scene graph.</h1>
+						<p>
+							Upload an image. <span class="num">~10s</span> later you'll have a SHACL-conformant
+							scene graph — entities, qualities, events, spatial facts. Penman, Turtle, JSON. No
 							account.
 						</p>
 					</div>
 
 					{#if busy}
-						<div
-							class="flex h-[280px] w-full max-w-[480px] flex-col items-center justify-center gap-4 rounded-md border border-(--border-1) bg-(--bg-1)"
-						>
+						<div class="busy-card">
 							{#if scene.imagePreview}
-								<img
-									src={scene.imagePreview}
-									alt="source"
-									class="h-[160px] w-auto rounded object-cover ring-1 ring-(--border-1)"
-								/>
+								<img src={scene.imagePreview} alt="" class="busy-img" />
 							{/if}
 							<Spinner label={STATUS_LABEL[scene.status] ?? scene.status} />
 						</div>
@@ -53,13 +52,7 @@
 					{/if}
 
 					{#if scene.errorMsg}
-						<p
-							class="max-w-[480px] text-center font-mono text-[12px]"
-							style:color="var(--danger)"
-							role="alert"
-						>
-							{scene.errorMsg}
-						</p>
+						<p class="err font-mono" role="alert">{scene.errorMsg}</p>
 					{/if}
 
 					<DemoStrip />
@@ -68,3 +61,110 @@
 		{/if}
 	</main>
 </div>
+
+<style>
+	.hero {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		min-height: 100%;
+		padding: var(--s10) var(--s6) var(--s14);
+	}
+	.hero-stack {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--s8);
+		width: 100%;
+		max-width: 520px;
+	}
+	.eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--s2);
+		padding: 4px 10px;
+		font-size: var(--text-2xs);
+		color: var(--fg-3);
+		border: 1px solid var(--border-1);
+		border-radius: var(--radius-full);
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+	.eyebrow-dot {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: var(--accent);
+	}
+	.hero-copy {
+		display: flex;
+		flex-direction: column;
+		gap: var(--s3);
+		text-align: center;
+	}
+	.hero-copy h1 {
+		font-family: var(--font-display);
+		font-weight: 500;
+		font-size: var(--text-3xl);
+		line-height: 1.05;
+		letter-spacing: -0.01em;
+		color: var(--fg-0);
+	}
+	.hero-copy p {
+		font-size: var(--text-base);
+		color: var(--fg-3);
+		line-height: var(--leading-relaxed);
+		max-width: 440px;
+	}
+	.hero-copy .num {
+		color: var(--fg-1);
+		font-family: var(--font-mono);
+		font-variant-numeric: tabular-nums;
+	}
+	.busy-card {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: var(--s5);
+		width: 100%;
+		max-width: 480px;
+		min-height: 280px;
+		padding: var(--s6);
+		background: var(--bg-1);
+		border: 1px solid var(--border-1);
+		border-radius: var(--radius);
+	}
+	.busy-img {
+		max-height: 160px;
+		border-radius: var(--radius-sm);
+		box-shadow: var(--shadow-sm);
+		object-fit: contain;
+	}
+	.err {
+		max-width: 480px;
+		text-align: center;
+		font-size: var(--text-2xs);
+		color: var(--danger);
+	}
+	@media (max-width: 540px) {
+		.hero-copy h1 {
+			font-size: var(--text-2xl);
+		}
+	}
+
+	.scene-enter {
+		animation: scene-in var(--duration-enter) var(--ease-out);
+	}
+	@keyframes scene-in {
+		from {
+			opacity: 0;
+			transform: translateY(4px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+</style>
