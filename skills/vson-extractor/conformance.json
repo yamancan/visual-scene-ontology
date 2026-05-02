@@ -1,0 +1,36 @@
+{
+  "$comment": "Acceptance fixture for any model that wants to claim VSON-extractor support. Each entry is a public-domain image bundled with the studio. A model passes if at least 4/5 envelopes conform on first try (no repair retry) and node/edge counts fall within the recorded ranges.",
+  "version": "1.0.0",
+  "skill": "vson-extractor",
+  "fixtures": [
+    {
+      "image": "../../web/static/demos/kitchen.jpg",
+      "label": "kitchen",
+      "expected": { "conforms": true, "nodes": [12, 28], "edges": [22, 50] }
+    },
+    {
+      "image": "../../web/static/demos/street.jpg",
+      "label": "street",
+      "expected": { "conforms": true, "nodes": [10, 30], "edges": [18, 55] }
+    },
+    {
+      "image": "../../web/static/demos/forest.jpg",
+      "label": "forest",
+      "expected": { "conforms": true, "nodes": [6, 22], "edges": [10, 40] }
+    },
+    {
+      "image": "../../web/static/demos/books.jpg",
+      "label": "books",
+      "expected": { "conforms": true, "nodes": [6, 24], "edges": [10, 45] }
+    },
+    {
+      "image": "../../web/static/demos/lamp.jpg",
+      "label": "lamp",
+      "expected": { "conforms": true, "nodes": [4, 14], "edges": [6, 26] }
+    }
+  ],
+  "thresholds": {
+    "first_try_pass_rate_min": 0.8,
+    "max_repair_retries": 0
+  }
+}

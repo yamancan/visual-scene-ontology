@@ -1,9 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-// Load orchestrator-system.md once on module init. The repo root is two
-// levels up from web/. In dev cwd is web/; in node-adapter prod the build is
-// in web/build, so resolution still works.
+// Resolve repo files. In dev cwd is web/; in node-adapter prod cwd is web/build.
 const REPO_ROOT = resolve(process.cwd(), '..');
 
 function tryLoad(rel: string): string {
@@ -14,14 +12,28 @@ function tryLoad(rel: string): string {
 	}
 }
 
+// Original 18 KB orchestrator prompt — strongest first-try conformance, opt-in via ?prompt=full.
 export const ORCHESTRATOR_SYSTEM_PROMPT = tryLoad(
 	'tools/extractor/prompts/orchestrator-system.md'
 );
 
+// 4 KB distilled skill — default for studio. Same five hard rules, smaller token footprint.
+export const SKILL_PROMPT = tryLoad('skills/vson-extractor/SKILL.md');
+
 export const REPAIR_PROMPT_TEMPLATE = tryLoad('tools/extractor/prompts/specialized/repair.md');
 
 export const BARE_EXTRACT_USER =
-	'No upstream tool evidence is available for this image. Emit your best VSON-P document directly from the image. Output ONLY the Penman document — start with `(` and end with `)`. No prose, no markdown fences.';
+	'Emit the VSON-P document for this image. Output ONLY the Penman — start with `(`, end with `)`. No prose, no fences.';
+
+export type PromptVariant = 'skill' | 'full';
+
+export function systemPromptFor(variant: PromptVariant): string {
+	return variant === 'full' ? ORCHESTRATOR_SYSTEM_PROMPT : SKILL_PROMPT;
+}
+
+export function promptVersionFor(variant: PromptVariant): string {
+	return variant === 'full' ? 'orchestrator-system@1.0' : 'skill@1.0.0';
+}
 
 export function buildRepairPrompt(failedDoc: string, shaclReport: string): string {
 	return REPAIR_PROMPT_TEMPLATE.replace('{{FAILED_DOCUMENT}}', failedDoc).replace(
