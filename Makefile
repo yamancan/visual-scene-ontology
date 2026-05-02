@@ -5,11 +5,11 @@ TOOLS = tools/penman/vson_penman.py
 EXAMPLE_VSON = examples/throne_room.vson
 EXAMPLE_TTL = examples/throne_room.ttl
 
-.PHONY: all check test parse-ontology penman-roundtrip shacl deps cli-check clean
+.PHONY: all check test parse-ontology penman-roundtrip shacl deps cli-check spec-check clean
 
 all: check
 
-check: parse-ontology penman-roundtrip shacl test
+check: parse-ontology penman-roundtrip shacl test spec-check
 
 deps:
 	$(PY) -m pip install --user --quiet rdflib pyshacl
@@ -46,6 +46,24 @@ shacl:
 test:
 	@echo "==> Test suite"
 	@$(PY) -m unittest discover -s tests
+
+spec-check:
+	@echo "==> Spec gallery: every example MUST SHACL-conform"
+	@$(PY) -c "import json, glob, subprocess, sys, os; \
+	from rdflib import Graph; \
+	import pyshacl; \
+	sys.path.insert(0, '.'); \
+	from tools.penman import vson_penman as vp; \
+	from tools.shacl_helper import validate_graph; \
+	files = sorted(glob.glob('examples/gallery/*.vson')); \
+	fails = []; \
+	[fails.append(f) for f in files if (lambda g: not validate_graph(g)[0])((lambda: (lambda gg: (gg.parse(data=vp.to_turtle(open(f).read()), format='turtle'), gg)[1])(Graph()))()) ]; \
+	print('\n'.join(f'  OK {f}' for f in files if f not in fails)); \
+	(print('\n'.join(f'  FAIL {f}' for f in fails)) or sys.exit(1)) if fails else None"
+	@echo "==> JSON Schemas parse"
+	@$(PY) -c "import json; \
+	[json.load(open(f)) for f in ('tools/schema/vson-output.schema.json','tools/schema/vson-jsonld.schema.json')]; \
+	print('  OK both schemas parse')"
 
 cli-check:
 	@echo "==> Rust CLI: build + test"

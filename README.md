@@ -17,19 +17,23 @@ VSON does not invent a parser, grammar, or formal semantics. It rides on:
 - **SPARQL-star** — query
 - **Penman** — authoring concrete syntax (proven by AMR)
 
+> **The canonical reference is [`docs/vson.md`](docs/vson.md)** — single-file RFC-style spec with Quick Start, per-field reference, JSON Schema, and the 11-scene example gallery.
+
 ## Layout
 
 ```
-spec/             VSON v1.0 specification
+docs/vson.md      ★ Canonical single-file spec (Quick Start, reference, JSON Schema, gallery)
+docs/strategy/    Productization plan, UI flows, extractor architecture
+spec/             Historical normative spec (v1.0) + v0.1 deprecation record
 ontology/         VSO TBox (OWL 2 RL) + VSV vocabulary
 shapes/           SHACL shapes for well-formedness
-examples/         Throne-room scene in VSON-T (Turtle-star) and VSON-P (Penman)
+examples/         Throne-room scene + gallery/ (11 scenes, minimal → complex)
 cli/              `vson` Rust CLI (validate / convert / export cypher)
 tools/penman/     Reference Penman ↔ Turtle-star transpiler (Python)
                   + routing-tables.json (single source of truth for both impls)
+tools/schema/     JSON Schema files (extractor envelope + JSON-LD form)
 tools/extractor/  Image-to-graph extractor — orchestrator prompts + bare-VLM baseline
 tests/            Round-trip and SHACL conformance tests
-docs/strategy/    Productization plan, UI flows, extractor architecture
 ```
 
 ## Quick start
@@ -49,11 +53,11 @@ cli/target/release/vson convert p2t examples/throne_room.vson > /tmp/scene.ttl
 cli/target/release/vson export cypher examples/throne_room.vson > scene.cypher
 
 # Run all tests (Python + Rust)
-make check        # 17 Python tests
+make check        # 17 Python tests + 11-scene gallery + 2 schema parses
 make cli-check    # 19 Rust tests + graph-iso parity vs Python ref
 ```
 
-See [`cli/README.md`](cli/README.md) for full CLI documentation.
+See [`docs/vson.md`](docs/vson.md) for the full spec and [`cli/README.md`](cli/README.md) for CLI documentation.
 
 ## Contribution boundary
 
