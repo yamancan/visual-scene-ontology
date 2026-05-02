@@ -21,65 +21,34 @@ in `normalize` for rdflib.
 
 from __future__ import annotations
 
+import json
+import os
 import re
 import sys
 from dataclasses import dataclass, field
 from typing import Iterator, List, Optional, Union
 
-VSO = "https://vson.dev/v1/ontology#"
-ALLEN = "https://vson.dev/v1/allen#"
-RCC = "https://vson.dev/v1/rcc8#"
-RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-DEFAULT_NS = "https://example.org/scenes/anonymous#"
+# Routing tables live in a sibling JSON file; both this reference and the
+# Rust CLI consume the same file so they cannot drift.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+with open(os.path.join(_HERE, "routing-tables.json"), "r", encoding="utf-8") as _f:
+    _ROUTING = json.load(_f)
+
+VSO = _ROUTING["namespaces"]["vso"]
+ALLEN = _ROUTING["namespaces"]["allen"]
+RCC = _ROUTING["namespaces"]["rcc"]
+RDF = _ROUTING["namespaces"]["rdf"]
+DEFAULT_NS = _ROUTING["namespaces"]["default"]
+_NS = _ROUTING["namespaces"]
 
 ROLE_NAMESPACE_OVERRIDES = {
-    "before": ALLEN,
-    "after": ALLEN,
-    "meets": ALLEN,
-    "metBy": ALLEN,
-    "overlaps": ALLEN,
-    "overlappedBy": ALLEN,
-    "starts": ALLEN,
-    "startedBy": ALLEN,
-    "during": ALLEN,
-    "contains": ALLEN,
-    "finishes": ALLEN,
-    "finishedBy": ALLEN,
-    "equals": ALLEN,
+    role: _NS[ns_key] for role, ns_key in _ROUTING["role_namespace_overrides"].items()
 }
-
-# Roles that take their first argument as a node and remaining as nested
-# parenthesised triples — used in :causal and :temporal containers.
-CONTAINER_ROLES = {"causal", "temporal"}
-
-RCC_VALUES = {
-    "DC", "EC", "PO", "EQ", "TPP", "NTPP", "TPPi", "NTPPi"
-}
-
-# Roles whose bare-ID values are VSO-namespaced individuals/properties.
-# (e.g. :individuation Named  →  :foo vso:individuation vso:Named .)
-ROLE_VALUE_TO_VSO = {
-    "individuation",
-    "animacy",
-    "countability",
-    "affordance",
-    "directional",
-    "proximal",
-    "dimension",     # quality dimensions live in VSO (or are extended locally)
-}
-
-# Roles whose bare-ID value routes to RCC-8 namespace.
-ROLE_VALUE_TO_RCC = {"rcc"}
-
-# Roles that produce literal strings (camera/style/scene-context properties).
-# Bare-ID and number tokens after these roles become string literals so
-# "throne_room" or "35mm" don't get IRI-fied.
-ROLE_VALUE_AS_STRING = {
-    "venue", "atmosphere", "timeOfDay", "weather",
-    "aesthetic", "palette", "medium",
-    "angle", "focalLength", "framing", "cameraPosition",
-    "manner", "lemma",
-}
+CONTAINER_ROLES = set(_ROUTING["container_roles"])
+RCC_VALUES = set(_ROUTING["rcc_values"])
+ROLE_VALUE_TO_VSO = set(_ROUTING["role_value_to_vso"])
+ROLE_VALUE_TO_RCC = set(_ROUTING["role_value_to_rcc"])
+ROLE_VALUE_AS_STRING = set(_ROUTING["role_value_as_string"])
 
 
 # ---------------------------------------------------------------------------
@@ -280,21 +249,23 @@ class Emitter:
     def route_bare_id(self, name: str, role: str) -> str:
         """Route a bare identifier in object position by role-specific rules.
 
-        Precedence:
-          1. If the name was declared as a node variable, it's a reentrant ref.
-          2. If role is in ROLE_VALUE_TO_RCC and name is an RCC-8 base, route to rcc:.
-          3. If role is in ROLE_VALUE_TO_VSO, route to vso:.
-          4. If role is in ROLE_VALUE_AS_STRING, render as a string literal.
+        Precedence (role-as-literal wins over var-collision because lemmas /
+        venues / styles are always string-typed by the spec, even when the
+        token happens to share its spelling with a sibling node's var):
+          1. If role is in ROLE_VALUE_AS_STRING, render as a string literal.
+          2. If the name was declared as a node variable, it's a reentrant ref.
+          3. If role is in ROLE_VALUE_TO_RCC and name is an RCC-8 base, route to rcc:.
+          4. If role is in ROLE_VALUE_TO_VSO, route to vso:.
           5. Otherwise emit as a local IRI under the document namespace.
         """
+        if role in ROLE_VALUE_AS_STRING:
+            return self.render_string(name)
         if name in self.declared_vars:
             return self.iri_for_var(name)
         if role in ROLE_VALUE_TO_RCC and name in RCC_VALUES:
             return f"<{RCC}{name}>"
         if role in ROLE_VALUE_TO_VSO:
             return f"<{VSO}{name}>"
-        if role in ROLE_VALUE_AS_STRING:
-            return self.render_string(name)
         return f":{name}"
 
     def term_to_iri(self, term, role: str) -> str:

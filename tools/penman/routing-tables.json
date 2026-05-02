@@ -1,0 +1,39 @@
+{
+  "_doc": "Single source of truth for VSON-P -> Turtle role routing. Both the Python reference (tools/penman/vson_penman.py) and the Rust CLI consume this file. If you change a routing rule, regenerate both.",
+  "namespaces": {
+    "vso":    "https://vson.dev/v1/ontology#",
+    "allen":  "https://vson.dev/v1/allen#",
+    "rcc":    "https://vson.dev/v1/rcc8#",
+    "rdf":    "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "xsd":    "http://www.w3.org/2001/XMLSchema#",
+    "default": "https://example.org/scenes/anonymous#"
+  },
+  "role_namespace_overrides": {
+    "before":        "allen",
+    "after":         "allen",
+    "meets":         "allen",
+    "metBy":         "allen",
+    "overlaps":      "allen",
+    "overlappedBy":  "allen",
+    "starts":        "allen",
+    "startedBy":     "allen",
+    "during":        "allen",
+    "contains":      "allen",
+    "finishes":      "allen",
+    "finishedBy":    "allen",
+    "equals":        "allen"
+  },
+  "container_roles": ["causal", "temporal"],
+  "rcc_values": ["DC", "EC", "PO", "EQ", "TPP", "NTPP", "TPPi", "NTPPi"],
+  "role_value_to_vso": [
+    "individuation", "animacy", "countability", "affordance",
+    "directional", "proximal", "dimension"
+  ],
+  "role_value_to_rcc": ["rcc"],
+  "role_value_as_string": [
+    "venue", "atmosphere", "timeOfDay", "weather",
+    "aesthetic", "palette", "medium",
+    "angle", "focalLength", "framing", "cameraPosition",
+    "manner", "lemma"
+  ]
+}
