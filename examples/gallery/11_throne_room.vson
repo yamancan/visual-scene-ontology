@@ -1,0 +1,61 @@
+# Canonical full scene: queen, knight, charging boar, crown, sword, spatial
+# facts, events, statives, and stylistic frames. Mirrors examples/throne_room.vson.
+
+(scene / Composition
+   :framedBy (ctx / SceneContext :venue throne_room :atmosphere tense :timeOfDay dusk)
+   :framedBy (style / VisualStyle :aesthetic oil_painting :palette warm :medium canvas)
+   :framedBy (cam / CameraView :angle low :focalLength 35mm :framing medium_shot)
+   :rendersAs style
+   :viewedBy  cam
+   :hasQuality (cq1 / Quality :dimension Layout :value triangular)
+   :hasQuality (cq2 / Quality :dimension Focal  :value center)
+
+   :depicts (alice / PhysicalObject
+               :individuation Named :animacy Agentive :countability Count
+               :class Human
+               :hasQuality (a1 / Quality :dimension Affect :value joyful)
+               :hasQuality (a2 / Quality :dimension Age    :value 30)
+               :hasQuality (a3 / Quality :dimension Role   :value queen))
+
+   :depicts (bob / PhysicalObject
+               :individuation Named :animacy Agentive :countability Count
+               :class Human
+               :hasQuality (b1 / Quality :dimension Role   :value knight)
+               :hasQuality (b2 / Quality :dimension Affect :value focused))
+
+   :depicts (boar / PhysicalObject
+               :individuation Generic :animacy Agentive :countability Count
+               :class Animal
+               :hasQuality (br1 / Quality :dimension Affect      :value angry)
+               :hasQuality (br2 / Quality :dimension ActionState :value charging))
+
+   :depicts (crown / PhysicalObject
+               :individuation Generic :animacy Inert :countability Count
+               :class Regalia
+               :hasQuality (c1 / Quality :dimension Material   :value gold)
+               :hasQuality (c2 / Quality :dimension Enchantment :value glowing))
+
+   :depicts (sword / PhysicalObject
+               :individuation Generic :animacy Inert :countability Count
+               :class Weapon
+               :hasQuality (s1 / Quality :dimension Material :value steel))
+
+   :depicts (strike / Event :lemma strike
+               :agent bob :patient boar :instrument sword)
+
+   :depicts (charge / Event :lemma charge
+               :agent boar :patient bob)
+
+   :depicts (gaze / Stative :lemma look_at
+               :experiencer alice :stimulus boar)
+
+   :depicts (hold / Stative :lemma hold
+               :holder bob :theme sword)
+
+   :hasFact (sf1 / SpatialFact
+               :figure boar :ground bob
+               :viewer cam :directional in_front_of :rcc DC)
+
+   :hasFact (sf2 / SpatialFact
+               :figure crown :ground alice
+               :viewer cam :directional above :rcc EC))

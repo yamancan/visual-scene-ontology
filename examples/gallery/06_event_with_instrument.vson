@@ -1,0 +1,22 @@
+# Event with three thematic roles: agent, patient, instrument.
+# Demonstrates: punctual Event + role triadicity (the v0.1 dyadic-edge defect).
+
+(scene / Composition
+   :framedBy (cam / CameraView :angle eye_level :focalLength 35mm :framing medium_shot)
+   :viewedBy cam
+   :depicts (knight / PhysicalObject
+               :individuation Generic :animacy Agentive :countability Count
+               :class Human
+               :hasQuality (qr / Quality :dimension Role :value knight))
+   :depicts (boar / PhysicalObject
+               :individuation Generic :animacy Agentive :countability Count
+               :class Animal)
+   :depicts (sword / PhysicalObject
+               :individuation Generic :animacy Inert :countability Count
+               :class Weapon
+               :hasQuality (qm / Quality :dimension Material :value steel))
+   :occurs (strike / Event
+              :lemma strike
+              :agent knight
+              :patient boar
+              :instrument sword))

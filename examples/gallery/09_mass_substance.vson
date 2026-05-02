@@ -1,0 +1,19 @@
+# Mass / Substance: water pouring -- countability=Mass, no Count.
+# Demonstrates: Substance class + countability=Mass + a Process (durative).
+
+(scene / Composition
+   :framedBy (cam / CameraView :angle eye_level :focalLength 85mm :framing close_up)
+   :viewedBy cam
+   :depicts (jug / PhysicalObject
+               :individuation Generic :animacy Inert :countability Count
+               :class Vessel
+               :hasQuality (qm / Quality :dimension Material :value ceramic))
+   :depicts (water / Substance
+               :individuation Generic
+               :animacy Inert
+               :countability Mass
+               :class Water)
+   :occurs (pour / Process
+              :lemma pour
+              :agent jug
+              :theme water))

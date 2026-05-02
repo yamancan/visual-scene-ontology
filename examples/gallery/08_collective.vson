@@ -1,0 +1,13 @@
+# Collective countability: a crowd as a single Aggregate, not 100 individuals.
+# Demonstrates: countability=Collective, no per-individual qualities.
+
+(scene / Composition
+   :framedBy (cam / CameraView :angle high :focalLength 24mm :framing wide_shot)
+   :viewedBy cam
+   :framedBy (ctx / SceneContext :venue marketplace :atmosphere energetic :timeOfDay noon)
+   :depicts (crowd / Aggregate
+               :individuation Generic
+               :animacy Agentive
+               :countability Collective
+               :class Group
+               :hasQuality (qs / Quality :dimension Size :value large)))

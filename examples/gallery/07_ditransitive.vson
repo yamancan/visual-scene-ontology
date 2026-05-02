@@ -1,0 +1,23 @@
+# Ditransitive: "the merchant gives the apple to the child."
+# Demonstrates: agent + theme + recipient (the AMR :ARG0/:ARG1/:ARG2 alignment).
+
+(scene / Composition
+   :framedBy (cam / CameraView :angle eye_level :focalLength 50mm :framing medium_shot)
+   :viewedBy cam
+   :depicts (merchant / PhysicalObject
+               :individuation Generic :animacy Agentive :countability Count
+               :class Human
+               :hasQuality (qr / Quality :dimension Role :value merchant))
+   :depicts (child / PhysicalObject
+               :individuation Generic :animacy Agentive :countability Count
+               :class Human
+               :hasQuality (qa / Quality :dimension Age :value child))
+   :depicts (apple / PhysicalObject
+               :individuation Generic :animacy Inert :countability Count
+               :class Apple
+               :hasQuality (qc / Quality :dimension Color :value red))
+   :occurs (give / Event
+              :lemma give
+              :agent merchant
+              :theme apple
+              :recipient child))

@@ -1,0 +1,19 @@
+# Directional spatial fact with mandatory viewer (Talmy resolution).
+# Demonstrates: directional + viewer + RCC together.
+# The viewer disambiguates "left of" -- left from whose vantage?
+
+(scene / Composition
+   :framedBy (cam / CameraView :angle eye_level :focalLength 35mm :framing wide_shot)
+   :viewedBy cam
+   :depicts (lamp / PhysicalObject
+               :individuation Generic :animacy Inert :countability Count
+               :class Lamp)
+   :depicts (chair / PhysicalObject
+               :individuation Generic :animacy Inert :countability Count
+               :class Furniture)
+   :hasFact (sf / SpatialFact
+               :figure lamp
+               :ground chair
+               :viewer cam
+               :directional left_of
+               :rcc DC))

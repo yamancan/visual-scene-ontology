@@ -1,0 +1,12 @@
+# Adds a Quality (color) to the apple.
+# Demonstrates: hasQuality / Quality node with dimension + value.
+
+(scene / Composition
+   :framedBy (cam / CameraView :angle eye_level :focalLength 50mm :framing close_up)
+   :viewedBy cam
+   :depicts (apple / PhysicalObject
+               :individuation Generic
+               :animacy Inert
+               :countability Count
+               :class Apple
+               :hasQuality (q1 / Quality :dimension Color :value red)))

@@ -1,0 +1,11 @@
+# Minimal valid scene: one Composition + one Entity + one Frame.
+# Demonstrates the smallest SHACL-conformant document.
+
+(scene / Composition
+   :framedBy (cam / CameraView :angle eye_level :focalLength 50mm :framing close_up)
+   :viewedBy cam
+   :depicts (apple / PhysicalObject
+               :individuation Generic
+               :animacy Inert
+               :countability Count
+               :class Apple))
