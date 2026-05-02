@@ -5,7 +5,7 @@ TOOLS = tools/penman/vson_penman.py
 EXAMPLE_VSON = examples/throne_room.vson
 EXAMPLE_TTL = examples/throne_room.ttl
 
-.PHONY: all check test parse-ontology penman-roundtrip shacl deps cli-check spec-check clean
+.PHONY: all check test parse-ontology penman-roundtrip shacl deps cli-check spec-check web-check clean
 
 all: check
 
@@ -78,7 +78,15 @@ cli-check:
 	assert sorted(map(str,a)) == sorted(map(str,b)), 'graph mismatch'; \
 	print(f'  OK identical, triples={len(a)}')"
 
+web-check:
+	@echo "==> Web: svelte-check + build"
+	@cd web && pnpm install --frozen-lockfile --silent 2>&1 | tail -3
+	@cd web && pnpm check 2>&1 | tail -3
+	@cd web && pnpm build 2>&1 | tail -3
+	@echo "  OK web build, dist=$$(du -sh web/build 2>/dev/null | cut -f1 || echo n/a)"
+
 clean:
 	rm -rf __pycache__ tests/__pycache__ tools/penman/__pycache__
 	rm -f /tmp/throne_room.emitted.ttl /tmp/rust.ttl /tmp/py.ttl
 	cd cli && cargo clean --quiet 2>/dev/null || true
+	rm -rf web/.svelte-kit web/build

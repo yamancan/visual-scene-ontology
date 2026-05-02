@@ -29,6 +29,7 @@ ontology/         VSO TBox (OWL 2 RL) + VSV vocabulary
 shapes/           SHACL shapes for well-formedness
 examples/         Throne-room scene + gallery/ (11 scenes, minimal → complex)
 cli/              `vson` Rust CLI (validate / convert / export cypher)
+web/              SvelteKit studio — drop image, get scene graph (stateless, OpenRouter)
 tools/penman/     Reference Penman ↔ Turtle-star transpiler (Python)
                   + routing-tables.json (single source of truth for both impls)
 tools/schema/     JSON Schema files (extractor envelope + JSON-LD form)
@@ -57,7 +58,13 @@ make check        # 17 Python tests + 11-scene gallery + 2 schema parses
 make cli-check    # 19 Rust tests + graph-iso parity vs Python ref
 ```
 
-See [`docs/vson.md`](docs/vson.md) for the full spec and [`cli/README.md`](cli/README.md) for CLI documentation.
+See [`docs/vson.md`](docs/vson.md) for the full spec, [`cli/README.md`](cli/README.md) for the CLI, and [`web/README.md`](web/README.md) for the studio.
+
+Run the studio locally:
+
+```bash
+cd web && pnpm install && pnpm dev --open
+```
 
 ## Contribution boundary
 
