@@ -92,8 +92,8 @@
 			/>
 		</svg>
 		<div class="zone-copy">
-			<span class="zone-title">{dragOver ? 'release to extract' : 'drop image'}</span>
-			<span class="zone-meta font-mono">jpeg or png · ≤5 MB</span>
+			<span class="zone-title">{dragOver ? 'release to extract' : 'drop image here'}</span>
+			<span class="zone-meta font-mono">jpeg or png · ≤5 MB · click to browse</span>
 		</div>
 	</button>
 	<input

@@ -17,7 +17,7 @@
 			<header class="bar">
 				<span class="font-mono bar-label">graph</span>
 				<span class="bar-meta font-mono">
-					{nodeCount} nodes · drag · scroll = zoom
+					{nodeCount} nodes · drag to pan · scroll to zoom
 				</span>
 			</header>
 			<div class="graph-host">
