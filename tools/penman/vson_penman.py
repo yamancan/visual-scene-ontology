@@ -25,8 +25,28 @@ import json
 import os
 import re
 import sys
-from dataclasses import dataclass, field
-from typing import Iterator, List, Optional, Union
+from dataclasses import dataclass
+
+# Shared AST types live in tools/vson_ast.py so the upcoming VSON-X
+# parser can produce the same tree without duplicating the dataclasses.
+# We re-export them at module level for back-compat with any caller that
+# imports Ref/Lit/Node/Term/Triple from this module.
+#
+# Import strategy: prefer the qualified package path `tools.vson_ast`
+# so import identity is stable (`tools.vson_ast.Node is
+# tools.penman.vson_penman.Node`). Fall back to the bare `vson_ast`
+# import for the direct-invocation case (`python3 vson_penman.py ...`)
+# where the package root might not be on sys.path.
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_REPO_PARENT = os.path.dirname(_REPO_ROOT)
+if _REPO_PARENT not in sys.path:
+    sys.path.insert(0, _REPO_PARENT)
+try:
+    from tools.vson_ast import Lit, Node, Ref, Term, Triple  # noqa: E402,F401
+except ImportError:
+    if _REPO_ROOT not in sys.path:
+        sys.path.insert(0, _REPO_ROOT)
+    from vson_ast import Lit, Node, Ref, Term, Triple  # type: ignore  # noqa: E402,F401
 
 # Routing tables live in a sibling JSON file; both this reference and the
 # Rust CLI consume the same file so they cannot drift.
@@ -108,29 +128,10 @@ def tokenize(src: str):
 
 
 # ---------------------------------------------------------------------------
-# AST
+# AST — Ref, Lit, Node, Term are imported from tools.vson_ast above.
+# Keeping them re-exported here preserves any historical callers that
+# imported via `from tools.penman.vson_penman import Node`.
 # ---------------------------------------------------------------------------
-
-@dataclass
-class Ref:
-    var: str
-
-
-@dataclass
-class Lit:
-    value: str
-    is_string: bool = False
-    is_number: bool = False
-
-
-@dataclass
-class Node:
-    var: str
-    concept: Optional[str]
-    edges: List[tuple] = field(default_factory=list)  # list of (role, Term)
-
-
-Term = Union["Node", Ref, Lit]
 
 
 # ---------------------------------------------------------------------------
@@ -207,14 +208,7 @@ def parse(src: str) -> Node:
 # Emitter — VSON-P AST → Turtle-star
 # ---------------------------------------------------------------------------
 
-@dataclass
-class Triple:
-    s: str
-    p: str
-    o: str
-
-    def render(self) -> str:
-        return f"{self.s} {self.p} {self.o} ."
+# Triple is also imported from tools.vson_ast (see top of file).
 
 
 class Emitter:
