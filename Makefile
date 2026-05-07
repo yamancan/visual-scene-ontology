@@ -5,7 +5,7 @@ TOOLS = tools/penman/vson_penman.py
 EXAMPLE_VSON = examples/throne_room.vson
 EXAMPLE_TTL = examples/throne_room.ttl
 
-.PHONY: all check test parse-ontology penman-roundtrip shacl deps cli-check spec-check x-check web-check clean
+.PHONY: all check test parse-ontology penman-roundtrip shacl deps cli-check spec-check x-check x-skill-check web-check deploy-check clean
 
 all: check
 
@@ -81,6 +81,16 @@ cli-check:
 x-check:
 	@echo "==> VSON-X gallery round-trip parity vs Penman"
 	@$(PY) -m unittest tests.test_vson_x_basic tests.test_vson_x_roundtrip 2>&1 | tail -3
+
+x-skill-check:
+	@echo "==> VSON-X skill conformance over gallery-x corpus"
+	@$(PY) tools/vson_x/skill_check.py \
+		--corpus examples/gallery-x \
+		--config skills/vson-extractor-x/conformance.json
+
+deploy-check:
+	@echo "==> Deploy preflight"
+	@bash scripts/deploy_preflight.sh
 
 web-check:
 	@echo "==> Web: svelte-check + build"
