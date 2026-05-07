@@ -57,6 +57,34 @@ export async function transpilePenmanToTurtle(
 	}
 }
 
+export interface CaptionOk {
+	ok: true;
+	caption: string;
+}
+export interface CaptionErr {
+	ok: false;
+	error: string;
+}
+
+/**
+ * Render a deterministic English caption from a VSON-P (Penman) document.
+ * Shells out to `vson export caption`, which itself shells out to the
+ * canonical Python renderer at tools/render/caption.py. Output is
+ * byte-identical to the CI fixtures under tests/fixtures/captions/.
+ */
+export async function renderCaption(vson_p: string): Promise<CaptionOk | CaptionErr> {
+	const dir = await mkdtemp(join(tmpdir(), 'vson-'));
+	const file = join(dir, 'in.vson');
+	try {
+		await writeFile(file, vson_p, 'utf8');
+		const r = await run(['export', 'caption', file]);
+		if (r.code === 0) return { ok: true, caption: r.stdout.trimEnd() };
+		return { ok: false, error: r.stderr.trim() || `vson exited ${r.code}` };
+	} finally {
+		await rm(dir, { recursive: true, force: true });
+	}
+}
+
 export interface ValidateResult {
 	conforms: boolean;
 	report: string;

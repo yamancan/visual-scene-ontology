@@ -1,41 +1,61 @@
 import { error, text } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import type { SceneGraph } from '$lib/types';
+import { renderCaption } from '$lib/server/cli';
 import { toCypher, toDot, toGraphML, toMermaid } from '$lib/server/exporters';
 
-interface Body {
+interface GraphBody {
 	graph: SceneGraph;
 	format: 'cypher' | 'graphml' | 'dot' | 'mermaid';
 }
 
-const MIME: Record<Body['format'], string> = {
+interface CaptionBody {
+	vson_p: string;
+	format: 'caption';
+}
+
+type Body = GraphBody | CaptionBody;
+
+const MIME: Record<GraphBody['format'] | CaptionBody['format'], string> = {
 	cypher: 'text/x-cypher',
 	graphml: 'application/graphml+xml',
 	dot: 'text/vnd.graphviz',
-	mermaid: 'text/x-mermaid'
+	mermaid: 'text/x-mermaid',
+	caption: 'text/plain'
 };
 
 export const POST: RequestHandler = async ({ request }) => {
 	const body = (await request.json().catch(() => null)) as Body | null;
-	if (!body?.graph?.nodes || !body?.graph?.edges || !body.format)
-		throw error(400, 'expected { graph, format }');
+	if (!body || !body.format) throw error(400, 'expected { graph, format } or { vson_p, format }');
+
+	if (body.format === 'caption') {
+		const cb = body as CaptionBody;
+		if (!cb.vson_p) throw error(400, 'caption requires { vson_p, format: "caption" }');
+		const r = await renderCaption(cb.vson_p);
+		if (!r.ok) throw error(500, `caption renderer failed: ${r.error}`);
+		return text(r.caption, { headers: { 'content-type': MIME.caption } });
+	}
+
+	const gb = body as GraphBody;
+	if (!gb.graph?.nodes || !gb.graph?.edges)
+		throw error(400, 'expected { graph, format } with nodes + edges');
 
 	let out = '';
-	switch (body.format) {
+	switch (gb.format) {
 		case 'cypher':
-			out = toCypher(body.graph);
+			out = toCypher(gb.graph);
 			break;
 		case 'graphml':
-			out = toGraphML(body.graph);
+			out = toGraphML(gb.graph);
 			break;
 		case 'dot':
-			out = toDot(body.graph);
+			out = toDot(gb.graph);
 			break;
 		case 'mermaid':
-			out = toMermaid(body.graph);
+			out = toMermaid(gb.graph);
 			break;
 		default:
-			throw error(400, `unknown format: ${body.format}`);
+			throw error(400, `unknown format: ${gb.format}`);
 	}
-	return text(out, { headers: { 'content-type': MIME[body.format] } });
+	return text(out, { headers: { 'content-type': MIME[gb.format] } });
 };
