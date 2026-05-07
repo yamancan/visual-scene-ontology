@@ -220,7 +220,20 @@ class Emitter:
 
     def iri_for_var(self, var: str) -> str:
         if var not in self.var_to_iri:
-            self.var_to_iri[var] = f":{var}"
+            # Vars beginning with '_' (e.g. auto-generated `_q1`, `_sf3`)
+            # are treated as RDF blank nodes so graph-iso comparison
+            # ignores their identity. Author-written vars (no leading
+            # underscore) become named IRIs in the default namespace,
+            # preserving Penman's reentrancy semantics. This is the
+            # cross-syntax convention shared between VSON-P (where users
+            # rarely if ever start vars with '_') and the upcoming
+            # VSON-X parser (which always uses '_'-prefixed names for
+            # auto-generated Quality / Stative / Event / SpatialFact
+            # nodes that have no author-meaningful identity).
+            if var.startswith("_"):
+                self.var_to_iri[var] = f"_:{var.lstrip('_')}"
+            else:
+                self.var_to_iri[var] = f":{var}"
         return self.var_to_iri[var]
 
     def role_to_iri(self, role: str) -> str:
