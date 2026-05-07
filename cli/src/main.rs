@@ -4,6 +4,9 @@
 //!   - validate <files...>      SHACL conformance (shells out to `pyshacl`).
 //!   - convert  p2t|t2p <file>  Penman <-> Turtle transpilation.
 //!   - export   cypher <file>   Emit Cypher CREATE statements from Turtle.
+//!   - export   caption <file>  Render a deterministic English caption for
+//!                              image-generation models (shells out to
+//!                              tools/render/caption.py; native Rust port v1.2).
 //!
 //! Exits 0 on success, 1 on validation failure, 2 on usage error.
 
@@ -56,6 +59,8 @@ enum ConvertDirection {
 enum ExportTarget {
     /// Emit Cypher CREATE statements.
     Cypher { file: PathBuf },
+    /// Render a deterministic English caption for image-generation models.
+    Caption { file: PathBuf },
 }
 
 fn main() -> ExitCode {
@@ -65,6 +70,7 @@ fn main() -> ExitCode {
         Cmd::Convert { direction: ConvertDirection::P2t { file } } => commands::convert::p2t(&file),
         Cmd::Convert { direction: ConvertDirection::T2p { file } } => commands::convert::t2p(&file),
         Cmd::Export { target: ExportTarget::Cypher { file } } => commands::export_cypher::run(&file),
+        Cmd::Export { target: ExportTarget::Caption { file } } => commands::export_caption::run(&file),
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,

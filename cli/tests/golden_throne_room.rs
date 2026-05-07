@@ -59,3 +59,43 @@ fn export_cypher_emits_create_statements() {
     assert!(stdout.contains("[:depicts]"));
     assert!(stdout.contains("SET ctx.venue = 'throne_room'"));
 }
+
+#[test]
+fn export_caption_matches_python_fixture() {
+    // The Rust CLI shells out to tools/render/caption.py; output MUST match
+    // the byte-identical fixture under tests/fixtures/captions/.
+    let mut cmd = Command::cargo_bin("vson").unwrap();
+    cmd.current_dir(repo_root())
+        .args(["export", "caption", "examples/gallery/11_throne_room.vson"]);
+    let output = cmd.output().unwrap();
+    assert!(
+        output.status.success(),
+        "stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr),
+    );
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let fixture = std::fs::read_to_string(
+        repo_root().join("tests/fixtures/captions/11_throne_room.txt"),
+    )
+    .expect("fixture must exist");
+    assert_eq!(
+        stdout.trim_end_matches('\n'),
+        fixture.trim_end_matches('\n'),
+        "Rust caption output must match Python reference fixture",
+    );
+}
+
+#[test]
+fn export_caption_minimal_scene() {
+    let mut cmd = Command::cargo_bin("vson").unwrap();
+    cmd.current_dir(repo_root())
+        .args(["export", "caption", "examples/gallery/01_minimal.vson"]);
+    let output = cmd.output().unwrap();
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(
+        stdout.contains("apple"),
+        "minimal scene caption should mention an apple, got: {stdout}"
+    );
+}

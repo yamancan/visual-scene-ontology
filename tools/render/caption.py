@@ -570,11 +570,29 @@ def _local_name(value) -> str:
 
 def _main(argv: list[str]) -> int:
     if len(argv) < 2:
-        print("usage: python -m tools.render.caption <file.ttl>", flush=True)
+        print("usage: python -m tools.render.caption <file.vson|file.ttl>", flush=True)
         return 2
     path = argv[1]
     g = Graph()
-    g.parse(path, format="turtle")
+
+    # Auto-detect by extension; for .vson, use the Penman transpiler.
+    if path.endswith(".vson"):
+        # Lazy import to avoid pulling penman tools into tests that only
+        # exercise the renderer with pre-parsed graphs.
+        import sys as _sys
+
+        _here = os.path.dirname(os.path.dirname(_HERE))
+        if _here not in _sys.path:
+            _sys.path.insert(0, _here)
+        from tools.penman import vson_penman as vp  # type: ignore
+
+        with open(path, encoding="utf-8") as f:
+            penman_src = f.read()
+        turtle_src = vp.to_turtle(penman_src)
+        g.parse(data=turtle_src, format="turtle")
+    else:
+        g.parse(path, format="turtle")
+
     print(render(g))
     return 0
 

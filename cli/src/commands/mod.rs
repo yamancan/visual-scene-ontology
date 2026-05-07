@@ -1,6 +1,7 @@
 pub mod validate;
 pub mod convert;
 pub mod export_cypher;
+pub mod export_caption;
 
 #[derive(Debug)]
 pub enum Error {
