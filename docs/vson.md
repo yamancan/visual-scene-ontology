@@ -174,7 +174,7 @@ If you might want to negate it, modify it, quantify it, refer to it, or attach a
 
 ## 4. Concrete syntaxes
 
-VSON has two surface syntaxes that share one abstract graph.
+VSON has three surface syntaxes that share one abstract graph: VSON-T (canonical, machine), VSON-P (Penman, human authoring), and VSON-X (compact sigil-based, LLM-optimized — added in v1.1). All three are graph-equivalent across the entire example gallery.
 
 ### 4.1 VSON-T (Turtle-star canonical, machine)
 
@@ -200,11 +200,91 @@ Reentrancy: a `term` that is a bare `var` (no `/`) refers to a previously-declar
 
 The reference transpiler is [`tools/penman/vson_penman.py`](../tools/penman/vson_penman.py); the Rust port is [`cli/src/penman/`](../cli/src/penman/). Both consume [`tools/penman/routing-tables.json`](../tools/penman/routing-tables.json) as their single source of truth, so they cannot drift.
 
-### 4.3 JSON-LD form
+### 4.3 VSON-X (compact sigil-based, LLM-optimized) — v1.1
+
+VSON-X is an LL(1) line-significant sigil syntax targeting LLM emission and human authoring. Eight prefix sigils, no brackets, bearer-class dispatch. Canonical media type: `text/vson-x` (proposed). File extension: `.x.vson` (the `.vson` suffix is preserved for `vson` CLI dispatch).
+
+**Sigil set (closed):**
+
+| Sigil | Kind | Example |
+|---|---|---|
+| `~` | Composition root | `~scene` |
+| `/` | Concept marker | `/PhysicalObject`, `/CameraView` |
+| `@` | Named/Skolem handle | `@alice`, `@cam` |
+| `*` | Quality kv / direct property / role arg | `*color red` |
+| `>` | Stative role-edge | `@bob > hold sword` |
+| `>>` | Event/Process role-edge | `@bob >> strike boar *instrument sword` |
+| `!` | Asymmetric SpatialFact | `crown ! EC @alice ^cam *dir above` |
+| `&` | Symmetric SpatialFact (emits 2 nodes, figure/ground swapped) | `a & near & b` |
+| `^` | Viewer anchor | `^cam` |
+
+**EBNF (LL(1)):**
+
+```ebnf
+document       = composition ;
+composition    = "~" IDENT { quality_kv } NEWLINE block ;
+block          = { item } ;
+item           = entity_decl | frame_decl | viewer_anchor
+               | stative | event | spatial_asym | spatial_sym | comment ;
+
+entity_decl    = handle "/" IDENT { trait | quality_kv } ;
+handle         = "@" IDENT | IDENT ;     (* @ -> Named/Skolem; bare -> Generic *)
+trait          = TRAIT_KEYWORD ;          (* §5.x; order-independent *)
+
+frame_decl     = "/" FRAME_KIND [ "@" IDENT ] { quality_kv } ;
+                 (* FRAME_KIND ∈ {CameraView, VisualStyle, SceneContext, Persona} *)
+
+viewer_anchor  = "^" IDENT ;
+quality_kv     = "*" NAME value [ "~" MOD ] ;
+value          = IDENT | INT | FLOAT | UNIT | STRING | ref ;
+ref            = "@" IDENT | IDENT ;
+
+stative        = ref ">"  IDENT  arglist ;
+event          = ref ">>" IDENT  arglist ;
+arglist        = { ref | quality_kv } ;
+
+spatial_asym   = ref "!" rel ref [ viewer_anchor ] { quality_kv } ;
+rel            = RCC_TOKEN | DIR_TOKEN ;
+spatial_sym    = ref "&" SYM_LEMMA "&" ref ;
+
+comment        = "#" /[^\n]*/ ;
+```
+
+**Lead-token rule** (§3.7 of the VSON-X normative spec): newlines are insignificant within an item; a new item begins when the lexer sees a lead token (`~`, `@id /`, bare-IDENT followed by `/`, `/FrameKind`, `^`, ref-followed-by-`>`/`>>`/`!`/`&`, or `#`). This means a single entity declaration may span multiple lines without indentation rules.
+
+**Bearer-class dispatch for `*K V`** (the central rule):
+
+| Bearer (LHS) | `*K V` is interpreted as |
+|---|---|
+| Composition (`~scene`) | Quality node (`vso:hasQuality`), with seven exceptions: `*rendersAs` is a direct property |
+| Frame (`/CameraView`, `/VisualStyle`, `/SceneContext`) | Direct property on the Frame |
+| `/Persona` Frame | `vso:hasInvariant`-attached Quality node |
+| Entity (`/PhysicalObject`, `/Aggregate`, `/Substance`) | Quality node (`vso:hasQuality`), with seven exceptions: `*class`, `*bbox2d`, `*position3d`, `*scale3d`, `*rotation`, `*visibleFraction`, `*embodies` are direct properties |
+| Perdurant arglist (after `>` / `>>`) | Thematic role; the value is either a ref (entity) or a literal (e.g. `*manner swift`) |
+| SpatialFact arglist (after `!`) | Direct property on the SpatialFact (`*dir above`, `*viewer @cam`) |
+
+**Symmetric-by-construction.** The `&` form `a & near & b` MUST emit two SpatialFact nodes with figure/ground swapped (one with `figure=a, ground=b` and one with `figure=b, ground=a`), each with `vso:proximal=near`. This closes v0.1's asymmetry-by-fiat bug at the syntax level; the ontology's `vso:proximal` enum is the closed list `{near, far, adjacent}`. Symmetric lemma with `!` (asymmetric form) is a parse error.
+
+**Talmy resolution.** `! ... *dir X` without a `^viewer` anchor is a parse error (matches the SHACL `vss:DirectionalNeedsViewerShape` constraint at the syntax layer).
+
+**Lemma → kind table** (closed; spec §5):
+
+- Stative: `hold`, `wear`, `carry`, `gaze_at`, `look_at`, `see`, `hear`, `know`, `believe`, `intend` (signature: holder/experiencer + theme/stimulus).
+- Event: `strike`, `throw`, `give`, `send`, `arrive`, `depart`, `break`, `catch`, `drop`, `fall`, `charge` (signatures: agent + theme/patient + recipient/etc.).
+- Process: `run`, `walk`, `swim`, `fly`, `dance`, `burn`, `bleed`, `flow`, `pour` (signatures: agent/patient + theme).
+- Symmetric proximal: `near`, `far`, `adjacent` (used only in `&` form).
+
+`>` with an Event/Process lemma OR `>>` with a Stative lemma is a parse error.
+
+**Reference implementation:** [`tools/vson_x/vson_x.py`](../tools/vson_x/vson_x.py). Native Rust parser planned for v1.2; until then `vson convert x2t` shells out to Python.
+
+**Round-trip parity.** Every gallery scene has an [`examples/gallery-x/N.x.vson`](../examples/gallery-x/) form; the test suite asserts each pair is graph-equivalent (modulo blank-node identity for auto-anonymous reified nodes; see [`tools/vson_x/equiv.py`](../tools/vson_x/equiv.py)) via `make x-check`.
+
+### 4.4 JSON-LD form
 
 A VSON document MAY be exchanged as JSON-LD bound to context `https://vson.dev/v1/context.jsonld`. Structural skeleton in [`tools/schema/vson-jsonld.schema.json`](../tools/schema/vson-jsonld.schema.json). Well-formedness is enforced by SHACL on the materialized graph, not by JSON Schema alone.
 
-### 4.4 Image-extractor envelope (the Quick Start payload)
+### 4.5 Image-extractor envelope (the Quick Start payload)
 
 The wire format between an image-to-VSON extractor and its consumer is the JSON envelope in [`tools/schema/vson-output.schema.json`](../tools/schema/vson-output.schema.json). See §6.1 for the per-field reference. Every field is also annotated with its JSON Schema fragment in §6.
 
@@ -313,6 +393,27 @@ Events / Processes / Statives observed within this composition. Producers MAY al
 | `vso:focalLength` | `xsd:string` | no | `"24mm"`, `"35mm"`, `"50mm"`, `"85mm"` (lensequivalent), or numeric mm |
 | `vso:framing` | `xsd:string` | no | `extreme_close_up, close_up, medium_shot, wide_shot, extreme_wide_shot` |
 | `vso:cameraPosition` | `xsd:string` | no | Free-form positional cue (`"front_left_dolly"`, `"overhead"`). |
+
+#### 5.3.4 `vso:Persona` (v1.1)
+
+A Persona is a Frame that carries the cross-document invariants of a recurring character (an actor, a fictional protagonist, a brand mascot). It is **disjoint from `Entity`** — a Persona is never depicted directly; instead, an Entity in a scene declares `vso:embodies` pointing at a Persona, and that Entity inherits the Persona's invariants for cross-scene consistency checks.
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `vso:hasInvariant` | `vso:Quality` | yes (≥1) | Each Persona MUST carry at least one Quality (e.g. `Hair=auburn`). |
+
+```turtle
+:alice_id a vso:Persona ;
+  vso:hasInvariant [ a vso:Quality ; vso:dimension vso:Hair ; vso:value "auburn" ] ,
+                   [ a vso:Quality ; vso:dimension vso:Eye  ; vso:value "green"  ] .
+
+:alice a vso:PhysicalObject ;
+  vso:individuation vso:Named ; vso:animacy vso:Agentive ;
+  vso:class :Knight ;
+  vso:embodies :alice_id .
+```
+
+`vss:EmbodimentConsistencyShape` (Warning severity) flags scenes where an Entity's Quality contradicts its Persona's invariant for the same dimension. SHACL violation here is a *suggestion*, not a hard failure — scene-level Quality always wins (a character can be wounded, costumed, transformed); the shape exists to catch authoring mistakes, not to enforce immutability.
 
 ### 5.4 `vso:PhysicalObject` (and `vso:Aggregate`, `vso:Substance`)
 
@@ -797,19 +898,25 @@ Eleven scenes, ascending in complexity. Every example SHACL-conforms (verified b
 **File:** [`examples/gallery/11_throne_room.vson`](../examples/gallery/11_throne_room.vson) (mirrors [`examples/throne_room.vson`](../examples/throne_room.vson))
 **Demonstrates:** every feature in this spec — Frames, Entities with full traits, Qualities, Events, Statives, SpatialFacts with viewers, named entities, the works.
 
+### 9.12 VSON-X compact-syntax mirror — v1.1
+
+Every gallery scene above has a graph-equivalent VSON-X form under [`examples/gallery-x/`](../examples/gallery-x/). For example, `examples/gallery-x/11_throne_room.x.vson` produces an RDF graph isomorphic to `examples/gallery/11_throne_room.vson` (modulo blank-node identity for auto-anonymous reified nodes; see [`tools/vson_x/equiv.py`](../tools/vson_x/equiv.py)). `make x-check` runs the round-trip suite over all 11 pairs.
+
 ---
 
 ## 10. Reference implementations
 
 | Implementation | Location | Scope | Tests |
 |---|---|---|---|
-| Python reference transpiler | [`tools/penman/vson_penman.py`](../tools/penman/vson_penman.py) | Penman ↔ Turtle, normalizer | 12 unit, 4 SHACL, 1 smoke (17/17 ✓) |
-| Rust CLI (`vson`) | [`cli/`](../cli) | `validate`, `convert p2t`, `export cypher` | 12 unit, 7 integration (19/19 ✓) |
-| SHACL validator | `pyshacl` (shelled out by `vson validate`) | semantic well-formedness | 4 SHACL tests + 11 gallery passes |
+| Python Penman transpiler | [`tools/penman/vson_penman.py`](../tools/penman/vson_penman.py) | Penman ↔ Turtle, normalizer | 12 unit, 4 SHACL, 1 smoke (17/17 ✓) |
+| Python VSON-X parser (v1.1) | [`tools/vson_x/vson_x.py`](../tools/vson_x/vson_x.py) | VSON-X → Turtle, eight sigils, bearer-class dispatch | 13 lexer/parser/emitter + 11 gallery round-trip (24/24 ✓) |
+| Caption renderer (v1.0.5) | [`tools/render/caption.py`](../tools/render/caption.py) | graph → English (deterministic, no LLM) | 7 fixture + determinism (7/7 ✓) |
+| Rust CLI (`vson`) | [`cli/`](../cli) | `validate`, `convert p2t/x2t`, `export cypher/caption` | 12 unit, 8 integration (10 binary-level, 20 inner; ✓) |
+| SHACL validator | `pyshacl` (shelled out by `vson validate`) | semantic well-formedness, strict + relaxed profiles | 4 SHACL tests + 11 gallery passes |
 | Bare-VLM extractor | [`tools/extractor/baseline/extract.py`](../tools/extractor/baseline/extract.py) | image → VSON-P | offline cassette test |
 | Routing tables (single source of truth) | [`tools/penman/routing-tables.json`](../tools/penman/routing-tables.json) | shared by Python + Rust | embedded via `include_str!` |
 
-A consumer is "VSON v1.0 reference-conformant" iff it accepts every document accepted by the Python reference transpiler + `pyshacl`, and rejects every document the reference rejects.
+A consumer is "VSON v1.1 reference-conformant" iff it accepts every document accepted by the Python references (`vson_penman.py` + `vson_x.py`) plus `pyshacl`, and rejects every document the references reject.
 
 ---
 
