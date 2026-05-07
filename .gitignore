@@ -26,3 +26,8 @@ web/node_modules/
 web/.svelte-kit/
 web/build/
 web/.env
+
+# Markdown files — do not commit, in any subfolder.
+# Existing tracked .md files (README.md, docs/vson.md, spec/*.md, etc.)
+# remain tracked; this rule only blocks NEW .md from being staged.
+*.md

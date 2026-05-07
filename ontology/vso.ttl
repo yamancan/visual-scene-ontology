@@ -44,6 +44,8 @@ vso:SceneContext   a owl:Class ; rdfs:subClassOf vso:Frame ; rdfs:label "SceneCo
 vso:VisualStyle    a owl:Class ; rdfs:subClassOf vso:Frame ; rdfs:label "VisualStyle" .
 vso:CameraView     a owl:Class ; rdfs:subClassOf vso:Frame ; rdfs:label "CameraView" .
 vso:Composition    a owl:Class ; rdfs:subClassOf vso:Frame ; rdfs:label "Composition" ; rdfs:comment "Mereological root for a scene." .
+vso:Persona        a owl:Class ; rdfs:subClassOf vso:Frame ; rdfs:label "Persona"
+                   ; rdfs:comment "Cross-document identity carrier. Links scene Entities (via vso:embodies) to stable identity invariants (via vso:hasInvariant). Persona IRIs MAY be shared across multiple VSON documents." .
 
 # Frame is disjoint from Entity (the world ≠ the lens)
 vso:Frame  owl:disjointWith vso:Entity .
@@ -129,6 +131,31 @@ vso:dimension a owl:ObjectProperty , owl:FunctionalProperty ;
 vso:value a rdf:Property ;
     rdfs:domain vso:Quality .
 
+vso:modifier a owl:DatatypeProperty ;
+    rdfs:domain vso:Quality ;
+    rdfs:range  xsd:string ;
+    rdfs:comment "Optional adverbial modifier on a Quality (e.g., 'dark' on Color, 'very' on Weight). Snake_case bareword. Cardinality 0..1; SHACL-enforced via vss:QualityModifierShape (relaxed; absence is normal)." .
+
+# vso:class — declared here because it appears in docs and gallery examples
+# (e.g., :alice vso:class Human, :alice vso:class :Apple) but lacked a TBox
+# declaration in v1.0. Range deliberately unconstrained (rdf:Property) to admit
+# both string literals (e.g., "Knight") and IRIs (e.g., :Knight, the form
+# emitted by the Penman parser when a bare ID is given).
+vso:class a rdf:Property ;
+    rdfs:domain vso:Entity ;
+    rdfs:comment "Domain-class designation from the open class registry (Knight, Crown, Sword, Woman, Apple, ...). Open vocabulary. Values typically IRIs in the document namespace when emitted from bareword input; xsd:string literals also conformant. Range intentionally unconstrained." .
+
+# Persona linkage — embodies and hasInvariant
+vso:embodies a owl:ObjectProperty ;
+    rdfs:domain vso:Entity ;
+    rdfs:range  vso:Persona ;
+    rdfs:comment "Entity embodies (instantiates) a Persona in this scene. The Persona's vso:hasInvariant Qualities are stable identity facts shared across embodiments." .
+
+vso:hasInvariant a owl:ObjectProperty ;
+    rdfs:domain vso:Persona ;
+    rdfs:range  vso:Quality ;
+    rdfs:comment "Invariant Quality of the Persona — stable across embodiments (hair color, build, etc.). Contrast with vso:hasQuality which is contingent per scene." .
+
 # Common quality dimensions
 vso:Dimension a owl:Class .
 vso:Color      a vso:Dimension .
@@ -196,12 +223,17 @@ vso:rightOf     a owl:ObjectProperty ; owl:inverseOf vso:leftOf .
 vso:inFrontOf   a owl:ObjectProperty .
 vso:behind      a owl:ObjectProperty ; owl:inverseOf vso:inFrontOf .
 
-# Proximal — symmetric (genuinely so, not by fiat)
-vso:near        a owl:ObjectProperty , owl:SymmetricProperty .
-vso:far         a owl:ObjectProperty , owl:SymmetricProperty .
-vso:adjacent    a owl:ObjectProperty , owl:SymmetricProperty .
-vso:nextTo      a owl:ObjectProperty , owl:SymmetricProperty .
-vso:facing      a owl:ObjectProperty , owl:SymmetricProperty .
+# Proximal values — these are VALUES of vso:proximal (e.g., :sf vso:proximal vso:near),
+# NOT predicates between entities. The owl:SymmetricProperty designation is removed
+# as of v1.1 (it never fired — values aren't predicates; symmetry is enforced at
+# emission time via VSON-X `&` form which emits two SpatialFacts with figure/ground
+# swapped). The ObjectProperty designation is retained for back-compat with any code
+# that historically imported these terms.
+vso:near        a owl:ObjectProperty .
+vso:far         a owl:ObjectProperty .
+vso:adjacent    a owl:ObjectProperty .
+vso:nextTo      a owl:ObjectProperty .
+vso:facing      a owl:ObjectProperty .
 
 # SpatialFact structural properties
 vso:figure      a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain vso:SpatialFact .

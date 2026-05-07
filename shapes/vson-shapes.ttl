@@ -171,3 +171,39 @@ vss:NegationShape a sh:NodeShape ;
         sh:minCount 1 ;
         sh:maxCount 1
     ] .
+
+#################################################################
+# Persona (v1.1) — must declare at least one hasInvariant Quality
+#################################################################
+
+vss:PersonaShape a sh:NodeShape ;
+    sh:targetClass vso:Persona ;
+    sh:property [
+        sh:path vso:hasInvariant ;
+        sh:minCount 1 ;
+        sh:class vso:Quality ;
+        sh:message "Persona must declare at least one hasInvariant Quality."
+    ] .
+
+# vss:EmbodimentConsistencyShape — Entity's hasQuality on dimension D should not
+# contradict embodied Persona's hasInvariant on the same dimension D.
+# Severity: Warning (extractor noise expected; not strict-conform fatal).
+vss:EmbodimentConsistencyShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:embodies ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        sh:select """
+            PREFIX vso: <https://vson.dev/v1/ontology#>
+            SELECT $this ?dim ?invariantValue ?embodiedValue WHERE {
+                $this vso:embodies ?persona .
+                ?persona vso:hasInvariant ?invQ .
+                ?invQ vso:dimension ?dim ;
+                      vso:value     ?invariantValue .
+                $this vso:hasQuality ?embQ .
+                ?embQ vso:dimension ?dim ;
+                      vso:value     ?embodiedValue .
+                FILTER (?invariantValue != ?embodiedValue)
+            }
+        """ ;
+        sh:message "Entity hasQuality value contradicts embodied Persona's hasInvariant on the same dimension."
+    ] .

@@ -1,0 +1,190 @@
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix vso:   <https://vson.dev/v1/ontology#> .
+@prefix vss:   <https://vson.dev/v1/shapes#> .
+@prefix rcc:   <https://vson.dev/v1/rcc8#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+<https://vson.dev/v1/shapes-relaxed>
+    a sh:NodeShape ;
+    rdfs:label "VSON v1.1 SHACL shapes — relaxed profile" ;
+    rdfs:comment "Relaxed validation profile for partial / authoring-time documents. Same shapes as vson-shapes.ttl (strict), but with sh:Warning severity on Talmy viewer, Event lemma, Quality dim/value, Quality modifier. Structural constraints (Composition.depicts, FrameNotDepicted, SpatialFact.figure/ground, RCC value, Persona.hasInvariant) remain sh:Violation. Used by `vson validate --partial`. v1.0 documents that conform under strict profile also conform under relaxed (no strict shape was made stricter)." .
+
+#################################################################
+# STRUCTURAL FLOOR — sh:Violation in both profiles
+#################################################################
+
+vss:CompositionShape a sh:NodeShape ;
+    sh:targetClass vso:Composition ;
+    sh:property [
+        sh:path vso:depicts ;
+        sh:minCount 1 ;
+        sh:message "A Composition must depict at least one Entity (vso:depicts)."
+    ] ;
+    sh:property [
+        sh:path vso:framedBy ;
+        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:class vso:Frame
+    ] .
+
+vss:SpatialFactShape a sh:NodeShape ;
+    sh:targetClass vso:SpatialFact ;
+    sh:property [
+        sh:path vso:figure ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:BlankNodeOrIRI
+    ] ;
+    sh:property [
+        sh:path vso:ground ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:BlankNodeOrIRI
+    ] ;
+    sh:or (
+        [ sh:property [ sh:path vso:rcc ;         sh:minCount 1 ] ]
+        [ sh:property [ sh:path vso:directional ; sh:minCount 1 ] ]
+        [ sh:property [ sh:path vso:proximal ;    sh:minCount 1 ] ]
+    ) ;
+    sh:message "SpatialFact must specify at least one of vso:rcc, vso:directional, or vso:proximal." .
+
+vss:RccValueShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:rcc ;
+    sh:property [
+        sh:path vso:rcc ;
+        sh:in ( rcc:DC rcc:EC rcc:PO rcc:EQ rcc:TPP rcc:NTPP rcc:TPPi rcc:NTPPi ) ;
+        sh:message "vso:rcc value must be one of the eight RCC-8 relations."
+    ] .
+
+vss:FrameNotDepictedShape a sh:NodeShape ;
+    sh:targetObjectsOf vso:depicts ;
+    sh:not [ sh:class vso:Frame ] ;
+    sh:message "vso:depicts must point to an Entity, not a Frame. Use vso:framedBy for the perspectival layer." .
+
+vss:HasQualityShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:hasQuality ;
+    sh:class vso:Entity ;
+    sh:message "Only Entities (not Frames) bear Qualities." .
+
+vss:NegationShape a sh:NodeShape ;
+    sh:targetClass vso:Negation ;
+    sh:property [
+        sh:path vso:negatedStatement ;
+        sh:minCount 1 ;
+        sh:maxCount 1
+    ] .
+
+vss:PersonaShape a sh:NodeShape ;
+    sh:targetClass vso:Persona ;
+    sh:property [
+        sh:path vso:hasInvariant ;
+        sh:minCount 1 ;
+        sh:class vso:Quality ;
+        sh:message "Persona must declare at least one hasInvariant Quality."
+    ] .
+
+#################################################################
+# RELAXED — sh:Warning under --partial; sh:Violation under strict
+#################################################################
+
+# Talmy viewer — relaxed in this profile (severity on property shape, not NodeShape)
+vss:DirectionalNeedsViewerShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:directional ;
+    sh:property [
+        sh:path vso:viewer ;
+        sh:minCount 1 ;
+        sh:class vso:CameraView ;
+        sh:severity sh:Warning ;
+        sh:message "Directional spatial facts SHOULD have a vso:viewer (CameraView) for construal disambiguation. (Relaxed-profile warning.)"
+    ] .
+
+# Event / Process / Stative lemma — relaxed
+vss:EventShape a sh:NodeShape ;
+    sh:targetClass vso:Event ;
+    sh:property [
+        sh:path vso:lemma ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Warning ;
+        sh:message "Event SHOULD have exactly one vso:lemma. (Relaxed-profile warning.)"
+    ] ;
+    sh:property [
+        sh:path vso:agent ;
+        sh:nodeKind sh:BlankNodeOrIRI ;
+        sh:maxCount 1 ;
+        sh:class vso:Endurant
+    ] .
+
+vss:ProcessShape a sh:NodeShape ;
+    sh:targetClass vso:Process ;
+    sh:property [ sh:path vso:lemma ; sh:datatype xsd:string ; sh:minCount 1 ;
+                  sh:severity sh:Warning ] .
+
+vss:StativeShape a sh:NodeShape ;
+    sh:targetClass vso:Stative ;
+    sh:property [ sh:path vso:lemma ; sh:datatype xsd:string ; sh:minCount 1 ;
+                  sh:severity sh:Warning ] ;
+    sh:property [ sh:path vso:experiencer ; sh:maxCount 1 ; sh:class vso:Endurant ] .
+
+# Quality dim/value — relaxed
+vss:QualityShape a sh:NodeShape ;
+    sh:targetClass vso:Quality ;
+    sh:property [
+        sh:path vso:dimension ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Warning
+    ] ;
+    sh:property [
+        sh:path vso:value ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Warning
+    ] .
+
+# Persona embodiment consistency — already Warning in strict; identical here
+vss:EmbodimentConsistencyShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:embodies ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        sh:select """
+            PREFIX vso: <https://vson.dev/v1/ontology#>
+            SELECT $this ?dim ?invariantValue ?embodiedValue WHERE {
+                $this vso:embodies ?persona .
+                ?persona vso:hasInvariant ?invQ .
+                ?invQ vso:dimension ?dim ;
+                      vso:value     ?invariantValue .
+                $this vso:hasQuality ?embQ .
+                ?embQ vso:dimension ?dim ;
+                      vso:value     ?embodiedValue .
+                FILTER (?invariantValue != ?embodiedValue)
+            }
+        """ ;
+        sh:message "Entity hasQuality value contradicts embodied Persona's hasInvariant on the same dimension."
+    ] .
+
+#################################################################
+# Trait enums — sh:Violation in both profiles (closed vocab)
+#################################################################
+
+vss:IndividuationShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:individuation ;
+    sh:property [
+        sh:path vso:individuation ;
+        sh:in ( vso:Generic vso:Named vso:Kind vso:Skolem ) ;
+        sh:maxCount 1
+    ] .
+
+vss:AnimacyShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:animacy ;
+    sh:property [
+        sh:path vso:animacy ;
+        sh:in ( vso:Agentive vso:Inert ) ;
+        sh:maxCount 1
+    ] .
+
+vss:CountabilityShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:countability ;
+    sh:property [
+        sh:path vso:countability ;
+        sh:in ( vso:Count vso:Mass vso:Collective ) ;
+        sh:maxCount 1
+    ] .
