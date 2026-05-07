@@ -33,19 +33,17 @@
     },
     "vson_p": {
       "type": "string",
-      "description": "VSON-P (Penman) authoring form. SHOULD be the canonical authoring artifact. Consumers MUST round-trip vson_p -> vson_t via the reference transpiler and SHOULD NOT diverge from vson_t.",
-      "minLength": 3,
+      "description": "VSON-P (Penman) authoring form. SHOULD be the canonical authoring artifact when extraction targets Penman. Consumers MUST round-trip vson_p -> vson_t via the reference transpiler and SHOULD NOT diverge from vson_t. v1.1: in VSON-X mode this field is the empty string \"\" (back-conversion to Penman is deferred to v1.2 when t2p ships); v1.1 envelopes MUST satisfy the if/then rule below — at least one of vson_p or vson_x is non-empty.",
       "examples": ["(s / Composition :viewedBy (c / CameraView :angle eye_level) :depicts (a / PhysicalObject :class Apple))"]
     },
     "vson_t": {
       "type": "string",
-      "description": "VSON-T (Turtle 1.2 / Turtle-star) form derived from vson_p. Consumers MAY parse this directly with rdflib or any Turtle parser.",
+      "description": "VSON-T (Turtle 1.2 / Turtle-star) form derived from vson_p or vson_x. Consumers MAY parse this directly with rdflib or any Turtle parser. Always non-empty.",
       "minLength": 3
     },
     "vson_x": {
       "type": "string",
-      "description": "VSON-X (compact sigil-based) form, optional. Populated when authoring/extraction surface was VSON-X; vson_p is the back-converted Penman in that case (always populated for back-compat). Spec: docs/vson-x-semantics.md. Available v1.1+.",
-      "minLength": 3
+      "description": "VSON-X (compact sigil-based) form, optional. Populated when authoring/extraction surface was VSON-X. Spec: docs/vson-x-semantics.md. Available v1.1+."
     },
     "graph": {
       "type": "object",
@@ -97,6 +95,23 @@
       }
     }
   },
+  "allOf": [
+    {
+      "$comment": "v1.0 / v1.0.5: vson_p is the source of truth and MUST be non-empty.",
+      "if": { "properties": { "version": { "enum": ["1.0", "1.0.5"] } } },
+      "then": { "properties": { "vson_p": { "minLength": 3 } } }
+    },
+    {
+      "$comment": "v1.1: at least one authoring surface (vson_p or vson_x) MUST be non-empty. Either Penman extraction (vson_p non-empty, vson_x absent) or VSON-X extraction (vson_p='', vson_x non-empty).",
+      "if": { "properties": { "version": { "const": "1.1" } } },
+      "then": {
+        "anyOf": [
+          { "properties": { "vson_p": { "minLength": 3 } } },
+          { "properties": { "vson_x": { "minLength": 3 } } }
+        ]
+      }
+    }
+  ],
   "$defs": {
     "GraphNode": {
       "type": "object",

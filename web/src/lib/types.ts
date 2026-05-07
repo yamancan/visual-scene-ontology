@@ -78,10 +78,13 @@ export interface SceneSource {
 
 export interface VsonEnvelope {
 	scene_id: string;
-	version: '1.0';
+	version: '1.0' | '1.0.5' | '1.1';
 	source?: SceneSource;
+	/** Penman authoring form. Empty string in v1.1 VSON-X mode (back-conversion deferred to v1.2). */
 	vson_p: string;
 	vson_t: string;
+	/** VSON-X compact form. Present iff extraction surface was VSON-X. v1.1+. */
+	vson_x?: string;
 	graph?: SceneGraph;
 	conformance: ConformanceReport;
 	extraction?: ExtractionMeta;
