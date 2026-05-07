@@ -194,17 +194,93 @@ class GalleryEquivalenceTests(unittest.TestCase):
         self.assertEquivalent(src, REPO / "examples/gallery/02_quality.vson")
 
 
-class UnimplementedFeatureErrors(unittest.TestCase):
-    """Sigils not yet supported MUST fail with a clear error so we don't
-    silently emit malformed graphs."""
+class StativeEventSpatialTests(unittest.TestCase):
+    """Phase B B2 second slice: Stative `>`, Event/Process `>>`,
+    SpatialFact `!` and `&`. All produce reified nodes attached to the
+    Composition via vso:depicts (per spec §4.4 universal default)."""
 
-    def test_stative_arrow_not_yet_implemented(self):
+    def test_stative_emits_reified_node(self):
         src = (
             "~scene\n"
             "  /CameraView @cam\n"
             "  ^cam\n"
             "  apple /PhysicalObject *class Apple\n"
+            "  @bob /PhysicalObject Named *class Human\n"
             "  @bob > hold apple\n"
+        )
+        from tools.vson_x.vson_x import to_turtle
+        turtle = to_turtle(src)
+        g = rdflib.Graph()
+        g.parse(data=turtle, format="turtle")
+        statives = list(g.subjects(
+            predicate=rdflib.URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+            object=rdflib.URIRef("https://vson.dev/v1/ontology#Stative"),
+        ))
+        self.assertEqual(len(statives), 1, "expected one Stative node")
+
+    def test_event_with_instrument(self):
+        src = (
+            "~scene\n"
+            "  /CameraView @cam\n"
+            "  ^cam\n"
+            "  knight /PhysicalObject Generic Agentive *class Human\n"
+            "  boar /PhysicalObject Generic Agentive *class Animal\n"
+            "  sword /PhysicalObject Generic Inert *class Weapon\n"
+            "  knight >> strike boar *instrument sword\n"
+        )
+        from tools.vson_x.vson_x import to_turtle
+        turtle = to_turtle(src)
+        g = rdflib.Graph()
+        g.parse(data=turtle, format="turtle")
+        events = list(g.subjects(
+            predicate=rdflib.URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+            object=rdflib.URIRef("https://vson.dev/v1/ontology#Event"),
+        ))
+        self.assertEqual(len(events), 1)
+
+    def test_symmetric_spatial_emits_two_facts(self):
+        """`@a & near & @b` MUST emit two SpatialFact nodes
+        (figure/ground swapped) per spec §4.9."""
+        src = (
+            "~scene\n"
+            "  /CameraView @cam\n"
+            "  ^cam\n"
+            "  a /PhysicalObject *class Box\n"
+            "  b /PhysicalObject *class Box\n"
+            "  a & adjacent & b\n"
+        )
+        from tools.vson_x.vson_x import to_turtle
+        turtle = to_turtle(src)
+        g = rdflib.Graph()
+        g.parse(data=turtle, format="turtle")
+        sfs = list(g.subjects(
+            predicate=rdflib.URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+            object=rdflib.URIRef("https://vson.dev/v1/ontology#SpatialFact"),
+        ))
+        self.assertEqual(len(sfs), 2, "symmetric `&` must emit two SpatialFact nodes")
+
+    def test_directional_requires_viewer(self):
+        """`! ... *dir X` without ^viewer MUST raise (spec §4.10.2)."""
+        src = (
+            "~scene\n"
+            "  /CameraView @cam\n"
+            "  ^cam\n"
+            "  a /PhysicalObject *class Box\n"
+            "  b /PhysicalObject *class Box\n"
+            "  a ! DC b *dir above\n"
+        )
+        with self.assertRaises(SyntaxError):
+            parse(src)
+
+    def test_stative_lemma_with_double_arrow_rejected(self):
+        """`>>` with a Stative-only lemma is a parse error (spec §5.2)."""
+        src = (
+            "~scene\n"
+            "  /CameraView @cam\n"
+            "  ^cam\n"
+            "  apple /PhysicalObject *class Apple\n"
+            "  @bob /PhysicalObject Named *class Human\n"
+            "  @bob >> hold apple\n"
         )
         with self.assertRaises(SyntaxError):
             parse(src)

@@ -34,6 +34,13 @@ from rdflib.compare import isomorphic
 VSO = rdflib.Namespace("https://vson.dev/v1/ontology#")
 
 # Classes whose instances are typically reified anonymous nodes.
+# CameraView is intentionally excluded — it's frequently the target of
+# vso:viewedBy and vso:viewer references and so needs stable identity
+# in the document namespace. SceneContext and VisualStyle are typically
+# attached only via vso:framedBy and so their IRI naming is purely a
+# Penman authoring convention; cross-syntax comparison should treat
+# them as anonymous (their scene-property triples carry the semantic
+# weight, not the IRI).
 ANON_CANDIDATE_CLASSES: Set[URIRef] = {
     VSO.Quality,
     VSO.Stative,
@@ -43,6 +50,8 @@ ANON_CANDIDATE_CLASSES: Set[URIRef] = {
     VSO.Annotation,
     VSO.Negation,
     VSO.BeliefState,
+    VSO.SceneContext,
+    VSO.VisualStyle,
 }
 
 
@@ -100,11 +109,44 @@ def anonymize(g: Graph) -> Graph:
     return out
 
 
+# Composition-edge predicates that are interchangeable for the same
+# target type per v1.0 spec docs/vson.md §5.2:
+#   - vso:depicts: any Entity OR (per spec, also valid for) Perdurant + SpatialFact
+#   - vso:hasFact: SpatialFact (Composition only)
+#   - vso:occurs:  Event / Process / Stative (Composition only)
+# VSON-X parser collapses to vso:depicts for parser simplicity (spec
+# §4.4); gallery scenes use a mix. Treat the three as equivalent when
+# comparing graphs across syntaxes.
+_INTERCHANGEABLE_COMPOSITION_EDGES = {
+    URIRef("https://vson.dev/v1/ontology#depicts"),
+    URIRef("https://vson.dev/v1/ontology#hasFact"),
+    URIRef("https://vson.dev/v1/ontology#occurs"),
+}
+_CANONICAL_COMPOSITION_EDGE = URIRef("https://vson.dev/v1/ontology#depicts")
+
+
+def _normalize_composition_edges(g: Graph) -> Graph:
+    """Replace vso:hasFact and vso:occurs with vso:depicts so cross-syntax
+    comparisons treat the three as equivalent (which they are per spec)."""
+    out = Graph()
+    for prefix, ns in g.namespaces():
+        out.bind(prefix, ns)
+    for s, p, o in g:
+        np = _CANONICAL_COMPOSITION_EDGE if p in _INTERCHANGEABLE_COMPOSITION_EDGES else p
+        out.add((s, np, o))
+    return out
+
+
 def graph_equivalent(g1: Graph, g2: Graph) -> bool:
-    """Two VSON graphs are equivalent iff they're isomorphic after
-    anonymizing the auto-anonymous reified nodes (Quality, Stative, etc.).
+    """Two VSON graphs are equivalent iff they're isomorphic after:
+      - anonymizing the auto-anonymous reified nodes (Quality, Stative,
+        Event, Process, SpatialFact, Annotation, ...) to blank nodes, and
+      - canonicalizing the interchangeable Composition edges
+        (vso:depicts / vso:hasFact / vso:occurs) to vso:depicts.
     """
-    return isomorphic(anonymize(g1), anonymize(g2))
+    n1 = _normalize_composition_edges(anonymize(g1))
+    n2 = _normalize_composition_edges(anonymize(g2))
+    return isomorphic(n1, n2)
 
 
 __all__ = ["anonymize", "graph_equivalent"]
