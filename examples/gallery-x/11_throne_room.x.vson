@@ -1,0 +1,19 @@
+~scene *layout triangular *focal center *rendersAs @style
+  /SceneContext *venue throne_room *atmosphere tense *timeOfDay dusk
+  /VisualStyle @style *aesthetic oil_painting *palette warm *medium canvas
+  /CameraView @cam *angle low *focalLength 35mm *framing medium_shot
+  ^cam
+
+  @alice /PhysicalObject Named Agentive Count *class Human *affect joyful *age 30 *role queen
+  @bob /PhysicalObject Named Agentive Count *class Human *role knight *affect focused
+  boar /PhysicalObject Generic Agentive Count *class Animal *affect angry *action_state charging
+  crown /PhysicalObject Generic Inert Count *class Regalia *material gold *enchantment glowing
+  sword /PhysicalObject Generic Inert Count *class Weapon *material steel
+
+  @bob >> strike boar *instrument sword
+  boar >> charge @bob
+  @alice > look_at boar
+  @bob > hold sword
+
+  boar ! DC @bob ^cam *dir in_front_of
+  crown ! EC @alice ^cam *dir above

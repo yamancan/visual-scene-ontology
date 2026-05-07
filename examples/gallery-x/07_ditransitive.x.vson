@@ -1,0 +1,7 @@
+~scene
+  /CameraView @cam *angle eye_level *focalLength 50mm *framing medium_shot
+  ^cam
+  merchant /PhysicalObject Generic Agentive Count *class Human *role merchant
+  child /PhysicalObject Generic Agentive Count *class Human *age child
+  apple /PhysicalObject Generic Inert Count *class Apple *color red
+  merchant >> give apple child

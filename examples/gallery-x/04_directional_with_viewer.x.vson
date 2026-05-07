@@ -1,0 +1,6 @@
+~scene
+  /CameraView @cam *angle eye_level *focalLength 35mm *framing wide_shot
+  ^cam
+  lamp /PhysicalObject Inert Count *class Lamp
+  chair /PhysicalObject Inert Count *class Furniture
+  lamp ! DC chair ^cam *dir left_of

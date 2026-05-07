@@ -1,0 +1,4 @@
+~scene
+  /CameraView @cam *angle eye_level *focalLength 50mm *framing close_up
+  ^cam
+  apple /PhysicalObject Inert Count *class Apple

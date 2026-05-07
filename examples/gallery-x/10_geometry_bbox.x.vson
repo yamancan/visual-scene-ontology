@@ -1,0 +1,5 @@
+~scene
+  /CameraView @cam *angle eye_level *focalLength 50mm *framing medium_shot
+  ^cam
+  apple /PhysicalObject Generic Inert Count *class Apple *bbox2d "0.42,0.55,0.12,0.14" *color red
+  table /PhysicalObject Generic Inert Count *class Furniture *bbox2d "0.10,0.60,0.80,0.30"

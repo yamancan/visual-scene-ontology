@@ -1,0 +1,6 @@
+~scene
+  /CameraView @cam *angle low *focalLength 50mm *framing medium_shot
+  ^cam
+  @queen /PhysicalObject Named Agentive Count *class Human *role queen
+  crown /PhysicalObject Generic Inert Count *class Regalia *material gold
+  @queen > wear crown

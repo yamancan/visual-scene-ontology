@@ -90,7 +90,7 @@ EVENT_LEMMAS = {
     "break":   ("agent",  ["patient"]),
     "catch":   ("agent",  ["patient"]),
     "drop":    ("agent",  ["patient"]),
-    "charge":  ("agent",  []),   # canonical gallery 11 maps charge to Event
+    "charge":  ("agent",  ["patient"]),  # gallery 11: agent boar, patient bob
 }
 
 PROCESS_LEMMAS = {

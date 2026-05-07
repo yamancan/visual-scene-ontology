@@ -1,0 +1,5 @@
+~scene
+  /CameraView @cam *angle high *focalLength 24mm *framing wide_shot
+  ^cam
+  /SceneContext *venue marketplace *atmosphere energetic *timeOfDay noon
+  crowd /Aggregate Generic Agentive Collective *class Group *size large

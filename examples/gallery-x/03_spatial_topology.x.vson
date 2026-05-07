@@ -1,0 +1,6 @@
+~scene
+  /CameraView @cam *angle eye_level *focalLength 50mm *framing medium_shot
+  ^cam
+  cat /PhysicalObject Generic Agentive Count *class Animal
+  mat /PhysicalObject Generic Inert Count *class Furniture
+  cat ! EC mat

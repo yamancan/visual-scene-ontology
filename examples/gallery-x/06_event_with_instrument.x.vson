@@ -1,0 +1,7 @@
+~scene
+  /CameraView @cam *angle eye_level *focalLength 35mm *framing medium_shot
+  ^cam
+  knight /PhysicalObject Agentive Count *class Human *role knight
+  boar /PhysicalObject Agentive Count *class Animal
+  sword /PhysicalObject Inert Count *class Weapon *material steel
+  knight >> strike boar *instrument sword

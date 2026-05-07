@@ -5,7 +5,7 @@ TOOLS = tools/penman/vson_penman.py
 EXAMPLE_VSON = examples/throne_room.vson
 EXAMPLE_TTL = examples/throne_room.ttl
 
-.PHONY: all check test parse-ontology penman-roundtrip shacl deps cli-check spec-check web-check clean
+.PHONY: all check test parse-ontology penman-roundtrip shacl deps cli-check spec-check x-check web-check clean
 
 all: check
 
@@ -77,6 +77,10 @@ cli-check:
 	b = rdflib.Graph(); b.parse('/tmp/py.ttl', format='turtle'); \
 	assert sorted(map(str,a)) == sorted(map(str,b)), 'graph mismatch'; \
 	print(f'  OK identical, triples={len(a)}')"
+
+x-check:
+	@echo "==> VSON-X gallery round-trip parity vs Penman"
+	@$(PY) -m unittest tests.test_vson_x_basic tests.test_vson_x_roundtrip 2>&1 | tail -3
 
 web-check:
 	@echo "==> Web: svelte-check + build"

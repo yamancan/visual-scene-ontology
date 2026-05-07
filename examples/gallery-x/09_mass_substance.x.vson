@@ -1,0 +1,6 @@
+~scene
+  /CameraView @cam *angle eye_level *focalLength 85mm *framing close_up
+  ^cam
+  jug /PhysicalObject Generic Inert Count *class Vessel *material ceramic
+  water /Substance Generic Inert Mass *class Water
+  jug >> pour water
