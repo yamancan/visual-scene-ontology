@@ -27,12 +27,13 @@
 		<section>
 			<h2>What you just saw</h2>
 			<p>
-				You uploaded an image. The studio sent it to a vision-language model with a 4 KB system
-				prompt that lists the closed vocabulary, the five hard rules, and a worked example. The
-				model emitted a Penman tree — text that looks like nested S-expressions. A small Rust
-				binary (<code>vson</code>) rewrote that tree into Turtle 1.2, then a SHACL validator checked
-				it against the published shape graph. If it conformed, you saw the graph. If it didn't, the
-				server fed the violations back to the model and asked for a fix, up to twice.
+				You uploaded an image. The studio sent it to a vision-language model with a
+				<a href="/prompts" rel="self">4 KB system prompt</a> that lists the closed vocabulary, the
+				five hard rules, and a worked example. The model emitted a Penman tree — text that looks
+				like nested S-expressions. A small Rust binary (<code>vson</code>) rewrote that tree into
+				Turtle 1.2, then a SHACL validator checked it against the published shape graph. If it
+				conformed, you saw the graph. If it didn't, the server fed the violations back to the
+				model and asked for a fix, up to twice.
 			</p>
 			<p class="aside">
 				The image bytes never leave the request body. They are not stored, not logged, not cached.

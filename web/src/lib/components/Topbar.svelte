@@ -1,6 +1,9 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { scene } from '$lib/scene.svelte';
 	import ModelPicker from './ModelPicker.svelte';
+
+	let path = $derived(page.url.pathname);
 </script>
 
 <header class="topbar">
@@ -18,12 +21,25 @@
 
 	<div class="topbar-right">
 		<ModelPicker />
-		<a class="about-link font-mono" href="/about">about</a>
+		<a
+			class="nav-link font-mono"
+			class:active={path === '/prompts'}
+			aria-current={path === '/prompts' ? 'page' : undefined}
+			href="/prompts">prompts</a
+		>
+		<a
+			class="nav-link font-mono"
+			class:active={path === '/about'}
+			aria-current={path === '/about' ? 'page' : undefined}
+			href="/about">about</a
+		>
 	</div>
 </header>
 
 <style>
 	.topbar {
+		position: relative;
+		z-index: 50;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
@@ -71,7 +87,7 @@
 	.brand:hover .brand-name {
 		color: var(--fg-1);
 	}
-	.about-link {
+	.nav-link {
 		font-size: var(--text-2xs);
 		color: var(--fg-4);
 		text-decoration: none;
@@ -79,7 +95,10 @@
 		border-radius: var(--radius-sm);
 		transition: color var(--duration-fast) var(--ease-out);
 	}
-	.about-link:hover {
+	.nav-link:hover {
 		color: var(--fg-1);
+	}
+	.nav-link.active {
+		color: var(--accent);
 	}
 </style>
