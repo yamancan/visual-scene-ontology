@@ -5,19 +5,27 @@
 
 	let copied = $state(false);
 	let containerEl: HTMLDivElement | undefined = $state();
-	let lines = $derived((scene.envelope?.vson_p ?? '').split('\n'));
+
+	let body = $derived(
+		scene.notation === 'x'
+			? (scene.envelope?.vson_x ?? '')
+			: (scene.envelope?.vson_p ?? '')
+	);
+	let lines = $derived(body.split('\n'));
+	let label = $derived(scene.notation === 'x' ? 'vson-x' : 'penman');
+	let copyLabel = $derived(scene.notation === 'x' ? 'copy vson-x' : 'copy penman');
 
 	async function doCopy() {
-		const ok = await copyText(scene.envelope?.vson_p ?? '');
+		const ok = await copyText(body);
 		if (ok) {
 			copied = true;
 			setTimeout(() => (copied = false), 1200);
 		}
 	}
 
-	// Single-pass tokenizer. Captures groups in order: comment, string, role,
+	// VSON-P tokenizer (legacy). Captures groups: comment, string, role,
 	// "/ Concept", and a bare lowercase id (for var declarations + reentrancy).
-	const TOKEN_RE = new RegExp(
+	const TOKEN_RE_P = new RegExp(
 		[
 			'(#[^\\n]*)', // 1: comment
 			'("(?:[^"\\\\]|\\\\.)*")', // 2: string
@@ -28,14 +36,30 @@
 		'g'
 	);
 
+	// VSON-X tokenizer. Longest-first sigil match (>> before >). Line-anchored
+	// lead sigils detect indent + sigil at column 0; the inline structural
+	// sigils (>>, >, !, &) are captured separately so we can color them.
+	// Concept = PascalCase after `/`; handle = `@id` or bareword id.
+	const TOKEN_RE_X = new RegExp(
+		[
+			'(#[^\\n]*)', // 1: comment
+			'("(?:[^"\\\\]|\\\\.)*")', // 2: string
+			'(\\*)([a-zA-Z_][\\w-]*)', // 3+4: *key
+			'(>>|>|!|&|~|\\^|\\/|@)', // 5: sigil
+			'\\b([A-Z][\\w-]*)\\b', // 6: Concept (PascalCase)
+			'\\b([a-z_][\\w-]*)\\b' // 7: bareword/var
+		].join('|'),
+		'g'
+	);
+
 	function escapeHtml(s: string): string {
 		return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 	}
 
-	function highlight(line: string, sel: string | null): string {
+	function highlightP(line: string, sel: string | null): string {
 		let out = '';
 		let last = 0;
-		for (const m of line.matchAll(TOKEN_RE)) {
+		for (const m of line.matchAll(TOKEN_RE_P)) {
 			const idx = m.index ?? 0;
 			if (idx > last) out += escapeHtml(line.slice(last, idx));
 			if (m[1]) out += `<span class="src-cm">${escapeHtml(m[1])}</span>`;
@@ -54,12 +78,44 @@
 		return out;
 	}
 
-	// Highlight whole line if it declares the selected var, e.g. matches
-	// "(<sel> /" anywhere on the line (the var declaration).
+	function highlightX(line: string, sel: string | null): string {
+		let out = '';
+		let last = 0;
+		for (const m of line.matchAll(TOKEN_RE_X)) {
+			const idx = m.index ?? 0;
+			if (idx > last) out += escapeHtml(line.slice(last, idx));
+			if (m[1]) out += `<span class="src-cm">${escapeHtml(m[1])}</span>`;
+			else if (m[2]) out += `<span class="src-st">${escapeHtml(m[2])}</span>`;
+			else if (m[3] && m[4]) {
+				out += `<span class="src-x-key">${escapeHtml(m[3])}</span>`;
+				out += `<span class="src-x-key-name">${escapeHtml(m[4])}</span>`;
+			} else if (m[5]) out += `<span class="src-x-sigil">${escapeHtml(m[5])}</span>`;
+			else if (m[6]) out += `<span class="src-cn">${escapeHtml(m[6])}</span>`;
+			else if (m[7]) {
+				const v = m[7];
+				const cls = sel && v === sel ? 'src-vr src-vr-sel' : 'src-vr';
+				out += `<span class="${cls}">${escapeHtml(v)}</span>`;
+			}
+			last = idx + m[0].length;
+		}
+		if (last < line.length) out += escapeHtml(line.slice(last));
+		return out;
+	}
+
+	function highlight(line: string, sel: string | null): string {
+		return scene.notation === 'x' ? highlightX(line, sel) : highlightP(line, sel);
+	}
+
+	// Highlight whole line if it declares the selected var.
+	// Penman: `(<sel> /` anywhere on the line.
+	// VSON-X: `@<sel> /Concept` or bare `<sel> /Concept` at item lead.
 	function declaresSelected(line: string, sel: string | null): boolean {
 		if (!sel) return false;
-		const re = new RegExp(`\\(\\s*${sel.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')}\\s*\\/`);
-		return re.test(line);
+		const escaped = sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+		if (scene.notation === 'x') {
+			return new RegExp(`(?:^|\\s)@?${escaped}\\s+\\/`).test(line);
+		}
+		return new RegExp(`\\(\\s*${escaped}\\s*\\/`).test(line);
 	}
 
 	// On selection change, scroll the declaring line into view.
@@ -68,15 +124,14 @@
 		if (!sel || !containerEl) return;
 		tick().then(() => {
 			const target = containerEl?.querySelector<HTMLElement>('.ln.declares');
-			if (target)
-				target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+			if (target) target.scrollIntoView({ block: 'center', behavior: 'smooth' });
 		});
 	});
 </script>
 
 <section class="wrap">
 	<header class="head">
-		<span class="head-label font-mono">{lines.length} lines</span>
+		<span class="head-label font-mono">{label} · {lines.length} lines</span>
 		{#if scene.selectedNodeId}
 			<button
 				class="clear-sel"
@@ -90,7 +145,7 @@
 			</button>
 		{/if}
 		<button class="copy" onclick={doCopy}>
-			{copied ? 'copied' : 'copy penman'}
+			{copied ? 'copied' : copyLabel}
 		</button>
 	</header>
 	<div bind:this={containerEl} class="body">
@@ -221,5 +276,15 @@
 		background: color-mix(in srgb, var(--accent) 18%, transparent);
 		border-radius: 2px;
 		padding: 0 2px;
+	}
+	:global(.src-x-sigil) {
+		color: var(--node-quality);
+		font-weight: 600;
+	}
+	:global(.src-x-key) {
+		color: var(--node-quality);
+	}
+	:global(.src-x-key-name) {
+		color: var(--fg-2);
 	}
 </style>

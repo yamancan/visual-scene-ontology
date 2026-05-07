@@ -4,6 +4,7 @@
 	import DemoStrip from '$lib/components/DemoStrip.svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
 	import ScenePanel from '$lib/components/ScenePanel.svelte';
+	import NotationToggle from '$lib/components/NotationToggle.svelte';
 	import { scene } from '$lib/scene.svelte';
 
 	const STATUS_LABEL: Record<string, string> = {
@@ -48,6 +49,7 @@
 							<Spinner label={STATUS_LABEL[scene.status] ?? scene.status} />
 						</div>
 					{:else}
+						<NotationToggle />
 						<Dropzone />
 					{/if}
 

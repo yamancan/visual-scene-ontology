@@ -4,11 +4,15 @@
 	import TurtlePane from './TurtlePane.svelte';
 	import ConformancePane from './ConformancePane.svelte';
 
-	const TABS: { id: RailTab; label: string; sub: string }[] = [
-		{ id: 'penman', label: 'penman', sub: 'vson-p' },
+	let TABS = $derived<{ id: RailTab; label: string; sub: string }[]>([
+		{
+			id: 'source',
+			label: scene.notation === 'x' ? 'vson-x' : 'penman',
+			sub: scene.notation === 'x' ? 'compact' : 'vson-p'
+		},
 		{ id: 'turtle', label: 'turtle', sub: 'vson-t' },
 		{ id: 'conformance', label: 'conformance', sub: 'shacl' }
-	];
+	]);
 
 	function pick(t: RailTab) {
 		scene.setRailTab(t);
@@ -53,7 +57,7 @@
 	</div>
 
 	<div class="pane">
-		{#if scene.railTab === 'penman'}
+		{#if scene.railTab === 'source'}
 			<SourcePane />
 		{:else if scene.railTab === 'turtle'}
 			<TurtlePane />

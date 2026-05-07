@@ -57,6 +57,25 @@ export async function transpilePenmanToTurtle(
 	}
 }
 
+// Mirrors transpilePenmanToTurtle. Routes through the same Rust binary that
+// already wires VSON_HOME + python3 lookup (cli/src/commands/convert_x2t.rs).
+// We keep the shell-out path so any future native Rust VSON-X parser can swap
+// in without touching the web layer.
+export async function transpileVsonXToTurtle(
+	vson_x: string
+): Promise<TranspileOk | TranspileErr> {
+	const dir = await mkdtemp(join(tmpdir(), 'vson-x-'));
+	const file = join(dir, 'in.x.vson');
+	try {
+		await writeFile(file, vson_x, 'utf8');
+		const r = await run(['convert', 'x2t', file]);
+		if (r.code === 0) return { ok: true, turtle: r.stdout };
+		return { ok: false, error: r.stderr.trim() || `vson exited ${r.code}` };
+	} finally {
+		await rm(dir, { recursive: true, force: true });
+	}
+}
+
 export interface CaptionOk {
 	ok: true;
 	caption: string;

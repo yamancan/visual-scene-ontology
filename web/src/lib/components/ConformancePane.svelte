@@ -15,7 +15,7 @@
 	function jumpToNode(id: string | undefined) {
 		if (!id) return;
 		scene.setSelected(id);
-		scene.setRailTab('penman');
+		scene.setRailTab('source');
 	}
 </script>
 

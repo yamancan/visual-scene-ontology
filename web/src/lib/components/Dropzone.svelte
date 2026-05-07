@@ -28,7 +28,12 @@
 			const res = await fetch('/api/extract', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ image_b64: b64, mime, model: scene.model })
+				body: JSON.stringify({
+					image_b64: b64,
+					mime,
+					model: scene.model,
+					prompt: scene.notation === 'x' ? 'skill-x' : 'skill'
+				})
 			});
 			if (!res.ok) {
 				const text = await res.text();

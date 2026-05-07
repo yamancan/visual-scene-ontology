@@ -4,6 +4,7 @@ import type { ExtractStatus, VsonEnvelope } from './types';
 // where consumers need to read or mutate. Stateless across page reloads.
 const DEFAULT_MODEL = 'google/gemini-2.5-flash';
 const MODEL_KEY = 'vson:model';
+const NOTATION_KEY = 'vson:notation';
 
 function readStoredModel(): string {
 	if (typeof localStorage === 'undefined') return DEFAULT_MODEL;
@@ -14,7 +15,21 @@ function readStoredModel(): string {
 	}
 }
 
-export type RailTab = 'penman' | 'turtle' | 'conformance';
+function readStoredNotation(): Notation {
+	if (typeof localStorage === 'undefined') return 'p';
+	try {
+		const v = localStorage.getItem(NOTATION_KEY);
+		return v === 'x' ? 'x' : 'p';
+	} catch {
+		return 'p';
+	}
+}
+
+// 'source' is the dynamic-label tab whose body is VSON-P or VSON-X based on
+// scene.notation. 'penman' is kept as a value alias only for backwards-compat
+// during the rename window — new code should use 'source'.
+export type RailTab = 'source' | 'turtle' | 'conformance';
+export type Notation = 'p' | 'x';
 
 function createSceneStore() {
 	let envelope = $state<VsonEnvelope | null>(null);
@@ -23,7 +38,8 @@ function createSceneStore() {
 	let selectedNodeId = $state<string | null>(null);
 	let imagePreview = $state<string | null>(null);
 	let model = $state<string>(readStoredModel());
-	let railTab = $state<RailTab>('penman');
+	let railTab = $state<RailTab>('source');
+	let notation = $state<Notation>(readStoredNotation());
 
 	return {
 		get envelope() {
@@ -46,6 +62,9 @@ function createSceneStore() {
 		},
 		get railTab() {
 			return railTab;
+		},
+		get notation() {
+			return notation;
 		},
 		setEnvelope(e: VsonEnvelope | null) {
 			envelope = e;
@@ -77,13 +96,22 @@ function createSceneStore() {
 		setRailTab(t: RailTab) {
 			railTab = t;
 		},
+		setNotation(n: Notation) {
+			notation = n;
+			try {
+				localStorage.setItem(NOTATION_KEY, n);
+			} catch {
+				/* ignore */
+			}
+		},
 		reset() {
 			envelope = null;
 			status = 'idle';
 			errorMsg = null;
 			selectedNodeId = null;
 			imagePreview = null;
-			railTab = 'penman';
+			railTab = 'source';
+			// Don't clear `notation` — it's a sticky preference, like `model`.
 		}
 	};
 }
