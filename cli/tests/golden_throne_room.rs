@@ -87,6 +87,23 @@ fn export_caption_matches_python_fixture() {
 }
 
 #[test]
+fn convert_x2t_produces_parseable_turtle() {
+    let mut cmd = Command::cargo_bin("vson").unwrap();
+    cmd.current_dir(repo_root())
+        .args(["convert", "x2t", "examples/gallery-x/02_quality.x.vson"]);
+    let output = cmd.output().unwrap();
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(stdout.contains("@prefix vso:"));
+    assert!(stdout.contains(":scene a <https://vson.dev/v1/ontology#Composition>"));
+    assert!(stdout.contains("hasQuality"), "quality kv must reify");
+}
+
+#[test]
 fn export_caption_minimal_scene() {
     let mut cmd = Command::cargo_bin("vson").unwrap();
     cmd.current_dir(repo_root())
