@@ -1,0 +1,113 @@
+% unary class predicates
+CameraView(cam).
+Composition(scene).
+PhysicalObject(alice).
+PhysicalObject(boar).
+PhysicalObject(bob).
+PhysicalObject(crown).
+PhysicalObject(sword).
+Quality(a1).
+Quality(a2).
+Quality(a3).
+Quality(b1).
+Quality(b2).
+Quality(br1).
+Quality(br2).
+Quality(c1).
+Quality(c2).
+Quality(cq1).
+Quality(cq2).
+Quality(s1).
+SceneContext(ctx).
+VisualStyle(style).
+
+% n-ary reified facts (collapsed from binary triples)
+charge(agent=boar, patient=bob).  % Event charge
+look_at(experiencer=alice, stimulus=boar).  % Stative gaze
+hold(holder=bob, theme=sword).  % Stative hold
+spatialfact(dir=in_front_of, figure=boar, ground=bob, rcc=DC, viewer=cam).  % SpatialFact sf1
+spatialfact(dir=above, figure=crown, ground=alice, rcc=EC, viewer=cam).  % SpatialFact sf2
+strike(agent=bob, instrument=sword, patient=boar).  % Event strike
+
+% binary predicates
+aesthetic(style, "oil_painting").
+angle(cam, "low").
+animacy(alice, Agentive).
+animacy(boar, Agentive).
+animacy(bob, Agentive).
+animacy(crown, Inert).
+animacy(sword, Inert).
+atmosphere(ctx, "tense").
+class(alice, Human).
+class(boar, Animal).
+class(bob, Human).
+class(crown, Regalia).
+class(sword, Weapon).
+countability(alice, Count).
+countability(boar, Count).
+countability(bob, Count).
+countability(crown, Count).
+countability(sword, Count).
+depicts(scene, alice).
+depicts(scene, boar).
+depicts(scene, bob).
+depicts(scene, charge).
+depicts(scene, crown).
+depicts(scene, gaze).
+depicts(scene, hold).
+depicts(scene, strike).
+depicts(scene, sword).
+dimension(a1, Affect).
+dimension(a2, Age).
+dimension(a3, Role).
+dimension(b1, Role).
+dimension(b2, Affect).
+dimension(br1, Affect).
+dimension(br2, ActionState).
+dimension(c1, Material).
+dimension(c2, Enchantment).
+dimension(cq1, Layout).
+dimension(cq2, Focal).
+dimension(s1, Material).
+focalLength(cam, "35mm").
+framedBy(scene, cam).
+framedBy(scene, ctx).
+framedBy(scene, style).
+framing(cam, "medium_shot").
+hasFact(scene, sf1).
+hasFact(scene, sf2).
+hasQuality(alice, a1).
+hasQuality(alice, a2).
+hasQuality(alice, a3).
+hasQuality(boar, br1).
+hasQuality(boar, br2).
+hasQuality(bob, b1).
+hasQuality(bob, b2).
+hasQuality(crown, c1).
+hasQuality(crown, c2).
+hasQuality(scene, cq1).
+hasQuality(scene, cq2).
+hasQuality(sword, s1).
+individuation(alice, Named).
+individuation(boar, Generic).
+individuation(bob, Named).
+individuation(crown, Generic).
+individuation(sword, Generic).
+medium(style, "canvas").
+palette(style, "warm").
+rendersAs(scene, style).
+timeOfDay(ctx, "dusk").
+value(a1, joyful).
+value(a2, "30").
+value(a3, queen).
+value(b1, knight).
+value(b2, focused).
+value(br1, angry).
+value(br2, charging).
+value(c1, gold).
+value(c2, glowing).
+value(cq1, triangular).
+value(cq2, center).
+value(s1, steel).
+venue(ctx, "throne_room").
+viewedBy(scene, cam).

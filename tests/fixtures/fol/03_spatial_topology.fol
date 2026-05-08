@@ -1,0 +1,26 @@
+% unary class predicates
+CameraView(cam).
+Composition(scene).
+PhysicalObject(cat).
+PhysicalObject(mat).
+
+% n-ary reified facts (collapsed from binary triples)
+spatialfact(figure=cat, ground=mat, rcc=EC).  % SpatialFact sf
+
+% binary predicates
+angle(cam, "eye_level").
+animacy(cat, Agentive).
+animacy(mat, Inert).
+class(cat, Animal).
+class(mat, Furniture).
+countability(cat, Count).
+countability(mat, Count).
+depicts(scene, cat).
+depicts(scene, mat).
+focalLength(cam, "50mm").
+framedBy(scene, cam).
+framing(cam, "medium_shot").
+hasFact(scene, sf).
+individuation(cat, Generic).
+individuation(mat, Generic).
+viewedBy(scene, cam).

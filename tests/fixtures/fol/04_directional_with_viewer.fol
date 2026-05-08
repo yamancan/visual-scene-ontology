@@ -1,0 +1,26 @@
+% unary class predicates
+CameraView(cam).
+Composition(scene).
+PhysicalObject(chair).
+PhysicalObject(lamp).
+
+% n-ary reified facts (collapsed from binary triples)
+spatialfact(dir=left_of, figure=lamp, ground=chair, rcc=DC, viewer=cam).  % SpatialFact sf
+
+% binary predicates
+angle(cam, "eye_level").
+animacy(chair, Inert).
+animacy(lamp, Inert).
+class(chair, Furniture).
+class(lamp, Lamp).
+countability(chair, Count).
+countability(lamp, Count).
+depicts(scene, chair).
+depicts(scene, lamp).
+focalLength(cam, "35mm").
+framedBy(scene, cam).
+framing(cam, "wide_shot").
+hasFact(scene, sf).
+individuation(chair, Generic).
+individuation(lamp, Generic).
+viewedBy(scene, cam).

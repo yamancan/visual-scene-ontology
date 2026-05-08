@@ -1,0 +1,28 @@
+% unary class predicates
+CameraView(cam).
+Composition(scene).
+PhysicalObject(apple).
+PhysicalObject(table).
+Quality(q).
+
+% binary predicates
+angle(cam, "eye_level").
+animacy(apple, Inert).
+animacy(table, Inert).
+bbox2d(apple, "0.42,0.55,0.12,0.14").
+bbox2d(table, "0.10,0.60,0.80,0.30").
+class(apple, Apple).
+class(table, Furniture).
+countability(apple, Count).
+countability(table, Count).
+depicts(scene, apple).
+depicts(scene, table).
+dimension(q, Color).
+focalLength(cam, "50mm").
+framedBy(scene, cam).
+framing(cam, "medium_shot").
+hasQuality(apple, q).
+individuation(apple, Generic).
+individuation(table, Generic).
+value(q, red).
+viewedBy(scene, cam).

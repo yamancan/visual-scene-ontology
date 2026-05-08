@@ -1,0 +1,25 @@
+% unary class predicates
+Aggregate(crowd).
+CameraView(cam).
+Composition(scene).
+Quality(qs).
+SceneContext(ctx).
+
+% binary predicates
+angle(cam, "high").
+animacy(crowd, Agentive).
+atmosphere(ctx, "energetic").
+class(crowd, Group).
+countability(crowd, Collective).
+depicts(scene, crowd).
+dimension(qs, Size).
+focalLength(cam, "24mm").
+framedBy(scene, cam).
+framedBy(scene, ctx).
+framing(cam, "wide_shot").
+hasQuality(crowd, qs).
+individuation(crowd, Generic).
+timeOfDay(ctx, "noon").
+value(qs, large).
+venue(ctx, "marketplace").
+viewedBy(scene, cam).

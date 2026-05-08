@@ -116,3 +116,39 @@ fn export_caption_minimal_scene() {
         "minimal scene caption should mention an apple, got: {stdout}"
     );
 }
+
+#[test]
+fn export_fol_matches_python_fixture() {
+    let mut cmd = Command::cargo_bin("vson").unwrap();
+    cmd.current_dir(repo_root())
+        .args(["export", "fol", "examples/gallery/11_throne_room.vson"]);
+    let output = cmd.output().unwrap();
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr),
+    );
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let fixture = std::fs::read_to_string(
+        repo_root().join("tests/fixtures/fol/11_throne_room.fol"),
+    )
+    .expect("FOL fixture must exist");
+    assert_eq!(
+        stdout, fixture,
+        "Rust FOL output must match Python reference fixture",
+    );
+}
+
+#[test]
+fn export_fol_collapses_event_to_nary_fact() {
+    let mut cmd = Command::cargo_bin("vson").unwrap();
+    cmd.current_dir(repo_root())
+        .args(["export", "fol", "examples/gallery/06_event_with_instrument.vson"]);
+    let output = cmd.output().unwrap();
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(
+        stdout.contains("strike(agent=knight, instrument=sword, patient=boar)."),
+        "expected collapsed strike fact, got: {stdout}"
+    );
+}

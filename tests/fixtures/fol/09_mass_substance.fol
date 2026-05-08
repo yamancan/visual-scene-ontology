@@ -1,0 +1,30 @@
+% unary class predicates
+CameraView(cam).
+Composition(scene).
+PhysicalObject(jug).
+Quality(qm).
+Substance(water).
+
+% n-ary reified facts (collapsed from binary triples)
+pour(agent=jug, theme=water).  % Process pour
+
+% binary predicates
+angle(cam, "eye_level").
+animacy(jug, Inert).
+animacy(water, Inert).
+class(jug, Vessel).
+class(water, Water).
+countability(jug, Count).
+countability(water, Mass).
+depicts(scene, jug).
+depicts(scene, water).
+dimension(qm, Material).
+focalLength(cam, "85mm").
+framedBy(scene, cam).
+framing(cam, "close_up").
+hasQuality(jug, qm).
+individuation(jug, Generic).
+individuation(water, Generic).
+occurs(scene, pour).
+value(qm, ceramic).
+viewedBy(scene, cam).

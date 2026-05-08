@@ -104,6 +104,33 @@ export async function renderCaption(vson_p: string): Promise<CaptionOk | Caption
 	}
 }
 
+export interface FolOk {
+	ok: true;
+	fol: string;
+}
+export interface FolErr {
+	ok: false;
+	error: string;
+}
+
+/**
+ * Render Prolog-style first-order-logic facts from a VSON-P document.
+ * Shells out to `vson export fol`, which routes through tools/render/fol.py
+ * and is byte-identical to the fixtures under tests/fixtures/fol/.
+ */
+export async function renderFol(vson_p: string): Promise<FolOk | FolErr> {
+	const dir = await mkdtemp(join(tmpdir(), 'vson-'));
+	const file = join(dir, 'in.vson');
+	try {
+		await writeFile(file, vson_p, 'utf8');
+		const r = await run(['export', 'fol', file]);
+		if (r.code === 0) return { ok: true, fol: r.stdout };
+		return { ok: false, error: r.stderr.trim() || `vson exited ${r.code}` };
+	} finally {
+		await rm(dir, { recursive: true, force: true });
+	}
+}
+
 export interface ValidateResult {
 	conforms: boolean;
 	report: string;

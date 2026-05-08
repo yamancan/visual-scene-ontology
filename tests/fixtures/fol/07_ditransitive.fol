@@ -1,0 +1,44 @@
+% unary class predicates
+CameraView(cam).
+Composition(scene).
+PhysicalObject(apple).
+PhysicalObject(child).
+PhysicalObject(merchant).
+Quality(qa).
+Quality(qc).
+Quality(qr).
+
+% n-ary reified facts (collapsed from binary triples)
+give(agent=merchant, recipient=child, theme=apple).  % Event give
+
+% binary predicates
+angle(cam, "eye_level").
+animacy(apple, Inert).
+animacy(child, Agentive).
+animacy(merchant, Agentive).
+class(apple, Apple).
+class(child, Human).
+class(merchant, Human).
+countability(apple, Count).
+countability(child, Count).
+countability(merchant, Count).
+depicts(scene, apple).
+depicts(scene, child).
+depicts(scene, merchant).
+dimension(qa, Age).
+dimension(qc, Color).
+dimension(qr, Role).
+focalLength(cam, "50mm").
+framedBy(scene, cam).
+framing(cam, "medium_shot").
+hasQuality(apple, qc).
+hasQuality(child, qa).
+hasQuality(merchant, qr).
+individuation(apple, Generic).
+individuation(child, Generic).
+individuation(merchant, Generic).
+occurs(scene, give).
+value(qa, child).
+value(qc, red).
+value(qr, merchant).
+viewedBy(scene, cam).

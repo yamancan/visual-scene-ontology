@@ -7,6 +7,8 @@
 //!   - export   caption <file>  Render a deterministic English caption for
 //!                              image-generation models (shells out to
 //!                              tools/render/caption.py; native Rust port v1.2).
+//!   - export   fol <file>      Render Prolog-style first-order-logic facts
+//!                              (shells out to tools/render/fol.py).
 //!
 //! Exits 0 on success, 1 on validation failure, 2 on usage error.
 
@@ -63,6 +65,8 @@ enum ExportTarget {
     Cypher { file: PathBuf },
     /// Render a deterministic English caption for image-generation models.
     Caption { file: PathBuf },
+    /// Render Prolog-style first-order-logic facts.
+    Fol { file: PathBuf },
 }
 
 fn main() -> ExitCode {
@@ -74,6 +78,7 @@ fn main() -> ExitCode {
         Cmd::Convert { direction: ConvertDirection::X2t { file } } => commands::convert_x2t::x2t(&file),
         Cmd::Export { target: ExportTarget::Cypher { file } } => commands::export_cypher::run(&file),
         Cmd::Export { target: ExportTarget::Caption { file } } => commands::export_caption::run(&file),
+        Cmd::Export { target: ExportTarget::Fol { file } } => commands::export_fol::run(&file),
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,

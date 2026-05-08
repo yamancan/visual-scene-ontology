@@ -1,0 +1,16 @@
+% unary class predicates
+CameraView(cam).
+Composition(scene).
+PhysicalObject(apple).
+
+% binary predicates
+angle(cam, "eye_level").
+animacy(apple, Inert).
+class(apple, Apple).
+countability(apple, Count).
+depicts(scene, apple).
+focalLength(cam, "50mm").
+framedBy(scene, cam).
+framing(cam, "close_up").
+individuation(apple, Generic).
+viewedBy(scene, cam).

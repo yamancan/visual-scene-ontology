@@ -1,0 +1,40 @@
+% unary class predicates
+CameraView(cam).
+Composition(scene).
+PhysicalObject(boar).
+PhysicalObject(knight).
+PhysicalObject(sword).
+Quality(qm).
+Quality(qr).
+
+% n-ary reified facts (collapsed from binary triples)
+strike(agent=knight, instrument=sword, patient=boar).  % Event strike
+
+% binary predicates
+angle(cam, "eye_level").
+animacy(boar, Agentive).
+animacy(knight, Agentive).
+animacy(sword, Inert).
+class(boar, Animal).
+class(knight, Human).
+class(sword, Weapon).
+countability(boar, Count).
+countability(knight, Count).
+countability(sword, Count).
+depicts(scene, boar).
+depicts(scene, knight).
+depicts(scene, sword).
+dimension(qm, Material).
+dimension(qr, Role).
+focalLength(cam, "35mm").
+framedBy(scene, cam).
+framing(cam, "medium_shot").
+hasQuality(knight, qr).
+hasQuality(sword, qm).
+individuation(boar, Generic).
+individuation(knight, Generic).
+individuation(sword, Generic).
+occurs(scene, strike).
+value(qm, steel).
+value(qr, knight).
+viewedBy(scene, cam).

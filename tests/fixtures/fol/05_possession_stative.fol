@@ -1,0 +1,34 @@
+% unary class predicates
+CameraView(cam).
+Composition(scene).
+PhysicalObject(crown).
+PhysicalObject(queen).
+Quality(q).
+Quality(qm).
+
+% n-ary reified facts (collapsed from binary triples)
+wear(holder=queen, theme=crown).  % Stative wear
+
+% binary predicates
+angle(cam, "low").
+animacy(crown, Inert).
+animacy(queen, Agentive).
+class(crown, Regalia).
+class(queen, Human).
+countability(crown, Count).
+countability(queen, Count).
+depicts(scene, crown).
+depicts(scene, queen).
+dimension(q, Role).
+dimension(qm, Material).
+focalLength(cam, "50mm").
+framedBy(scene, cam).
+framing(cam, "medium_shot").
+hasQuality(crown, qm).
+hasQuality(queen, q).
+individuation(crown, Generic).
+individuation(queen, Named).
+occurs(scene, wear).
+value(q, queen).
+value(qm, gold).
+viewedBy(scene, cam).

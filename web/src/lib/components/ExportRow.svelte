@@ -5,13 +5,14 @@
 	let env = $derived(scene.envelope);
 	let copied = $state<string | null>(null);
 
-	type Fmt = 'vson' | 'ttl' | 'json' | 'cypher' | 'mermaid' | 'graphml' | 'dot' | 'caption';
+	type Fmt = 'vson' | 'ttl' | 'json' | 'cypher' | 'mermaid' | 'graphml' | 'dot' | 'caption' | 'fol';
 
 	const FORMATS: { id: Fmt; label: string; ext: string; mime: string }[] = [
 		{ id: 'vson', label: 'penman', ext: 'vson', mime: 'text/plain' },
 		{ id: 'ttl', label: 'turtle', ext: 'ttl', mime: 'text/turtle' },
 		{ id: 'json', label: 'json', ext: 'json', mime: 'application/json' },
 		{ id: 'caption', label: 'caption', ext: 'txt', mime: 'text/plain' },
+		{ id: 'fol', label: 'fol', ext: 'fol', mime: 'text/plain' },
 		{ id: 'cypher', label: 'cypher', ext: 'cypher', mime: 'text/x-cypher' },
 		{ id: 'mermaid', label: 'mermaid', ext: 'mmd', mime: 'text/x-mermaid' },
 		{ id: 'graphml', label: 'graphml', ext: 'graphml', mime: 'application/graphml+xml' },
@@ -23,11 +24,11 @@
 		if (fmt === 'vson') return env.vson_p;
 		if (fmt === 'ttl') return env.vson_t;
 		if (fmt === 'json') return JSON.stringify(env, null, 2);
-		if (fmt === 'caption') {
+		if (fmt === 'caption' || fmt === 'fol') {
 			const r = await fetch('/api/export', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ vson_p: env.vson_p, format: 'caption' })
+				body: JSON.stringify({ vson_p: env.vson_p, format: fmt })
 			});
 			return await r.text();
 		}
