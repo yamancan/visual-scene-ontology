@@ -43,20 +43,22 @@ def render(g: Graph) -> str:
     if composition is None:
         return ""
 
+    disc = _disambiguators(g, composition)
+
     sentences: list[str] = []
 
     frame = _frame_sentence(g, composition)
     if frame:
         sentences.append(frame)
 
-    subjects = _subjects_sentence(g, composition)
+    subjects = _subjects_sentence(g, composition, disc)
     if subjects:
         sentences.append(subjects)
 
-    actions = _actions_sentences(g, composition)
+    actions = _actions_sentences(g, composition, disc)
     sentences.extend(actions)
 
-    spatial = _spatial_sentences(g, composition)
+    spatial = _spatial_sentences(g, composition, disc)
     sentences.extend(spatial)
 
     return " ".join(sentences).strip()
@@ -137,15 +139,117 @@ def _frame_sentence(g: Graph, scene: URIRef) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Same-class disambiguation
+# ---------------------------------------------------------------------------
+
+
+_LAYOUT_RANK = {
+    "left": 0,
+    "center_left": 1,
+    "center": 2,
+    "center_right": 3,
+    "right": 4,
+}
+
+
+Disc = tuple[str, str]  # (pre-head adjective, post-head phrase)
+
+
+def _disambiguators(g: Graph, scene: URIRef) -> dict[URIRef, Disc]:
+    """Return positional discriminators for Generic same-class entities.
+
+    When a scene depicts multiple entities sharing both `vso:class` and
+    `Role`, none Named, the renderer would otherwise produce 'the person is
+    left of the person' four times. We inspect the group, order it by
+    Layout dimension (left/center_left/center/center_right/right), then by
+    bbox2d x-coordinate, then by IRI; we emit a (pre, post) tuple per
+    entity such that the noun phrase becomes 'the {pre} {head} {post}',
+    e.g. 'the leftmost person' or 'the second person from the left'.
+    Entities with unique noun phrases get no entry.
+    """
+    entities = _depicted_entities(g, scene)
+    if len(entities) <= 1:
+        return {}
+
+    groups: dict[tuple, list[URIRef]] = {}
+    for e in entities:
+        ind = _str_prop(g, e, VSO.individuation) or ""
+        if ind.endswith("Named"):
+            continue
+        cls = _class_label(g, e)
+        if not cls:
+            continue
+        quals = _qualities_by_dimension(g, e)
+        role = (quals.get("Role") or [""])[0]
+        groups.setdefault((cls, role), []).append(e)
+
+    out: dict[URIRef, Disc] = {}
+    for group in groups.values():
+        if len(group) <= 1:
+            continue
+
+        def sort_key(e: URIRef):
+            quals = _qualities_by_dimension(g, e)
+            layout = (quals.get("Layout") or [""])[0]
+            if layout in _LAYOUT_RANK:
+                return (0, _LAYOUT_RANK[layout], str(e))
+            bbox = _str_prop(g, e, VSO.bbox2d)
+            if bbox:
+                try:
+                    return (1, float(bbox.split(",")[0]), str(e))
+                except (ValueError, IndexError):
+                    pass
+            return (2, 0, str(e))
+
+        ordered = sorted(group, key=sort_key)
+        n = len(ordered)
+        # Pre-head adjective ("leftmost") plus optional post-head phrase
+        # ("from the left") so word order stays English-natural.
+        if n == 2:
+            labels: list[Disc] = [("leftmost", ""), ("rightmost", "")]
+        elif n == 3:
+            labels = [("leftmost", ""), ("middle", ""), ("rightmost", "")]
+        elif n == 4:
+            labels = [
+                ("leftmost", ""),
+                ("second", "from the left"),
+                ("third", "from the left"),
+                ("rightmost", ""),
+            ]
+        elif n == 5:
+            labels = [
+                ("leftmost", ""),
+                ("second", "from the left"),
+                ("middle", ""),
+                ("fourth", "from the left"),
+                ("rightmost", ""),
+            ]
+        else:
+            labels = [("leftmost", "")]
+            labels.extend((_ordinal(i + 1), "from the left") for i in range(1, n - 1))
+            labels.append(("rightmost", ""))
+        for e, label in zip(ordered, labels):
+            out[e] = label
+    return out
+
+
+def _ordinal(n: int) -> str:
+    if 11 <= n % 100 <= 13:
+        return f"{n}th"
+    suffix = {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    return f"{n}{suffix}"
+
+
+# ---------------------------------------------------------------------------
 # Subject inventory
 # ---------------------------------------------------------------------------
 
 
-def _subjects_sentence(g: Graph, scene: URIRef) -> str:
+def _subjects_sentence(g: Graph, scene: URIRef, disc: dict[URIRef, str]) -> str:
     entities = _depicted_entities(g, scene)
     if not entities:
         return ""
-    phrases = [_entity_noun_phrase(g, e) for e in entities]
+    phrases = [_entity_noun_phrase(g, e, disc.get(e)) for e in entities]
     phrases = [p for p in phrases if p]
     if not phrases:
         return ""
@@ -208,8 +312,13 @@ def _all_spatial_targets(g: Graph, scene: URIRef) -> list[URIRef]:
     return sorted(out, key=str)
 
 
-def _entity_noun_phrase(g: Graph, entity: URIRef) -> str:
-    """Build 'a red apple' / 'Alice, a joyful queen' / 'a heavy gold crown with lightning enchantment'."""
+def _entity_noun_phrase(g: Graph, entity: URIRef, discriminator: Optional[str] = None) -> str:
+    """Build 'a red apple' / 'Alice, a joyful queen' / 'a heavy gold crown with lightning enchantment'.
+
+    `discriminator`, when supplied, prepends a positional adjective ('leftmost',
+    'second from left', ...) so that multiple Generic same-class entities in
+    the same scene get distinguishable noun phrases.
+    """
     individuation = _str_prop(g, entity, VSO.individuation)
     cls_label = _class_label(g, entity)
     qualities = _qualities_by_dimension(g, entity)
@@ -230,13 +339,20 @@ def _entity_noun_phrase(g: Graph, entity: URIRef) -> str:
     ]
     adjectives: list[str] = []
     for dim in adj_dimensions:
-        val = qualities.get(dim)
-        if val:
-            adjectives.append(_humanize(val).lower())
+        vals = qualities.get(dim) or []
+        if not vals:
+            continue
+        # Color and Material may legitimately stack (multi-color outfit, mixed
+        # textile). Slash-join so image-gen models read them as alternates
+        # instead of a flat first-write-wins; other dimensions stay scalar.
+        if dim in ("Color", "Material") and len(vals) > 1:
+            adjectives.append("/".join(_humanize(v).lower() for v in vals))
+        else:
+            adjectives.append(_humanize(vals[0]).lower())
 
-    role = qualities.get("Role")
-    age = qualities.get("Age")
-    enchantment = qualities.get("Enchantment")
+    role = (qualities.get("Role") or [None])[0]
+    age = (qualities.get("Age") or [None])[0]
+    enchantment = (qualities.get("Enchantment") or [None])[0]
 
     head_noun = _humanize(cls_label).lower() if cls_label else "thing"
 
@@ -275,9 +391,32 @@ def _entity_noun_phrase(g: Graph, entity: URIRef) -> str:
     if age:
         extras.append(f"age {_humanize(age)}")
 
+    if discriminator:
+        # Splice before extras so 'from the left' attaches to the head noun
+        # rather than to a trailing 'age adult' / 'with glowing enchantment'.
+        base = _splice_discriminator(base, discriminator)
     if extras:
-        return base + " " + " ".join(extras)
+        # When a post-head discriminator is present, the head noun has already
+        # consumed a trailing phrase; separate the extras with a comma to
+        # avoid 'person from the left age adult' running together.
+        sep = ", " if discriminator and discriminator[1] else " "
+        base = base + sep + " ".join(extras)
     return base
+
+
+def _splice_discriminator(noun_phrase: str, disc: Disc) -> str:
+    """Insert (pre, post) discriminator into a noun phrase and definite-ize."""
+    pre, post = disc
+    parts = noun_phrase.split(" ", 1)
+    if not parts:
+        return noun_phrase
+    head, *rest = parts
+    body = rest[0] if rest else ""
+    if head.lower() in ("a", "an", "the"):
+        prefix = f"the {pre} {body}".strip() if pre else f"the {body}".strip()
+        return f"{prefix} {post}".strip() if post else prefix
+    # Proper-name path — name already disambiguates.
+    return noun_phrase
 
 
 def _proper_name(entity: URIRef) -> str:
@@ -292,16 +431,16 @@ def _proper_name(entity: URIRef) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _actions_sentences(g: Graph, scene: URIRef) -> list[str]:
+def _actions_sentences(g: Graph, scene: URIRef, disc: dict[URIRef, str]) -> list[str]:
     out: list[str] = []
     for t in _all_perdurant_targets(g, scene):
         types = set(g.objects(t, RDF.type))
         if VSO.Event in types:
-            s = _event_sentence(g, t)
+            s = _event_sentence(g, t, disc)
         elif VSO.Process in types:
-            s = _process_sentence(g, t)
+            s = _process_sentence(g, t, disc)
         elif VSO.Stative in types:
-            s = _stative_sentence(g, t)
+            s = _stative_sentence(g, t, disc)
         else:
             continue
         if s:
@@ -309,14 +448,14 @@ def _actions_sentences(g: Graph, scene: URIRef) -> list[str]:
     return out
 
 
-def _event_sentence(g: Graph, ev: URIRef) -> str:
+def _event_sentence(g: Graph, ev: URIRef, disc: dict[URIRef, str]) -> str:
     lemma = _str_prop(g, ev, VSO.lemma) or ""
-    agent = _ref_phrase(g, ev, VSO.agent)
-    patient = _ref_phrase(g, ev, VSO.patient)
-    instrument = _ref_phrase(g, ev, VSO.instrument)
-    theme = _ref_phrase(g, ev, VSO.theme)
-    recipient = _ref_phrase(g, ev, VSO.recipient)
-    goal = _ref_phrase(g, ev, VSO.goal)
+    agent = _ref_phrase(g, ev, VSO.agent, disc)
+    patient = _ref_phrase(g, ev, VSO.patient, disc)
+    instrument = _ref_phrase(g, ev, VSO.instrument, disc)
+    theme = _ref_phrase(g, ev, VSO.theme, disc)
+    recipient = _ref_phrase(g, ev, VSO.recipient, disc)
+    goal = _ref_phrase(g, ev, VSO.goal, disc)
     manner = _str_prop(g, ev, VSO.manner)
 
     verb_forms = VERBS["event"].get(lemma, {})
@@ -342,12 +481,12 @@ def _event_sentence(g: Graph, ev: URIRef) -> str:
     return " ".join(bits) + "."
 
 
-def _process_sentence(g: Graph, proc: URIRef) -> str:
+def _process_sentence(g: Graph, proc: URIRef, disc: dict[URIRef, str]) -> str:
     lemma = _str_prop(g, proc, VSO.lemma) or ""
-    agent = _ref_phrase(g, proc, VSO.agent)
-    patient = _ref_phrase(g, proc, VSO.patient)
-    theme = _ref_phrase(g, proc, VSO.theme)
-    goal = _ref_phrase(g, proc, VSO.goal)
+    agent = _ref_phrase(g, proc, VSO.agent, disc)
+    patient = _ref_phrase(g, proc, VSO.patient, disc)
+    theme = _ref_phrase(g, proc, VSO.theme, disc)
+    goal = _ref_phrase(g, proc, VSO.goal, disc)
     manner = _str_prop(g, proc, VSO.manner)
 
     forms = VERBS["process"].get(lemma, {})
@@ -369,12 +508,12 @@ def _process_sentence(g: Graph, proc: URIRef) -> str:
     return " ".join(bits) + "."
 
 
-def _stative_sentence(g: Graph, st: URIRef) -> str:
+def _stative_sentence(g: Graph, st: URIRef, disc: dict[URIRef, str]) -> str:
     lemma = _str_prop(g, st, VSO.lemma) or ""
-    holder = _ref_phrase(g, st, VSO.holder)
-    theme = _ref_phrase(g, st, VSO.theme)
-    experiencer = _ref_phrase(g, st, VSO.experiencer)
-    stimulus = _ref_phrase(g, st, VSO.stimulus)
+    holder = _ref_phrase(g, st, VSO.holder, disc)
+    theme = _ref_phrase(g, st, VSO.theme, disc)
+    experiencer = _ref_phrase(g, st, VSO.experiencer, disc)
+    stimulus = _ref_phrase(g, st, VSO.stimulus, disc)
     manner = _str_prop(g, st, VSO.manner)
 
     forms = VERBS["stative"].get(lemma, {})
@@ -397,53 +536,93 @@ def _stative_sentence(g: Graph, st: URIRef) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _spatial_sentences(g: Graph, scene: URIRef) -> list[str]:
-    out: list[str] = []
+# RCC-8 verbs ship in third-person-singular; we need plural forms for the
+# collapsed-figure case. Maps singular -> plural verb-phrase verbatim.
+_RCC_PLURAL = {
+    "is disconnected from": "are disconnected from",
+    "touches": "touch",
+    "partially overlaps": "partially overlap",
+    "equals": "equal",
+    "is a tangential part of": "are tangential parts of",
+    "is contained inside": "are contained inside",
+    "tangentially contains": "tangentially contain",
+    "fully contains": "fully contain",
+}
+
+
+def _spatial_sentences(g: Graph, scene: URIRef, disc: dict[URIRef, "Disc"]) -> list[str]:
+    """Collapse runs of (predicate, ground)-equivalent facts into one sentence.
+
+    A scene may legitimately assert the same spatial relation between many
+    figures and one ground (five people all 'in front of' a wall). Rather
+    than emit five identical-shape sentences, group them by their predicate
+    signature and ground IRI, then English-list the figures with a plural
+    verb form. Single-fact groups stay singular.
+    """
+    rows: list[tuple[str, str, URIRef, URIRef, URIRef]] = []
     seen_pairs: set[tuple[str, str, str]] = set()
-    for t in _all_spatial_targets(g, scene):
-        s = _spatial_sentence(g, t, seen_pairs)
-        if s:
-            out.append(s)
+
+    for fact in _all_spatial_targets(g, scene):
+        figure_iri = next(iter(g.objects(fact, VSO.figure)), None)
+        ground_iri = next(iter(g.objects(fact, VSO.ground)), None)
+        if figure_iri is None or ground_iri is None:
+            continue
+        directional = _local_name(next(iter(g.objects(fact, VSO.directional)), None))
+        proximal = _local_name(next(iter(g.objects(fact, VSO.proximal)), None))
+        rcc = _local_name(next(iter(g.objects(fact, VSO.rcc)), None))
+
+        if proximal in {"near", "far", "adjacent"}:
+            a, b = sorted([str(figure_iri), str(ground_iri)])
+            key = (a, b, proximal)
+            if key in seen_pairs:
+                continue
+            seen_pairs.add(key)
+            if str(figure_iri) != a:
+                figure_iri, ground_iri = ground_iri, figure_iri
+            phrase = VERBS["proximal_phrase"].get(proximal, proximal)
+            rows.append(("proximal", phrase, ground_iri, figure_iri, fact))
+        elif directional:
+            phrase = VERBS["directional_phrase"].get(directional, _humanize(directional))
+            rows.append(("dir", phrase, ground_iri, figure_iri, fact))
+        elif rcc:
+            phrase = VERBS["rcc_phrase"].get(rcc, rcc)
+            rows.append(("rcc", phrase, ground_iri, figure_iri, fact))
+
+    out: list[str] = []
+    i = 0
+    while i < len(rows):
+        kind, verb, gnd, fig, _ = rows[i]
+        j = i + 1
+        figures: list[URIRef] = [fig]
+        while j < len(rows) and rows[j][0] == kind and rows[j][1] == verb and rows[j][2] == gnd:
+            figures.append(rows[j][3])
+            j += 1
+        ground_phrase = _entity_short_phrase(g, gnd, disc)
+        figure_phrases = [_entity_short_phrase(g, f, disc) for f in figures]
+        joined = _english_join(figure_phrases)
+        if len(figures) == 1:
+            if kind == "rcc":
+                out.append(f"{_capitalize(joined)} {verb} {ground_phrase}.")
+            else:
+                out.append(f"{_capitalize(joined)} is {verb} {ground_phrase}.")
+        else:
+            if kind == "rcc":
+                plural = _RCC_PLURAL.get(verb, verb)
+                out.append(f"{_capitalize(joined)} {plural} {ground_phrase}.")
+            else:
+                out.append(f"{_capitalize(joined)} are {verb} {ground_phrase}.")
+        i = j
     return out
 
 
-def _spatial_sentence(g: Graph, fact: URIRef, seen_pairs: set) -> str:
-    figure_iri = next(iter(g.objects(fact, VSO.figure)), None)
-    ground_iri = next(iter(g.objects(fact, VSO.ground)), None)
-    if figure_iri is None or ground_iri is None:
+def _english_join(items: list[str]) -> str:
+    if not items:
         return ""
-
-    figure = _entity_short_phrase(g, figure_iri)
-    ground = _entity_short_phrase(g, ground_iri)
-
-    directional = _local_name(next(iter(g.objects(fact, VSO.directional)), None))
-    proximal = _local_name(next(iter(g.objects(fact, VSO.proximal)), None))
-    rcc = _local_name(next(iter(g.objects(fact, VSO.rcc)), None))
-
-    # For symmetric facts (proximal in {near, far, adjacent}), de-duplicate
-    # the reverse pair: collapse (a,b,proximal) and (b,a,proximal) into one
-    # sentence about the alphabetically-first ordered pair.
-    if proximal in {"near", "far", "adjacent"}:
-        a, b = sorted([str(figure_iri), str(ground_iri)])
-        key = (a, b, proximal)
-        if key in seen_pairs:
-            return ""
-        seen_pairs.add(key)
-        # Re-pick figure/ground in the canonical order so output is stable
-        if str(figure_iri) != a:
-            figure, ground = ground, figure
-        phrase = VERBS["proximal_phrase"].get(proximal, proximal)
-        return f"{_capitalize(figure)} is {phrase} {ground}."
-
-    if directional:
-        phrase = VERBS["directional_phrase"].get(directional, _humanize(directional))
-        return f"{_capitalize(figure)} is {phrase} {ground}."
-
-    if rcc:
-        phrase = VERBS["rcc_phrase"].get(rcc, rcc)
-        return f"{_capitalize(figure)} {phrase} {ground}."
-
-    return ""
+    if len(items) == 1:
+        return items[0]
+    if len(items) == 2:
+        return f"{items[0]} and {items[1]}"
+    return ", ".join(items[:-1]) + ", and " + items[-1]
 
 
 # ---------------------------------------------------------------------------
@@ -494,9 +673,14 @@ def _class_label(g: Graph, entity: URIRef) -> str:
     return ""
 
 
-def _qualities_by_dimension(g: Graph, entity: URIRef) -> dict[str, str]:
-    """Map dimension local-name -> value local-name. Deterministic by sort."""
-    out: dict[str, str] = {}
+def _qualities_by_dimension(g: Graph, entity: URIRef) -> dict[str, list[str]]:
+    """Map dimension local-name -> ordered list of value local-names.
+
+    Multiple Quality nodes can share a dimension (e.g., a striped outfit with
+    Color=blue + Color=white). Order is the IRI sort of the Quality nodes,
+    which is stable across re-parses. Empty list never appears in the dict.
+    """
+    out: dict[str, list[str]] = {}
     quality_nodes = sorted(
         (q for q in g.objects(entity, VSO.hasQuality)),
         key=str,
@@ -504,29 +688,36 @@ def _qualities_by_dimension(g: Graph, entity: URIRef) -> dict[str, str]:
     for q in quality_nodes:
         dim = _local_name(next(iter(g.objects(q, VSO.dimension)), None))
         val = _local_name(next(iter(g.objects(q, VSO.value)), None))
-        if dim and val and dim not in out:
-            out[dim] = val
+        if dim and val:
+            out.setdefault(dim, []).append(val)
     return out
 
 
-def _ref_phrase(g: Graph, subj: URIRef, pred: URIRef) -> str:
+def _ref_phrase(g: Graph, subj: URIRef, pred: URIRef, disc: Optional[dict[URIRef, str]] = None) -> str:
     """For thematic role refs: produce 'Alice' / 'the apple' / 'a sword'."""
     for o in g.objects(subj, pred):
         if isinstance(o, URIRef):
-            return _entity_short_phrase(g, o)
+            return _entity_short_phrase(g, o, disc)
         if isinstance(o, Literal):
             return str(o)
     return ""
 
 
-def _entity_short_phrase(g: Graph, entity: URIRef) -> str:
-    """Short reference: proper name if Named, else 'the <class>'."""
+def _entity_short_phrase(
+    g: Graph, entity: URIRef, disc: Optional[dict[URIRef, "Disc"]] = None
+) -> str:
+    """Short reference: proper name if Named, else 'the <discriminator?> <class>'."""
     individuation = _str_prop(g, entity, VSO.individuation)
     cls_label = _class_label(g, entity)
     if individuation and individuation.endswith("Named"):
         return _proper_name(entity)
     if cls_label:
-        return f"the {_humanize(cls_label).lower()}"
+        head = _humanize(cls_label).lower()
+        if disc and entity in disc:
+            pre, post = disc[entity]
+            prefix = f"the {pre} {head}".strip() if pre else f"the {head}"
+            return f"{prefix} {post}".strip() if post else prefix
+        return f"the {head}"
     return "the entity"
 
 

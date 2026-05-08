@@ -138,5 +138,97 @@ class RenderApiTests(unittest.TestCase):
         self.assertEqual(render(g), "")
 
 
+class DisambiguationTests(unittest.TestCase):
+    """Generic same-class entities must get distinguishable noun phrases."""
+
+    HEADER = """@prefix vso: <https://vson.dev/v1/ontology#> .
+@prefix : <https://example.org/scenes/test#> .
+"""
+
+    def _graph(self, body: str) -> rdflib.Graph:
+        g = rdflib.Graph()
+        g.parse(data=self.HEADER + body, format="turtle")
+        return g
+
+    def test_layout_drives_positional_labels(self):
+        body = """
+        :scene a vso:Composition ;
+          vso:depicts :p1 , :p2 , :p3 , :sf .
+        :p1 a vso:PhysicalObject ; vso:class "Person" ;
+          vso:individuation "Generic" ;
+          vso:hasQuality [ a vso:Quality ; vso:dimension "Layout" ; vso:value "left" ] .
+        :p2 a vso:PhysicalObject ; vso:class "Person" ;
+          vso:individuation "Generic" ;
+          vso:hasQuality [ a vso:Quality ; vso:dimension "Layout" ; vso:value "center" ] .
+        :p3 a vso:PhysicalObject ; vso:class "Person" ;
+          vso:individuation "Generic" ;
+          vso:hasQuality [ a vso:Quality ; vso:dimension "Layout" ; vso:value "right" ] .
+        :sf a vso:SpatialFact ; vso:figure :p1 ; vso:ground :p3 ;
+          vso:directional "leftOf" ; vso:viewer :cam .
+        """
+        out = render(self._graph(body)).lower()
+        self.assertIn("the leftmost person", out)
+        self.assertIn("the middle person", out)
+        self.assertIn("the rightmost person", out)
+        self.assertIn(
+            "the leftmost person is to the left of the rightmost person.", out
+        )
+
+    def test_four_entities_get_ordinal_labels(self):
+        body = """
+        :scene a vso:Composition ;
+          vso:depicts :a, :b, :c, :d .
+        :a a vso:PhysicalObject ; vso:class "Person" ; vso:individuation "Generic" ;
+          vso:bbox2d "0.00,0.0,0.2,1.0" .
+        :b a vso:PhysicalObject ; vso:class "Person" ; vso:individuation "Generic" ;
+          vso:bbox2d "0.25,0.0,0.2,1.0" .
+        :c a vso:PhysicalObject ; vso:class "Person" ; vso:individuation "Generic" ;
+          vso:bbox2d "0.50,0.0,0.2,1.0" .
+        :d a vso:PhysicalObject ; vso:class "Person" ; vso:individuation "Generic" ;
+          vso:bbox2d "0.75,0.0,0.2,1.0" .
+        """
+        out = render(self._graph(body)).lower()
+        self.assertIn("the leftmost person", out)
+        self.assertIn("the second person from the left", out)
+        self.assertIn("the third person from the left", out)
+        self.assertIn("the rightmost person", out)
+
+    def test_repeated_predicate_collapses(self):
+        body = """
+        :scene a vso:Composition ;
+          vso:depicts :p1, :p2, :p3, :wall, :sf1, :sf2, :sf3 .
+        :p1 a vso:PhysicalObject ; vso:class "Person" ; vso:individuation "Generic" ;
+          vso:hasQuality [ a vso:Quality ; vso:dimension "Layout" ; vso:value "left" ] .
+        :p2 a vso:PhysicalObject ; vso:class "Person" ; vso:individuation "Generic" ;
+          vso:hasQuality [ a vso:Quality ; vso:dimension "Layout" ; vso:value "center" ] .
+        :p3 a vso:PhysicalObject ; vso:class "Person" ; vso:individuation "Generic" ;
+          vso:hasQuality [ a vso:Quality ; vso:dimension "Layout" ; vso:value "right" ] .
+        :wall a vso:PhysicalObject ; vso:class "Wall" ; vso:individuation "Generic" .
+        :sf1 a vso:SpatialFact ; vso:figure :p1 ; vso:ground :wall ;
+          vso:rcc "TPP" ; vso:viewer :cam .
+        :sf2 a vso:SpatialFact ; vso:figure :p2 ; vso:ground :wall ;
+          vso:rcc "TPP" ; vso:viewer :cam .
+        :sf3 a vso:SpatialFact ; vso:figure :p3 ; vso:ground :wall ;
+          vso:rcc "TPP" ; vso:viewer :cam .
+        """
+        out = render(self._graph(body))
+        self.assertIn("are tangential parts of the wall", out)
+        self.assertEqual(out.count("are tangential parts of the wall"), 1)
+
+    def test_multi_value_color_slash_joined(self):
+        body = """
+        :scene a vso:Composition ;
+          vso:depicts :shirt .
+        :shirt a vso:PhysicalObject ; vso:class "Shirt" ; vso:individuation "Generic" ;
+          vso:hasQuality [ a vso:Quality ; vso:dimension "Color" ; vso:value "white" ] ,
+                         [ a vso:Quality ; vso:dimension "Color" ; vso:value "blue" ] .
+        """
+        out = render(self._graph(body))
+        self.assertTrue(
+            "blue/white" in out or "white/blue" in out,
+            f"expected slash-joined colors, got {out!r}",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
