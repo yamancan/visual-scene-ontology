@@ -31,3 +31,4 @@ web/.env
 # Existing tracked .md files (README.md, docs/vson.md, spec/*.md, etc.)
 # remain tracked; this rule only blocks NEW .md from being staged.
 *.md
+examples/photo_2026-05-07_02-17-40.jpg
