@@ -2,6 +2,7 @@
 	import Topbar from '$lib/components/Topbar.svelte';
 	import Dropzone from '$lib/components/Dropzone.svelte';
 	import DemoStrip from '$lib/components/DemoStrip.svelte';
+	import GalleryStrip from '$lib/components/GalleryStrip.svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
 	import ScenePanel from '$lib/components/ScenePanel.svelte';
 	import NotationToggle from '$lib/components/NotationToggle.svelte';
@@ -58,6 +59,7 @@
 					{/if}
 
 					<DemoStrip />
+					<GalleryStrip />
 				</div>
 			</div>
 		{/if}

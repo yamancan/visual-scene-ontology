@@ -6,6 +6,7 @@ export type NodeKind =
 	| 'SceneContext'
 	| 'VisualStyle'
 	| 'CameraView'
+	| 'Persona'
 	| 'PhysicalObject'
 	| 'Aggregate'
 	| 'Substance'
@@ -14,7 +15,10 @@ export type NodeKind =
 	| 'Stative'
 	| 'Quality'
 	| 'SpatialFact'
-	| 'Annotation';
+	| 'Annotation'
+	| 'Negation'
+	| 'BeliefState'
+	| 'Quantification';
 
 export interface NodeTraits {
 	individuation?: 'Generic' | 'Named' | 'Kind' | 'Skolem';

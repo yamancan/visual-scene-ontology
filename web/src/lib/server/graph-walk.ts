@@ -14,6 +14,7 @@ const KIND_VALUES = new Set<NodeKind>([
 	'SceneContext',
 	'VisualStyle',
 	'CameraView',
+	'Persona',
 	'PhysicalObject',
 	'Aggregate',
 	'Substance',
@@ -22,7 +23,10 @@ const KIND_VALUES = new Set<NodeKind>([
 	'Stative',
 	'Quality',
 	'SpatialFact',
-	'Annotation'
+	'Annotation',
+	'Negation',
+	'BeliefState',
+	'Quantification'
 ]);
 
 const TOKEN_RE =
@@ -123,6 +127,9 @@ const TRAIT_KEYS = new Set(['individuation', 'animacy', 'countability', 'afforda
 // Roles whose target is a property literal (camera/scene/style schemas, plus
 // SpatialFact trait values rcc/directional/proximal which point at VSO IRIs
 // in the canonical Turtle but render as scalar properties in the graph view).
+// Geometry, Quantification scalars, RDF-star Annotation predicate-name and
+// confidence/probability all fold into properties; the structural edges
+// (annotatedSubject/annotatedObject etc.) stay as graph edges.
 const PROPERTY_ROLES = new Set([
 	'venue',
 	'atmosphere',
@@ -139,9 +146,18 @@ const PROPERTY_ROLES = new Set([
 	'lemma',
 	'class',
 	'bbox2d',
+	'position3d',
+	'scale3d',
+	'rotation',
+	'visibleFraction',
 	'rcc',
 	'directional',
-	'proximal'
+	'proximal',
+	'quantifier',
+	'variable',
+	'annotatedPredicate',
+	'confidence',
+	'probability'
 ]);
 
 export function walkPenmanToGraph(src: string): SceneGraph {

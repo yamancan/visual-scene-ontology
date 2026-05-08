@@ -1,0 +1,127 @@
+// Spot-tests for buildSceneView. Uses a baked demo envelope (lamp.json) as
+// the canonical fixture so any drift between graph-walk projection and the
+// view-model surfaces immediately.
+
+import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { buildSceneView } from './sceneView';
+import type { VsonEnvelope } from '$lib/types';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const LAMP = resolve(__dirname, '../../../static/demos/envelopes/lamp.json');
+
+function loadLamp(): VsonEnvelope {
+	return JSON.parse(readFileSync(LAMP, 'utf-8')) as VsonEnvelope;
+}
+
+describe('buildSceneView (lamp demo)', () => {
+	const env = loadLamp();
+	const graph = env.graph!;
+	const view = buildSceneView(graph);
+
+	it('orders frame slots: context, style, camera', () => {
+		expect(view.frame.map((f) => f.kind)).toEqual([
+			'SceneContext',
+			'VisualStyle',
+			'CameraView'
+		]);
+	});
+
+	it('extracts SceneContext properties', () => {
+		const ctx = view.frame.find((f) => f.kind === 'SceneContext')!;
+		const keys = ctx.properties.map((p) => p.key);
+		expect(keys).toEqual(expect.arrayContaining(['venue', 'atmosphere', 'timeOfDay']));
+	});
+
+	it('puts every PhysicalObject in the entity grid', () => {
+		const ids = view.entities.map((e) => e.id).sort();
+		expect(ids).toEqual(['lamp', 'shade', 'table']);
+	});
+
+	it('folds q_<Dim> properties into qualities', () => {
+		const lamp = view.entities.find((e) => e.id === 'lamp')!;
+		const dims = lamp.qualities.map((q) => q.dim).sort();
+		expect(dims).toEqual(['ActionState', 'Material']);
+		const mat = lamp.qualities.find((q) => q.dim === 'Material')!;
+		expect(mat.value).toBe('brass');
+	});
+
+	it('lifts traits onto the entity card grouped by VSO axis', () => {
+		const table = view.entities.find((e) => e.id === 'table')!;
+		expect(table.traits.individuation).toBe('Generic');
+		expect(table.traits.animacy).toBe('Inert');
+		expect(table.traits.countability).toBe('Count');
+		expect(table.traits.affordance).toEqual(['Mountable']);
+	});
+
+	it('puts each SpatialFact in the spatial zone with figure/ground/viewer', () => {
+		expect(view.spatial).toHaveLength(2);
+		const sf2 = view.spatial.find((s) => s.id === 'sf2')!;
+		expect(sf2.figure).toBe('lamp');
+		expect(sf2.ground).toBe('table');
+		expect(sf2.viewer).toBe('cam');
+		expect(sf2.rcc).toBe('EC');
+		expect(sf2.directional).toBe('above');
+	});
+
+	it('skips structural framedBy/depicts/viewedBy edges from outgoing lists', () => {
+		// No entity card should have a `framedBy` outgoing — those are implicit.
+		const allOutgoing = view.entities.flatMap((e) => e.outgoing.map((o) => o.label));
+		expect(allOutgoing).not.toContain('framedBy');
+		expect(allOutgoing).not.toContain('depicts');
+		expect(allOutgoing).not.toContain('viewedBy');
+	});
+
+	it('has[] is empty on lamp demo (no entity-source possession edges)', () => {
+		for (const e of view.entities) expect(e.has).toEqual([]);
+	});
+
+	it('emits no Quality nodes in entities (folded into properties)', () => {
+		// Quality is folded by graph-walk; if it ever leaked, our entity
+		// filter (PhysicalObject/Aggregate/Substance) would still drop it.
+		const kinds = view.entities.map((e) => e.kind);
+		expect(kinds).not.toContain('Quality');
+	});
+});
+
+describe('buildSceneView possession routing', () => {
+	it('routes entity-source depicts and POSSESSION_LABELS into has[], target klass enriched', () => {
+		const graph = {
+			nodes: [
+				{ id: 'c', kind: 'Composition' as const },
+				{ id: 'p1', kind: 'PhysicalObject' as const, class: 'Person' },
+				{ id: 't1', kind: 'PhysicalObject' as const, class: 'Top' },
+				{ id: 'b1', kind: 'PhysicalObject' as const, class: 'Bag' },
+				{ id: 'h1', kind: 'PhysicalObject' as const, class: 'Hat' }
+			],
+			edges: [
+				{ from: 'c', to: 'p1', label: 'depicts' }, // implicit, dropped
+				{ from: 'p1', to: 't1', label: 'depicts' }, // extractor misuse → has
+				{ from: 'p1', to: 'b1', label: 'carries' }, // ontology possession → has
+				{ from: 'p1', to: 'h1', label: 'wears' } // ontology possession → has
+			]
+		};
+		const view = buildSceneView(graph);
+		const p1 = view.entities.find((e) => e.id === 'p1')!;
+		expect(p1.has.map((h) => `${h.label}:${h.to}:${h.klass}`)).toEqual([
+			'depicts:t1:Top',
+			'carries:b1:Bag',
+			'wears:h1:Hat'
+		]);
+		expect(p1.outgoing).toEqual([]);
+	});
+});
+
+describe('buildSceneView (empty graph)', () => {
+	it('returns empty zones without throwing', () => {
+		const view = buildSceneView({ nodes: [], edges: [] });
+		expect(view.composition).toBeNull();
+		expect(view.frame).toEqual([]);
+		expect(view.entities).toEqual([]);
+		expect(view.actions).toEqual([]);
+		expect(view.spatial).toEqual([]);
+		expect(view.temporal).toEqual([]);
+	});
+});

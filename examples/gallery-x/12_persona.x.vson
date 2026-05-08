@@ -1,0 +1,7 @@
+~scene
+  /CameraView @cam *angle eye_level *focalLength 50mm *framing medium_shot
+  ^cam
+
+  /Persona @alice_persona *hair blonde_long *skin light *role queen
+
+  @alice /PhysicalObject Named Agentive Count *class Human *embodies @alice_persona *affect joyful *pose seated

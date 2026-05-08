@@ -5,7 +5,7 @@ TOOLS = tools/penman/vson_penman.py
 EXAMPLE_VSON = examples/throne_room.vson
 EXAMPLE_TTL = examples/throne_room.ttl
 
-.PHONY: all check test parse-ontology penman-roundtrip shacl deps cli-check spec-check x-check x-skill-check web-check deploy-check clean
+.PHONY: all check test parse-ontology penman-roundtrip shacl deps cli-check spec-check x-check x-skill-check envelope-check web-check deploy-check clean
 
 all: check
 
@@ -87,6 +87,10 @@ x-skill-check:
 	@$(PY) tools/vson_x/skill_check.py \
 		--corpus examples/gallery-x \
 		--config skills/vson-extractor-x/conformance.json
+
+envelope-check:
+	@echo "==> Studio envelope corpus: every committed envelope MUST SHACL-conform"
+	@$(PY) scripts/envelope_check.py
 
 deploy-check:
 	@echo "==> Deploy preflight"

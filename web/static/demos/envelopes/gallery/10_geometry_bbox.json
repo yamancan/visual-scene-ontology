@@ -1,0 +1,89 @@
+{
+  "scene_id": "gallery_10_geometry_bbox_wFsqrVuznQhN",
+  "version": "1.0",
+  "source": {
+    "kind": "hand_authored",
+    "uri": "examples/gallery/10_geometry_bbox.vson"
+  },
+  "vson_p": "# Geometry: bbox2d normalized \"x,y,w,h\" string per spec P12.\n# Demonstrates: bbox2d roles for layout-to-image consumers (GLIGEN, ControlNet).\n\n(scene / Composition\n   :framedBy (cam / CameraView :angle eye_level :focalLength 50mm :framing medium_shot)\n   :viewedBy cam\n   :depicts (apple / PhysicalObject\n               :individuation Generic :animacy Inert :countability Count\n               :class Apple\n               :bbox2d \"0.42,0.55,0.12,0.14\"\n               :hasQuality (q / Quality :dimension Color :value red))\n   :depicts (table / PhysicalObject\n               :individuation Generic :animacy Inert :countability Count\n               :class Furniture\n               :bbox2d \"0.10,0.60,0.80,0.30\"))\n",
+  "vson_t": "@prefix vso:   <https://vson.dev/v1/ontology#> .\n@prefix allen: <https://vson.dev/v1/allen#> .\n@prefix rcc:   <https://vson.dev/v1/rcc8#> .\n@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n@prefix :      <https://example.org/scenes/anonymous#> .\n\n:scene a <https://vson.dev/v1/ontology#Composition> .\n:cam a <https://vson.dev/v1/ontology#CameraView> .\n:cam <https://vson.dev/v1/ontology#angle> \"eye_level\" .\n:cam <https://vson.dev/v1/ontology#focalLength> \"50mm\" .\n:cam <https://vson.dev/v1/ontology#framing> \"medium_shot\" .\n:scene <https://vson.dev/v1/ontology#framedBy> :cam .\n:scene <https://vson.dev/v1/ontology#viewedBy> :cam .\n:apple a <https://vson.dev/v1/ontology#PhysicalObject> .\n:apple <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Generic> .\n:apple <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Inert> .\n:apple <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Count> .\n:apple <https://vson.dev/v1/ontology#class> :Apple .\n:apple <https://vson.dev/v1/ontology#bbox2d> \"0.42,0.55,0.12,0.14\" .\n:q a <https://vson.dev/v1/ontology#Quality> .\n:q <https://vson.dev/v1/ontology#dimension> <https://vson.dev/v1/ontology#Color> .\n:q <https://vson.dev/v1/ontology#value> :red .\n:apple <https://vson.dev/v1/ontology#hasQuality> :q .\n:scene <https://vson.dev/v1/ontology#depicts> :apple .\n:table a <https://vson.dev/v1/ontology#PhysicalObject> .\n:table <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Generic> .\n:table <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Inert> .\n:table <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Count> .\n:table <https://vson.dev/v1/ontology#class> :Furniture .\n:table <https://vson.dev/v1/ontology#bbox2d> \"0.10,0.60,0.80,0.30\" .\n:scene <https://vson.dev/v1/ontology#depicts> :table .\n",
+  "graph": {
+    "nodes": [
+      {
+        "id": "scene",
+        "kind": "Composition"
+      },
+      {
+        "id": "cam",
+        "kind": "CameraView",
+        "properties": {
+          "angle": "eye_level",
+          "focalLength": "50mm",
+          "framing": "medium_shot"
+        }
+      },
+      {
+        "id": "apple",
+        "kind": "PhysicalObject",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        },
+        "properties": {
+          "class": "Apple",
+          "bbox2d": "0.42,0.55,0.12,0.14",
+          "q_Color": "red"
+        },
+        "class": "Apple"
+      },
+      {
+        "id": "table",
+        "kind": "PhysicalObject",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        },
+        "properties": {
+          "class": "Furniture",
+          "bbox2d": "0.10,0.60,0.80,0.30"
+        },
+        "class": "Furniture"
+      }
+    ],
+    "edges": [
+      {
+        "from": "scene",
+        "to": "cam",
+        "label": "framedBy"
+      },
+      {
+        "from": "scene",
+        "to": "cam",
+        "label": "viewedBy"
+      },
+      {
+        "from": "scene",
+        "to": "apple",
+        "label": "depicts"
+      },
+      {
+        "from": "scene",
+        "to": "table",
+        "label": "depicts"
+      }
+    ]
+  },
+  "conformance": {
+    "conforms": true
+  },
+  "extraction": {
+    "model": "gallery-bake",
+    "prompt_version": "canonical@1.0",
+    "shacl_retries": 0,
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0
+  }
+}

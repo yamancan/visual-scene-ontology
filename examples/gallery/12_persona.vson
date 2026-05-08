@@ -1,0 +1,20 @@
+# Persona (v1.1) — cross-document identity carrier.
+# Demonstrates: Persona node + hasInvariant Quality + entity embodies Persona.
+# Same Persona may be embodied by different entities across scenes; invariants
+# (eye color, build) are stable, while hasQuality (mood, pose) is per-scene.
+
+(scene / Composition
+   :framedBy (cam / CameraView :angle eye_level :focalLength 50mm :framing medium_shot)
+   :viewedBy cam
+
+   :framedBy (alice_persona / Persona
+                :hasInvariant (pi1 / Quality :dimension Hair :value blonde_long)
+                :hasInvariant (pi2 / Quality :dimension Skin :value light)
+                :hasInvariant (pi3 / Quality :dimension Role :value queen))
+
+   :depicts (alice / PhysicalObject
+               :individuation Named :animacy Agentive :countability Count
+               :class Human
+               :embodies alice_persona
+               :hasQuality (a1 / Quality :dimension Affect :value joyful)
+               :hasQuality (a2 / Quality :dimension Pose   :value seated)))

@@ -1,0 +1,37 @@
+# Annotation example: a strike Event with extractor confidence on its
+# thematic-role edges. Demonstrates: vso:Annotation reification (RDF 1.1
+# portable form per spec §18) carrying vso:confidence on each annotated
+# triple. The canonical RDF-star form `<< :strike vso:patient :boar >>
+# vso:confidence "0.95"` is equivalent and supported when authoring in
+# Turtle 1.2 directly.
+
+(scene / Composition
+   :framedBy (cam / CameraView :angle low :focalLength 35mm :framing medium_shot)
+   :viewedBy cam
+
+   :depicts (knight / PhysicalObject
+               :individuation Named :animacy Agentive :countability Count
+               :class Human
+               :hasQuality (q1 / Quality :dimension Role :value knight))
+
+   :depicts (boar / PhysicalObject
+               :individuation Generic :animacy Agentive :countability Count
+               :class Animal
+               :hasQuality (q2 / Quality :dimension Affect :value angry))
+
+   :depicts (sword / PhysicalObject
+               :individuation Generic :animacy Inert :countability Count
+               :class Weapon)
+
+   :depicts (strike / Event :lemma strike
+               :agent knight :patient boar :instrument sword)
+
+   :hasFact (a1 / Annotation
+               :annotatedSubject strike :annotatedPredicate agent
+               :annotatedObject knight :confidence 0.95)
+   :hasFact (a2 / Annotation
+               :annotatedSubject strike :annotatedPredicate patient
+               :annotatedObject boar :confidence 0.70)
+   :hasFact (a3 / Annotation
+               :annotatedSubject strike :annotatedPredicate instrument
+               :annotatedObject sword :confidence 0.88))

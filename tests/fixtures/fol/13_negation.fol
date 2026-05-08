@@ -1,0 +1,37 @@
+% unary class predicates
+Annotation(n_ann).
+CameraView(cam).
+Composition(scene).
+Negation(neg1).
+PhysicalObject(dragon).
+PhysicalObject(knight).
+Quality(q1).
+Quality(q2).
+
+% binary predicates
+angle(cam, "low").
+animacy(dragon, Agentive).
+animacy(knight, Agentive).
+annotatedObject(n_ann, knight).
+annotatedPredicate(n_ann, perceives).
+annotatedSubject(n_ann, dragon).
+class(dragon, Animal).
+class(knight, Human).
+countability(dragon, Count).
+countability(knight, Count).
+depicts(scene, dragon).
+depicts(scene, knight).
+depicts(scene, neg1).
+dimension(q1, Role).
+dimension(q2, Affect).
+focalLength(cam, "35mm").
+framedBy(scene, cam).
+framing(cam, "wide_shot").
+hasQuality(dragon, q2).
+hasQuality(knight, q1).
+individuation(dragon, Generic).
+individuation(knight, Named).
+negatedStatement(neg1, n_ann).
+value(q1, knight).
+value(q2, angry).
+viewedBy(scene, cam).

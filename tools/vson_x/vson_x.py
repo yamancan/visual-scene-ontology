@@ -407,17 +407,31 @@ class Parser:
 
         node = Node(var=var, concept=kind, edges=[])
 
-        # Direct-property *K V (Frame fields like *angle, *focalLength)
+        # Persona dispatches *K V to Quality nodes via hasInvariant (spec §3.1).
+        # Metadata Frames (CameraView, VisualStyle, SceneContext) emit direct
+        # properties (spec §3.1).
+        is_persona = kind == "Persona"
+
         while self.peek() and self.peek().kind == "*":
             self.consume("*")
             key = self.consume("IDENT").value
             value_term = self._parse_value()
             mod = self._maybe_modifier()
-            if mod is not None:
-                raise SyntaxError(
-                    f"modifier ~{mod} not valid on Frame direct property *{key}"
-                )
-            node.edges.append((key, value_term))
+            if is_persona:
+                q_var = self.gen("q")
+                q_node = Node(var=q_var, concept="Quality", edges=[
+                    ("dimension", Ref(_pascal_case(key))),
+                    ("value", value_term),
+                ])
+                if mod is not None:
+                    q_node.edges.append(("modifier", Lit(mod, is_string=True)))
+                node.edges.append(("hasInvariant", q_node))
+            else:
+                if mod is not None:
+                    raise SyntaxError(
+                        f"modifier ~{mod} not valid on Frame direct property *{key}"
+                    )
+                node.edges.append((key, value_term))
 
         scene.edges.append(("framedBy", node))
 

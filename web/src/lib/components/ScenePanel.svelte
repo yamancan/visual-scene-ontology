@@ -1,28 +1,67 @@
 <script lang="ts">
-	import GraphView from './GraphView.svelte';
+	import SceneFlow from './SceneFlow.svelte';
+	import FactsStrip from './FactsStrip.svelte';
+	import SceneFrame from './SceneFrame.svelte';
 	import TabsRail from './TabsRail.svelte';
 	import SceneHeader from './SceneHeader.svelte';
 	import ExportRow from './ExportRow.svelte';
 	import { scene } from '$lib/scene.svelte';
 
 	let railOpen = $state(true);
+	let factsOpen = $state(true);
 	let nodeCount = $derived(scene.envelope?.graph?.nodes.length ?? 0);
+	let edgeCount = $derived(scene.envelope?.graph?.edges.length ?? 0);
+	let entityCount = $derived(
+		scene.envelope?.graph?.nodes.filter((n) =>
+			['PhysicalObject', 'Aggregate', 'Substance'].includes(n.kind)
+		).length ?? 0
+	);
+	let spatialCount = $derived(
+		scene.envelope?.graph?.nodes.filter((n) => n.kind === 'SpatialFact').length ?? 0
+	);
+	let meta = $derived(`${entityCount} entities · ${nodeCount} nodes · ${edgeCount} edges`);
 </script>
 
 <div class="panel">
 	<SceneHeader />
 
 	<main class="body" class:rail-collapsed={!railOpen}>
-		<section class="graph">
-			<header class="bar">
-				<span class="font-mono bar-label">graph</span>
-				<span class="bar-meta font-mono">
-					{nodeCount} nodes · drag to pan · scroll to zoom
-				</span>
-			</header>
-			<div class="graph-host">
-				<GraphView />
-			</div>
+		<section class="stage">
+			<SceneFrame {meta}>
+				<div class="split" class:facts-collapsed={!factsOpen}>
+					<div class="flow-pane">
+						<SceneFlow />
+					</div>
+					{#if spatialCount > 0}
+						<div class="divider" role="separator" aria-orientation="horizontal">
+							<button
+								type="button"
+								class="facts-toggle"
+								onclick={() => (factsOpen = !factsOpen)}
+								aria-label={factsOpen ? 'Collapse facts' : 'Expand facts'}
+								aria-expanded={factsOpen}
+							>
+								<span class="font-mono">facts · {spatialCount} spatial</span>
+								<svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+									<path
+										d={factsOpen ? 'M2 6 L5 3 L8 6' : 'M2 4 L5 7 L8 4'}
+										stroke="currentColor"
+										stroke-width="1.4"
+										fill="none"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									/>
+								</svg>
+							</button>
+						</div>
+						{#if factsOpen}
+							<div class="facts-pane">
+								<FactsStrip />
+							</div>
+						{/if}
+					{/if}
+				</div>
+			</SceneFrame>
 		</section>
 
 		<aside class="rail" aria-hidden={!railOpen}>
@@ -73,35 +112,58 @@
 	.body.rail-collapsed {
 		grid-template-columns: minmax(0, 1fr) 0;
 	}
-	.graph {
+	.stage {
 		display: flex;
 		flex-direction: column;
 		min-height: 0;
 		min-width: 0;
 		border-right: 1px solid var(--border-1);
 	}
-	.bar {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: var(--s2) var(--s3);
-		border-bottom: 1px solid var(--border-1);
-		flex-shrink: 0;
+	.split {
+		display: grid;
+		grid-template-rows: minmax(0, 1.6fr) auto minmax(0, 0.6fr);
+		height: 100%;
+		min-height: 0;
 	}
-	.bar-label {
-		font-size: 10px;
-		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		color: var(--fg-4);
+	.split.facts-collapsed {
+		grid-template-rows: minmax(0, 1fr) auto 0;
 	}
-	.bar-meta {
-		font-size: 10px;
-		color: var(--fg-4);
-	}
-	.graph-host {
-		flex: 1;
+	.flow-pane {
 		min-height: 0;
 		position: relative;
+		overflow: hidden;
+	}
+	.facts-pane {
+		min-height: 0;
+		overflow: hidden;
+	}
+	.divider {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0 var(--s3);
+		border-top: 1px solid var(--border-1);
+		border-bottom: 1px solid var(--border-1);
+		background: var(--bg-1);
+		flex-shrink: 0;
+	}
+	.facts-toggle {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 4px 10px;
+		border: 0;
+		background: transparent;
+		color: var(--fg-3);
+		cursor: pointer;
+		font-family: inherit;
+		font-size: 10px;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		transition: color var(--duration-fast) var(--ease-out);
+	}
+	.facts-toggle:hover {
+		color: var(--fg-0);
 	}
 	.rail {
 		position: relative;
@@ -163,7 +225,7 @@
 			grid-template-columns: 1fr;
 			grid-template-rows: 1fr 0;
 		}
-		.graph {
+		.stage {
 			border-right: 0;
 			border-bottom: 1px solid var(--border-1);
 		}

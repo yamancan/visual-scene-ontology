@@ -1,0 +1,50 @@
+% unary class predicates
+Annotation(q_dom).
+Annotation(q_scp).
+CameraView(cam).
+Composition(scene).
+PhysicalObject(field).
+PhysicalObject(h1).
+PhysicalObject(h2).
+Quality(q1).
+Quality(q2).
+Quantification(qf1).
+
+% binary predicates
+angle(cam, "eye_level").
+animacy(field, Inert).
+animacy(h1, Agentive).
+animacy(h2, Agentive).
+annotatedObject(q_dom, field).
+annotatedObject(q_scp, brown_color).
+annotatedPredicate(q_dom, partOf).
+annotatedPredicate(q_scp, hasQuality).
+annotatedSubject(q_dom, horse).
+annotatedSubject(q_scp, horse).
+class(field, Geography).
+class(h1, Animal).
+class(h2, Animal).
+countability(field, Count).
+countability(h1, Count).
+countability(h2, Count).
+depicts(scene, field).
+depicts(scene, h1).
+depicts(scene, h2).
+depicts(scene, qf1).
+dimension(q1, Color).
+dimension(q2, Color).
+focalLength(cam, "50mm").
+framedBy(scene, cam).
+framing(cam, "wide_shot").
+hasQuality(h1, q1).
+hasQuality(h2, q2).
+individuation(field, Generic).
+individuation(h1, Generic).
+individuation(h2, Generic).
+qDomain(qf1, q_dom).
+quantifier(qf1, "all").
+scope(qf1, q_scp).
+value(q1, brown).
+value(q2, brown).
+variable(qf1, "horse").
+viewedBy(scene, cam).

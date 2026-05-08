@@ -1,0 +1,39 @@
+% unary class predicates
+CameraView(cam).
+Composition(scene).
+Persona(alice_persona).
+PhysicalObject(alice).
+Quality(a1).
+Quality(a2).
+Quality(pi1).
+Quality(pi2).
+Quality(pi3).
+
+% binary predicates
+angle(cam, "eye_level").
+animacy(alice, Agentive).
+class(alice, Human).
+countability(alice, Count).
+depicts(scene, alice).
+dimension(a1, Affect).
+dimension(a2, Pose).
+dimension(pi1, Hair).
+dimension(pi2, Skin).
+dimension(pi3, Role).
+embodies(alice, alice_persona).
+focalLength(cam, "50mm").
+framedBy(scene, alice_persona).
+framedBy(scene, cam).
+framing(cam, "medium_shot").
+hasInvariant(alice_persona, pi1).
+hasInvariant(alice_persona, pi2).
+hasInvariant(alice_persona, pi3).
+hasQuality(alice, a1).
+hasQuality(alice, a2).
+individuation(alice, Named).
+value(a1, joyful).
+value(a2, seated).
+value(pi1, blonde_long).
+value(pi2, light).
+value(pi3, queen).
+viewedBy(scene, cam).

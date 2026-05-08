@@ -1,0 +1,83 @@
+{
+  "scene_id": "gallery_08_collective_aKE8HmrEyAeh",
+  "version": "1.0",
+  "source": {
+    "kind": "hand_authored",
+    "uri": "examples/gallery/08_collective.vson"
+  },
+  "vson_p": "# Collective countability: a crowd as a single Aggregate, not 100 individuals.\n# Demonstrates: countability=Collective, no per-individual qualities.\n\n(scene / Composition\n   :framedBy (cam / CameraView :angle high :focalLength 24mm :framing wide_shot)\n   :viewedBy cam\n   :framedBy (ctx / SceneContext :venue marketplace :atmosphere energetic :timeOfDay noon)\n   :depicts (crowd / Aggregate\n               :individuation Generic\n               :animacy Agentive\n               :countability Collective\n               :class Group\n               :hasQuality (qs / Quality :dimension Size :value large)))\n",
+  "vson_t": "@prefix vso:   <https://vson.dev/v1/ontology#> .\n@prefix allen: <https://vson.dev/v1/allen#> .\n@prefix rcc:   <https://vson.dev/v1/rcc8#> .\n@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n@prefix :      <https://example.org/scenes/anonymous#> .\n\n:scene a <https://vson.dev/v1/ontology#Composition> .\n:cam a <https://vson.dev/v1/ontology#CameraView> .\n:cam <https://vson.dev/v1/ontology#angle> \"high\" .\n:cam <https://vson.dev/v1/ontology#focalLength> \"24mm\" .\n:cam <https://vson.dev/v1/ontology#framing> \"wide_shot\" .\n:scene <https://vson.dev/v1/ontology#framedBy> :cam .\n:scene <https://vson.dev/v1/ontology#viewedBy> :cam .\n:ctx a <https://vson.dev/v1/ontology#SceneContext> .\n:ctx <https://vson.dev/v1/ontology#venue> \"marketplace\" .\n:ctx <https://vson.dev/v1/ontology#atmosphere> \"energetic\" .\n:ctx <https://vson.dev/v1/ontology#timeOfDay> \"noon\" .\n:scene <https://vson.dev/v1/ontology#framedBy> :ctx .\n:crowd a <https://vson.dev/v1/ontology#Aggregate> .\n:crowd <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Generic> .\n:crowd <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Agentive> .\n:crowd <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Collective> .\n:crowd <https://vson.dev/v1/ontology#class> :Group .\n:qs a <https://vson.dev/v1/ontology#Quality> .\n:qs <https://vson.dev/v1/ontology#dimension> <https://vson.dev/v1/ontology#Size> .\n:qs <https://vson.dev/v1/ontology#value> :large .\n:crowd <https://vson.dev/v1/ontology#hasQuality> :qs .\n:scene <https://vson.dev/v1/ontology#depicts> :crowd .\n",
+  "graph": {
+    "nodes": [
+      {
+        "id": "scene",
+        "kind": "Composition"
+      },
+      {
+        "id": "cam",
+        "kind": "CameraView",
+        "properties": {
+          "angle": "high",
+          "focalLength": "24mm",
+          "framing": "wide_shot"
+        }
+      },
+      {
+        "id": "ctx",
+        "kind": "SceneContext",
+        "properties": {
+          "venue": "marketplace",
+          "atmosphere": "energetic",
+          "timeOfDay": "noon"
+        }
+      },
+      {
+        "id": "crowd",
+        "kind": "Aggregate",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Agentive",
+          "countability": "Collective"
+        },
+        "properties": {
+          "class": "Group",
+          "q_Size": "large"
+        },
+        "class": "Group"
+      }
+    ],
+    "edges": [
+      {
+        "from": "scene",
+        "to": "cam",
+        "label": "framedBy"
+      },
+      {
+        "from": "scene",
+        "to": "cam",
+        "label": "viewedBy"
+      },
+      {
+        "from": "scene",
+        "to": "ctx",
+        "label": "framedBy"
+      },
+      {
+        "from": "scene",
+        "to": "crowd",
+        "label": "depicts"
+      }
+    ]
+  },
+  "conformance": {
+    "conforms": true
+  },
+  "extraction": {
+    "model": "gallery-bake",
+    "prompt_version": "canonical@1.0",
+    "shacl_retries": 0,
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0
+  }
+}

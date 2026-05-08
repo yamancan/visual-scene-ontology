@@ -27,13 +27,15 @@
   "rcc_values": ["DC", "EC", "PO", "EQ", "TPP", "NTPP", "TPPi", "NTPPi"],
   "role_value_to_vso": [
     "individuation", "animacy", "countability", "affordance",
-    "directional", "proximal", "dimension"
+    "directional", "proximal", "dimension",
+    "annotatedPredicate"
   ],
   "role_value_to_rcc": ["rcc"],
   "role_value_as_string": [
     "venue", "atmosphere", "timeOfDay", "weather",
     "aesthetic", "palette", "medium",
     "angle", "focalLength", "framing", "cameraPosition",
-    "manner", "lemma"
+    "manner", "lemma",
+    "quantifier", "variable"
   ]
 }

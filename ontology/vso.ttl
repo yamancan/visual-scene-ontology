@@ -117,6 +117,13 @@ vso:depicts    a owl:ObjectProperty ; rdfs:domain vso:Composition ; rdfs:range v
 vso:viewedBy   a owl:ObjectProperty ; rdfs:domain vso:Composition ; rdfs:range vso:CameraView .
 vso:rendersAs  a owl:ObjectProperty ; rdfs:domain vso:Composition ; rdfs:range vso:VisualStyle .
 
+# vso:hasFact attaches reification nodes (SpatialFact, Negation, BeliefState,
+# Quantification, Annotation) to a Composition. Distinct from vso:depicts,
+# which is reserved for vso:Entity (the depicted world). Range deliberately
+# unconstrained at the OWL level (multiple classes); SHACL can tighten later.
+vso:hasFact    a owl:ObjectProperty ; rdfs:domain vso:Composition ;
+               rdfs:comment "Attaches a reification node (SpatialFact, Negation, BeliefState, Quantification, Annotation) to a Composition. Use vso:depicts only for vso:Entity targets." .
+
 #################################################################
 # 7. Quality attachment
 #################################################################
@@ -259,8 +266,24 @@ vso:triggers a owl:ObjectProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:P
 vso:believes  a owl:ObjectProperty ; rdfs:domain vso:Endurant .
 vso:intends   a owl:ObjectProperty ; rdfs:domain vso:Endurant .
 vso:perceives a owl:ObjectProperty ; rdfs:domain vso:Endurant .
-vso:proposition a rdf:Property ; rdfs:domain vso:BeliefState .
-vso:negatedStatement a rdf:Property ; rdfs:domain vso:Negation .
+vso:proposition a rdf:Property ; rdfs:domain vso:BeliefState ;
+                  rdfs:comment "The proposition that is believed/intended/perceived. Range is an RDF-star quoted triple in canonical Turtle 1.2 form, OR a vso:Annotation reified node (RDF 1.1 portable) — both forms are conformant per spec §18." .
+vso:negatedStatement a rdf:Property ; rdfs:domain vso:Negation ;
+                  rdfs:comment "The negated proposition. Range is an RDF-star quoted triple OR a vso:Annotation reified node (same dual-form policy as vso:proposition)." .
+
+# Quantification properties (spec §6, §13). The vso:Quantification class is a
+# reified universal/existential statement: a quantifier word, a variable name,
+# an optional domain restriction, and a scope (the predicated proposition).
+vso:quantifier a owl:DatatypeProperty ; rdfs:domain vso:Quantification ;
+                rdfs:range xsd:string ;
+                rdfs:comment "Quantifier lexeme. Closed list: 'all', 'every', 'some', 'no', 'most', 'few'. Stored as snake_case xsd:string." .
+vso:variable   a owl:DatatypeProperty ; rdfs:domain vso:Quantification ;
+                rdfs:range xsd:string ;
+                rdfs:comment "Variable name bound by the quantifier (e.g. 'x', 'horse'). Plain xsd:string token; appears as the subject in scope/domain triples." .
+vso:qDomain    a rdf:Property ; rdfs:domain vso:Quantification ;
+                rdfs:comment "Optional domain restriction. Range is an RDF-star quoted triple OR a vso:Annotation reified node (same dual-form policy)." .
+vso:scope      a rdf:Property ; rdfs:domain vso:Quantification ;
+                rdfs:comment "The proposition predicated of the bound variable. Range is an RDF-star quoted triple OR a vso:Annotation reified node." .
 
 #################################################################
 # 14. Geometry

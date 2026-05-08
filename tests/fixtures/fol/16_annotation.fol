@@ -1,0 +1,58 @@
+% unary class predicates
+Annotation(a1).
+Annotation(a2).
+Annotation(a3).
+CameraView(cam).
+Composition(scene).
+PhysicalObject(boar).
+PhysicalObject(knight).
+PhysicalObject(sword).
+Quality(q1).
+Quality(q2).
+
+% n-ary reified facts (collapsed from binary triples)
+strike(agent=knight, instrument=sword, patient=boar).  % Event strike
+
+% binary predicates
+angle(cam, "low").
+animacy(boar, Agentive).
+animacy(knight, Agentive).
+animacy(sword, Inert).
+annotatedObject(a1, knight).
+annotatedObject(a2, boar).
+annotatedObject(a3, sword).
+annotatedPredicate(a1, agent).
+annotatedPredicate(a2, patient).
+annotatedPredicate(a3, instrument).
+annotatedSubject(a1, strike).
+annotatedSubject(a2, strike).
+annotatedSubject(a3, strike).
+class(boar, Animal).
+class(knight, Human).
+class(sword, Weapon).
+confidence(a1, "0.95").
+confidence(a2, "0.70").
+confidence(a3, "0.88").
+countability(boar, Count).
+countability(knight, Count).
+countability(sword, Count).
+depicts(scene, boar).
+depicts(scene, knight).
+depicts(scene, strike).
+depicts(scene, sword).
+dimension(q1, Role).
+dimension(q2, Affect).
+focalLength(cam, "35mm").
+framedBy(scene, cam).
+framing(cam, "medium_shot").
+hasFact(scene, a1).
+hasFact(scene, a2).
+hasFact(scene, a3).
+hasQuality(boar, q2).
+hasQuality(knight, q1).
+individuation(boar, Generic).
+individuation(knight, Named).
+individuation(sword, Generic).
+value(q1, knight).
+value(q2, angry).
+viewedBy(scene, cam).

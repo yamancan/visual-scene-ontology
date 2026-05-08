@@ -14,6 +14,11 @@
 	let lines = $derived(body.split('\n'));
 	let label = $derived(scene.notation === 'x' ? 'vson-x' : 'penman');
 	let copyLabel = $derived(scene.notation === 'x' ? 'copy vson-x' : 'copy penman');
+	let isEmpty = $derived(body.trim().length === 0);
+	let canFallback = $derived(
+		scene.notation === 'x' && (scene.envelope?.vson_p?.trim().length ?? 0) > 0
+	);
+	let envelopeVersion = $derived(scene.envelope?.version ?? '');
 
 	async function doCopy() {
 		const ok = await copyText(body);
@@ -149,13 +154,27 @@
 		</button>
 	</header>
 	<div bind:this={containerEl} class="body">
-		<pre class="code">{#each lines as line, i (i)}{@const decl = declaresSelected(line, scene.selectedNodeId)}<div
-					class="ln"
-					class:declares={decl}
-					><span class="lno">{i + 1}</span><code class="ltxt"
-						>{@html highlight(line, scene.selectedNodeId) || ' '}</code
-					></div
-				>{/each}</pre>
+		{#if isEmpty}
+			<div class="empty-state">
+				<p class="empty-msg font-mono">
+					vson-x not present in this envelope
+					{#if envelopeVersion}<span class="ver">({envelopeVersion})</span>{/if}
+				</p>
+				{#if canFallback}
+					<button class="empty-action" onclick={() => scene.setNotation('p')}>
+						switch to penman
+					</button>
+				{/if}
+			</div>
+		{:else}
+			<pre class="code">{#each lines as line, i (i)}{@const decl = declaresSelected(line, scene.selectedNodeId)}<div
+						class="ln"
+						class:declares={decl}
+						><span class="lno">{i + 1}</span><code class="ltxt"
+							>{@html highlight(line, scene.selectedNodeId) || ' '}</code
+						></div
+					>{/each}</pre>
+		{/if}
 	</div>
 </section>
 
@@ -222,6 +241,43 @@
 		flex: 1;
 		overflow: auto;
 		min-height: 0;
+	}
+	.empty-state {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: var(--s3);
+		padding: var(--s4);
+		height: 100%;
+	}
+	.empty-msg {
+		font-size: 11px;
+		color: var(--fg-3);
+		text-align: center;
+	}
+	.ver {
+		color: var(--fg-4);
+		margin-left: 4px;
+	}
+	.empty-action {
+		font-family: var(--font-mono);
+		font-size: 10px;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		padding: 6px 12px;
+		background: var(--bg-1);
+		border: 1px solid var(--border-2);
+		border-radius: var(--radius-sm);
+		color: var(--accent);
+		cursor: pointer;
+		transition:
+			background var(--duration-fast) var(--ease-out),
+			border-color var(--duration-fast) var(--ease-out);
+	}
+	.empty-action:hover {
+		background: var(--accent-bg);
+		border-color: var(--accent);
 	}
 	.code {
 		margin: 0;

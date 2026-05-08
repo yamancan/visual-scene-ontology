@@ -1,0 +1,201 @@
+{
+  "_doc": "Canonical hand-authored fixtures from examples/gallery/. Every entry is strict-SHACL-conformant. Studio picker reads this to populate the gallery section.",
+  "generated_at": "2026-05-08T21:06:01.378Z",
+  "entries": [
+    {
+      "stem": "01_minimal",
+      "label": "Minimal",
+      "envelope_path": "/demos/envelopes/gallery/01_minimal.json",
+      "conforms": true,
+      "nodes": 3,
+      "edges": 3,
+      "covers": [
+        "minimal"
+      ]
+    },
+    {
+      "stem": "02_quality",
+      "label": "Quality",
+      "envelope_path": "/demos/envelopes/gallery/02_quality.json",
+      "conforms": true,
+      "nodes": 3,
+      "edges": 3,
+      "covers": [
+        "quality"
+      ]
+    },
+    {
+      "stem": "03_spatial_topology",
+      "label": "Spatial Topology",
+      "envelope_path": "/demos/envelopes/gallery/03_spatial_topology.json",
+      "conforms": true,
+      "nodes": 5,
+      "edges": 7,
+      "covers": [
+        "spatialfact",
+        "rcc"
+      ]
+    },
+    {
+      "stem": "04_directional_with_viewer",
+      "label": "Directional With Viewer",
+      "envelope_path": "/demos/envelopes/gallery/04_directional_with_viewer.json",
+      "conforms": true,
+      "nodes": 5,
+      "edges": 8,
+      "covers": [
+        "spatialfact",
+        "directional",
+        "viewer"
+      ]
+    },
+    {
+      "stem": "05_possession_stative",
+      "label": "Possession Stative",
+      "envelope_path": "/demos/envelopes/gallery/05_possession_stative.json",
+      "conforms": true,
+      "nodes": 5,
+      "edges": 7,
+      "covers": [
+        "stative",
+        "possession"
+      ]
+    },
+    {
+      "stem": "06_event_with_instrument",
+      "label": "Event With Instrument",
+      "envelope_path": "/demos/envelopes/gallery/06_event_with_instrument.json",
+      "conforms": true,
+      "nodes": 6,
+      "edges": 9,
+      "covers": [
+        "event",
+        "thematic-roles"
+      ]
+    },
+    {
+      "stem": "07_ditransitive",
+      "label": "Ditransitive",
+      "envelope_path": "/demos/envelopes/gallery/07_ditransitive.json",
+      "conforms": true,
+      "nodes": 6,
+      "edges": 9,
+      "covers": [
+        "event",
+        "ditransitive"
+      ]
+    },
+    {
+      "stem": "08_collective",
+      "label": "Collective",
+      "envelope_path": "/demos/envelopes/gallery/08_collective.json",
+      "conforms": true,
+      "nodes": 4,
+      "edges": 4,
+      "covers": [
+        "aggregate",
+        "countability"
+      ]
+    },
+    {
+      "stem": "09_mass_substance",
+      "label": "Mass Substance",
+      "envelope_path": "/demos/envelopes/gallery/09_mass_substance.json",
+      "conforms": true,
+      "nodes": 5,
+      "edges": 7,
+      "covers": [
+        "substance",
+        "mass"
+      ]
+    },
+    {
+      "stem": "10_geometry_bbox",
+      "label": "Geometry Bbox",
+      "envelope_path": "/demos/envelopes/gallery/10_geometry_bbox.json",
+      "conforms": true,
+      "nodes": 4,
+      "edges": 4,
+      "covers": [
+        "geometry",
+        "bbox2d"
+      ]
+    },
+    {
+      "stem": "11_throne_room",
+      "label": "Throne Room",
+      "envelope_path": "/demos/envelopes/gallery/11_throne_room.json",
+      "conforms": true,
+      "nodes": 15,
+      "edges": 31,
+      "covers": [
+        "composition",
+        "event",
+        "stative",
+        "spatialfact"
+      ]
+    },
+    {
+      "stem": "12_persona",
+      "label": "Persona",
+      "envelope_path": "/demos/envelopes/gallery/12_persona.json",
+      "conforms": true,
+      "nodes": 13,
+      "edges": 14,
+      "covers": [
+        "persona",
+        "embodies",
+        "hasInvariant"
+      ]
+    },
+    {
+      "stem": "13_negation",
+      "label": "Negation",
+      "envelope_path": "/demos/envelopes/gallery/13_negation.json",
+      "conforms": true,
+      "nodes": 6,
+      "edges": 8,
+      "covers": [
+        "negation",
+        "reified-annotation"
+      ]
+    },
+    {
+      "stem": "14_belief_state",
+      "label": "Belief State",
+      "envelope_path": "/demos/envelopes/gallery/14_belief_state.json",
+      "conforms": true,
+      "nodes": 7,
+      "edges": 10,
+      "covers": [
+        "beliefstate",
+        "reified-annotation"
+      ]
+    },
+    {
+      "stem": "15_quantification",
+      "label": "Quantification",
+      "envelope_path": "/demos/envelopes/gallery/15_quantification.json",
+      "conforms": true,
+      "nodes": 10,
+      "edges": 12,
+      "covers": [
+        "quantification",
+        "reified-annotation"
+      ]
+    },
+    {
+      "stem": "16_annotation",
+      "label": "Annotation",
+      "envelope_path": "/demos/envelopes/gallery/16_annotation.json",
+      "conforms": true,
+      "nodes": 9,
+      "edges": 18,
+      "covers": [
+        "annotation",
+        "rdf-star",
+        "confidence"
+      ]
+    }
+  ]
+}

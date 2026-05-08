@@ -1,0 +1,165 @@
+{
+  "scene_id": "gallery_12_persona_vNzKt5XvezXC",
+  "version": "1.0",
+  "source": {
+    "kind": "hand_authored",
+    "uri": "examples/gallery/12_persona.vson"
+  },
+  "vson_p": "# Persona (v1.1) — cross-document identity carrier.\n# Demonstrates: Persona node + hasInvariant Quality + entity embodies Persona.\n# Same Persona may be embodied by different entities across scenes; invariants\n# (eye color, build) are stable, while hasQuality (mood, pose) is per-scene.\n\n(scene / Composition\n   :framedBy (cam / CameraView :angle eye_level :focalLength 50mm :framing medium_shot)\n   :viewedBy cam\n\n   :framedBy (alice_persona / Persona\n                :hasInvariant (pi1 / Quality :dimension Hair :value blonde_long)\n                :hasInvariant (pi2 / Quality :dimension Skin :value light)\n                :hasInvariant (pi3 / Quality :dimension Role :value queen))\n\n   :depicts (alice / PhysicalObject\n               :individuation Named :animacy Agentive :countability Count\n               :class Human\n               :embodies alice_persona\n               :hasQuality (a1 / Quality :dimension Affect :value joyful)\n               :hasQuality (a2 / Quality :dimension Pose   :value seated)))\n",
+  "vson_t": "@prefix vso:   <https://vson.dev/v1/ontology#> .\n@prefix allen: <https://vson.dev/v1/allen#> .\n@prefix rcc:   <https://vson.dev/v1/rcc8#> .\n@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n@prefix :      <https://example.org/scenes/anonymous#> .\n\n:scene a <https://vson.dev/v1/ontology#Composition> .\n:cam a <https://vson.dev/v1/ontology#CameraView> .\n:cam <https://vson.dev/v1/ontology#angle> \"eye_level\" .\n:cam <https://vson.dev/v1/ontology#focalLength> \"50mm\" .\n:cam <https://vson.dev/v1/ontology#framing> \"medium_shot\" .\n:scene <https://vson.dev/v1/ontology#framedBy> :cam .\n:scene <https://vson.dev/v1/ontology#viewedBy> :cam .\n:alice_persona a <https://vson.dev/v1/ontology#Persona> .\n:pi1 a <https://vson.dev/v1/ontology#Quality> .\n:pi1 <https://vson.dev/v1/ontology#dimension> <https://vson.dev/v1/ontology#Hair> .\n:pi1 <https://vson.dev/v1/ontology#value> :blonde_long .\n:alice_persona <https://vson.dev/v1/ontology#hasInvariant> :pi1 .\n:pi2 a <https://vson.dev/v1/ontology#Quality> .\n:pi2 <https://vson.dev/v1/ontology#dimension> <https://vson.dev/v1/ontology#Skin> .\n:pi2 <https://vson.dev/v1/ontology#value> :light .\n:alice_persona <https://vson.dev/v1/ontology#hasInvariant> :pi2 .\n:pi3 a <https://vson.dev/v1/ontology#Quality> .\n:pi3 <https://vson.dev/v1/ontology#dimension> <https://vson.dev/v1/ontology#Role> .\n:pi3 <https://vson.dev/v1/ontology#value> :queen .\n:alice_persona <https://vson.dev/v1/ontology#hasInvariant> :pi3 .\n:scene <https://vson.dev/v1/ontology#framedBy> :alice_persona .\n:alice a <https://vson.dev/v1/ontology#PhysicalObject> .\n:alice <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Named> .\n:alice <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Agentive> .\n:alice <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Count> .\n:alice <https://vson.dev/v1/ontology#class> :Human .\n:alice <https://vson.dev/v1/ontology#embodies> :alice_persona .\n:a1 a <https://vson.dev/v1/ontology#Quality> .\n:a1 <https://vson.dev/v1/ontology#dimension> <https://vson.dev/v1/ontology#Affect> .\n:a1 <https://vson.dev/v1/ontology#value> :joyful .\n:alice <https://vson.dev/v1/ontology#hasQuality> :a1 .\n:a2 a <https://vson.dev/v1/ontology#Quality> .\n:a2 <https://vson.dev/v1/ontology#dimension> <https://vson.dev/v1/ontology#Pose> .\n:a2 <https://vson.dev/v1/ontology#value> :seated .\n:alice <https://vson.dev/v1/ontology#hasQuality> :a2 .\n:scene <https://vson.dev/v1/ontology#depicts> :alice .\n",
+  "graph": {
+    "nodes": [
+      {
+        "id": "scene",
+        "kind": "Composition"
+      },
+      {
+        "id": "cam",
+        "kind": "CameraView",
+        "properties": {
+          "angle": "eye_level",
+          "focalLength": "50mm",
+          "framing": "medium_shot"
+        }
+      },
+      {
+        "id": "alice_persona",
+        "kind": "Persona"
+      },
+      {
+        "id": "pi1",
+        "kind": "Quality"
+      },
+      {
+        "id": "Hair",
+        "kind": "PhysicalObject"
+      },
+      {
+        "id": "blonde_long",
+        "kind": "PhysicalObject"
+      },
+      {
+        "id": "pi2",
+        "kind": "Quality"
+      },
+      {
+        "id": "Skin",
+        "kind": "PhysicalObject"
+      },
+      {
+        "id": "light",
+        "kind": "PhysicalObject"
+      },
+      {
+        "id": "pi3",
+        "kind": "Quality"
+      },
+      {
+        "id": "Role",
+        "kind": "PhysicalObject"
+      },
+      {
+        "id": "queen",
+        "kind": "PhysicalObject"
+      },
+      {
+        "id": "alice",
+        "kind": "PhysicalObject",
+        "traits": {
+          "individuation": "Named",
+          "animacy": "Agentive",
+          "countability": "Count"
+        },
+        "properties": {
+          "class": "Human",
+          "q_Affect": "joyful",
+          "q_Pose": "seated"
+        },
+        "class": "Human"
+      }
+    ],
+    "edges": [
+      {
+        "from": "scene",
+        "to": "cam",
+        "label": "framedBy"
+      },
+      {
+        "from": "scene",
+        "to": "cam",
+        "label": "viewedBy"
+      },
+      {
+        "from": "pi1",
+        "to": "Hair",
+        "label": "dimension"
+      },
+      {
+        "from": "pi1",
+        "to": "blonde_long",
+        "label": "value"
+      },
+      {
+        "from": "alice_persona",
+        "to": "pi1",
+        "label": "hasInvariant"
+      },
+      {
+        "from": "pi2",
+        "to": "Skin",
+        "label": "dimension"
+      },
+      {
+        "from": "pi2",
+        "to": "light",
+        "label": "value"
+      },
+      {
+        "from": "alice_persona",
+        "to": "pi2",
+        "label": "hasInvariant"
+      },
+      {
+        "from": "pi3",
+        "to": "Role",
+        "label": "dimension"
+      },
+      {
+        "from": "pi3",
+        "to": "queen",
+        "label": "value"
+      },
+      {
+        "from": "alice_persona",
+        "to": "pi3",
+        "label": "hasInvariant"
+      },
+      {
+        "from": "scene",
+        "to": "alice_persona",
+        "label": "framedBy"
+      },
+      {
+        "from": "alice",
+        "to": "alice_persona",
+        "label": "embodies"
+      },
+      {
+        "from": "scene",
+        "to": "alice",
+        "label": "depicts"
+      }
+    ]
+  },
+  "conformance": {
+    "conforms": true
+  },
+  "extraction": {
+    "model": "gallery-bake",
+    "prompt_version": "canonical@1.0",
+    "shacl_retries": 0,
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0
+  }
+}

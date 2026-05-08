@@ -1,0 +1,31 @@
+# BeliefState example: a watchman believes that a thief is approaching the gate.
+# Demonstrates: BeliefState node + experiencer (Endurant) + reified
+# Annotation form for proposition (per spec §18 — RDF 1.1 portable
+# equivalent of canonical <<s p o>>; conforms to vss:BeliefStateShape and
+# vss:AnnotationShape).
+
+(scene / Composition
+   :framedBy (cam / CameraView :angle eye_level :focalLength 35mm :framing wide_shot)
+   :viewedBy cam
+
+   :depicts (watchman / PhysicalObject
+               :individuation Named :animacy Agentive :countability Count
+               :class Human
+               :hasQuality (q1 / Quality :dimension Role   :value watchman)
+               :hasQuality (q2 / Quality :dimension Affect :value vigilant))
+
+   :depicts (thief / PhysicalObject
+               :individuation Generic :animacy Agentive :countability Count
+               :class Human
+               :hasQuality (q3 / Quality :dimension Role :value thief))
+
+   :depicts (gate / PhysicalObject
+               :individuation Generic :animacy Inert :countability Count
+               :class Architecture)
+
+   :depicts (bs1 / BeliefState
+               :experiencer watchman
+               :proposition (b_ann / Annotation
+                              :annotatedSubject thief
+                              :annotatedPredicate near
+                              :annotatedObject gate)))

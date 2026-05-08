@@ -1,0 +1,114 @@
+{
+  "scene_id": "gallery_04_directional_with_viewer_89hZVSQ3m9n6",
+  "version": "1.0",
+  "source": {
+    "kind": "hand_authored",
+    "uri": "examples/gallery/04_directional_with_viewer.vson"
+  },
+  "vson_p": "# Directional spatial fact with mandatory viewer (Talmy resolution).\n# Demonstrates: directional + viewer + RCC together.\n# The viewer disambiguates \"left of\" -- left from whose vantage?\n\n(scene / Composition\n   :framedBy (cam / CameraView :angle eye_level :focalLength 35mm :framing wide_shot)\n   :viewedBy cam\n   :depicts (lamp / PhysicalObject\n               :individuation Generic :animacy Inert :countability Count\n               :class Lamp)\n   :depicts (chair / PhysicalObject\n               :individuation Generic :animacy Inert :countability Count\n               :class Furniture)\n   :hasFact (sf / SpatialFact\n               :figure lamp\n               :ground chair\n               :viewer cam\n               :directional left_of\n               :rcc DC))\n",
+  "vson_t": "@prefix vso:   <https://vson.dev/v1/ontology#> .\n@prefix allen: <https://vson.dev/v1/allen#> .\n@prefix rcc:   <https://vson.dev/v1/rcc8#> .\n@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n@prefix :      <https://example.org/scenes/anonymous#> .\n\n:scene a <https://vson.dev/v1/ontology#Composition> .\n:cam a <https://vson.dev/v1/ontology#CameraView> .\n:cam <https://vson.dev/v1/ontology#angle> \"eye_level\" .\n:cam <https://vson.dev/v1/ontology#focalLength> \"35mm\" .\n:cam <https://vson.dev/v1/ontology#framing> \"wide_shot\" .\n:scene <https://vson.dev/v1/ontology#framedBy> :cam .\n:scene <https://vson.dev/v1/ontology#viewedBy> :cam .\n:lamp a <https://vson.dev/v1/ontology#PhysicalObject> .\n:lamp <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Generic> .\n:lamp <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Inert> .\n:lamp <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Count> .\n:lamp <https://vson.dev/v1/ontology#class> :Lamp .\n:scene <https://vson.dev/v1/ontology#depicts> :lamp .\n:chair a <https://vson.dev/v1/ontology#PhysicalObject> .\n:chair <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Generic> .\n:chair <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Inert> .\n:chair <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Count> .\n:chair <https://vson.dev/v1/ontology#class> :Furniture .\n:scene <https://vson.dev/v1/ontology#depicts> :chair .\n:sf a <https://vson.dev/v1/ontology#SpatialFact> .\n:sf <https://vson.dev/v1/ontology#figure> :lamp .\n:sf <https://vson.dev/v1/ontology#ground> :chair .\n:sf <https://vson.dev/v1/ontology#viewer> :cam .\n:sf <https://vson.dev/v1/ontology#directional> <https://vson.dev/v1/ontology#left_of> .\n:sf <https://vson.dev/v1/ontology#rcc> <https://vson.dev/v1/rcc8#DC> .\n:scene <https://vson.dev/v1/ontology#hasFact> :sf .\n",
+  "graph": {
+    "nodes": [
+      {
+        "id": "scene",
+        "kind": "Composition"
+      },
+      {
+        "id": "cam",
+        "kind": "CameraView",
+        "properties": {
+          "angle": "eye_level",
+          "focalLength": "35mm",
+          "framing": "wide_shot"
+        }
+      },
+      {
+        "id": "lamp",
+        "kind": "PhysicalObject",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        },
+        "properties": {
+          "class": "Lamp"
+        },
+        "class": "Lamp"
+      },
+      {
+        "id": "chair",
+        "kind": "PhysicalObject",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        },
+        "properties": {
+          "class": "Furniture"
+        },
+        "class": "Furniture"
+      },
+      {
+        "id": "sf",
+        "kind": "SpatialFact",
+        "properties": {
+          "directional": "left_of",
+          "rcc": "DC"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "scene",
+        "to": "cam",
+        "label": "framedBy"
+      },
+      {
+        "from": "scene",
+        "to": "cam",
+        "label": "viewedBy"
+      },
+      {
+        "from": "scene",
+        "to": "lamp",
+        "label": "depicts"
+      },
+      {
+        "from": "scene",
+        "to": "chair",
+        "label": "depicts"
+      },
+      {
+        "from": "sf",
+        "to": "lamp",
+        "label": "figure"
+      },
+      {
+        "from": "sf",
+        "to": "chair",
+        "label": "ground"
+      },
+      {
+        "from": "sf",
+        "to": "cam",
+        "label": "viewer"
+      },
+      {
+        "from": "scene",
+        "to": "sf",
+        "label": "hasFact"
+      }
+    ]
+  },
+  "conformance": {
+    "conforms": true
+  },
+  "extraction": {
+    "model": "gallery-bake",
+    "prompt_version": "canonical@1.0",
+    "shacl_retries": 0,
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0
+  }
+}

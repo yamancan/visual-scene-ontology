@@ -1,0 +1,119 @@
+{
+  "scene_id": "gallery_13_negation_kNbNjWvKeRCU",
+  "version": "1.0",
+  "source": {
+    "kind": "hand_authored",
+    "uri": "examples/gallery/13_negation.vson"
+  },
+  "vson_p": "# Negation example: a dragon and a knight, but the dragon does NOT perceive\n# the knight (the knight is hidden from view).\n#\n# Demonstrates: Negation node + reified Annotation form for negatedStatement\n# (per spec §18 — RDF 1.1 portable equivalent of canonical <<s p o>>;\n# both forms conform to vss:NegationShape and vss:AnnotationShape).\n\n(scene / Composition\n   :framedBy (cam / CameraView :angle low :focalLength 35mm :framing wide_shot)\n   :viewedBy cam\n\n   :depicts (knight / PhysicalObject\n               :individuation Named :animacy Agentive :countability Count\n               :class Human\n               :hasQuality (q1 / Quality :dimension Role :value knight))\n\n   :depicts (dragon / PhysicalObject\n               :individuation Generic :animacy Agentive :countability Count\n               :class Animal\n               :hasQuality (q2 / Quality :dimension Affect :value angry))\n\n   :depicts (neg1 / Negation\n               :negatedStatement (n_ann / Annotation\n                                    :annotatedSubject dragon\n                                    :annotatedPredicate perceives\n                                    :annotatedObject knight)))\n",
+  "vson_t": "@prefix vso:   <https://vson.dev/v1/ontology#> .\n@prefix allen: <https://vson.dev/v1/allen#> .\n@prefix rcc:   <https://vson.dev/v1/rcc8#> .\n@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n@prefix :      <https://example.org/scenes/anonymous#> .\n\n:scene a <https://vson.dev/v1/ontology#Composition> .\n:cam a <https://vson.dev/v1/ontology#CameraView> .\n:cam <https://vson.dev/v1/ontology#angle> \"low\" .\n:cam <https://vson.dev/v1/ontology#focalLength> \"35mm\" .\n:cam <https://vson.dev/v1/ontology#framing> \"wide_shot\" .\n:scene <https://vson.dev/v1/ontology#framedBy> :cam .\n:scene <https://vson.dev/v1/ontology#viewedBy> :cam .\n:knight a <https://vson.dev/v1/ontology#PhysicalObject> .\n:knight <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Named> .\n:knight <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Agentive> .\n:knight <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Count> .\n:knight <https://vson.dev/v1/ontology#class> :Human .\n:q1 a <https://vson.dev/v1/ontology#Quality> .\n:q1 <https://vson.dev/v1/ontology#dimension> <https://vson.dev/v1/ontology#Role> .\n:q1 <https://vson.dev/v1/ontology#value> :knight .\n:knight <https://vson.dev/v1/ontology#hasQuality> :q1 .\n:scene <https://vson.dev/v1/ontology#depicts> :knight .\n:dragon a <https://vson.dev/v1/ontology#PhysicalObject> .\n:dragon <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Generic> .\n:dragon <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Agentive> .\n:dragon <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Count> .\n:dragon <https://vson.dev/v1/ontology#class> :Animal .\n:q2 a <https://vson.dev/v1/ontology#Quality> .\n:q2 <https://vson.dev/v1/ontology#dimension> <https://vson.dev/v1/ontology#Affect> .\n:q2 <https://vson.dev/v1/ontology#value> :angry .\n:dragon <https://vson.dev/v1/ontology#hasQuality> :q2 .\n:scene <https://vson.dev/v1/ontology#depicts> :dragon .\n:neg1 a <https://vson.dev/v1/ontology#Negation> .\n:n_ann a <https://vson.dev/v1/ontology#Annotation> .\n:n_ann <https://vson.dev/v1/ontology#annotatedSubject> :dragon .\n:n_ann <https://vson.dev/v1/ontology#annotatedPredicate> <https://vson.dev/v1/ontology#perceives> .\n:n_ann <https://vson.dev/v1/ontology#annotatedObject> :knight .\n:neg1 <https://vson.dev/v1/ontology#negatedStatement> :n_ann .\n:scene <https://vson.dev/v1/ontology#depicts> :neg1 .\n",
+  "graph": {
+    "nodes": [
+      {
+        "id": "scene",
+        "kind": "Composition"
+      },
+      {
+        "id": "cam",
+        "kind": "CameraView",
+        "properties": {
+          "angle": "low",
+          "focalLength": "35mm",
+          "framing": "wide_shot"
+        }
+      },
+      {
+        "id": "knight",
+        "kind": "PhysicalObject",
+        "traits": {
+          "individuation": "Named",
+          "animacy": "Agentive",
+          "countability": "Count"
+        },
+        "properties": {
+          "class": "Human",
+          "q_Role": "knight"
+        },
+        "class": "Human"
+      },
+      {
+        "id": "dragon",
+        "kind": "PhysicalObject",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Agentive",
+          "countability": "Count"
+        },
+        "properties": {
+          "class": "Animal",
+          "q_Affect": "angry"
+        },
+        "class": "Animal"
+      },
+      {
+        "id": "neg1",
+        "kind": "Negation"
+      },
+      {
+        "id": "n_ann",
+        "kind": "Annotation",
+        "properties": {
+          "annotatedPredicate": "perceives"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "scene",
+        "to": "cam",
+        "label": "framedBy"
+      },
+      {
+        "from": "scene",
+        "to": "cam",
+        "label": "viewedBy"
+      },
+      {
+        "from": "scene",
+        "to": "knight",
+        "label": "depicts"
+      },
+      {
+        "from": "scene",
+        "to": "dragon",
+        "label": "depicts"
+      },
+      {
+        "from": "n_ann",
+        "to": "dragon",
+        "label": "annotatedSubject"
+      },
+      {
+        "from": "n_ann",
+        "to": "knight",
+        "label": "annotatedObject"
+      },
+      {
+        "from": "neg1",
+        "to": "n_ann",
+        "label": "negatedStatement"
+      },
+      {
+        "from": "scene",
+        "to": "neg1",
+        "label": "depicts"
+      }
+    ]
+  },
+  "conformance": {
+    "conforms": true
+  },
+  "extraction": {
+    "model": "gallery-bake",
+    "prompt_version": "canonical@1.0",
+    "shacl_retries": 0,
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0
+  }
+}

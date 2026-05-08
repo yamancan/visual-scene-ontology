@@ -1,0 +1,35 @@
+# Quantification example: "Every horse in the field is brown."
+# Demonstrates: Quantification node + quantifier (closed list) + variable +
+# qDomain (restriction) + scope (predicated proposition), each pointing at
+# a reified Annotation node (per spec §18 — RDF 1.1 portable equivalent of
+# canonical <<s p o>>).
+
+(scene / Composition
+   :framedBy (cam / CameraView :angle eye_level :focalLength 50mm :framing wide_shot)
+   :viewedBy cam
+
+   :depicts (field / PhysicalObject
+               :individuation Generic :animacy Inert :countability Count
+               :class Geography)
+
+   :depicts (h1 / PhysicalObject
+               :individuation Generic :animacy Agentive :countability Count
+               :class Animal
+               :hasQuality (q1 / Quality :dimension Color :value brown))
+
+   :depicts (h2 / PhysicalObject
+               :individuation Generic :animacy Agentive :countability Count
+               :class Animal
+               :hasQuality (q2 / Quality :dimension Color :value brown))
+
+   :depicts (qf1 / Quantification
+               :quantifier all
+               :variable horse
+               :qDomain (q_dom / Annotation
+                           :annotatedSubject horse
+                           :annotatedPredicate partOf
+                           :annotatedObject field)
+               :scope (q_scp / Annotation
+                          :annotatedSubject horse
+                          :annotatedPredicate hasQuality
+                          :annotatedObject brown_color)))

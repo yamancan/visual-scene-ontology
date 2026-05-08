@@ -161,7 +161,7 @@ vss:HasQualityShape a sh:NodeShape ;
     sh:message "Only Entities (not Frames) bear Qualities." .
 
 #################################################################
-# Negation — must reference a quoted triple
+# Negation — must reference a quoted triple OR Annotation reification
 #################################################################
 
 vss:NegationShape a sh:NodeShape ;
@@ -170,6 +170,79 @@ vss:NegationShape a sh:NodeShape ;
         sh:path vso:negatedStatement ;
         sh:minCount 1 ;
         sh:maxCount 1
+    ] .
+
+#################################################################
+# BeliefState — must have experiencer (Endurant) and proposition
+#################################################################
+
+vss:BeliefStateShape a sh:NodeShape ;
+    sh:targetClass vso:BeliefState ;
+    sh:property [
+        sh:path vso:experiencer ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class vso:Endurant ;
+        sh:message "BeliefState must have exactly one experiencer (Endurant)."
+    ] ;
+    sh:property [
+        sh:path vso:proposition ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "BeliefState must reference exactly one proposition (quoted triple or Annotation node)."
+    ] .
+
+#################################################################
+# Quantification — must have quantifier, variable, scope
+#################################################################
+
+vss:QuantificationShape a sh:NodeShape ;
+    sh:targetClass vso:Quantification ;
+    sh:property [
+        sh:path vso:quantifier ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:in ( "all" "every" "some" "no" "most" "few" ) ;
+        sh:message "Quantification must have exactly one quantifier from the closed list (all|every|some|no|most|few)."
+    ] ;
+    sh:property [
+        sh:path vso:variable ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "Quantification must declare exactly one bound variable name."
+    ] ;
+    sh:property [
+        sh:path vso:scope ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "Quantification must declare exactly one scope proposition."
+    ] .
+
+#################################################################
+# Annotation — reified RDF-star triple (RDF 1.1 portable form, spec §18)
+#################################################################
+
+vss:AnnotationShape a sh:NodeShape ;
+    sh:targetClass vso:Annotation ;
+    sh:property [
+        sh:path vso:annotatedSubject ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "Annotation must declare exactly one annotatedSubject."
+    ] ;
+    sh:property [
+        sh:path vso:annotatedPredicate ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "Annotation must declare exactly one annotatedPredicate."
+    ] ;
+    sh:property [
+        sh:path vso:annotatedObject ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "Annotation must declare exactly one annotatedObject."
     ] .
 
 #################################################################

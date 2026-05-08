@@ -1,0 +1,110 @@
+{
+  "scene_id": "gallery_05_possession_stative_CGdWAuGwBxTq",
+  "version": "1.0",
+  "source": {
+    "kind": "hand_authored",
+    "uri": "examples/gallery/05_possession_stative.vson"
+  },
+  "vson_p": "# Stative possession (\"the queen wears a crown\"): durative state, not an event.\n# Demonstrates: Stative node + holder + theme; lemma routes to string.\n\n(scene / Composition\n   :framedBy (cam / CameraView :angle low :focalLength 50mm :framing medium_shot)\n   :viewedBy cam\n   :depicts (queen / PhysicalObject\n               :individuation Named :animacy Agentive :countability Count\n               :class Human\n               :hasQuality (q / Quality :dimension Role :value queen))\n   :depicts (crown / PhysicalObject\n               :individuation Generic :animacy Inert :countability Count\n               :class Regalia\n               :hasQuality (qm / Quality :dimension Material :value gold))\n   :occurs (wear / Stative\n              :lemma wear\n              :holder queen\n              :theme crown))\n",
+  "vson_t": "@prefix vso:   <https://vson.dev/v1/ontology#> .\n@prefix allen: <https://vson.dev/v1/allen#> .\n@prefix rcc:   <https://vson.dev/v1/rcc8#> .\n@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n@prefix :      <https://example.org/scenes/anonymous#> .\n\n:scene a <https://vson.dev/v1/ontology#Composition> .\n:cam a <https://vson.dev/v1/ontology#CameraView> .\n:cam <https://vson.dev/v1/ontology#angle> \"low\" .\n:cam <https://vson.dev/v1/ontology#focalLength> \"50mm\" .\n:cam <https://vson.dev/v1/ontology#framing> \"medium_shot\" .\n:scene <https://vson.dev/v1/ontology#framedBy> :cam .\n:scene <https://vson.dev/v1/ontology#viewedBy> :cam .\n:queen a <https://vson.dev/v1/ontology#PhysicalObject> .\n:queen <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Named> .\n:queen <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Agentive> .\n:queen <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Count> .\n:queen <https://vson.dev/v1/ontology#class> :Human .\n:q a <https://vson.dev/v1/ontology#Quality> .\n:q <https://vson.dev/v1/ontology#dimension> <https://vson.dev/v1/ontology#Role> .\n:q <https://vson.dev/v1/ontology#value> :queen .\n:queen <https://vson.dev/v1/ontology#hasQuality> :q .\n:scene <https://vson.dev/v1/ontology#depicts> :queen .\n:crown a <https://vson.dev/v1/ontology#PhysicalObject> .\n:crown <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Generic> .\n:crown <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Inert> .\n:crown <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Count> .\n:crown <https://vson.dev/v1/ontology#class> :Regalia .\n:qm a <https://vson.dev/v1/ontology#Quality> .\n:qm <https://vson.dev/v1/ontology#dimension> <https://vson.dev/v1/ontology#Material> .\n:qm <https://vson.dev/v1/ontology#value> :gold .\n:crown <https://vson.dev/v1/ontology#hasQuality> :qm .\n:scene <https://vson.dev/v1/ontology#depicts> :crown .\n:wear a <https://vson.dev/v1/ontology#Stative> .\n:wear <https://vson.dev/v1/ontology#lemma> \"wear\" .\n:wear <https://vson.dev/v1/ontology#holder> :queen .\n:wear <https://vson.dev/v1/ontology#theme> :crown .\n:scene <https://vson.dev/v1/ontology#occurs> :wear .\n",
+  "graph": {
+    "nodes": [
+      {
+        "id": "scene",
+        "kind": "Composition"
+      },
+      {
+        "id": "cam",
+        "kind": "CameraView",
+        "properties": {
+          "angle": "low",
+          "focalLength": "50mm",
+          "framing": "medium_shot"
+        }
+      },
+      {
+        "id": "queen",
+        "kind": "PhysicalObject",
+        "traits": {
+          "individuation": "Named",
+          "animacy": "Agentive",
+          "countability": "Count"
+        },
+        "properties": {
+          "class": "Human",
+          "q_Role": "queen"
+        },
+        "class": "Human"
+      },
+      {
+        "id": "crown",
+        "kind": "PhysicalObject",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        },
+        "properties": {
+          "class": "Regalia",
+          "q_Material": "gold"
+        },
+        "class": "Regalia"
+      },
+      {
+        "id": "wear",
+        "kind": "Stative",
+        "properties": {
+          "lemma": "wear"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "scene",
+        "to": "cam",
+        "label": "framedBy"
+      },
+      {
+        "from": "scene",
+        "to": "cam",
+        "label": "viewedBy"
+      },
+      {
+        "from": "scene",
+        "to": "queen",
+        "label": "depicts"
+      },
+      {
+        "from": "scene",
+        "to": "crown",
+        "label": "depicts"
+      },
+      {
+        "from": "wear",
+        "to": "queen",
+        "label": "holder"
+      },
+      {
+        "from": "wear",
+        "to": "crown",
+        "label": "theme"
+      },
+      {
+        "from": "scene",
+        "to": "wear",
+        "label": "occurs"
+      }
+    ]
+  },
+  "conformance": {
+    "conforms": true
+  },
+  "extraction": {
+    "model": "gallery-bake",
+    "prompt_version": "canonical@1.0",
+    "shacl_retries": 0,
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0
+  }
+}

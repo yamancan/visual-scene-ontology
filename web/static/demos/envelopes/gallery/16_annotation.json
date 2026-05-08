@@ -1,0 +1,202 @@
+{
+  "scene_id": "gallery_16_annotation_pSbpEFAbhctg",
+  "version": "1.0",
+  "source": {
+    "kind": "hand_authored",
+    "uri": "examples/gallery/16_annotation.vson"
+  },
+  "vson_p": "# Annotation example: a strike Event with extractor confidence on its\n# thematic-role edges. Demonstrates: vso:Annotation reification (RDF 1.1\n# portable form per spec §18) carrying vso:confidence on each annotated\n# triple. The canonical RDF-star form `<< :strike vso:patient :boar >>\n# vso:confidence \"0.95\"` is equivalent and supported when authoring in\n# Turtle 1.2 directly.\n\n(scene / Composition\n   :framedBy (cam / CameraView :angle low :focalLength 35mm :framing medium_shot)\n   :viewedBy cam\n\n   :depicts (knight / PhysicalObject\n               :individuation Named :animacy Agentive :countability Count\n               :class Human\n               :hasQuality (q1 / Quality :dimension Role :value knight))\n\n   :depicts (boar / PhysicalObject\n               :individuation Generic :animacy Agentive :countability Count\n               :class Animal\n               :hasQuality (q2 / Quality :dimension Affect :value angry))\n\n   :depicts (sword / PhysicalObject\n               :individuation Generic :animacy Inert :countability Count\n               :class Weapon)\n\n   :depicts (strike / Event :lemma strike\n               :agent knight :patient boar :instrument sword)\n\n   :hasFact (a1 / Annotation\n               :annotatedSubject strike :annotatedPredicate agent\n               :annotatedObject knight :confidence 0.95)\n   :hasFact (a2 / Annotation\n               :annotatedSubject strike :annotatedPredicate patient\n               :annotatedObject boar :confidence 0.70)\n   :hasFact (a3 / Annotation\n               :annotatedSubject strike :annotatedPredicate instrument\n               :annotatedObject sword :confidence 0.88))\n",
+  "vson_t": "@prefix vso:   <https://vson.dev/v1/ontology#> .\n@prefix allen: <https://vson.dev/v1/allen#> .\n@prefix rcc:   <https://vson.dev/v1/rcc8#> .\n@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n@prefix :      <https://example.org/scenes/anonymous#> .\n\n:scene a <https://vson.dev/v1/ontology#Composition> .\n:cam a <https://vson.dev/v1/ontology#CameraView> .\n:cam <https://vson.dev/v1/ontology#angle> \"low\" .\n:cam <https://vson.dev/v1/ontology#focalLength> \"35mm\" .\n:cam <https://vson.dev/v1/ontology#framing> \"medium_shot\" .\n:scene <https://vson.dev/v1/ontology#framedBy> :cam .\n:scene <https://vson.dev/v1/ontology#viewedBy> :cam .\n:knight a <https://vson.dev/v1/ontology#PhysicalObject> .\n:knight <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Named> .\n:knight <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Agentive> .\n:knight <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Count> .\n:knight <https://vson.dev/v1/ontology#class> :Human .\n:q1 a <https://vson.dev/v1/ontology#Quality> .\n:q1 <https://vson.dev/v1/ontology#dimension> <https://vson.dev/v1/ontology#Role> .\n:q1 <https://vson.dev/v1/ontology#value> :knight .\n:knight <https://vson.dev/v1/ontology#hasQuality> :q1 .\n:scene <https://vson.dev/v1/ontology#depicts> :knight .\n:boar a <https://vson.dev/v1/ontology#PhysicalObject> .\n:boar <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Generic> .\n:boar <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Agentive> .\n:boar <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Count> .\n:boar <https://vson.dev/v1/ontology#class> :Animal .\n:q2 a <https://vson.dev/v1/ontology#Quality> .\n:q2 <https://vson.dev/v1/ontology#dimension> <https://vson.dev/v1/ontology#Affect> .\n:q2 <https://vson.dev/v1/ontology#value> :angry .\n:boar <https://vson.dev/v1/ontology#hasQuality> :q2 .\n:scene <https://vson.dev/v1/ontology#depicts> :boar .\n:sword a <https://vson.dev/v1/ontology#PhysicalObject> .\n:sword <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Generic> .\n:sword <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Inert> .\n:sword <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Count> .\n:sword <https://vson.dev/v1/ontology#class> :Weapon .\n:scene <https://vson.dev/v1/ontology#depicts> :sword .\n:strike a <https://vson.dev/v1/ontology#Event> .\n:strike <https://vson.dev/v1/ontology#lemma> \"strike\" .\n:strike <https://vson.dev/v1/ontology#agent> :knight .\n:strike <https://vson.dev/v1/ontology#patient> :boar .\n:strike <https://vson.dev/v1/ontology#instrument> :sword .\n:scene <https://vson.dev/v1/ontology#depicts> :strike .\n:a1 a <https://vson.dev/v1/ontology#Annotation> .\n:a1 <https://vson.dev/v1/ontology#annotatedSubject> :strike .\n:a1 <https://vson.dev/v1/ontology#annotatedPredicate> <https://vson.dev/v1/ontology#agent> .\n:a1 <https://vson.dev/v1/ontology#annotatedObject> :knight .\n:a1 <https://vson.dev/v1/ontology#confidence> \"0.95\"^^<http://www.w3.org/2001/XMLSchema#decimal> .\n:scene <https://vson.dev/v1/ontology#hasFact> :a1 .\n:a2 a <https://vson.dev/v1/ontology#Annotation> .\n:a2 <https://vson.dev/v1/ontology#annotatedSubject> :strike .\n:a2 <https://vson.dev/v1/ontology#annotatedPredicate> <https://vson.dev/v1/ontology#patient> .\n:a2 <https://vson.dev/v1/ontology#annotatedObject> :boar .\n:a2 <https://vson.dev/v1/ontology#confidence> \"0.70\"^^<http://www.w3.org/2001/XMLSchema#decimal> .\n:scene <https://vson.dev/v1/ontology#hasFact> :a2 .\n:a3 a <https://vson.dev/v1/ontology#Annotation> .\n:a3 <https://vson.dev/v1/ontology#annotatedSubject> :strike .\n:a3 <https://vson.dev/v1/ontology#annotatedPredicate> <https://vson.dev/v1/ontology#instrument> .\n:a3 <https://vson.dev/v1/ontology#annotatedObject> :sword .\n:a3 <https://vson.dev/v1/ontology#confidence> \"0.88\"^^<http://www.w3.org/2001/XMLSchema#decimal> .\n:scene <https://vson.dev/v1/ontology#hasFact> :a3 .\n",
+  "graph": {
+    "nodes": [
+      {
+        "id": "scene",
+        "kind": "Composition"
+      },
+      {
+        "id": "cam",
+        "kind": "CameraView",
+        "properties": {
+          "angle": "low",
+          "focalLength": "35mm",
+          "framing": "medium_shot"
+        }
+      },
+      {
+        "id": "knight",
+        "kind": "PhysicalObject",
+        "traits": {
+          "individuation": "Named",
+          "animacy": "Agentive",
+          "countability": "Count"
+        },
+        "properties": {
+          "class": "Human",
+          "q_Role": "knight"
+        },
+        "class": "Human"
+      },
+      {
+        "id": "boar",
+        "kind": "PhysicalObject",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Agentive",
+          "countability": "Count"
+        },
+        "properties": {
+          "class": "Animal",
+          "q_Affect": "angry"
+        },
+        "class": "Animal"
+      },
+      {
+        "id": "sword",
+        "kind": "PhysicalObject",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        },
+        "properties": {
+          "class": "Weapon"
+        },
+        "class": "Weapon"
+      },
+      {
+        "id": "strike",
+        "kind": "Event",
+        "properties": {
+          "lemma": "strike"
+        }
+      },
+      {
+        "id": "a1",
+        "kind": "Annotation",
+        "properties": {
+          "annotatedPredicate": "agent",
+          "confidence": 0.95
+        }
+      },
+      {
+        "id": "a2",
+        "kind": "Annotation",
+        "properties": {
+          "annotatedPredicate": "patient",
+          "confidence": 0.7
+        }
+      },
+      {
+        "id": "a3",
+        "kind": "Annotation",
+        "properties": {
+          "annotatedPredicate": "instrument",
+          "confidence": 0.88
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "scene",
+        "to": "cam",
+        "label": "framedBy"
+      },
+      {
+        "from": "scene",
+        "to": "cam",
+        "label": "viewedBy"
+      },
+      {
+        "from": "scene",
+        "to": "knight",
+        "label": "depicts"
+      },
+      {
+        "from": "scene",
+        "to": "boar",
+        "label": "depicts"
+      },
+      {
+        "from": "scene",
+        "to": "sword",
+        "label": "depicts"
+      },
+      {
+        "from": "strike",
+        "to": "knight",
+        "label": "agent"
+      },
+      {
+        "from": "strike",
+        "to": "boar",
+        "label": "patient"
+      },
+      {
+        "from": "strike",
+        "to": "sword",
+        "label": "instrument"
+      },
+      {
+        "from": "scene",
+        "to": "strike",
+        "label": "depicts"
+      },
+      {
+        "from": "a1",
+        "to": "strike",
+        "label": "annotatedSubject"
+      },
+      {
+        "from": "a1",
+        "to": "knight",
+        "label": "annotatedObject"
+      },
+      {
+        "from": "scene",
+        "to": "a1",
+        "label": "hasFact"
+      },
+      {
+        "from": "a2",
+        "to": "strike",
+        "label": "annotatedSubject"
+      },
+      {
+        "from": "a2",
+        "to": "boar",
+        "label": "annotatedObject"
+      },
+      {
+        "from": "scene",
+        "to": "a2",
+        "label": "hasFact"
+      },
+      {
+        "from": "a3",
+        "to": "strike",
+        "label": "annotatedSubject"
+      },
+      {
+        "from": "a3",
+        "to": "sword",
+        "label": "annotatedObject"
+      },
+      {
+        "from": "scene",
+        "to": "a3",
+        "label": "hasFact"
+      }
+    ]
+  },
+  "conformance": {
+    "conforms": true
+  },
+  "extraction": {
+    "model": "gallery-bake",
+    "prompt_version": "canonical@1.0",
+    "shacl_retries": 0,
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0
+  }
+}

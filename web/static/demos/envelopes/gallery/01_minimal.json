@@ -1,0 +1,68 @@
+{
+  "scene_id": "gallery_01_minimal_AQ3DyrJp3Mw4",
+  "version": "1.0",
+  "source": {
+    "kind": "hand_authored",
+    "uri": "examples/gallery/01_minimal.vson"
+  },
+  "vson_p": "# Minimal valid scene: one Composition + one Entity + one Frame.\n# Demonstrates the smallest SHACL-conformant document.\n\n(scene / Composition\n   :framedBy (cam / CameraView :angle eye_level :focalLength 50mm :framing close_up)\n   :viewedBy cam\n   :depicts (apple / PhysicalObject\n               :individuation Generic\n               :animacy Inert\n               :countability Count\n               :class Apple))\n",
+  "vson_t": "@prefix vso:   <https://vson.dev/v1/ontology#> .\n@prefix allen: <https://vson.dev/v1/allen#> .\n@prefix rcc:   <https://vson.dev/v1/rcc8#> .\n@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n@prefix :      <https://example.org/scenes/anonymous#> .\n\n:scene a <https://vson.dev/v1/ontology#Composition> .\n:cam a <https://vson.dev/v1/ontology#CameraView> .\n:cam <https://vson.dev/v1/ontology#angle> \"eye_level\" .\n:cam <https://vson.dev/v1/ontology#focalLength> \"50mm\" .\n:cam <https://vson.dev/v1/ontology#framing> \"close_up\" .\n:scene <https://vson.dev/v1/ontology#framedBy> :cam .\n:scene <https://vson.dev/v1/ontology#viewedBy> :cam .\n:apple a <https://vson.dev/v1/ontology#PhysicalObject> .\n:apple <https://vson.dev/v1/ontology#individuation> <https://vson.dev/v1/ontology#Generic> .\n:apple <https://vson.dev/v1/ontology#animacy> <https://vson.dev/v1/ontology#Inert> .\n:apple <https://vson.dev/v1/ontology#countability> <https://vson.dev/v1/ontology#Count> .\n:apple <https://vson.dev/v1/ontology#class> :Apple .\n:scene <https://vson.dev/v1/ontology#depicts> :apple .\n",
+  "graph": {
+    "nodes": [
+      {
+        "id": "scene",
+        "kind": "Composition"
+      },
+      {
+        "id": "cam",
+        "kind": "CameraView",
+        "properties": {
+          "angle": "eye_level",
+          "focalLength": "50mm",
+          "framing": "close_up"
+        }
+      },
+      {
+        "id": "apple",
+        "kind": "PhysicalObject",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        },
+        "properties": {
+          "class": "Apple"
+        },
+        "class": "Apple"
+      }
+    ],
+    "edges": [
+      {
+        "from": "scene",
+        "to": "cam",
+        "label": "framedBy"
+      },
+      {
+        "from": "scene",
+        "to": "cam",
+        "label": "viewedBy"
+      },
+      {
+        "from": "scene",
+        "to": "apple",
+        "label": "depicts"
+      }
+    ]
+  },
+  "conformance": {
+    "conforms": true
+  },
+  "extraction": {
+    "model": "gallery-bake",
+    "prompt_version": "canonical@1.0",
+    "shacl_retries": 0,
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0
+  }
+}

@@ -1,0 +1,26 @@
+# Negation example: a dragon and a knight, but the dragon does NOT perceive
+# the knight (the knight is hidden from view).
+#
+# Demonstrates: Negation node + reified Annotation form for negatedStatement
+# (per spec §18 — RDF 1.1 portable equivalent of canonical <<s p o>>;
+# both forms conform to vss:NegationShape and vss:AnnotationShape).
+
+(scene / Composition
+   :framedBy (cam / CameraView :angle low :focalLength 35mm :framing wide_shot)
+   :viewedBy cam
+
+   :depicts (knight / PhysicalObject
+               :individuation Named :animacy Agentive :countability Count
+               :class Human
+               :hasQuality (q1 / Quality :dimension Role :value knight))
+
+   :depicts (dragon / PhysicalObject
+               :individuation Generic :animacy Agentive :countability Count
+               :class Animal
+               :hasQuality (q2 / Quality :dimension Affect :value angry))
+
+   :depicts (neg1 / Negation
+               :negatedStatement (n_ann / Annotation
+                                    :annotatedSubject dragon
+                                    :annotatedPredicate perceives
+                                    :annotatedObject knight)))

@@ -1,0 +1,48 @@
+% unary class predicates
+Annotation(b_ann).
+BeliefState(bs1).
+CameraView(cam).
+Composition(scene).
+PhysicalObject(gate).
+PhysicalObject(thief).
+PhysicalObject(watchman).
+Quality(q1).
+Quality(q2).
+Quality(q3).
+
+% binary predicates
+angle(cam, "eye_level").
+animacy(gate, Inert).
+animacy(thief, Agentive).
+animacy(watchman, Agentive).
+annotatedObject(b_ann, gate).
+annotatedPredicate(b_ann, near).
+annotatedSubject(b_ann, thief).
+class(gate, Architecture).
+class(thief, Human).
+class(watchman, Human).
+countability(gate, Count).
+countability(thief, Count).
+countability(watchman, Count).
+depicts(scene, bs1).
+depicts(scene, gate).
+depicts(scene, thief).
+depicts(scene, watchman).
+dimension(q1, Role).
+dimension(q2, Affect).
+dimension(q3, Role).
+experiencer(bs1, watchman).
+focalLength(cam, "35mm").
+framedBy(scene, cam).
+framing(cam, "wide_shot").
+hasQuality(thief, q3).
+hasQuality(watchman, q1).
+hasQuality(watchman, q2).
+individuation(gate, Generic).
+individuation(thief, Generic).
+individuation(watchman, Named).
+proposition(bs1, b_ann).
+value(q1, watchman).
+value(q2, vigilant).
+value(q3, thief).
+viewedBy(scene, cam).
