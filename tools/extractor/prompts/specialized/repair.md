@@ -33,7 +33,16 @@ violation. Apply the minimum patch necessary; do not rewrite unaffected parts.
   Add the missing one; if both are missing, drop the Quality.
 
 - "vso:depicts must point to an Entity, not a Frame":
-  Move the Frame node from `:depicts` to `:framedBy`.
+  Two cases — diagnose the focus node `?x` from the report:
+    (a) `?x` is a Frame (Composition / SceneContext / VisualStyle / CameraView /
+        Persona) directly attached via `:depicts`. Fix: move it to `:framedBy`.
+    (b) `?x` is a PhysicalObject / Aggregate / Substance that itself has
+        outgoing `:depicts` edges (e.g. `:?x :depicts :child`). RDFS infers
+        `?x` is a Composition because `vso:depicts rdfs:domain vso:Composition`,
+        and Composition ⊂ Frame. Fix: replace every nested `:?x :depicts :child`
+        with `:?x :hasPart :child`, OR hoist `:child` to the scene root's own
+        `:depicts`. The Composition root is the ONLY node that may have
+        outgoing `:depicts`.
 
 - "Composition must depict at least one Entity":
   Add at least one PhysicalObject (use class Unknown if needed).

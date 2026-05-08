@@ -53,13 +53,24 @@ Use only these tokens. Anything else fails SHACL.
 **Scene schema** — `venue` `atmosphere` `timeOfDay` `weather`
 **Geometry** — `bbox2d` (string `"x,y,w,h"`, all in [0,1])
 
-## Five hard rules
+## Six hard rules
 
 1. **Talmy viewer.** Every `SpatialFact` with `:directional` MUST also carry `:viewer cam` (the document's `CameraView`). No exceptions.
 2. **Reify, don't edge-cram.** Actions are `Event` nodes with thematic roles. Spatial relations are `SpatialFact` nodes. Properties are `Quality` nodes. Never emit edges like `:strikes` or `:on`.
 3. **Closed enums only.** Trait values, dimensions, RCC/directional/proximal values must be from the lists above. PascalCase a class name only if no listed class fits.
 4. **Omit over hallucinate.** No upstream evidence → no triple. Never invent. Default `:individuation Generic`.
 5. **Bbox normalized.** `:bbox2d "0.32,0.18,0.16,0.62"` — string literal, all four numbers in [0,1].
+6. **`:depicts` is Composition-only.** Only the root `Composition` carries `:depicts`. For part-of (clothing on a person, components, contained items), use `:hasPart`. Nesting `:depicts` inside an Entity makes that Entity an inferred Composition and SHACL rejects the document.
+
+   ```
+   WRONG: :depicts (alice / PhysicalObject :class Person
+              :depicts (hat / PhysicalObject :class Hat))
+   RIGHT: :depicts (alice / PhysicalObject :class Person
+              :hasPart (hat / PhysicalObject :class Hat))
+   also fine: hoist the part to scene level —
+              :depicts (alice / PhysicalObject :class Person)
+              :depicts (hat / PhysicalObject :class Hat)
+   ```
 
 ## Emission order
 
@@ -101,5 +112,6 @@ A scene with a directional spatial relation:
 3. Every `Event` has `:lemma`. Every `Quality` has both `:dimension` and `:value`.
 4. Every `:bbox2d` is `"x,y,w,h"` with all four in [0,1].
 5. No bare predicate edges between entities — actions and spatial relations are nodes.
+6. Only the Composition root has `:depicts`. Inside Entities, use `:hasPart` for components, `:hasQuality` for attributes, or hoist parts to the scene root.
 
 If any check fails, fix and re-emit. Never explain. Always emit.
