@@ -4,6 +4,12 @@
 
 	let env = $derived(scene.envelope);
 	let copied = $state<string | null>(null);
+	let copiedPrompt = $state(false);
+
+	// /api/skills response (subset). Fetched lazily once on first prompt-copy
+	// click and cached for the lifetime of the page; the manifest is keyed by
+	// stable skill id so subsequent clicks for either notation are zero-cost.
+	let promptCache: Record<string, string> | null = null;
 
 	type Fmt = 'vson' | 'ttl' | 'json' | 'cypher' | 'mermaid' | 'graphml' | 'dot' | 'caption' | 'fol';
 
@@ -56,6 +62,29 @@
 			setTimeout(() => (copied = null), 1100);
 		}
 	}
+
+	async function cpPrompt() {
+		if (!promptCache) {
+			try {
+				const r = await fetch('/api/skills');
+				if (!r.ok) return;
+				const skills = (await r.json()) as Array<{ id: string; body: string }>;
+				promptCache = Object.fromEntries(skills.map((s) => [s.id, s.body]));
+			} catch {
+				return;
+			}
+		}
+		const id = scene.notation === 'x' ? 'vson-x' : 'penman';
+		const body = promptCache[id];
+		if (!body) return;
+		const ok = await copyText(body);
+		if (ok) {
+			copiedPrompt = true;
+			setTimeout(() => (copiedPrompt = false), 1100);
+		}
+	}
+
+	let promptLabel = $derived(scene.notation === 'x' ? 'VSON-X system prompt' : 'VSON-P system prompt');
 </script>
 
 <div class="row">
@@ -96,6 +125,19 @@
 				</button>
 			</div>
 		{/each}
+		<span class="divider" aria-hidden="true"></span>
+		<div class="chip prompt-chip" role="group">
+			<button
+				class="chip-main"
+				onclick={cpPrompt}
+				title="Copy the system prompt that produces {scene.notation === 'x'
+					? 'VSON-X'
+					: 'VSON-P'}"
+				aria-label="Copy {promptLabel}"
+			>
+				{copiedPrompt ? 'copied' : 'system prompt'}
+			</button>
+		</div>
 	</div>
 </div>
 
@@ -118,6 +160,27 @@
 		display: flex;
 		gap: var(--s1);
 		flex-wrap: wrap;
+		align-items: center;
+	}
+	.divider {
+		width: 1px;
+		height: 16px;
+		background: var(--border-1);
+		margin: 0 4px;
+		flex-shrink: 0;
+	}
+	.prompt-chip {
+		border-color: color-mix(in srgb, var(--accent) 30%, var(--border-1));
+		background: color-mix(in srgb, var(--accent) 6%, transparent);
+	}
+	.prompt-chip .chip-main {
+		color: var(--accent);
+	}
+	.prompt-chip:hover {
+		border-color: var(--accent);
+	}
+	.prompt-chip:hover .chip-main {
+		background: color-mix(in srgb, var(--accent) 14%, transparent);
 	}
 	.chip {
 		display: inline-flex;
