@@ -2,6 +2,7 @@
 	import { page } from '$app/state';
 	import { scene } from '$lib/scene.svelte';
 	import ModelPicker from './ModelPicker.svelte';
+	import ThemeToggle from './ThemeToggle.svelte';
 
 	let path = $derived(page.url.pathname);
 </script>
@@ -33,6 +34,7 @@
 			aria-current={path === '/about' ? 'page' : undefined}
 			href="/about">about</a
 		>
+		<ThemeToggle />
 	</div>
 </header>
 
