@@ -21,13 +21,37 @@
 			}, 1200);
 		}
 	}
+
+	const PENMAN_EXAMPLE = `(scene / Composition
+   :framedBy (cam / CameraView :angle eye_level :framing close_up)
+   :depicts (apple / PhysicalObject :class Apple
+               :hasQuality (q / Quality :dimension Color :value red)))`;
+
+	const VSON_X_EXAMPLE = `~scene
+  /CameraView @cam *angle eye_level *framing close_up
+  ^cam
+  apple /PhysicalObject *class Apple *color red`;
+
+	const FOL_EXAMPLE = `Composition(scene). PhysicalObject(apple). Quality(q).
+class(apple, Apple). hasQuality(apple, q).
+dimension(q, Color). value(q, red).`;
+
+	const ANTHROPIC_SNIPPET = `client.messages.create(
+    model="claude-sonnet-4-6",
+    system=[{"type": "text", "text": SKILL,
+             "cache_control": {"type": "ephemeral"}}],
+    messages=[{"role": "user", "content": [
+        {"type": "image", "source": {...}},
+        {"type": "text", "text": "Emit the document."},
+    ]}],
+)`;
 </script>
 
 <svelte:head>
 	<title>system prompts · vson</title>
 	<meta
 		name="description"
-		content="Copy-paste system prompts that teach a vision-LLM to emit SHACL-conformant VSON scene graphs. VSON-P (Penman) and VSON-X (compact) notations."
+		content="Three system prompts that teach a vision-LLM to emit a SHACL-conformant scene graph. Same closed vocabulary, three surface notations."
 	/>
 </svelte:head>
 
@@ -37,49 +61,18 @@
 	<main class="prose">
 		<header class="hero">
 			<span class="eyebrow font-mono">system prompts</span>
-			<h1>Notations, distilled.</h1>
+			<h1>Vision-LLMs invent scenes. SHACL doesn't lie.</h1>
 			<p class="lede">
-				Three system prompts that teach any vision-capable LLM to emit a SHACL-conformant scene
-				graph. Pick a notation, copy the prompt, paste it as the system message — same closed
-				vocabulary, different surface syntax.
+				The trick is sticking a closed vocabulary between them — small enough to fit in a system
+				prompt, expressive enough to encode a picture, strict enough that violations point
+				somewhere. One RDF graph underneath, three surface notations on top. Same predicate logic
+				either way:
+				<code>contains(scene, p) ∧ class(p, Person)</code> doesn't change because you wrote it with
+				sigils instead of parens.
 			</p>
 		</header>
 
-		<section class="primer">
-			<h2>The three notations</h2>
-			<dl class="grid">
-				<dt>VSON-P</dt>
-				<dd>
-					<strong>Penman.</strong> Nested S-expressions, AMR-like. Familiar to parsers, easy to
-					machine-edit, ~30-40% larger than VSON-X for dense scenes. The default for the studio
-					and the safest choice if you don't know which to pick.
-				</dd>
-
-				<dt>VSON-X</dt>
-				<dd>
-					<strong>Compact, sigil-based.</strong> Eight prefix sigils (<code>~ / @ * &gt; &gt;&gt; ! &amp; ^</code>),
-					line-significant, no brackets. Lower token count, friendlier to vision-LLM emission patterns.
-					Same RDF graph as VSON-P; round-trips losslessly via Turtle (modulo one documented edge collapse).
-				</dd>
-
-				<dt>Orchestrator</dt>
-				<dd>
-					<strong>Full pipeline.</strong> The 18 KB original — strongest first-try conformance,
-					includes the closed vocabulary, the five hard rules, and worked examples for each
-					primitive kind. Use when you need maximum conformance and don't mind the prompt size.
-				</dd>
-			</dl>
-		</section>
-
 		<section>
-			<h2>Skills</h2>
-			<p>
-				Each card below is one system prompt. Open it to inspect, then copy the body and paste it
-				as the <code>system</code> message in your model call. Feed an image with a one-line user
-				message (<em>"Emit the document."</em>); the model returns a single document — no prose, no
-				fences.
-			</p>
-
 			<div class="cards">
 				{#each data.skills as skill (skill.id)}
 					{@const open = openId === skill.id}
@@ -99,6 +92,21 @@
 								{/if}
 							</div>
 						</header>
+
+						<p class="card-pitch">
+							{#if skill.id === 'penman'}
+								Penman. Nested S-expressions, AMR-style. Verbose but easy to read; paren count
+								diagnoses most failures. The studio default.
+							{:else if skill.id === 'vson-x'}
+								Eight prefix sigils, line-significant, no brackets. Cheaper in tokens.
+								Graph-equivalent to Penman across the gallery; one documented collapse on
+								symmetric spatial facts.
+							{:else}
+								The eighteen-kilobyte original. Closed vocabulary inline, hard rules, a worked
+								example per primitive kind. Heaviest, and the size earns its keep when conformance
+								matters more than tokens.
+							{/if}
+						</p>
 
 						<div class="card-actions">
 							<button
@@ -128,25 +136,62 @@
 		</section>
 
 		<section>
-			<h2>How to use</h2>
+			<h2>One graph, three spellings</h2>
 			<p>
-				The skill body is plain Markdown. With Anthropic Claude, set
-				<code>cache_control: ephemeral</code> on the system block so the prompt is cached across a
-				5-minute window — subsequent calls in the same conversation pay ~10% of the input-token
-				cost on the cached prefix. With OpenAI / OpenRouter, paste it as <code>system</code> and
-				attach the image as a user content part.
+				Same scene — a red apple, eye-level close-up — written three ways. The notations are the
+				surface; the graph is the commitment.
 			</p>
+
+			<div class="example-grid">
+				<div class="example">
+					<span class="example-label font-mono">penman</span>
+					<pre><code>{PENMAN_EXAMPLE}</code></pre>
+				</div>
+				<div class="example">
+					<span class="example-label font-mono">vson-x</span>
+					<pre><code>{VSON_X_EXAMPLE}</code></pre>
+				</div>
+			</div>
+
+			<p>Render the RDF as English:</p>
+			<blockquote>
+				<em>"Eye level close up, 50mm lens. A red apple."</em>
+			</blockquote>
+
+			<p>Or as predicate logic:</p>
+			<pre class="fol"><code>{FOL_EXAMPLE}</code></pre>
+
+			<p class="muted">
+				Two surface notations, one English caption, one logical form — all from one graph. The
+				studio's <code>caption</code> and <code>fol</code> exporters are deterministic functions of
+				the RDF, not separate prompts.
+			</p>
+		</section>
+
+		<section>
+			<h2>Wire it in</h2>
 			<p>
-				The <a href="https://github.com/yamancan/visual-scene-ontology/tree/main/skills" rel="external">skills/ directory on GitHub</a>
-				ships each prompt alongside a <code>conformance.json</code> acceptance fixture and per-platform
-				code snippets. To validate output locally:
-				<code>vson convert p2t scene.vson | vson validate</code> for VSON-P, or
-				<code>vson convert x2t scene.x.vson | vson validate</code> for VSON-X.
+				Paste the prompt body as the <code>system</code> message. Cache it on the system block so
+				follow-up calls in the same conversation pay around 10% of the input-token cost on the
+				cached prefix.
+			</p>
+
+			<pre class="snippet"><code>{ANTHROPIC_SNIPPET}</code></pre>
+
+			<p>Validate locally:</p>
+			<pre class="snippet"><code>vson convert p2t scene.vson | vson validate</code></pre>
+
+			<p class="muted">
+				<a href="https://github.com/yamancan/visual-scene-ontology/tree/main/skills" rel="external"
+					>/skills/&lt;name&gt;/</a
+				>
+				on GitHub ships each prompt with a <code>conformance.json</code> acceptance fixture and
+				per-platform code snippets.
 			</p>
 		</section>
 
 		<footer class="foot font-mono">
-			<a href="/" rel="self">← back to the studio</a>
+			<a href="/" rel="self">← studio</a>
 			<span class="sep">·</span>
 			<a href="/about">about</a>
 			<span class="sep">·</span>
@@ -193,7 +238,7 @@
 	.lede {
 		font-size: var(--text-lg, 1.125rem);
 		color: var(--fg-1);
-		max-width: 60ch;
+		max-width: 64ch;
 	}
 	section {
 		display: flex;
@@ -212,6 +257,10 @@
 	p {
 		margin: 0;
 	}
+	.muted {
+		color: var(--fg-3);
+		font-size: var(--text-sm);
+	}
 	em {
 		color: var(--fg-1);
 		font-style: italic;
@@ -223,24 +272,6 @@
 		background: color-mix(in srgb, var(--accent) 10%, transparent);
 		padding: 1px 5px;
 		border-radius: var(--radius-sm);
-	}
-	.grid {
-		display: grid;
-		grid-template-columns: 8rem 1fr;
-		column-gap: var(--s5);
-		row-gap: var(--s4);
-		margin: var(--s2) 0 var(--s3);
-	}
-	.grid dt {
-		font-family: var(--font-mono);
-		font-size: var(--text-xs);
-		color: var(--fg-1);
-		text-transform: uppercase;
-		letter-spacing: 0.06em;
-		padding-top: 4px;
-	}
-	.grid dd {
-		margin: 0;
 	}
 	a {
 		color: var(--fg-1);
@@ -312,6 +343,11 @@
 	.card-meta .warn {
 		color: var(--danger);
 	}
+	.card-pitch {
+		font-size: var(--text-sm);
+		color: var(--fg-2);
+		line-height: var(--leading-relaxed);
+	}
 	.card-actions {
 		display: flex;
 		gap: var(--s2);
@@ -363,6 +399,59 @@
 		color: var(--fg-1);
 		white-space: pre;
 	}
+	.example-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: var(--s3);
+		margin: var(--s2) 0;
+	}
+	.example {
+		display: flex;
+		flex-direction: column;
+		gap: var(--s1);
+		min-width: 0;
+	}
+	.example-label {
+		font-size: 10px;
+		color: var(--fg-4);
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+	}
+	.example pre {
+		margin: 0;
+		padding: var(--s3);
+		background: var(--bg-1);
+		border: 1px solid var(--border-1);
+		border-radius: var(--radius-sm);
+		font-family: var(--font-mono);
+		font-size: 11px;
+		line-height: 1.55;
+		color: var(--fg-1);
+		white-space: pre;
+		overflow-x: auto;
+	}
+	blockquote {
+		margin: 0;
+		padding: var(--s3) var(--s4);
+		border-left: 2px solid var(--accent);
+		background: color-mix(in srgb, var(--accent) 6%, var(--bg-1));
+		color: var(--fg-1);
+		border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+	}
+	.fol,
+	.snippet {
+		margin: 0;
+		padding: var(--s3);
+		background: var(--bg-1);
+		border: 1px solid var(--border-1);
+		border-radius: var(--radius-sm);
+		font-family: var(--font-mono);
+		font-size: 11.5px;
+		line-height: 1.6;
+		color: var(--fg-1);
+		white-space: pre;
+		overflow-x: auto;
+	}
 	.foot {
 		margin-top: var(--s14);
 		padding-top: var(--s5);
@@ -379,12 +468,8 @@
 		h1 {
 			font-size: var(--text-3xl, 2rem);
 		}
-		.grid {
+		.example-grid {
 			grid-template-columns: 1fr;
-			row-gap: var(--s2);
-		}
-		.grid dt {
-			padding-top: 0;
 		}
 	}
 </style>

@@ -7,16 +7,18 @@
 
 	type Fmt = 'vson' | 'ttl' | 'json' | 'cypher' | 'mermaid' | 'graphml' | 'dot' | 'caption' | 'fol';
 
-	const FORMATS: { id: Fmt; label: string; ext: string; mime: string }[] = [
-		{ id: 'vson', label: 'penman', ext: 'vson', mime: 'text/plain' },
-		{ id: 'ttl', label: 'turtle', ext: 'ttl', mime: 'text/turtle' },
-		{ id: 'json', label: 'json', ext: 'json', mime: 'application/json' },
-		{ id: 'caption', label: 'caption', ext: 'txt', mime: 'text/plain' },
-		{ id: 'fol', label: 'fol', ext: 'fol', mime: 'text/plain' },
-		{ id: 'cypher', label: 'cypher', ext: 'cypher', mime: 'text/x-cypher' },
-		{ id: 'mermaid', label: 'mermaid', ext: 'mmd', mime: 'text/x-mermaid' },
-		{ id: 'graphml', label: 'graphml', ext: 'graphml', mime: 'application/graphml+xml' },
-		{ id: 'dot', label: 'dot', ext: 'gv', mime: 'text/vnd.graphviz' }
+	// `tooltip` carries the long-form label so the chip stays compact while
+	// hover surfaces the canonical VSON-X / VSON-P / VSON-T family name.
+	const FORMATS: { id: Fmt; label: string; ext: string; mime: string; tooltip: string }[] = [
+		{ id: 'vson', label: 'penman', ext: 'vson', mime: 'text/plain', tooltip: 'VSON-P (Penman)' },
+		{ id: 'ttl', label: 'turtle', ext: 'ttl', mime: 'text/turtle', tooltip: 'VSON-T (Turtle 1.2)' },
+		{ id: 'json', label: 'json', ext: 'json', mime: 'application/json', tooltip: 'VSON envelope (JSON)' },
+		{ id: 'caption', label: 'caption', ext: 'txt', mime: 'text/plain', tooltip: 'English caption (deterministic, image-gen friendly)' },
+		{ id: 'fol', label: 'fol', ext: 'fol', mime: 'text/plain', tooltip: 'First-order logic (Prolog-style facts)' },
+		{ id: 'cypher', label: 'cypher', ext: 'cypher', mime: 'text/x-cypher', tooltip: 'Cypher CREATE statements' },
+		{ id: 'mermaid', label: 'mermaid', ext: 'mmd', mime: 'text/x-mermaid', tooltip: 'Mermaid graph diagram' },
+		{ id: 'graphml', label: 'graphml', ext: 'graphml', mime: 'application/graphml+xml', tooltip: 'GraphML (yEd, Gephi)' },
+		{ id: 'dot', label: 'dot', ext: 'gv', mime: 'text/vnd.graphviz', tooltip: 'Graphviz DOT' }
 	];
 
 	async function getContent(fmt: Fmt): Promise<string> {
@@ -61,14 +63,18 @@
 	<div class="chips">
 		{#each FORMATS as f (f.id)}
 			<div class="chip" role="group">
-				<button class="chip-main" onclick={() => dl(f.id, f.ext, f.mime)} title="Download .{f.ext}">
+				<button
+					class="chip-main"
+					onclick={() => dl(f.id, f.ext, f.mime)}
+					title="{f.tooltip} · download .{f.ext}"
+				>
 					{f.label}
 				</button>
 				<button
 					class="chip-icon"
 					onclick={() => cp(f.id)}
 					aria-label="Copy {f.label}"
-					title="Copy"
+					title="Copy {f.tooltip}"
 				>
 					{#if copied === f.id}
 						<svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true">
