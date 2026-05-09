@@ -59,8 +59,9 @@
 					{/if}
 
 					<DemoStrip />
-					<GalleryStrip />
 				</div>
+
+				<GalleryStrip />
 			</div>
 		{/if}
 	</main>

@@ -28,11 +28,12 @@
 		}
 	});
 
-	// Split into "basic" (01–11, v1.0 constructs) and "v1.1" (12–16, Persona +
-	// reification + RDF-star). v1.1 set is more interesting for kapsam-conformance
-	// demos so it stays expanded by default.
-	let basic = $derived(entries.filter((e) => Number(e.stem.slice(0, 2)) <= 11));
+	// Stems 12+ exercise v1.1 constructs (Persona, reification, RDF-star).
+	// Surface those first since they answer "can I see this construct in
+	// the studio?" — the basic v1.0 ones (01-11) are still listed but
+	// after the headline set.
 	let advanced = $derived(entries.filter((e) => Number(e.stem.slice(0, 2)) >= 12));
+	let basic = $derived(entries.filter((e) => Number(e.stem.slice(0, 2)) <= 11));
 
 	async function loadFixture(e: GalleryEntry) {
 		loading = e.stem;
@@ -44,7 +45,7 @@
 			scene.setEnvelope((await res.json()) as VsonEnvelope);
 			scene.setStatus('idle');
 		} catch (err) {
-			scene.setError(`gallery load failed · ${(err as Error).message}`);
+			scene.setError(`example load failed · ${(err as Error).message}`);
 		} finally {
 			loading = null;
 		}
@@ -54,74 +55,42 @@
 {#if entries.length > 0}
 	<div class="gallery">
 		<button
-			class="gallery-toggle font-mono"
+			class="gallery-toggle"
 			onclick={() => (expanded = !expanded)}
 			aria-expanded={expanded}
 		>
-			<span class="caret">{expanded ? '▾' : '▸'}</span>
-			canonical fixtures · <span class="count">{entries.length}</span>
+			<span class="caret" aria-hidden="true">{expanded ? '▾' : '▸'}</span>
+			<span class="toggle-label">spec examples</span>
+			<span class="count">{entries.length}</span>
 		</button>
 
 		{#if expanded}
-			<div class="gallery-body">
-				<section class="group">
-					<h4 class="group-h font-mono">v1.1 — persona, reification, rdf-star</h4>
-					<ul class="grid">
-						{#each advanced as e (e.stem)}
-							<li>
-								<button
-									type="button"
-									class="card"
-									class:loading={loading === e.stem}
-									onclick={() => loadFixture(e)}
-									disabled={loading !== null}
-									title={e.covers.join(' · ')}
-								>
-									<div class="card-h">
-										<span class="stem font-mono">{e.stem}</span>
-										<span class="counts font-mono">{e.nodes}n / {e.edges}e</span>
-									</div>
-									<div class="card-label">{e.label}</div>
-									{#if e.covers.length}
-										<div class="covers">
-											{#each e.covers as c (c)}<span class="cover-tag font-mono">{c}</span>{/each}
-										</div>
-									{/if}
-								</button>
-							</li>
-						{/each}
-					</ul>
-				</section>
+			<p class="gallery-help">
+				Hand-authored VSON documents that pass strict SHACL — one per construct.
+				Load any to see how the studio renders spec-conformant data.
+			</p>
 
-				<section class="group">
-					<h4 class="group-h font-mono">v1.0 — core constructs</h4>
-					<ul class="grid">
-						{#each basic as e (e.stem)}
-							<li>
-								<button
-									type="button"
-									class="card"
-									class:loading={loading === e.stem}
-									onclick={() => loadFixture(e)}
-									disabled={loading !== null}
-									title={e.covers.join(' · ')}
-								>
-									<div class="card-h">
-										<span class="stem font-mono">{e.stem}</span>
-										<span class="counts font-mono">{e.nodes}n / {e.edges}e</span>
-									</div>
-									<div class="card-label">{e.label}</div>
-									{#if e.covers.length}
-										<div class="covers">
-											{#each e.covers as c (c)}<span class="cover-tag font-mono">{c}</span>{/each}
-										</div>
-									{/if}
-								</button>
-							</li>
-						{/each}
-					</ul>
-				</section>
-			</div>
+			<ul class="grid">
+				{#each [...advanced, ...basic] as e (e.stem)}
+					<li>
+						<button
+							type="button"
+							class="card"
+							class:loading={loading === e.stem}
+							onclick={() => loadFixture(e)}
+							disabled={loading !== null}
+							title="{e.covers.join(' · ')} · {e.nodes} nodes, {e.edges} edges"
+						>
+							<div class="card-label">{e.label}</div>
+							{#if e.covers.length}
+								<div class="covers">
+									{#each e.covers as c (c)}<span class="cover-tag font-mono">{c}</span>{/each}
+								</div>
+							{/if}
+						</button>
+					</li>
+				{/each}
+			</ul>
 		{/if}
 	</div>
 {/if}
@@ -129,7 +98,8 @@
 <style>
 	.gallery {
 		width: 100%;
-		max-width: 720px;
+		max-width: 960px;
+		margin-top: var(--s6);
 		display: flex;
 		flex-direction: column;
 		gap: var(--s3);
@@ -139,8 +109,6 @@
 		align-items: center;
 		gap: 6px;
 		font-size: var(--text-2xs);
-		text-transform: uppercase;
-		letter-spacing: 0.06em;
 		color: var(--fg-3);
 		background: transparent;
 		border: 0;
@@ -155,30 +123,28 @@
 		font-size: 10px;
 		color: var(--fg-4);
 	}
+	.toggle-label {
+		font-family: var(--font-mono);
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+	}
 	.count {
+		font-family: var(--font-mono);
 		color: var(--accent);
 	}
-	.gallery-body {
-		display: flex;
-		flex-direction: column;
-		gap: var(--s4);
-	}
-	.group {
-		display: flex;
-		flex-direction: column;
-		gap: var(--s2);
-	}
-	.group-h {
-		font-size: 10px;
-		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		color: var(--fg-4);
+	.gallery-help {
 		margin: 0;
+		font-size: var(--text-2xs);
+		color: var(--fg-4);
+		text-align: center;
+		line-height: 1.5;
+		max-width: 520px;
+		align-self: center;
 	}
 	.grid {
 		list-style: none;
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
 		gap: var(--s2);
 		padding: 0;
 		margin: 0;
@@ -208,24 +174,6 @@
 	.card.loading {
 		opacity: 0.6;
 	}
-	.card-h {
-		display: flex;
-		justify-content: space-between;
-		align-items: baseline;
-		min-width: 0;
-	}
-	.stem {
-		font-size: 10px;
-		color: var(--fg-4);
-		text-transform: uppercase;
-		letter-spacing: 0.06em;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-	.counts {
-		font-size: 9px;
-		color: var(--fg-4);
-	}
 	.card-label {
 		font-size: var(--text-xs);
 		color: var(--fg-1);
@@ -235,7 +183,6 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 3px;
-		margin-top: 2px;
 	}
 	.cover-tag {
 		font-size: 9px;
