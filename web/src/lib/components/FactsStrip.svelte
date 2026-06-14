@@ -188,13 +188,13 @@
 		margin-right: 1px;
 	}
 	.warn {
-		border-left-color: var(--danger, #c0392b);
-		background: color-mix(in srgb, var(--danger, #c0392b) 6%, var(--bg-1));
+		border-left-color: var(--danger);
+		background: color-mix(in srgb, var(--danger) 6%, var(--bg-1));
 	}
 	.warn-chip {
 		font-size: 9px;
 		padding: 1px 5px;
-		background: var(--danger, #c0392b);
+		background: var(--danger);
 		color: white;
 		border-radius: var(--radius-sm);
 		text-transform: uppercase;

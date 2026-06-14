@@ -94,4 +94,4 @@ export interface VsonEnvelope {
 	extraction?: ExtractionMeta;
 }
 
-export type ExtractStatus = 'idle' | 'uploading' | 'calling' | 'validating' | 'rendering' | 'error';
+export type ExtractStatus = 'idle' | 'uploading' | 'calling' | 'error';

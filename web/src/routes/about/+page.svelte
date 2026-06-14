@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Topbar from '$lib/components/Topbar.svelte';
+	import { VSON_VERSION } from '$lib';
 </script>
 
 <svelte:head>
@@ -161,7 +162,7 @@
 		<footer class="foot font-mono">
 			<a href="/" rel="self">← back to the studio</a>
 			<span class="sep">·</span>
-			<span>vson · v1.0</span>
+			<span>vson · {VSON_VERSION}</span>
 		</footer>
 	</main>
 </div>

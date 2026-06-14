@@ -31,9 +31,11 @@
 	// Stems 12+ exercise v1.1 constructs (Persona, reification, RDF-star).
 	// Surface those first since they answer "can I see this construct in
 	// the studio?" — the basic v1.0 ones (01-11) are still listed but
-	// after the headline set.
-	let advanced = $derived(entries.filter((e) => Number(e.stem.slice(0, 2)) >= 12));
-	let basic = $derived(entries.filter((e) => Number(e.stem.slice(0, 2)) <= 11));
+	// after the headline set. Parse defensively: a stem that doesn't start
+	// with a number falls into `basic` rather than being silently dropped.
+	const stemNum = (stem: string) => parseInt(stem, 10);
+	let advanced = $derived(entries.filter((e) => stemNum(e.stem) >= 12));
+	let basic = $derived(entries.filter((e) => !(stemNum(e.stem) >= 12)));
 
 	async function loadFixture(e: GalleryEntry) {
 		loading = e.stem;

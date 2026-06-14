@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Topbar from '$lib/components/Topbar.svelte';
 	import { copyText, formatBytes } from '$lib/utils';
+	import { VSON_VERSION } from '$lib';
 	import type { PageData } from './$types';
 
 	const { data }: { data: PageData } = $props();
@@ -195,7 +196,7 @@ dimension(q, Color). value(q, red).`;
 			<span class="sep">·</span>
 			<a href="/about">about</a>
 			<span class="sep">·</span>
-			<span>vson · v1.1</span>
+			<span>vson · {VSON_VERSION}</span>
 		</footer>
 	</main>
 </div>

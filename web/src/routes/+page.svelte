@@ -7,15 +7,14 @@
 	import ScenePanel from '$lib/components/ScenePanel.svelte';
 	import NotationToggle from '$lib/components/NotationToggle.svelte';
 	import { scene } from '$lib/scene.svelte';
+	import { VSON_VERSION } from '$lib';
 
 	const STATUS_LABEL: Record<string, string> = {
 		uploading: 'reading image',
-		calling: 'calling vision model',
-		validating: 'validating',
-		rendering: 'rendering'
+		calling: 'calling vision model'
 	};
 
-	let busy = $derived(['uploading', 'calling', 'validating', 'rendering'].includes(scene.status));
+	let busy = $derived(['uploading', 'calling'].includes(scene.status));
 </script>
 
 <div class="flex h-svh flex-col">
@@ -30,7 +29,7 @@
 				<div class="hero-stack">
 					<span class="eyebrow">
 						<span class="eyebrow-dot"></span>
-						<span class="font-mono">vson · v1</span>
+						<span class="font-mono">vson · {VSON_VERSION}</span>
 					</span>
 
 					<div class="hero-copy">
