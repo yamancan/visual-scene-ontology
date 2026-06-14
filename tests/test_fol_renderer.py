@@ -119,13 +119,13 @@ class CollapseTests(unittest.TestCase):
         :scene a vso:Composition ; vso:hasFact :sf .
         :sf a vso:SpatialFact ;
           vso:figure :a ; vso:ground :b ;
-          vso:directional "leftOf" ; vso:viewer :cam .
+          vso:directional vso:left_of ; vso:viewer :cam .
         :a a vso:PhysicalObject .
         :b a vso:PhysicalObject .
         """
         out = render(self._graph(body))
         self.assertIn(
-            "spatialfact(dir=\"leftOf\", figure=a, ground=b, viewer=cam).", out
+            "spatialfact(dir=left_of, figure=a, ground=b, viewer=cam).", out
         )
         self.assertNotIn("figure(sf, a)", out)
         self.assertNotIn("ground(sf, b)", out)

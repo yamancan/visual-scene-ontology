@@ -7,9 +7,9 @@
 
 <https://vson.dev/v1/ontology>
     a owl:Ontology ;
-    dc:title "Visual Scene Ontology (VSO) v1.0" ;
+    dc:title "Visual Scene Ontology (VSO) v1.1" ;
     dc:description "OWL 2 RL ontology for visual scenes. DOLCE-aligned. Companion to VSV vocabulary and VSON-S shapes." ;
-    owl:versionInfo "1.0" .
+    owl:versionInfo "1.1" .
 
 #################################################################
 # 1. Top-level taxonomy
@@ -66,27 +66,39 @@ vso:BeliefState   a owl:Class ; rdfs:label "BeliefState"
 # 4. Trait individuals (orthogonal axes)
 #################################################################
 
-vso:IndividuationKind a owl:Class .
+vso:IndividuationKind a owl:Class ; rdfs:label "IndividuationKind"
+                      ; rdfs:comment "Closed axis of individuation: Generic | Named | Kind | Skolem." .
 vso:Generic a vso:IndividuationKind .
 vso:Named   a vso:IndividuationKind .
 vso:Kind    a vso:IndividuationKind .
 vso:Skolem  a vso:IndividuationKind .
 
-vso:AnimacyKind a owl:Class .
+vso:AnimacyKind a owl:Class ; rdfs:label "AnimacyKind"
+                ; rdfs:comment "Closed axis of animacy: Agentive | Inert." .
 vso:Agentive a vso:AnimacyKind .
 vso:Inert    a vso:AnimacyKind .
 
-vso:CountabilityKind a owl:Class .
+vso:CountabilityKind a owl:Class ; rdfs:label "CountabilityKind"
+                     ; rdfs:comment "Closed axis of countability: Count | Mass | Collective." .
 vso:Count      a vso:CountabilityKind .
 vso:Mass       a vso:CountabilityKind .
 vso:Collective a vso:CountabilityKind .
 
-vso:Affordance a owl:Class .
+vso:Affordance a owl:Class ; rdfs:label "Affordance"
+               ; rdfs:comment "Affordance an Endurant offers (Holdable, Wearable, Mountable, Container, Edible)." .
 vso:Holdable   a vso:Affordance .
 vso:Wearable   a vso:Affordance .
 vso:Mountable  a vso:Affordance .
 vso:Container  a vso:Affordance .
 vso:Edible     a vso:Affordance .
+
+# Trait-kind individuals are pairwise distinct (mirrors the rcc8.ttl JEPD
+# discipline). Without this, asserting two kinds on one functional trait
+# property would silently infer owl:sameAs between the kinds instead of a
+# detectable inconsistency.
+[] a owl:AllDifferent ; owl:distinctMembers ( vso:Generic vso:Named vso:Kind vso:Skolem ) .
+[] a owl:AllDifferent ; owl:distinctMembers ( vso:Agentive vso:Inert ) .
+[] a owl:AllDifferent ; owl:distinctMembers ( vso:Count vso:Mass vso:Collective ) .
 
 #################################################################
 # 5. Trait properties
@@ -128,8 +140,18 @@ vso:hasFact    a owl:ObjectProperty ; rdfs:domain vso:Composition ;
 # 7. Quality attachment
 #################################################################
 
+# Covering super-class of everything that may bear a vso:Quality. Entities bear
+# contingent per-scene qualities; a Composition bears *compositional* qualities
+# (Layout, Focal). Without this class, vso:hasQuality's domain would infer a
+# quality-bearing Composition into vso:Entity — which is owl:disjointWith
+# vso:Frame, making the canonical scene OWL 2 RL inconsistent.
+vso:QualityBearer a owl:Class ; rdfs:label "QualityBearer"
+                  ; rdfs:comment "Anything that may bear a vso:Quality: an Entity (contingent qualities) or a Composition (compositional qualities such as Layout/Focal)." .
+vso:Entity      rdfs:subClassOf vso:QualityBearer .
+vso:Composition rdfs:subClassOf vso:QualityBearer .
+
 vso:hasQuality a owl:ObjectProperty ;
-    rdfs:domain vso:Entity ;
+    rdfs:domain vso:QualityBearer ;
     rdfs:range  vso:Quality .
 
 vso:dimension a owl:ObjectProperty , owl:FunctionalProperty ;
@@ -164,7 +186,8 @@ vso:hasInvariant a owl:ObjectProperty ;
     rdfs:comment "Invariant Quality of the Persona — stable across embodiments (hair color, build, etc.). Contrast with vso:hasQuality which is contingent per scene." .
 
 # Common quality dimensions
-vso:Dimension a owl:Class .
+vso:Dimension a owl:Class ; rdfs:label "Dimension"
+              ; rdfs:comment "Registry of Quality dimensions (Color, Weight, Material, Affect, Age, Role, Size, Enchantment)." .
 vso:Color      a vso:Dimension .
 vso:Weight     a vso:Dimension .
 vso:Material   a vso:Dimension .
@@ -221,26 +244,37 @@ vso:disjoint     a owl:ObjectProperty , owl:SymmetricProperty .
 #  (RCC-8 in companion file rcc8.ttl; directional/proximal here)
 #################################################################
 
-# Directional (frame-relative). These are RECORDED only on SpatialFact nodes
-# carrying a vso:viewer; the SHACL shape enforces this.
-vso:above       a owl:ObjectProperty .
-vso:below       a owl:ObjectProperty ; owl:inverseOf vso:above .
-vso:leftOf      a owl:ObjectProperty .
-vso:rightOf     a owl:ObjectProperty ; owl:inverseOf vso:leftOf .
-vso:inFrontOf   a owl:ObjectProperty .
-vso:behind      a owl:ObjectProperty ; owl:inverseOf vso:inFrontOf .
+# Directional (frame-relative). These are the closed set of VALUES of
+# vso:directional (e.g., :sf vso:directional vso:above), recorded only on
+# SpatialFact nodes carrying a vso:viewer (the SHACL shape enforces the viewer).
+# They are individuals — NOT edge predicates — mirroring the rcc:Relation design.
+# Value IRIs are snake_case — the canonical surface form used by the gallery,
+# the Penman transpiler, and docs/vson.md (e.g. :sf vso:directional vso:left_of).
+vso:Direction a owl:Class ; rdfs:label "Direction"
+              ; rdfs:comment "Closed set of frame-relative directional values (values of vso:directional)." .
+vso:above       a vso:Direction ; rdfs:label "above" .
+vso:below       a vso:Direction ; rdfs:label "below" .
+vso:left_of     a vso:Direction ; rdfs:label "left_of" .
+vso:right_of    a vso:Direction ; rdfs:label "right_of" .
+vso:in_front_of a vso:Direction ; rdfs:label "in_front_of" .
+vso:behind      a vso:Direction ; rdfs:label "behind" .
 
-# Proximal values — these are VALUES of vso:proximal (e.g., :sf vso:proximal vso:near),
-# NOT predicates between entities. The owl:SymmetricProperty designation is removed
-# as of v1.1 (it never fired — values aren't predicates; symmetry is enforced at
-# emission time via VSON-X `&` form which emits two SpatialFacts with figure/ground
-# swapped). The ObjectProperty designation is retained for back-compat with any code
-# that historically imported these terms.
-vso:near        a owl:ObjectProperty .
-vso:far         a owl:ObjectProperty .
-vso:adjacent    a owl:ObjectProperty .
-vso:nextTo      a owl:ObjectProperty .
-vso:facing      a owl:ObjectProperty .
+[] a owl:AllDifferent ; owl:distinctMembers ( vso:above vso:below vso:left_of vso:right_of vso:in_front_of vso:behind ) .
+
+# Proximal values — VALUES of vso:proximal (e.g., :sf vso:proximal vso:near),
+# NOT predicates between entities. Symmetry is enforced at emission time via the
+# VSON-X `&` form (two SpatialFacts with figure/ground swapped), not by an
+# owl:SymmetricProperty axiom. Like the directions, these are individuals of a
+# closed value class.
+vso:ProximityKind a owl:Class ; rdfs:label "ProximityKind"
+                  ; rdfs:comment "Closed set of proximity values (values of vso:proximal)." .
+vso:near        a vso:ProximityKind ; rdfs:label "near" .
+vso:far         a vso:ProximityKind ; rdfs:label "far" .
+vso:adjacent    a vso:ProximityKind ; rdfs:label "adjacent" .
+vso:next_to     a vso:ProximityKind ; rdfs:label "next_to" .
+vso:facing      a vso:ProximityKind ; rdfs:label "facing" .
+
+[] a owl:AllDifferent ; owl:distinctMembers ( vso:near vso:far vso:adjacent vso:next_to vso:facing ) .
 
 # SpatialFact structural properties
 vso:figure      a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain vso:SpatialFact .

@@ -100,7 +100,14 @@ impl Parser {
 
 pub fn parse(src: &str) -> Result<Node, String> {
     let toks = tokenize(src)?;
-    Parser::new(toks).parse_node()
+    let mut p = Parser::new(toks);
+    let node = p.parse_node()?;
+    if let Some(extra) = p.peek() {
+        return Err(format!(
+            "unexpected trailing token after top-level node: {extra:?}"
+        ));
+    }
+    Ok(node)
 }
 
 #[cfg(test)]
@@ -133,5 +140,12 @@ mod tests {
             Term::Ref(v) => assert_eq!(v, "cam"),
             other => panic!("expected Ref, got {:?}", other),
         }
+    }
+
+    #[test]
+    fn trailing_tokens_rejected() {
+        // Mirrors the Python reference: a second top-level node is an error,
+        // not silently dropped.
+        assert!(parse("(a / Foo) (b / Bar)").is_err());
     }
 }

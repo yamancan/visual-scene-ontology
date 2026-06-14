@@ -1,18 +1,21 @@
-# VSON v1.0 — one-command verification
+# VSON v1.1 — one-command verification
 
 PY ?= python3
 TOOLS = tools/penman/vson_penman.py
 EXAMPLE_VSON = examples/throne_room.vson
 EXAMPLE_TTL = examples/throne_room.ttl
 
-.PHONY: all check test parse-ontology penman-roundtrip shacl deps cli-check spec-check x-check x-skill-check envelope-check web-check deploy-check clean
+.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps cli-check spec-check x-check x-skill-check envelope-check web-check deploy-check clean
 
 all: check
 
-check: parse-ontology penman-roundtrip shacl test spec-check
+check: parse-ontology penman-roundtrip shacl owl-consistency test spec-check
+
+# Everything the CI runs, minus the web app (which needs pnpm/node).
+check-all: check cli-check x-check x-skill-check envelope-check
 
 deps:
-	$(PY) -m pip install --user --quiet rdflib pyshacl
+	$(PY) -m pip install --user --quiet rdflib pyshacl owlrl
 
 parse-ontology:
 	@echo "==> Parsing ontology, shapes, and example with rdflib"
@@ -43,6 +46,10 @@ shacl:
 	c, _, r = pyshacl.validate(d, shacl_graph=s, ont_graph=o, inference='rdfs', allow_warnings=True); \
 	print('  ' + ('CONFORMS' if c else 'FAILED:\n' + r))"
 
+owl-consistency:
+	@echo "==> OWL 2 RL consistency (disjointness clashes the rdfs-SHACL gate cannot see)"
+	@$(PY) tools/owlrl_check.py
+
 test:
 	@echo "==> Test suite"
 	@$(PY) -m unittest discover -s tests
@@ -69,14 +76,8 @@ cli-check:
 	@echo "==> Rust CLI: build + test"
 	@cd cli && cargo build --release --quiet
 	@cd cli && cargo test --quiet 2>&1 | tail -8
-	@echo "==> Rust CLI: golden parity with Python reference (rdflib graph-iso)"
-	@cli/target/release/vson convert p2t $(EXAMPLE_VSON) > /tmp/rust.ttl
-	@$(PY) $(TOOLS) to-turtle $(EXAMPLE_VSON) > /tmp/py.ttl
-	@$(PY) -c "import rdflib; \
-	a = rdflib.Graph(); a.parse('/tmp/rust.ttl', format='turtle'); \
-	b = rdflib.Graph(); b.parse('/tmp/py.ttl', format='turtle'); \
-	assert sorted(map(str,a)) == sorted(map(str,b)), 'graph mismatch'; \
-	print(f'  OK identical, triples={len(a)}')"
+	@echo "==> Rust CLI: golden parity with Python reference (rdflib to_isomorphic, throne_room + 16-scene gallery)"
+	@$(PY) tools/parity_check.py cli/target/release/vson
 
 x-check:
 	@echo "==> VSON-X gallery round-trip parity vs Penman"

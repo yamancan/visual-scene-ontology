@@ -8,7 +8,7 @@
 
 <https://vson.dev/v1/shapes>
     a sh:NodeShape ;
-    rdfs:label "VSON v1.0 SHACL shapes" .
+    rdfs:label "VSON v1.1 SHACL shapes" .
 
 #################################################################
 # Composition — must depict ≥1 entity, must be framed
@@ -73,6 +73,17 @@ vss:QualityShape a sh:NodeShape ;
         sh:maxCount 1
     ] .
 
+# vso:modifier — optional adverbial bareword on a Quality; at most one.
+# (Referenced by vso:modifier's rdfs:comment; strict = Violation.)
+vss:QualityModifierShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:modifier ;
+    sh:property [
+        sh:path vso:modifier ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:message "A Quality carries at most one vso:modifier (optional adverbial bareword)."
+    ] .
+
 #################################################################
 # SpatialFact — must have figure + ground; AT LEAST ONE of rcc/directional/proximal
 # Directional facts MUST carry a viewer (Talmy resolution).
@@ -114,6 +125,23 @@ vss:RccValueShape a sh:NodeShape ;
         sh:message "vso:rcc value must be one of the eight RCC-8 relations."
     ] .
 
+# directional/proximal values are closed vocabularies too (parity with RCC).
+vss:DirectionalValueShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:directional ;
+    sh:property [
+        sh:path vso:directional ;
+        sh:in ( vso:above vso:below vso:left_of vso:right_of vso:in_front_of vso:behind ) ;
+        sh:message "vso:directional value must be one of the six frame-relative directions."
+    ] .
+
+vss:ProximalValueShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:proximal ;
+    sh:property [
+        sh:path vso:proximal ;
+        sh:in ( vso:near vso:far vso:adjacent vso:next_to vso:facing ) ;
+        sh:message "vso:proximal value must be one of the five proximity relations."
+    ] .
+
 #################################################################
 # Trait properties — values must be from the published vocab
 #################################################################
@@ -151,14 +179,24 @@ vss:FrameNotDepictedShape a sh:NodeShape ;
     sh:not [ sh:class vso:Frame ] ;
     sh:message "vso:depicts must point to an Entity, not a Frame. Use vso:framedBy for the perspectival layer." .
 
+# Discipline: vso:depicts is for the depicted world (Entities). Reification
+# nodes (SpatialFact/Negation/BeliefState/Quantification/Annotation) attach via
+# vso:hasFact. Warning (not Violation) so legacy documents that depict a
+# reification node still conform while the convention is migrated.
+vss:DepictsEntityShape a sh:NodeShape ;
+    sh:targetObjectsOf vso:depicts ;
+    sh:class vso:Entity ;
+    sh:severity sh:Warning ;
+    sh:message "vso:depicts SHOULD point to an Entity; attach reification nodes (SpatialFact/Negation/BeliefState/Quantification/Annotation) via vso:hasFact." .
+
 #################################################################
-# Quality bearer must be an Entity (not a Frame)
+# Quality bearer must be an Entity or a Composition (a QualityBearer)
 #################################################################
 
 vss:HasQualityShape a sh:NodeShape ;
     sh:targetSubjectsOf vso:hasQuality ;
-    sh:class vso:Entity ;
-    sh:message "Only Entities (not Frames) bear Qualities." .
+    sh:class vso:QualityBearer ;
+    sh:message "Only a QualityBearer (an Entity, or a Composition bearing compositional qualities) may carry vso:hasQuality." .
 
 #################################################################
 # Negation — must reference a quoted triple OR Annotation reification

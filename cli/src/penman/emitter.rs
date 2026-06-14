@@ -16,7 +16,15 @@ impl Emitter {
     }
 
     fn iri_for_var(&self, var: &str) -> String {
-        format!(":{var}")
+        // Mirror the Python reference: '_'-prefixed vars (VSON-X's
+        // auto-generated nodes) become blank nodes; the full var is the
+        // injective, always-valid Turtle BLANK_NODE_LABEL. Author-written vars
+        // become named IRIs, preserving Penman reentrancy.
+        if var.starts_with('_') {
+            format!("_:{var}")
+        } else {
+            format!(":{var}")
+        }
     }
 
     fn role_to_iri(&self, role: &str) -> String {
@@ -31,7 +39,15 @@ impl Emitter {
     }
 
     fn render_string(raw: &str) -> String {
-        let esc = raw.replace('\\', "\\\\").replace('"', "\\\"");
+        // Encode the true value into a single-line Turtle string literal.
+        // Backslash MUST be escaped first; control chars become Turtle escapes
+        // (a raw newline/CR/tab inside "..." is not valid Turtle).
+        let esc = raw
+            .replace('\\', "\\\\")
+            .replace('"', "\\\"")
+            .replace('\n', "\\n")
+            .replace('\r', "\\r")
+            .replace('\t', "\\t");
         format!("\"{esc}\"")
     }
 
@@ -162,5 +178,25 @@ mod tests {
     fn unit_literal_becomes_string() {
         let out = to_turtle("(c / CameraView :focalLength 35mm)").unwrap();
         assert!(out.contains("\"35mm\""));
+    }
+
+    #[test]
+    fn string_newline_is_turtle_encoded() {
+        // A source `\n` round-trips as a single-line Turtle escape, never a raw
+        // newline (which would be unparseable Turtle).
+        let out = to_turtle(r#"(s / SceneContext :venue "a\nb")"#).unwrap();
+        assert!(out.contains(r#""a\nb""#), "got: {out}");
+        assert!(!out.contains("\"a\nb\""), "raw newline leaked: {out}");
+    }
+
+    #[test]
+    fn underscore_var_becomes_blank_node() {
+        let out =
+            to_turtle("(s / Composition :hasFact (_sf / SpatialFact :rcc EC))").unwrap();
+        assert!(out.contains("_:_sf a "), "got: {out}");
+        assert!(
+            !out.lines().any(|l| l.starts_with(":_sf")),
+            "named IRI leaked: {out}"
+        );
     }
 }

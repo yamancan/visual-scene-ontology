@@ -98,6 +98,31 @@ class Tok:
     value: str
 
 
+# Turtle ECHAR set, decoded at lex-time so a STR token carries the *true* string
+# value (real newline/tab/quote), then re-encoded for Turtle at emit time.
+# Without this, a source `\n` would pass through verbatim and the emitter's
+# backslash-doubling would corrupt it to a literal backslash-n, and a raw
+# newline inside a quoted value would emit as invalid (unparseable) Turtle.
+_STR_ESCAPES = {
+    "t": "\t", "b": "\b", "n": "\n", "r": "\r", "f": "\f",
+    '"': '"', "'": "'", "\\": "\\", "/": "/",
+}
+
+
+def _decode_escapes(body: str) -> str:
+    out = []
+    i, n = 0, len(body)
+    while i < n:
+        c = body[i]
+        if c == "\\" and i + 1 < n:
+            out.append(_STR_ESCAPES.get(body[i + 1], body[i + 1]))
+            i += 2
+        else:
+            out.append(c)
+            i += 1
+    return "".join(out)
+
+
 def tokenize(src: str):
     out = []
     for m in TOKEN_RE.finditer(src):
@@ -111,7 +136,7 @@ def tokenize(src: str):
         elif text == ")":
             out.append(Tok(")", ")"))
         elif m.group(1) is not None:                   # quoted string body
-            out.append(Tok("STR", m.group(1)))
+            out.append(Tok("STR", _decode_escapes(m.group(1))))
         elif m.group(2) is not None:                   # :role
             out.append(Tok("ROLE", m.group(2)[1:]))
         elif m.group(3) is not None:                   # /
@@ -201,7 +226,14 @@ class Parser:
 
 
 def parse(src: str) -> Node:
-    return Parser(tokenize(src)).parse_node()
+    p = Parser(tokenize(src))
+    node = p.parse_node()
+    trailing = p.peek()
+    if trailing is not None:
+        raise SyntaxError(
+            f"unexpected trailing token after top-level node: {trailing}"
+        )
+    return node
 
 
 # ---------------------------------------------------------------------------
@@ -226,12 +258,17 @@ class Emitter:
             # underscore) become named IRIs in the default namespace,
             # preserving Penman's reentrancy semantics. This is the
             # cross-syntax convention shared between VSON-P (where users
-            # rarely if ever start vars with '_') and the upcoming
-            # VSON-X parser (which always uses '_'-prefixed names for
-            # auto-generated Quality / Stative / Event / SpatialFact
-            # nodes that have no author-meaningful identity).
+            # rarely if ever start vars with '_') and the VSON-X parser
+            # (which always uses '_'-prefixed names for auto-generated
+            # Quality / Stative / Event / SpatialFact nodes that have no
+            # author-meaningful identity).
+            #
+            # The full var (underscores included) is the blank-node label:
+            # an injective, always-valid Turtle BLANK_NODE_LABEL. The prior
+            # `var.lstrip('_')` collapsed distinct vars (`_a`/`__a` → `a`)
+            # and produced an invalid empty label for a bare `_`.
             if var.startswith("_"):
-                self.var_to_iri[var] = f"_:{var.lstrip('_')}"
+                self.var_to_iri[var] = f"_:{var}"
             else:
                 self.var_to_iri[var] = f":{var}"
         return self.var_to_iri[var]
@@ -245,7 +282,16 @@ class Emitter:
         return f"<{VSO}{concept}>"
 
     def render_string(self, raw: str) -> str:
-        esc = raw.replace("\\", "\\\\").replace('"', '\\"')
+        # Encode the true value into a single-line Turtle string literal.
+        # Backslash MUST be escaped first; control chars become Turtle escapes
+        # (a raw newline/CR/tab inside "..." is not valid Turtle).
+        esc = (
+            raw.replace("\\", "\\\\")
+            .replace('"', '\\"')
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t")
+        )
         return f'"{esc}"'
 
     def render_number(self, raw: str) -> str:
@@ -377,8 +423,12 @@ def main(argv) -> int:
         print(__doc__, file=sys.stderr)
         return 2
     cmd, path = argv[1], argv[2]
-    with open(path, "r", encoding="utf-8") as f:
-        text = f.read()
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            text = f.read()
+    except OSError as e:
+        print(f"error: cannot read {path}: {e.strerror}", file=sys.stderr)
+        return 2
     if cmd == "to-turtle":
         sys.stdout.write(to_turtle(text))
         return 0

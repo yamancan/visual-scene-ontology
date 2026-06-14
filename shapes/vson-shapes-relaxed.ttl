@@ -9,7 +9,7 @@
 <https://vson.dev/v1/shapes-relaxed>
     a sh:NodeShape ;
     rdfs:label "VSON v1.1 SHACL shapes — relaxed profile" ;
-    rdfs:comment "Relaxed validation profile for partial / authoring-time documents. Same shapes as vson-shapes.ttl (strict), but with sh:Warning severity on Talmy viewer, Event lemma, Quality dim/value, Quality modifier. Structural constraints (Composition.depicts, FrameNotDepicted, SpatialFact.figure/ground, RCC value, Persona.hasInvariant) remain sh:Violation. Used by `vson validate --partial`. v1.0 documents that conform under strict profile also conform under relaxed (no strict shape was made stricter)." .
+    rdfs:comment "Relaxed validation profile for partial / authoring-time documents. Carries the same shapes as vson-shapes.ttl (strict), but downgrades to sh:Warning the dimension-completeness constraints: Talmy viewer, Event/Process/Stative lemma, Quality dimension/value, Quality modifier. Structural-integrity constraints (Composition.depicts, FrameNotDepicted, SpatialFact.figure/ground, RCC/directional/proximal value vocab, Negation/BeliefState/Quantification/Annotation slots, Persona.hasInvariant, trait enums) remain sh:Violation. Used by `vson validate --partial`. Documents that conform under strict also conform under relaxed (no strict shape was made stricter)." .
 
 #################################################################
 # STRUCTURAL FLOOR — sh:Violation in both profiles
@@ -53,6 +53,22 @@ vss:RccValueShape a sh:NodeShape ;
         sh:message "vso:rcc value must be one of the eight RCC-8 relations."
     ] .
 
+vss:DirectionalValueShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:directional ;
+    sh:property [
+        sh:path vso:directional ;
+        sh:in ( vso:above vso:below vso:left_of vso:right_of vso:in_front_of vso:behind ) ;
+        sh:message "vso:directional value must be one of the six frame-relative directions."
+    ] .
+
+vss:ProximalValueShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:proximal ;
+    sh:property [
+        sh:path vso:proximal ;
+        sh:in ( vso:near vso:far vso:adjacent vso:next_to vso:facing ) ;
+        sh:message "vso:proximal value must be one of the five proximity relations."
+    ] .
+
 vss:FrameNotDepictedShape a sh:NodeShape ;
     sh:targetObjectsOf vso:depicts ;
     sh:not [ sh:class vso:Frame ] ;
@@ -60,8 +76,8 @@ vss:FrameNotDepictedShape a sh:NodeShape ;
 
 vss:HasQualityShape a sh:NodeShape ;
     sh:targetSubjectsOf vso:hasQuality ;
-    sh:class vso:Entity ;
-    sh:message "Only Entities (not Frames) bear Qualities." .
+    sh:class vso:QualityBearer ;
+    sh:message "Only a QualityBearer (an Entity, or a Composition bearing compositional qualities) may carry vso:hasQuality." .
 
 vss:NegationShape a sh:NodeShape ;
     sh:targetClass vso:Negation ;
@@ -70,6 +86,78 @@ vss:NegationShape a sh:NodeShape ;
         sh:minCount 1 ;
         sh:maxCount 1
     ] .
+
+# Structural-integrity shapes for the reification nodes — a reified node missing
+# its required slots is malformed, not merely partial, so these stay Violation
+# in both profiles. (Previously absent from the relaxed file, contradicting its
+# "same shapes as strict" header.)
+vss:BeliefStateShape a sh:NodeShape ;
+    sh:targetClass vso:BeliefState ;
+    sh:property [
+        sh:path vso:experiencer ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class vso:Endurant ;
+        sh:message "BeliefState must have exactly one experiencer (Endurant)."
+    ] ;
+    sh:property [
+        sh:path vso:proposition ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "BeliefState must reference exactly one proposition (quoted triple or Annotation node)."
+    ] .
+
+vss:QuantificationShape a sh:NodeShape ;
+    sh:targetClass vso:Quantification ;
+    sh:property [
+        sh:path vso:quantifier ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:in ( "all" "every" "some" "no" "most" "few" ) ;
+        sh:message "Quantification must have exactly one quantifier from the closed list (all|every|some|no|most|few)."
+    ] ;
+    sh:property [
+        sh:path vso:variable ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "Quantification must declare exactly one bound variable name."
+    ] ;
+    sh:property [
+        sh:path vso:scope ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "Quantification must declare exactly one scope proposition."
+    ] .
+
+vss:AnnotationShape a sh:NodeShape ;
+    sh:targetClass vso:Annotation ;
+    sh:property [
+        sh:path vso:annotatedSubject ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "Annotation must declare exactly one annotatedSubject."
+    ] ;
+    sh:property [
+        sh:path vso:annotatedPredicate ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "Annotation must declare exactly one annotatedPredicate."
+    ] ;
+    sh:property [
+        sh:path vso:annotatedObject ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "Annotation must declare exactly one annotatedObject."
+    ] .
+
+# depicts-discipline (Warning, matching strict): reification nodes belong on hasFact.
+vss:DepictsEntityShape a sh:NodeShape ;
+    sh:targetObjectsOf vso:depicts ;
+    sh:class vso:Entity ;
+    sh:severity sh:Warning ;
+    sh:message "vso:depicts SHOULD point to an Entity; attach reification nodes via vso:hasFact." .
 
 vss:PersonaShape a sh:NodeShape ;
     sh:targetClass vso:Persona ;
@@ -138,6 +226,17 @@ vss:QualityShape a sh:NodeShape ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:severity sh:Warning
+    ] .
+
+# Quality modifier — relaxed to Warning here (cardinality 0..1; absence is normal).
+vss:QualityModifierShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:modifier ;
+    sh:property [
+        sh:path vso:modifier ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:severity sh:Warning ;
+        sh:message "A Quality carries at most one vso:modifier (optional adverbial bareword). (Relaxed-profile warning.)"
     ] .
 
 # Persona embodiment consistency — already Warning in strict; identical here

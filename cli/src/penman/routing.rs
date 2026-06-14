@@ -36,7 +36,14 @@ pub struct Routing {
 
 pub static ROUTING: Lazy<Routing> = Lazy::new(|| {
     let raw: Raw = serde_json::from_str(ROUTING_JSON).expect("routing-tables.json malformed");
-    let resolve = |key: &str| raw.namespaces.get(key).cloned().unwrap_or_default();
+    // Strict resolution, mirroring the Python reference's KeyError: a missing
+    // namespace must fail loudly, not silently emit IRIs in an empty namespace.
+    let resolve = |key: &str| {
+        raw.namespaces
+            .get(key)
+            .cloned()
+            .unwrap_or_else(|| panic!("routing-tables.json: missing namespace {key:?}"))
+    };
     let role_namespace_overrides = raw
         .role_namespace_overrides
         .iter()

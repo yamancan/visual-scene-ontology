@@ -40,6 +40,34 @@ static TOKEN_RE: Lazy<Regex> = Lazy::new(|| {
     .expect("TOKEN_RE compile")
 });
 
+/// Decode the Turtle ECHAR set so a Str token carries the true string value
+/// (mirrors `_decode_escapes` in the Python reference). The emitter re-encodes
+/// for Turtle at emit time; lexing verbatim would corrupt `\n` and friends.
+fn decode_escapes(body: &str) -> String {
+    let mut out = String::with_capacity(body.len());
+    let mut chars = body.chars();
+    while let Some(c) = chars.next() {
+        if c == '\\' {
+            match chars.next() {
+                Some('t') => out.push('\t'),
+                Some('b') => out.push('\u{0008}'),
+                Some('n') => out.push('\n'),
+                Some('r') => out.push('\r'),
+                Some('f') => out.push('\u{000C}'),
+                Some('"') => out.push('"'),
+                Some('\'') => out.push('\''),
+                Some('\\') => out.push('\\'),
+                Some('/') => out.push('/'),
+                Some(other) => out.push(other),
+                None => out.push('\\'),
+            }
+        } else {
+            out.push(c);
+        }
+    }
+    out
+}
+
 pub fn tokenize(src: &str) -> Result<Vec<Tok>, String> {
     let mut out = Vec::new();
     for cap in TOKEN_RE.captures_iter(src) {
@@ -53,7 +81,7 @@ pub fn tokenize(src: &str) -> Result<Vec<Tok>, String> {
         } else if cap.name("rp").is_some() {
             out.push(Tok { kind: TokKind::RParen });
         } else if let Some(g) = cap.name("str") {
-            out.push(Tok { kind: TokKind::Str(g.as_str().to_string()) });
+            out.push(Tok { kind: TokKind::Str(decode_escapes(g.as_str())) });
         } else if let Some(g) = cap.name("role") {
             out.push(Tok { kind: TokKind::Role(g.as_str().to_string()) });
         } else if cap.name("slash").is_some() {
@@ -111,9 +139,19 @@ mod tests {
 
     #[test]
     fn quoted_string() {
+        // Source `"hello\"world"` lexes to the decoded value `hello"world`.
         let toks = tokenize(":k \"hello\\\"world\"").unwrap();
         match &toks[1].kind {
-            TokKind::Str(s) => assert_eq!(s, "hello\\\"world"),
+            TokKind::Str(s) => assert_eq!(s, "hello\"world"),
+            other => panic!("got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn escapes_decoded() {
+        let toks = tokenize(r#":k "a\nb\tc""#).unwrap();
+        match &toks[1].kind {
+            TokKind::Str(s) => assert_eq!(s, "a\nb\tc"),
             other => panic!("got {:?}", other),
         }
     }

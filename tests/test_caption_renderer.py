@@ -164,7 +164,7 @@ class DisambiguationTests(unittest.TestCase):
           vso:individuation "Generic" ;
           vso:hasQuality [ a vso:Quality ; vso:dimension "Layout" ; vso:value "right" ] .
         :sf a vso:SpatialFact ; vso:figure :p1 ; vso:ground :p3 ;
-          vso:directional "leftOf" ; vso:viewer :cam .
+          vso:directional vso:left_of ; vso:viewer :cam .
         """
         out = render(self._graph(body)).lower()
         self.assertIn("the leftmost person", out)

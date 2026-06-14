@@ -51,6 +51,13 @@ class TokenizerTests(unittest.TestCase):
         kinds = [t.kind for t in toks]
         self.assertEqual(kinds, ["(", "ID", "/", "ID", ")"])
 
+    def test_string_escapes_decoded(self) -> None:
+        # \n / \t / \" decode to the true characters at lex time, so the token
+        # carries the real string value (re-encoded for Turtle at emit time).
+        toks = vp.tokenize(r'(a / Foo :name "x\ny\t\"z\"")')
+        s = [t for t in toks if t.kind == "STR"][0]
+        self.assertEqual(s.value, 'x\ny\t"z"')
+
 
 class ParserTests(unittest.TestCase):
     def test_simple_node(self) -> None:
@@ -73,6 +80,12 @@ class ParserTests(unittest.TestCase):
         self.assertIsInstance(child, vp.Node)
         self.assertEqual(child.concept, "Bar")
 
+    def test_trailing_tokens_rejected(self) -> None:
+        # A well-formed top-level node followed by more tokens is malformed,
+        # not silently truncated.
+        with self.assertRaises(SyntaxError):
+            vp.parse("(a / Foo) (b / Bar)")
+
 
 class EmitterTests(unittest.TestCase):
     def test_concept_emits_rdf_type(self) -> None:
@@ -94,6 +107,27 @@ class EmitterTests(unittest.TestCase):
             "(c / Composition :depicts (sf / SpatialFact :rcc EC))"
         )
         self.assertIn("<https://vson.dev/v1/rcc8#EC>", ttl)
+
+    def test_string_escapes_emit_valid_turtle(self) -> None:
+        # A source `\n` round-trips through emit as a Turtle escape, never a raw
+        # newline (which would be unparseable Turtle). Parity guard for the
+        # decode-at-lex / encode-at-emit pipeline.
+        ttl = vp.to_turtle(r'(s / SceneContext :venue "a\nb")')
+        self.assertIn(r'"a\nb"', ttl)
+        self.assertNotIn('"a\nb"', ttl)  # no raw newline inside the literal
+        import rdflib
+
+        g = rdflib.Graph()
+        g.parse(data=ttl, format="turtle")  # must not raise
+        val = [str(o) for s, p, o in g if "venue" in str(p)][0]
+        self.assertEqual(val, "a\nb")
+
+    def test_underscore_var_is_blank_node(self) -> None:
+        # '_'-prefixed vars become blank nodes; the full var is the injective
+        # label (no lstrip collapse, no empty label).
+        ttl = vp.to_turtle("(s / Composition :hasFact (_sf / SpatialFact :rcc EC))")
+        self.assertIn("_:_sf a ", ttl)
+        self.assertFalse(any(ln.startswith(":_sf") for ln in ttl.splitlines()))
 
 
 class ThroneRoomTests(unittest.TestCase):
