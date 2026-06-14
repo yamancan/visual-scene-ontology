@@ -6,35 +6,35 @@
       "label": "Coffee Pour",
       "mime": "image/jpeg",
       "envelope_path": "/demos/envelopes/kitchen.json",
-      "model_used": "fixture-bake"
+      "model_used": "google/gemini-2.5-flash"
     },
     {
       "path": "/demos/street.jpg",
       "label": "Backlit Portrait",
       "mime": "image/jpeg",
       "envelope_path": "/demos/envelopes/street.json",
-      "model_used": "fixture-bake"
+      "model_used": "google/gemini-2.5-flash"
     },
     {
       "path": "/demos/forest.jpg",
       "label": "Fjord Overlook",
       "mime": "image/jpeg",
       "envelope_path": "/demos/envelopes/forest.json",
-      "model_used": "fixture-bake"
+      "model_used": "google/gemini-2.5-flash"
     },
     {
       "path": "/demos/books.jpg",
       "label": "Snow Traverse",
       "mime": "image/jpeg",
       "envelope_path": "/demos/envelopes/books.json",
-      "model_used": "fixture-bake"
+      "model_used": "google/gemini-2.5-flash"
     },
     {
       "path": "/demos/lamp.jpg",
       "label": "Forest Figure",
       "mime": "image/jpeg",
       "envelope_path": "/demos/envelopes/lamp.json",
-      "model_used": "fixture-bake"
+      "model_used": "google/gemini-2.5-flash"
     },
     {
       "path": "/demos/lookbook.jpg",

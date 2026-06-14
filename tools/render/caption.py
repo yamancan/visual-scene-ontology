@@ -571,7 +571,7 @@ def _spatial_sentences(g: Graph, scene: URIRef, disc: dict[URIRef, "Disc"]) -> l
         proximal = _local_name(next(iter(g.objects(fact, VSO.proximal)), None))
         rcc = _local_name(next(iter(g.objects(fact, VSO.rcc)), None))
 
-        if proximal in {"near", "far", "adjacent"}:
+        if proximal in {"near", "far", "adjacent", "next_to", "facing"}:
             a, b = sorted([str(figure_iri), str(ground_iri)])
             key = (a, b, proximal)
             if key in seen_pairs:

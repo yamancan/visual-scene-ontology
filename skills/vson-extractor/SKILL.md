@@ -45,8 +45,8 @@ Use only these tokens. Anything else fails SHACL.
 **SpatialFact**
 - structural: `figure` `ground` `viewer`
 - `:rcc` ∈ {`DC`, `EC`, `PO`, `EQ`, `TPP`, `NTPP`, `TPPi`, `NTPPi`}
-- `:directional` ∈ {`above`, `below`, `leftOf`, `rightOf`, `inFrontOf`, `behind`}
-- `:proximal` ∈ {`near`, `far`, `adjacent`}
+- `:directional` ∈ {`above`, `below`, `left_of`, `right_of`, `in_front_of`, `behind`}
+- `:proximal` ∈ {`near`, `far`, `adjacent`, `next_to`, `facing`}
 
 **Camera schema** — `angle` `focalLength` `framing` `cameraPosition`
 **Style schema** — `aesthetic` `palette` `medium`

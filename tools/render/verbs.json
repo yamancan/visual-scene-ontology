@@ -64,7 +64,9 @@
   "proximal_phrase": {
     "near":     "near",
     "far":      "far from",
-    "adjacent": "next to"
+    "adjacent": "next to",
+    "next_to":  "next to",
+    "facing":   "facing"
   },
 
   "rcc_phrase": {

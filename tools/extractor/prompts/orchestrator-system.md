@@ -106,11 +106,11 @@ SpatialFact  Annotation  Negation  BeliefState  Quantification        (Reificati
 
 ## Spatial — directional (used as `:directional <value>`)
 
-`above` `below` `leftOf` `rightOf` `inFrontOf` `behind`
+`above` `below` `left_of` `right_of` `in_front_of` `behind`
 
 ## Spatial — proximal (used as `:proximal <value>`)
 
-`near` `far` `adjacent`
+`near` `far` `adjacent` `next_to` `facing`
 
 ## SpatialFact structural roles
 
