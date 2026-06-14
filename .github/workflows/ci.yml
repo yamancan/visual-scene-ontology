@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  core:
+    name: Ontology · Python · Rust
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install Python deps
+        run: pip install rdflib pyshacl owlrl
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: cli
+
+      # make check = parse-ontology + penman-roundtrip + shacl + python tests + spec-check
+      - name: make check
+        run: make check
+
+      - name: make cli-check (Rust build + tests + graph-iso parity vs Python)
+        run: make cli-check
+
+      - name: make x-check (VSON-X round-trip parity)
+        run: make x-check
+
+      - name: make x-skill-check (VSON-X corpus conformance)
+        run: make x-skill-check
+
+      - name: make envelope-check (studio envelope corpus SHACL-conforms)
+        run: make envelope-check
+
+  web:
+    name: Web studio (svelte-check · test · build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: svelte-check
+        run: pnpm check
+
+      # NOTE: `pnpm lint` (prettier --check + eslint) is intentionally not gated
+      # here yet — the tree carries pre-existing formatting drift across ~30
+      # files. Re-enable once a dedicated project-wide format pass has landed.
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build

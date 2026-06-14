@@ -21,14 +21,17 @@ tools/extractor/baseline/results*.csv
 # Rust build artifacts
 cli/target/
 
-# Web app artifacts
+# Web app artifacts (web/.gitignore owns web/.env and its variants)
 web/node_modules/
 web/.svelte-kit/
 web/build/
-web/.env
 
 # Markdown files — do not commit, in any subfolder.
 # Existing tracked .md files (README.md, docs/vson.md, spec/*.md, etc.)
 # remain tracked; this rule only blocks NEW .md from being staged.
 *.md
-examples/photo_2026-05-07_02-17-40.jpg
+
+# Stray example images — the curated examples/ corpus is .vson/.ttl text.
+examples/*.jpg
+examples/*.jpeg
+examples/*.png
