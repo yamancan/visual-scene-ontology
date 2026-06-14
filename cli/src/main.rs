@@ -1,4 +1,4 @@
-//! `vson` — the VSON v1.0 reference CLI.
+//! `vson` — the VSON v1.1 reference CLI.
 //!
 //! Subcommands:
 //!   - validate <files...>      SHACL conformance (shells out to `pyshacl`).
@@ -20,7 +20,7 @@ mod commands;
 mod penman;
 
 #[derive(Parser)]
-#[command(name = "vson", version, about = "VSON v1.0 CLI", long_about = None)]
+#[command(name = "vson", version, about = "VSON v1.1 CLI", long_about = None)]
 struct Cli {
     #[command(subcommand)]
     command: Cmd,
