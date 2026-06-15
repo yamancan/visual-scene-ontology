@@ -4,11 +4,32 @@
 	import TurtlePane from './TurtlePane.svelte';
 	import ConformancePane from './ConformancePane.svelte';
 
+	// The source tab follows the envelope: if the user's sticky notation matches
+	// what's in the envelope, label it that way; if not, label what we will
+	// actually render (SourcePane falls back transparently). Avoids the dead-end
+	// where the tab promises "vson-x" and the pane shows an empty state.
+	let env = $derived(scene.envelope);
+	let xPresent = $derived((env?.vson_x?.trim().length ?? 0) > 0);
+	let pPresent = $derived((env?.vson_p?.trim().length ?? 0) > 0);
+	let effectiveNotation = $derived<'p' | 'x'>(
+		scene.notation === 'x'
+			? xPresent
+				? 'x'
+				: pPresent
+					? 'p'
+					: 'x'
+			: pPresent
+				? 'p'
+				: xPresent
+					? 'x'
+					: 'p'
+	);
+
 	let TABS = $derived<{ id: RailTab; label: string; sub: string }[]>([
 		{
 			id: 'source',
-			label: scene.notation === 'x' ? 'vson-x' : 'penman',
-			sub: scene.notation === 'x' ? 'compact' : 'vson-p'
+			label: effectiveNotation === 'x' ? 'vson-x' : 'penman',
+			sub: effectiveNotation === 'x' ? 'compact' : 'vson-p'
 		},
 		{ id: 'turtle', label: 'turtle', sub: 'vson-t' },
 		{ id: 'conformance', label: 'conformance', sub: 'shacl' }

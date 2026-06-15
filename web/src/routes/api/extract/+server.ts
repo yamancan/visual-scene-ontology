@@ -121,12 +121,16 @@ export const POST: RequestHandler = async ({ request, url }) => {
 
 	const sha256 = createHash('sha256').update(Buffer.from(body.image_b64, 'base64')).digest('hex');
 
-	// Cached-demo short-circuit. Trust either an explicit sha256 hint OR the
-	// hash we just computed; either way we re-verify against the whitelist.
-	const cached = tryServeDemo(body.sha256 ?? sha256);
-	if (cached) return json(cached);
-
 	const variant: PromptVariant = resolveVariant(body.prompt, url.searchParams.get('prompt'));
+
+	// Cached-demo short-circuit. Only fires when the requested variant matches
+	// the variant the envelope was baked with — otherwise a `skill-x` request
+	// on a `skill`-baked demo would silently serve the wrong notation.
+	const cached = tryServeDemo(body.sha256 ?? sha256);
+	if (cached) {
+		const baked = cached.extraction?.prompt_version ?? '';
+		if (baked.startsWith(`${variant}@`)) return json(cached);
+	}
 	if (variant === 'skill-x' && !isXSkillReady()) {
 		throw error(503, 'VSON-X skill not yet shipped on this server');
 	}

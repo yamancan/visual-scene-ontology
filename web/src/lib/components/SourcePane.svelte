@@ -6,18 +6,28 @@
 	let copied = $state(false);
 	let containerEl: HTMLDivElement | undefined = $state();
 
-	let body = $derived(
-		scene.notation === 'x'
-			? (scene.envelope?.vson_x ?? '')
-			: (scene.envelope?.vson_p ?? '')
+	// Bidirectional fallback: honor sticky notation preference when the envelope
+	// carries that form, otherwise transparently render the other. v1.0 ships
+	// vson_p only; v1.1 X-mode ships vson_x only (back-conversion deferred to
+	// v1.2). Either direction can mismatch a stale sticky preference.
+	let preferred = $derived(
+		scene.notation === 'x' ? scene.envelope?.vson_x : scene.envelope?.vson_p
 	);
+	let alternate = $derived(
+		scene.notation === 'x' ? scene.envelope?.vson_p : scene.envelope?.vson_x
+	);
+	let preferredHasBody = $derived((preferred?.trim().length ?? 0) > 0);
+	let alternateHasBody = $derived((alternate?.trim().length ?? 0) > 0);
+	let body = $derived(preferredHasBody ? (preferred ?? '') : (alternate ?? ''));
+	let effective = $derived<'p' | 'x'>(
+		preferredHasBody ? scene.notation : scene.notation === 'x' ? 'p' : 'x'
+	);
+	let fallbackActive = $derived(!preferredHasBody && alternateHasBody);
 	let lines = $derived(body.split('\n'));
-	let label = $derived(scene.notation === 'x' ? 'vson-x' : 'penman');
-	let copyLabel = $derived(scene.notation === 'x' ? 'copy vson-x' : 'copy penman');
-	let isEmpty = $derived(body.trim().length === 0);
-	let canFallback = $derived(
-		scene.notation === 'x' && (scene.envelope?.vson_p?.trim().length ?? 0) > 0
-	);
+	let label = $derived(effective === 'x' ? 'vson-x' : 'penman');
+	let preferredLabel = $derived(scene.notation === 'x' ? 'vson-x' : 'penman');
+	let copyLabel = $derived(effective === 'x' ? 'copy vson-x' : 'copy penman');
+	let isEmpty = $derived(!preferredHasBody && !alternateHasBody);
 	let envelopeVersion = $derived(scene.envelope?.version ?? '');
 
 	async function doCopy() {
@@ -108,7 +118,7 @@
 	}
 
 	function highlight(line: string, sel: string | null): string {
-		return scene.notation === 'x' ? highlightX(line, sel) : highlightP(line, sel);
+		return effective === 'x' ? highlightX(line, sel) : highlightP(line, sel);
 	}
 
 	// Highlight whole line if it declares the selected var.
@@ -117,7 +127,7 @@
 	function declaresSelected(line: string, sel: string | null): boolean {
 		if (!sel) return false;
 		const escaped = sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-		if (scene.notation === 'x') {
+		if (effective === 'x') {
 			return new RegExp(`(?:^|\\s)@?${escaped}\\s+\\/`).test(line);
 		}
 		return new RegExp(`\\(\\s*${escaped}\\s*\\/`).test(line);
@@ -137,6 +147,14 @@
 <section class="wrap">
 	<header class="head">
 		<span class="head-label font-mono">{label} · {lines.length} lines</span>
+		{#if fallbackActive}
+			<span
+				class="fallback-chip font-mono"
+				title="Sticky preference is {preferredLabel}, but this scene was extracted in {label} mode. Showing what is in the envelope."
+			>
+				showing {label} · {preferredLabel} not in this envelope
+			</span>
+		{/if}
 		{#if scene.selectedNodeId}
 			<button
 				class="clear-sel"
@@ -157,14 +175,10 @@
 		{#if isEmpty}
 			<div class="empty-state">
 				<p class="empty-msg font-mono">
-					vson-x not present in this envelope
-					{#if envelopeVersion}<span class="ver">({envelopeVersion})</span>{/if}
+					no source text in this envelope
+					{#if envelopeVersion}<span class="ver">schema {envelopeVersion}</span>{/if}
 				</p>
-				{#if canFallback}
-					<button class="empty-action" onclick={() => scene.setNotation('p')}>
-						switch to penman
-					</button>
-				{/if}
+				<p class="empty-hint font-mono">drop an image to extract a scene</p>
 			</div>
 		{:else}
 			<pre class="code">{#each lines as line, i (i)}{@const decl = declaresSelected(line, scene.selectedNodeId)}<div
@@ -198,6 +212,17 @@
 		text-transform: uppercase;
 		letter-spacing: 0.08em;
 		color: var(--fg-4);
+	}
+	.fallback-chip {
+		font-size: 9px;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--warning, var(--accent));
+		background: color-mix(in srgb, var(--warning, var(--accent)) 12%, transparent);
+		border: 1px solid color-mix(in srgb, var(--warning, var(--accent)) 30%, var(--border-1));
+		border-radius: var(--radius-full);
+		padding: 2px 8px;
+		cursor: help;
 	}
 	.clear-sel {
 		display: inline-flex;
@@ -256,28 +281,15 @@
 		color: var(--fg-3);
 		text-align: center;
 	}
+	.empty-hint {
+		font-size: 10px;
+		color: var(--fg-4);
+		text-align: center;
+	}
 	.ver {
 		color: var(--fg-4);
-		margin-left: 4px;
-	}
-	.empty-action {
-		font-family: var(--font-mono);
-		font-size: 10px;
-		text-transform: uppercase;
-		letter-spacing: 0.06em;
-		padding: 6px 12px;
-		background: var(--bg-1);
-		border: 1px solid var(--border-2);
-		border-radius: var(--radius-sm);
-		color: var(--accent);
-		cursor: pointer;
-		transition:
-			background var(--duration-fast) var(--ease-out),
-			border-color var(--duration-fast) var(--ease-out);
-	}
-	.empty-action:hover {
-		background: var(--accent-bg);
-		border-color: var(--accent);
+		margin-left: 6px;
+		font-size: 9px;
 	}
 	.code {
 		margin: 0;
