@@ -58,7 +58,12 @@ fn decode_escapes(body: &str) -> String {
                 Some('\'') => out.push('\''),
                 Some('\\') => out.push('\\'),
                 Some('/') => out.push('/'),
-                Some(other) => out.push(other),
+                // Unknown escape: keep the backslash verbatim rather than
+                // dropping it (mirrors the Python reference; lossless round-trip).
+                Some(other) => {
+                    out.push('\\');
+                    out.push(other);
+                }
                 None => out.push('\\'),
             }
         } else {
@@ -152,6 +157,17 @@ mod tests {
         let toks = tokenize(r#":k "a\nb\tc""#).unwrap();
         match &toks[1].kind {
             TokKind::Str(s) => assert_eq!(s, "a\nb\tc"),
+            other => panic!("got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn unknown_escape_keeps_backslash() {
+        // `\p` is outside the closed escape set; the backslash is preserved
+        // verbatim (lossless), not silently dropped (which would give "C:path").
+        let toks = tokenize(r#":k "C:\path""#).unwrap();
+        match &toks[1].kind {
+            TokKind::Str(s) => assert_eq!(s, r"C:\path"),
             other => panic!("got {:?}", other),
         }
     }

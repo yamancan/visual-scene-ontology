@@ -197,6 +197,13 @@ vso:Role       a vso:Dimension .
 vso:Size       a vso:Dimension .
 vso:Enchantment a vso:Dimension .
 
+# vso:dimension is owl:FunctionalProperty, so a Quality asserting two dimensions
+# collapses them to owl:sameAs via prp-fp. Declaring the dimension individuals
+# pairwise-distinct turns that collapse into a detectable eq-diff1 clash in the
+# owl-consistency gate — mirroring the individuation/animacy/countability axes.
+[] a owl:AllDifferent ; owl:distinctMembers
+   ( vso:Color vso:Weight vso:Material vso:Affect vso:Age vso:Role vso:Size vso:Enchantment ) .
+
 #################################################################
 # 8. Thematic-role properties (used on Event / Process / Stative)
 #################################################################

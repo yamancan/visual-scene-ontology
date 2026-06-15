@@ -76,6 +76,15 @@ class OwlRlConsistencyTests(unittest.TestCase):
         g = self._doc(":e a vso:Entity ; vso:animacy vso:Agentive, vso:Inert .")
         self.assertTrue(clashes_for(g))
 
+    def test_two_dimensions_on_quality_is_inconsistent(self) -> None:
+        # dimension is functional → prp-fp collapses Color+Weight to owl:sameAs;
+        # the AllDifferent over the Dimension individuals makes that a detected
+        # eq-diff1 clash, parity with the individuation/animacy/countability axes.
+        g = self._doc(
+            ":q a vso:Quality ; vso:dimension vso:Color, vso:Weight ; vso:value \"x\" ."
+        )
+        self.assertTrue(clashes_for(g))
+
 
 if __name__ == "__main__":
     unittest.main()

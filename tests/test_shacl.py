@@ -48,6 +48,15 @@ class ConformanceTests(unittest.TestCase):
         self.assertFalse(conforms)
         self.assertIn("lemma", report)
 
+    def test_frame_bears_quality_fails(self) -> None:
+        # A CameraView (a Frame, neither Entity nor Composition) bearing
+        # vso:hasQuality MUST fail vss:HasQualityShape. Guards against the shape
+        # regressing to the vacuous `sh:class vso:QualityBearer` form, which
+        # could never fire under inference="rdfs".
+        conforms, report = validate_path("tests/fixtures/bad_frame_bears_quality.ttl")
+        self.assertFalse(conforms)
+        self.assertIn("QualityBearer", report)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -15,6 +15,7 @@ from __future__ import annotations
 import glob
 import json
 import os
+import re
 import sys
 
 import rdflib
@@ -30,6 +31,10 @@ REPL = {
     "inFrontOf": "in_front_of",
     "nextTo": "next_to",
 }
+# Match only whole tokens (word boundaries), so a camelCase directional that
+# happens to be a substring of unrelated text (a caption, an identifier like
+# `nextToken`, a URL) is left untouched.
+_REPL_RE = re.compile(r"\b(" + "|".join(re.escape(k) for k in REPL) + r")\b")
 
 
 def _read(path: str) -> str:
@@ -44,42 +49,52 @@ def _write(path: str, text: str) -> None:
 
 def main() -> int:
     files = sorted(glob.glob(os.path.join(ENV_DIR, "**", "*.json"), recursive=True))
-    token_fixed = conf_fixed = 0
+    token_fixed = conf_fixed = non_conforming = 0
     for f in files:
         if os.path.basename(f) == "index.json":
             continue
         rel = os.path.relpath(f, ROOT)
 
-        # 1) format-preserving value rewrite
+        # 1) format-preserving value rewrite (whole-token, see _REPL_RE)
         raw = _read(f)
-        new = raw
-        for a, b in REPL.items():
-            new = new.replace(a, b)
+        new = _REPL_RE.sub(lambda m: REPL[m.group(1)], raw)
         if new != raw:
             _write(f, new)
             token_fixed += 1
             print(f"  token-normalized {rel}")
 
-        # 2) refresh stored conformance only if stale
-        env = json.loads(_read(f))
+        # 2) refresh stored conformance from a real SHACL run. Parse `new`
+        #    directly — it is already the on-disk content, so no second read.
+        env = json.loads(new)
         vson_t = env.get("vson_t")
         if not vson_t:
             continue
         g = rdflib.Graph()
         g.parse(data=vson_t, format="turtle")
-        conforms, _ = validate_graph(g)
+        conforms, report = validate_graph(g)
         stored = env.get("conformance", {}) or {}
-        stale = bool(stored.get("conforms")) != bool(conforms) or (
-            conforms and (stored.get("violations") or [])
-        )
-        if stale:
-            env["conformance"] = {"conforms": bool(conforms), "violations": []}
-            _write(f, json.dumps(env, indent=2, ensure_ascii=False) + "\n")
-            conf_fixed += 1
-            print(f"  conformance-refreshed {rel} (conforms={conforms})")
+        if conforms:
+            # The snake_case rewrite cleared the directional violations: it is now
+            # safe to record a clean report. Rewrite only when the stored record
+            # disagrees (was non-conforming, or still carried violations).
+            if not stored.get("conforms") or (stored.get("violations") or []):
+                env["conformance"] = {"conforms": True, "violations": []}
+                _write(f, json.dumps(env, indent=2, ensure_ascii=False) + "\n")
+                conf_fixed += 1
+                print(f"  conformance-refreshed {rel} (conforms=True)")
+        else:
+            # Genuinely non-conforming after normalization. Do NOT fabricate an
+            # empty violation list — that would erase the diagnostic the studio
+            # renders. Leave the stored record intact and surface the report.
+            non_conforming += 1
+            print(f"  WARNING {rel}: non-conforming after normalize; stored conformance left as-is")
+            print("    " + report.strip().replace("\n", "\n    "))
 
-    print(f"normalize: {token_fixed} value-rewritten, {conf_fixed} conformance-refreshed")
-    return 0
+    print(
+        f"normalize: {token_fixed} value-rewritten, {conf_fixed} conformance-refreshed, "
+        f"{non_conforming} non-conforming"
+    )
+    return 1 if non_conforming else 0
 
 
 if __name__ == "__main__":

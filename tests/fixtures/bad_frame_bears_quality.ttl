@@ -1,0 +1,18 @@
+# Negative SHACL fixture: a CameraView (a Frame, neither Entity nor Composition)
+# bears vso:hasQuality. MUST fail vss:HasQualityShape.
+#
+# Regression guard: before the sh:or(Entity, Composition) fix, the shape used
+# `sh:class vso:QualityBearer` — vacuous under inference="rdfs", because
+# QualityBearer is hasQuality's rdfs:domain, so rdfs entailment typed every
+# hasQuality subject into QualityBearer and the shape could never fire. This
+# scene wrongly conformed back then.
+
+@prefix vso: <https://vson.dev/v1/ontology#> .
+@prefix :    <https://example.org/scenes/bad_qb#> .
+
+:cam a vso:CameraView ;
+     vso:hasQuality :q .   # ← CameraView is a Frame, not a QualityBearer.
+
+:q a vso:Quality ;
+   vso:dimension vso:Color ;
+   vso:value "blue" .

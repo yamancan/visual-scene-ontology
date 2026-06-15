@@ -58,6 +58,13 @@ class TokenizerTests(unittest.TestCase):
         s = [t for t in toks if t.kind == "STR"][0]
         self.assertEqual(s.value, 'x\ny\t"z"')
 
+    def test_unknown_escape_keeps_backslash(self) -> None:
+        # An escape outside the closed Turtle ECHAR set keeps its backslash
+        # verbatim rather than silently dropping it ("C:\path" stays intact).
+        toks = vp.tokenize(r'(a / Foo :path "C:\path")')
+        s = [t for t in toks if t.kind == "STR"][0]
+        self.assertEqual(s.value, r"C:\path")
+
 
 class ParserTests(unittest.TestCase):
     def test_simple_node(self) -> None:
@@ -121,6 +128,17 @@ class EmitterTests(unittest.TestCase):
         g.parse(data=ttl, format="turtle")  # must not raise
         val = [str(o) for s, p, o in g if "venue" in str(p)][0]
         self.assertEqual(val, "a\nb")
+
+    def test_unknown_escape_round_trips_through_turtle(self) -> None:
+        # A literal backslash (from an unknown source escape) emits as a Turtle
+        # \\ and parses back to the original bytes — no silent corruption.
+        ttl = vp.to_turtle(r'(s / SceneContext :venue "C:\path")')
+        import rdflib
+
+        g = rdflib.Graph()
+        g.parse(data=ttl, format="turtle")  # must not raise
+        val = [str(o) for s, p, o in g if "venue" in str(p)][0]
+        self.assertEqual(val, r"C:\path")
 
     def test_underscore_var_is_blank_node(self) -> None:
         # '_'-prefixed vars become blank nodes; the full var is the injective

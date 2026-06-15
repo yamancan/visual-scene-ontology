@@ -193,9 +193,15 @@ vss:DepictsEntityShape a sh:NodeShape ;
 # Quality bearer must be an Entity or a Composition (a QualityBearer)
 #################################################################
 
+# NB: do NOT use `sh:class vso:QualityBearer` here. QualityBearer is the
+# rdfs:domain of vso:hasQuality, so under inference="rdfs" every subject of
+# hasQuality is entailed into QualityBearer — the check would be vacuous and
+# never fire. Asserting the concrete subclasses (Entity / Composition) instead
+# is real: rdfs entailment never derives a subclass from a superclass, so a
+# non-Composition Frame bearing a quality genuinely fails this shape.
 vss:HasQualityShape a sh:NodeShape ;
     sh:targetSubjectsOf vso:hasQuality ;
-    sh:class vso:QualityBearer ;
+    sh:or ( [ sh:class vso:Entity ] [ sh:class vso:Composition ] ) ;
     sh:message "Only a QualityBearer (an Entity, or a Composition bearing compositional qualities) may carry vso:hasQuality." .
 
 #################################################################

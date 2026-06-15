@@ -115,7 +115,11 @@ def _decode_escapes(body: str) -> str:
     while i < n:
         c = body[i]
         if c == "\\" and i + 1 < n:
-            out.append(_STR_ESCAPES.get(body[i + 1], body[i + 1]))
+            nxt = body[i + 1]
+            # Unknown escapes keep the backslash verbatim. Turtle ECHAR is a
+            # closed set; dropping the backslash would silently corrupt values
+            # like "C:\path" (\p -> p). Re-encoded losslessly at emit time.
+            out.append(_STR_ESCAPES[nxt] if nxt in _STR_ESCAPES else "\\" + nxt)
             i += 2
         else:
             out.append(c)

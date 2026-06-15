@@ -74,9 +74,11 @@ vss:FrameNotDepictedShape a sh:NodeShape ;
     sh:not [ sh:class vso:Frame ] ;
     sh:message "vso:depicts must point to an Entity, not a Frame. Use vso:framedBy for the perspectival layer." .
 
+# sh:class vso:QualityBearer would be vacuous under inference="rdfs" (it is the
+# rdfs:domain of vso:hasQuality). Assert the concrete subclasses instead.
 vss:HasQualityShape a sh:NodeShape ;
     sh:targetSubjectsOf vso:hasQuality ;
-    sh:class vso:QualityBearer ;
+    sh:or ( [ sh:class vso:Entity ] [ sh:class vso:Composition ] ) ;
     sh:message "Only a QualityBearer (an Entity, or a Composition bearing compositional qualities) may carry vso:hasQuality." .
 
 vss:NegationShape a sh:NodeShape ;

@@ -37,6 +37,26 @@ def _ontology() -> rdflib.Graph:
     return g
 
 
+_ONTOLOGY_CLOSED: rdflib.Graph | None = None
+
+
+def _ontology_closed() -> rdflib.Graph:
+    """The ontology with its OWL-RL closure materialized once, then cached.
+
+    OWL-RL closure is a monotone fixpoint, so expanding (closed_ontology + doc)
+    reaches the same result as expanding (ontology + doc). Caching lets the
+    ontology's own entailments (subclass/subproperty/disjointness scaffolding) be
+    computed a single time instead of re-parsing three TTL files and re-running
+    the full closure once per checked document.
+    """
+    global _ONTOLOGY_CLOSED
+    if _ONTOLOGY_CLOSED is None:
+        g = _ontology()
+        DeductiveClosure(OWLRL_Semantics).expand(g)
+        _ONTOLOGY_CLOSED = g
+    return _ONTOLOGY_CLOSED
+
+
 def _disjoint_pairs(g: rdflib.Graph):
     """All unordered class pairs declared disjoint, via owl:disjointWith and
     owl:AllDisjointClasses/owl:members."""
@@ -82,7 +102,7 @@ def _distinct_sets(g: rdflib.Graph):
 
 def clashes_for(doc: rdflib.Graph):
     """Return a list of (individual, classA, classB) disjointness violations."""
-    g = _ontology() + doc
+    g = _ontology_closed() + doc
     DeductiveClosure(OWLRL_Semantics).expand(g)
     found = []
     for a, b in _disjoint_pairs(g):
