@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { scene } from '$lib/scene.svelte';
 	import { buildSceneView } from '$lib/render/sceneView';
-	import { parseBbox, fmtBbox, type BBox } from '$lib/bbox';
+	import { parseBbox, type BBox } from '$lib/bbox';
 
 	// Curated class→glyph registry, mirrored from EntityCard so the overlay
 	// label chip matches the card list. Open `vso:class` vocabulary means we
@@ -121,7 +121,7 @@
 						class:hovered={hov}
 						style="left:{b.bbox.x * 100}%; top:{b.bbox.y * 100}%; width:{b.bbox.w * 100}%; height:{b
 							.bbox.h * 100}%;"
-						aria-label="{labelFor(b)} (full frame) — {fmtBbox(b.bbox)}"
+						aria-label="{labelFor(b)} (full frame)"
 						aria-pressed={sel}
 						onclick={() => onClick(b.id)}
 						onmouseenter={() => scene.setHovered(b.id)}
@@ -143,7 +143,7 @@
 						class:hovered={hov}
 						style="left:{b.bbox.x * 100}%; top:{b.bbox.y * 100}%; width:{b.bbox.w * 100}%; height:{b
 							.bbox.h * 100}%;"
-						aria-label="{labelFor(b)} — {fmtBbox(b.bbox)}"
+						aria-label="{labelFor(b)}"
 						aria-pressed={sel}
 						onclick={() => onClick(b.id)}
 						onmouseenter={() => scene.setHovered(b.id)}
@@ -172,7 +172,6 @@
 	.placeholder {
 		color: var(--fg-4);
 		font-size: var(--text-2xs);
-		text-transform: uppercase;
 		letter-spacing: 0.06em;
 	}
 	/* "no boxes" sits over the rendered image instead of replacing it. */

@@ -1,7 +1,12 @@
 <script lang="ts">
-	import type { EntityCardModel, HasRef } from '$lib/render/sceneView';
+	import {
+		restingHint,
+		colorSwatch,
+		type EntityCardModel,
+		type HasRef
+	} from '$lib/render/sceneView';
 	import { scene } from '$lib/scene.svelte';
-	import { parseBbox, cropStyle, fmtBbox } from '$lib/bbox';
+	import { parseBbox, cropStyle } from '$lib/bbox';
 
 	let {
 		entity,
@@ -91,9 +96,11 @@
 		return Array.from(m.entries()).map(([label, items]) => ({ label, items }));
 	});
 
-	function fmt(n: number): string {
-		return n.toFixed(2);
-	}
+	// ONE quality hint at rest (colour-preferred), shared with the Inspect row via
+	// restingHint so both surfaces agree. A plain colour word also paints a
+	// swatch. The full per-dim list lives in the inline editor.
+	let hint = $derived(restingHint(entity.qualities));
+	let swatch = $derived(colorSwatch(hint));
 
 	// CROP THUMBNAIL: a CSS-sprite crop of the source image showing only this
 	// entity's bbox sub-rect. Shown in the header in place of the emoji icon, but
@@ -182,7 +189,6 @@
 			<span
 				class="crop"
 				style={cropCss}
-				title={cardBbox ? fmtBbox(cardBbox) : ''}
 				aria-hidden="true"
 			></span>
 		{:else}
@@ -270,256 +276,70 @@
 		</div>
 	{/if}
 
-	{#if entity.traits.individuation || entity.traits.animacy || entity.traits.countability || entity.traits.affordance.length}
-		<div class="traits font-mono">
-			{#if entity.traits.individuation}
-				<span class="trait" title="vso:individuation">
-					<span class="trait-axis">indiv</span>{entity.traits.individuation}
-				</span>
-			{/if}
-			{#if entity.traits.animacy}
-				<span class="trait" title="vso:animacy">
-					<span class="trait-axis">anim</span>{entity.traits.animacy}
-				</span>
-			{/if}
-			{#if entity.traits.countability}
-				<span class="trait" title="vso:countability">
-					<span class="trait-axis">count</span>{entity.traits.countability}
-				</span>
-			{/if}
-			{#if entity.traits.affordance.length}
-				<span class="trait" title="vso:affordance">
-					<span class="trait-axis">aff</span>{entity.traits.affordance.join(',')}
-				</span>
-			{/if}
-		</div>
+	{#if !editing && hint}
+		<p class="hint">
+			{#if swatch}<span class="swatch" style="background:{swatch}"></span>{/if}
+			{hint.value}
+		</p>
 	{/if}
 
-	{#if entity.qualities.length}
-		<ul class="qualities">
-			{#each entity.qualities as q (q.dim)}
-				<li>
-					<span class="dim font-mono">{q.dim}</span>
-					<span class="val">{q.value}</span>
-				</li>
-			{/each}
-		</ul>
-	{/if}
-
-	{#if entity.geometry.bbox || entity.geometry.position3d || entity.geometry.scale3d || entity.geometry.rotation || entity.geometry.visibleFraction || entity.geometry.occludes.length}
-		<div class="geometry">
-			{#if entity.geometry.bbox}
-				{@const b = parseBbox(entity.geometry.bbox)}
-				<div
-					class="entity-bbox"
-					title={b
-						? `vso:bbox2d normalized 0–1 image coords · x=${fmt(b.x)} y=${fmt(b.y)} w=${fmt(b.w)} h=${fmt(b.h)}`
-						: 'vso:bbox2d (unparseable)'}
-				>
-					<span class="g-key font-mono">bbox</span>
-					{#if b && b.isFullImage}
-						<span class="bbox-full font-mono">full</span>
-					{:else if b}
-						<svg class="bbox-mini" viewBox="0 0 24 24" aria-hidden="true">
-							<rect
-								x="0.5"
-								y="0.5"
-								width="23"
-								height="23"
-								fill="none"
-								stroke="currentColor"
-								stroke-opacity="0.18"
-								stroke-width="1"
-							/>
-							<rect
-								x={(b.x * 23 + 0.5).toFixed(2)}
-								y={(b.y * 23 + 0.5).toFixed(2)}
-								width={(b.w * 23).toFixed(2)}
-								height={(b.h * 23).toFixed(2)}
-								fill="currentColor"
-								fill-opacity="0.18"
-								stroke="currentColor"
-								stroke-width="1.2"
-							/>
-						</svg>
-						<span class="bbox-coord"><span class="bc-k">x</span>{fmt(b.x)}</span>
-						<span class="bbox-coord"><span class="bc-k">y</span>{fmt(b.y)}</span>
-						<span class="bbox-coord"><span class="bc-k">w</span>{fmt(b.w)}</span>
-						<span class="bbox-coord"><span class="bc-k">h</span>{fmt(b.h)}</span>
-					{:else}
-						<span class="g-val font-mono">{entity.geometry.bbox}</span>
-					{/if}
-				</div>
-			{/if}
-			{#if entity.geometry.position3d}
-				<div class="g-row" title="vso:position3d (x,y,z world coords)">
-					<span class="g-key font-mono">pos3d</span>
-					<span class="g-val font-mono">{entity.geometry.position3d}</span>
-				</div>
-			{/if}
-			{#if entity.geometry.scale3d}
-				<div class="g-row" title="vso:scale3d">
-					<span class="g-key font-mono">scale3d</span>
-					<span class="g-val font-mono">{entity.geometry.scale3d}</span>
-				</div>
-			{/if}
-			{#if entity.geometry.rotation}
-				<div class="g-row" title="vso:rotation (quaternion or Euler)">
-					<span class="g-key font-mono">rot</span>
-					<span class="g-val font-mono">{entity.geometry.rotation}</span>
-				</div>
-			{/if}
-			{#if entity.geometry.visibleFraction}
-				<div class="g-row" title="vso:visibleFraction (0–1)">
-					<span class="g-key font-mono">visible</span>
-					<span class="g-val font-mono">{entity.geometry.visibleFraction}</span>
-				</div>
-			{/if}
-			{#if entity.geometry.occludes.length}
-				<div class="g-row" title="vso:occludes — entities this one hides from the camera">
-					<span class="g-key font-mono">occludes</span>
-					<span class="g-val font-mono">
-						{#each entity.geometry.occludes as o, i (o + i)}<button
-								type="button"
-								class="occludes-ref"
-								onclick={(ev) =>
-									focusItem(ev, {
-										label: 'occludes',
-										to: o,
-										traits: { affordance: [] },
-										qualities: [],
-										geometry: { occludes: [] }
-									})}>@{o}</button
-							>{i < entity.geometry.occludes.length - 1 ? ', ' : ''}{/each}
-					</span>
-				</div>
-			{/if}
-		</div>
-	{/if}
-
-	{#if hasGroups.length}
-		<div class="has-block">
+	{#if !editing && hasGroups.length}
+		<div class="parts">
 			{#each hasGroups as g (g.label)}
-				<div class="has-group">
-					<header class="has-group-h">
-						<span class="has-pred font-mono">{g.label}</span>
-						<span class="has-count font-mono">{g.items.length}</span>
-					</header>
-					<ul class="has-items">
-						{#each g.items as h, i (h.label + h.to + i)}
-							<li>
-								<button
-									type="button"
-									class="has-item"
-									onclick={(e) => focusItem(e, h)}
-									onkeydown={(e) => focusItem(e, h)}
-									title="{h.label} → {h.klass ?? '?'} @{h.to}"
-								>
-									<div class="item-head">
-										{#if itemCrop(h)}
-											<span class="item-crop" style={itemCrop(h)} aria-hidden="true"></span>
-										{:else}
-											<span class="item-ico" aria-hidden="true">{iconFor(h.klass)}</span>
-										{/if}
-										<span class="item-klass">{h.klass ?? '?'}</span>
-										<span class="item-id font-mono">@{h.to}</span>
-									</div>
-									{#if h.traits.individuation || h.traits.animacy || h.traits.countability || h.traits.affordance.length}
-										<div class="item-traits font-mono">
-											{#if h.traits.individuation}
-												<span class="item-trait" title="vso:individuation">
-													<span class="trait-axis">indiv</span>{h.traits.individuation}
-												</span>
-											{/if}
-											{#if h.traits.animacy}
-												<span class="item-trait" title="vso:animacy">
-													<span class="trait-axis">anim</span>{h.traits.animacy}
-												</span>
-											{/if}
-											{#if h.traits.countability}
-												<span class="item-trait" title="vso:countability">
-													<span class="trait-axis">count</span>{h.traits.countability}
-												</span>
-											{/if}
-											{#if h.traits.affordance.length}
-												<span class="item-trait" title="vso:affordance">
-													<span class="trait-axis">aff</span>{h.traits.affordance.join(',')}
-												</span>
-											{/if}
-										</div>
-									{/if}
-									{#if h.qualities.length}
-										<div class="item-meta">
-											{#each h.qualities as q (q.dim)}
-												<span class="item-q">
-													<span class="q-dim font-mono">{q.dim}</span>
-													<span class="q-val">{q.value}</span>
-												</span>
-											{/each}
-										</div>
-									{/if}
-									{#if h.geometry.bbox}
-										{@const b = parseBbox(h.geometry.bbox)}
-										<div
-											class="item-bbox"
-											title={b
-												? `vso:bbox2d normalized 0–1 image coords · x=${fmt(b.x)} y=${fmt(b.y)} w=${fmt(b.w)} h=${fmt(b.h)}`
-												: 'vso:bbox2d (unparseable)'}
-										>
-											<span class="q-dim font-mono">bbox</span>
-											{#if b && b.isFullImage}
-												<span class="bbox-full font-mono">full</span>
-											{:else if b}
-												<svg class="bbox-mini" viewBox="0 0 24 24" aria-hidden="true">
-													<rect
-														x="0.5"
-														y="0.5"
-														width="23"
-														height="23"
-														fill="none"
-														stroke="currentColor"
-														stroke-opacity="0.18"
-														stroke-width="1"
-													/>
-													<rect
-														x={(b.x * 23 + 0.5).toFixed(2)}
-														y={(b.y * 23 + 0.5).toFixed(2)}
-														width={(b.w * 23).toFixed(2)}
-														height={(b.h * 23).toFixed(2)}
-														fill="currentColor"
-														fill-opacity="0.18"
-														stroke="currentColor"
-														stroke-width="1.2"
-													/>
-												</svg>
-												<span class="bbox-coord"><span class="bc-k">x</span>{fmt(b.x)}</span>
-												<span class="bbox-coord"><span class="bc-k">y</span>{fmt(b.y)}</span>
-												<span class="bbox-coord"><span class="bc-k">w</span>{fmt(b.w)}</span>
-												<span class="bbox-coord"><span class="bc-k">h</span>{fmt(b.h)}</span>
-											{:else}
-												<span class="q-val font-mono">{h.geometry.bbox}</span>
-											{/if}
-										</div>
-									{/if}
-								</button>
-							</li>
-						{/each}
-					</ul>
+				<div class="part-group">
+					<span class="part-pred font-mono">{g.label}</span>
+					{#each g.items as h, i (h.label + h.to + i)}
+						<button
+							type="button"
+							class="part-chip"
+							onclick={(e) => focusItem(e, h)}
+							onkeydown={(e) => focusItem(e, h)}
+							title="{g.label} → {h.klass ?? '?'} @{h.to}"
+						>
+							{#if itemCrop(h)}
+								<span class="chip-crop" style={itemCrop(h)} aria-hidden="true"></span>
+							{:else}
+								<span class="chip-ico" aria-hidden="true">{iconFor(h.klass)}</span>
+							{/if}
+							<span class="chip-label">{h.klass ?? `@${h.to}`}</span>
+						</button>
+					{/each}
 				</div>
 			{/each}
 		</div>
 	{/if}
 
-	{#if entity.outgoing.length}
-		<ul class="outgoing">
-			{#each entity.outgoing as e, i (e.label + e.to + i)}
-				<li>
-					<span class="rel font-mono">{e.label}</span>
-					<span class="arrow" aria-hidden="true">→</span>
-					<span class="ref font-mono">@{e.to}</span>
-				</li>
-			{/each}
-		</ul>
+	{#if !editing && entity.outgoing.length}
+		<div class="parts">
+			<div class="part-group">
+				<span class="part-pred font-mono">links</span>
+				{#each entity.outgoing as e, i (e.label + e.to + i)}
+					<button
+						type="button"
+						class="part-chip"
+						onclick={(ev) =>
+							focusItem(ev, {
+								label: e.label,
+								to: e.to,
+								traits: { affordance: [] },
+								qualities: [],
+								geometry: { occludes: [] }
+							})}
+						onkeydown={(ev) =>
+							focusItem(ev, {
+								label: e.label,
+								to: e.to,
+								traits: { affordance: [] },
+								qualities: [],
+								geometry: { occludes: [] }
+							})}
+						title="{e.label} → @{e.to}"
+					>
+						<span class="chip-label font-mono">{e.label} @{e.to}</span>
+					</button>
+				{/each}
+			</div>
+		</div>
 	{/if}
 </div>
 
@@ -643,7 +463,6 @@
 	.ed-label {
 		font-size: 9px;
 		color: var(--fg-4);
-		text-transform: uppercase;
 		letter-spacing: 0.04em;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -711,60 +530,32 @@
 	}
 	.klass {
 		font-size: 9px;
-		text-transform: uppercase;
 		letter-spacing: 0.06em;
 		color: var(--fg-4);
 		margin-left: auto;
 	}
-	.traits {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 3px;
-	}
-	.trait {
+	/* ONE quality hint — a calm single line, sentence-case, no axis labels. */
+	.hint {
 		display: inline-flex;
-		align-items: baseline;
-		gap: 4px;
-		font-size: 9px;
-		padding: 1px 5px;
-		background: var(--tag-bg);
-		color: var(--fg-2);
-		border-radius: var(--radius-sm);
-	}
-	.trait-axis {
-		font-size: 8px;
-		color: var(--fg-4);
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-	}
-	.qualities,
-	.outgoing {
-		list-style: none;
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-		min-width: 0;
-	}
-	.qualities li {
-		display: grid;
-		grid-template-columns: 88px 1fr;
-		gap: var(--s2);
+		align-items: center;
+		gap: 5px;
+		margin: 0;
 		font-size: var(--text-xs);
-		align-items: baseline;
-		min-width: 0;
-	}
-	.dim {
-		color: var(--fg-4);
-		font-size: 10px;
+		color: var(--fg-2);
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
-	.val {
-		color: var(--fg-1);
-		overflow-wrap: anywhere;
+	.swatch {
+		width: 11px;
+		height: 11px;
+		flex-shrink: 0;
+		border-radius: var(--radius-full);
+		border: 1px solid color-mix(in srgb, var(--fg-0) 22%, transparent);
 	}
-	.has-block {
+	/* PART SUMMARY — compact chips, one row per predicate. Each chip jumps to
+	   the referenced entity. Full per-part detail lives in the inline editor. */
+	.parts {
 		display: flex;
 		flex-direction: column;
 		gap: var(--s2);
@@ -772,230 +563,59 @@
 		border-top: 1px dashed var(--border-1);
 		margin-top: 2px;
 	}
-	.has-group {
+	.part-group {
 		display: flex;
-		flex-direction: column;
+		flex-wrap: wrap;
+		align-items: center;
 		gap: 4px;
 		min-width: 0;
 	}
-	.has-group-h {
-		display: flex;
-		align-items: baseline;
-		gap: 6px;
-	}
-	.has-pred {
-		font-size: 9px;
-		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		color: var(--fg-3);
-	}
-	.has-count {
+	.part-pred {
 		font-size: 9px;
 		color: var(--fg-4);
+		flex-shrink: 0;
 	}
-	.has-items {
-		list-style: none;
-		display: flex;
-		flex-direction: column;
-		gap: 3px;
-		min-width: 0;
-	}
-	.has-item {
-		display: flex;
-		flex-direction: column;
-		gap: 3px;
-		padding: 5px 7px;
-		width: 100%;
+	.part-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		max-width: 100%;
+		padding: 2px 6px 2px 3px;
 		background: var(--bg-0);
 		border: 1px solid var(--border-1);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-full);
 		color: var(--fg-1);
 		font-family: inherit;
-		text-align: left;
+		font-size: var(--text-xs);
 		cursor: pointer;
 		transition:
 			border-color var(--duration-fast) var(--ease-out),
 			background var(--duration-fast) var(--ease-out);
 		min-width: 0;
 	}
-	.has-item:hover {
+	.part-chip:hover {
 		border-color: var(--border-2);
 		background: var(--bg-1);
 	}
-	.has-item:focus-visible {
+	.part-chip:focus-visible {
 		outline: 2px solid var(--accent);
 		outline-offset: 1px;
 	}
-	.item-head {
-		display: flex;
-		align-items: baseline;
-		gap: 5px;
-		min-width: 0;
-	}
-	.item-ico {
-		font-size: 12px;
+	.chip-ico {
+		font-size: 11px;
 		line-height: 1;
 		flex-shrink: 0;
 	}
-	.item-crop {
-		width: 18px;
-		height: 18px;
+	.chip-crop {
+		width: 16px;
+		height: 16px;
 		flex-shrink: 0;
-		border: 1px solid var(--border-1);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-full);
 	}
-	.item-klass {
-		font-size: 11px;
-		color: var(--fg-0);
-		font-weight: 500;
-	}
-	.item-id {
-		font-size: 9px;
-		color: var(--fg-4);
-		margin-left: auto;
-	}
-	.item-traits {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 3px;
-	}
-	.item-trait {
-		display: inline-flex;
-		align-items: baseline;
-		gap: 3px;
-		font-size: 9px;
-		padding: 0 4px;
-		background: var(--tag-bg);
-		color: var(--fg-2);
-		border-radius: var(--radius-sm);
-	}
-	.item-meta {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 8px;
-		font-size: 10px;
-		min-width: 0;
-	}
-	.item-q {
-		display: inline-flex;
-		align-items: baseline;
-		gap: 4px;
-		min-width: 0;
-	}
-	.q-dim {
-		font-size: 9px;
-		color: var(--fg-4);
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-	}
-	.q-val {
-		color: var(--fg-2);
-	}
-	.item-bbox {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 6px;
-		font-size: 10px;
-	}
-	.bbox-mini {
-		width: 18px;
-		height: 18px;
-		flex-shrink: 0;
-		color: var(--accent);
-	}
-	.bbox-full {
-		font-size: 9px;
-		padding: 1px 5px;
-		background: var(--tag-bg);
-		color: var(--fg-3);
-		border-radius: var(--radius-sm);
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-	}
-	.geometry {
-		display: flex;
-		flex-direction: column;
-		gap: 3px;
-		padding-top: var(--s2);
-		border-top: 1px dashed var(--border-1);
-		margin-top: 2px;
-	}
-	.entity-bbox {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 6px;
-		font-size: 10px;
-	}
-	.g-row {
-		display: flex;
-		align-items: baseline;
-		gap: 6px;
-		font-size: 10px;
-		min-width: 0;
-	}
-	.g-key {
-		font-size: 9px;
-		color: var(--fg-4);
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		flex-shrink: 0;
-	}
-	.g-val {
-		color: var(--fg-2);
-		overflow-wrap: anywhere;
-	}
-	.occludes-ref {
-		background: transparent;
-		border: 0;
-		padding: 0;
-		color: var(--accent);
-		font: inherit;
-		cursor: pointer;
-		text-decoration: underline dotted;
-		text-underline-offset: 2px;
-	}
-	.occludes-ref:hover {
-		text-decoration-style: solid;
-	}
-	.bbox-coord {
-		display: inline-flex;
-		align-items: baseline;
-		gap: 2px;
-		font-family: var(--font-mono);
-		color: var(--fg-2);
-		font-size: 10px;
-	}
-	.bc-k {
-		font-size: 9px;
-		color: var(--fg-4);
-		text-transform: uppercase;
-	}
-	.outgoing {
-		padding-top: var(--s2);
-		border-top: 1px dashed var(--border-1);
-		margin-top: 2px;
-	}
-	.outgoing li {
-		display: flex;
-		align-items: baseline;
-		gap: 6px;
-		font-size: var(--text-xs);
-		min-width: 0;
-	}
-	.rel {
-		color: var(--node-perdurant);
-		font-size: 10px;
-	}
-	.arrow {
-		color: var(--fg-4);
-		font-size: 10px;
-	}
-	.ref {
-		color: var(--fg-1);
+	.chip-label {
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		min-width: 0;
 	}
 </style>

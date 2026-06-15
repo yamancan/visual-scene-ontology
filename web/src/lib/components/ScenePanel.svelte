@@ -3,6 +3,8 @@
 	import FactsStrip from './FactsStrip.svelte';
 	import SceneFrame from './SceneFrame.svelte';
 	import TabsRail from './TabsRail.svelte';
+	import EntityList from './EntityList.svelte';
+	import ImageOverlay from './ImageOverlay.svelte';
 	import SceneHeader from './SceneHeader.svelte';
 	import ExportRow from './ExportRow.svelte';
 	import CorrectionBar from './CorrectionBar.svelte';
@@ -10,27 +12,33 @@
 	import { scene } from '$lib/scene.svelte';
 	import { layout } from '$lib/layout.svelte';
 
-	let nodeCount = $derived(scene.envelope?.graph?.nodes.length ?? 0);
-	let edgeCount = $derived(scene.envelope?.graph?.edges.length ?? 0);
-	let entityCount = $derived(
-		scene.envelope?.graph?.nodes.filter((n) =>
-			['PhysicalObject', 'Aggregate', 'Substance'].includes(n.kind)
-		).length ?? 0
-	);
 	let spatialCount = $derived(
 		scene.envelope?.graph?.nodes.filter((n) => n.kind === 'SpatialFact').length ?? 0
 	);
-	let meta = $derived(`${entityCount} entities · ${nodeCount} nodes · ${edgeCount} edges`);
+
+	// The header owns the entity count now — the SceneFrame meta stays empty so the
+	// figure never reads twice on screen.
+	const meta = '';
+
+	// In Inspect/Source the stage is the source image with the bbox overlay; in
+	// Graph it's the xyflow canvas. The stage panel id that maximize/restore acts
+	// on therefore tracks the mode too.
+	let stagePanel = $derived<'image' | 'graph'>(layout.mode === 'graph' ? 'graph' : 'image');
 
 	// A scene with no spatial facts has nothing to show in the FactsStrip, so the
 	// pane only appears when both the layout says so AND there are facts to render.
-	let factsShown = $derived(spatialCount > 0 && layout.factsVisible);
+	// Spatial facts belong to Graph mode (the relationship view); the Inspect and
+	// Source stages stay just "image + overlay", so the facts strip is gated on
+	// graph mode as well as the layout flag.
+	let factsShown = $derived(spatialCount > 0 && layout.mode === 'graph' && layout.factsVisible);
 	let splitRows = $derived(
 		layout.isMax('facts')
 			? '0 auto minmax(0,1fr)'
-			: factsShown
-				? 'minmax(0,1.6fr) auto minmax(0,0.6fr)'
-				: 'minmax(0,1fr) auto 0'
+			: layout.isMax(stagePanel)
+				? 'minmax(0,1fr) auto 0'
+				: factsShown
+					? 'minmax(0,1.6fr) auto minmax(0,0.6fr)'
+					: 'minmax(0,1fr) auto 0'
 	);
 
 	// Escape releases a maximized pane — matches the universal "Esc leaves
@@ -57,9 +65,19 @@
 				<SceneFrame {meta}>
 					<div class="split" style={'--split-rows:' + splitRows}>
 						<div class="flow-pane">
-							<SceneFlow />
+							{#if layout.mode === 'graph'}
+								<SceneFlow />
+							{:else}
+								<!-- Inspect / Source: the source image is the subject, shown large
+								     with the clickable bbox overlay. A floating tool cluster mirrors
+								     SceneFlow's so the image can be maximized like the canvas. -->
+								<ImageOverlay />
+								<div class="stage-tools">
+									<MaxButton panel="image" />
+								</div>
+							{/if}
 						</div>
-						{#if spatialCount > 0}
+						{#if spatialCount > 0 && layout.mode === 'graph'}
 							<div class="divider" role="separator" aria-orientation="horizontal">
 								<button
 									type="button"
@@ -118,11 +136,18 @@
 					/>
 				</svg>
 			</button>
-			<!-- aria-hidden lives on the inner content only, never the <aside>, so the
+			<!-- inert lives on the inner content only, never the <aside>, so the
 			     still-focusable rail-toggle stays in the a11y tree and a keyboard/AT
-			     user can always re-expand a collapsed rail. -->
-			<div class="rail-inner" aria-hidden={!layout.railVisible}>
-				<TabsRail />
+			     user can always re-expand a collapsed rail (inert also drops the
+			     hidden controls from the tab order, which aria-hidden alone did not).
+			     Inspect / Graph -> the verification entity list.
+			     Source          -> the notation tabs, made prominent for reading/export. -->
+			<div class="rail-inner" inert={!layout.railVisible}>
+				{#if layout.mode === 'source'}
+					<TabsRail />
+				{:else}
+					<EntityList />
+				{/if}
 			</div>
 		</aside>
 	</main>
@@ -165,6 +190,22 @@
 		position: relative;
 		overflow: hidden;
 	}
+	/* Floating maximize cluster over the image stage (Inspect/Source), mirroring
+	 * SceneFlow's .graph-tools so the image gets the same maximize affordance as
+	 * the canvas. The backing surface keeps the control legible over any image. */
+	.stage-tools {
+		position: absolute;
+		top: var(--s2);
+		right: var(--s2);
+		z-index: 6;
+		display: flex;
+		align-items: center;
+		gap: var(--s1);
+		background: var(--bg-1);
+		border: 1px solid var(--border-1);
+		border-radius: var(--radius-sm);
+		padding: 2px;
+	}
 	.facts-pane {
 		min-height: 0;
 		overflow: hidden;
@@ -190,7 +231,6 @@
 		cursor: pointer;
 		font-family: inherit;
 		font-size: 10px;
-		text-transform: uppercase;
 		letter-spacing: 0.06em;
 		transition: color var(--duration-fast) var(--ease-out);
 	}

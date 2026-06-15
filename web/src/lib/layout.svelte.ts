@@ -1,37 +1,43 @@
 // Single source of truth for the studio layout. Replaces the old
 // fixed-fraction grids (ScenePanel .body / .split, SceneFlow .image-band) with
-// a reactive store that powers four one-click presets, per-panel maximize, and
-// a sticky preset preference. No drag gutters — the user picks a shape and we
+// a reactive store that powers the THREE one-click modes, per-panel maximize,
+// and a sticky preference. No drag gutters — the user picks a mode and we
 // translate it into grid-template strings + flex bases via getters.
+//
+// THREE MODES (the internal preset ids are kept to minimise churn):
+//   'image'    -> Inspect: big source image + entity-list sidebar (DEFAULT)
+//   'graph'    -> Graph:   the xyflow relationship canvas + entity list
+//   'notation' -> Source:  the notation tabs made prominent for reading/export
+// `mode` maps these ids to the user-facing 'inspect' | 'graph' | 'source'.
 //
 // Follows the createXStore() pattern in scene.svelte.ts: $state locals behind a
 // returned bag of getters/methods, with localStorage reads guarded by a
 // typeof check so the module is safe to import during SSR and unit tests.
 
-export type LayoutPreset = 'image' | 'balanced' | 'notation' | 'graph';
+export type LayoutPreset = 'image' | 'notation' | 'graph';
+export type LayoutMode = 'inspect' | 'graph' | 'source';
 export type PanelId = 'image' | 'graph' | 'facts' | 'notation';
 
-export const PRESET_ORDER: readonly LayoutPreset[] = ['image', 'balanced', 'notation', 'graph'];
+export const PRESET_ORDER: readonly LayoutPreset[] = ['image', 'graph', 'notation'];
 
 export const PRESET_META: Record<LayoutPreset, { label: string; hint: string }> = {
-	image: { label: 'image', hint: 'Image-forward — large preview' },
-	balanced: { label: 'balanced', hint: 'Editor and notation balanced' },
-	notation: { label: 'notation', hint: 'Notation-forward — wide source' },
-	graph: { label: 'graph', hint: 'Graph focus — image collapsed' }
+	image: { label: 'Inspect', hint: 'Inspect — image + entity list' },
+	graph: { label: 'Graph', hint: 'Graph — relationship canvas' },
+	notation: { label: 'Source', hint: 'Source — notation + export' }
 };
 
 // The actual shape behind each preset. Private on purpose — UI components read
 // the derived getters (bodyCols, imagePct, *Visible), never these raw numbers,
 // so the translation from "shape" to CSS stays in one place.
 //   editorFr/railFr — the two columns of ScenePanel .body
-//   imagePct        — SceneFlow .image-band flex-basis (0 => band collapsed by default)
+//   imagePct        — SceneFlow .image-band flex-basis (0 => band collapsed by default).
+//                     No longer drives an in-canvas band; kept to avoid breaking types.
 //   factsOpen       — whether the FactsStrip starts open (callers also gate on spatialCount>0)
 const PRESETS: Record<
 	LayoutPreset,
 	{ editorFr: number; railFr: number; imagePct: number; factsOpen: boolean }
 > = {
-	image: { editorFr: 1.7, railFr: 0.7, imagePct: 60, factsOpen: false },
-	balanced: { editorFr: 1.4, railFr: 0.95, imagePct: 44, factsOpen: true },
+	image: { editorFr: 1.7, railFr: 0.9, imagePct: 60, factsOpen: false },
 	notation: { editorFr: 0.75, railFr: 1.5, imagePct: 40, factsOpen: false },
 	graph: { editorFr: 1.9, railFr: 0.55, imagePct: 0, factsOpen: true }
 };
@@ -40,13 +46,14 @@ const LAYOUT_KEY = 'vson:layout';
 const DEFAULT_PRESET: LayoutPreset = 'image';
 
 function isPreset(v: unknown): v is LayoutPreset {
-	return v === 'image' || v === 'balanced' || v === 'notation' || v === 'graph';
+	return v === 'image' || v === 'notation' || v === 'graph';
 }
 
 function readStoredPreset(): LayoutPreset {
 	if (typeof localStorage === 'undefined') return DEFAULT_PRESET;
 	try {
 		const v = localStorage.getItem(LAYOUT_KEY);
+		// Migrate the retired 'balanced' value (and any unknown) to the default.
 		return isPreset(v) ? v : DEFAULT_PRESET;
 	} catch {
 		return DEFAULT_PRESET;
@@ -77,6 +84,13 @@ function createLayoutStore() {
 	const api = {
 		get preset() {
 			return preset;
+		},
+		// User-facing mode the stage switches on. ScenePanel renders:
+		//   'inspect' -> big image + entity list   (preset 'image')
+		//   'graph'   -> xyflow relationship canvas (preset 'graph')
+		//   'source'  -> notation tabs + export     (preset 'notation')
+		get mode(): LayoutMode {
+			return preset === 'graph' ? 'graph' : preset === 'notation' ? 'source' : 'inspect';
 		},
 		get maximized() {
 			return maximized;

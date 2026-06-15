@@ -47,6 +47,7 @@
 							<span class="viol-shape font-mono">{shortShape(v.shape)}</span>
 							{#if v.focus_node}
 								<button
+									type="button"
 									class="viol-focus font-mono"
 									onclick={() => jumpToNode(v.focus_node)}
 									title="Jump to this node in the graph + Penman"

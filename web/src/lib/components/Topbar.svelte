@@ -10,6 +10,7 @@
 <header class="topbar">
 	<div class="topbar-left">
 		<button
+			type="button"
 			class="brand"
 			onclick={() => scene.reset()}
 			aria-label={scene.envelope ? 'Reset' : 'vson'}

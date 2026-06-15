@@ -46,6 +46,8 @@
 			<button
 				type="button"
 				role="tab"
+				id={'rail-tab-' + t.id}
+				aria-controls="rail-tabpanel"
 				aria-selected={scene.railTab === t.id}
 				tabindex={scene.railTab === t.id ? 0 : -1}
 				class="tab"
@@ -65,7 +67,13 @@
 		</div>
 	</div>
 
-	<div class="pane">
+	<div
+		class="pane"
+		role="tabpanel"
+		id="rail-tabpanel"
+		tabindex="0"
+		aria-labelledby={'rail-tab-' + scene.railTab}
+	>
 		{#if scene.railTab === 'source'}
 			<SourcePane />
 		{:else if scene.railTab === 'turtle'}

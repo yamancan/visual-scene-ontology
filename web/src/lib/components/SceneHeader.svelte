@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { scene } from '$lib/scene.svelte';
+	import { buildSceneView } from '$lib/render/sceneView';
 	import LayoutSwitcher from './LayoutSwitcher.svelte';
 
 	let env = $derived(scene.envelope);
 	let conforms = $derived(env?.conformance.conforms ?? null);
+	let violations = $derived(env?.conformance?.violations?.length ?? 0);
 	let nodes = $derived(env?.graph?.nodes.length ?? 0);
 	let edges = $derived(env?.graph?.edges.length ?? 0);
 	let triples = $derived(env?.vson_t ? (env.vson_t.match(/\s\.\s*\n/g) || []).length : 0);
@@ -12,12 +14,44 @@
 	let model = $derived(env?.extraction?.model ?? scene.model);
 	let prebuilt = $derived(model === 'fixture-bake');
 
+	// The resting "N entities" count mirrors the canvas: top-level entities only,
+	// i.e. those not nested inside another entity's Has chip-row. This is the one
+	// human-readable count the header keeps; the raw graph stats move behind "i".
+	let entityCount = $derived.by(() => {
+		const g = env?.graph;
+		if (!g) return 0;
+		const view = buildSceneView(g);
+		const contained = new Set<string>();
+		for (const e of view.entities) for (const h of e.has) contained.add(h.to);
+		return view.entities.filter((e) => !contained.has(e.id)).length;
+	});
+
 	function shortModel(id: string): string {
 		if (id === 'fixture-bake') return 'prebuilt';
 		const i = id.indexOf('/');
 		return i >= 0 ? id.slice(i + 1) : id;
 	}
+
+	// Details popover (ModelPicker pattern: outside-click + Escape close).
+	let infoOpen = $state(false);
+	let infoBtnEl: HTMLButtonElement | undefined = $state();
+	let infoMenuEl: HTMLDivElement | undefined = $state();
+
+	function onKey(e: KeyboardEvent) {
+		if (infoOpen && e.key === 'Escape') {
+			infoOpen = false;
+			e.preventDefault();
+		}
+	}
+	function onDocClick(e: MouseEvent) {
+		if (!infoOpen) return;
+		const t = e.target as Node;
+		if (infoMenuEl?.contains(t) || infoBtnEl?.contains(t)) return;
+		infoOpen = false;
+	}
 </script>
+
+<svelte:window onkeydown={onKey} onclick={onDocClick} />
 
 {#if env}
 	<header class="hdr">
@@ -27,44 +61,84 @@
 			{:else}
 				<div class="thumb thumb-empty"></div>
 			{/if}
-			<div class="meta">
-				<div class="meta-row">
-					<span class="conf-pill" class:pass={conforms === true} class:fail={conforms === false}>
-						<span class="dot"></span>
-						<span class="font-mono">{conforms ? 'CONFORMS' : 'VIOLATIONS'}</span>
-					</span>
-					<span class="scene-id font-mono" title="scene id">{env.scene_id}</span>
-				</div>
-				<div class="meta-row sub">
-					<span class="font-mono" title={model}>{shortModel(model)}</span>
-					{#if !prebuilt}
-						<span class="sep">·</span>
-						<span class="font-mono">{(latency / 1000).toFixed(2)}s</span>
-					{/if}
-					{#if retries > 0}
-						<span class="sep">·</span>
-						<span class="retry font-mono">{retries} repair{retries > 1 ? 's' : ''}</span>
-					{/if}
-				</div>
-			</div>
+			<span class="conf-pill" class:pass={conforms === true} class:fail={conforms === false}>
+				<span class="dot"></span>
+				<span class="font-mono">{conforms ? 'Conforms' : 'Violations'}</span>
+				{#if conforms === false && violations > 0}
+					<span class="conf-count font-mono">{violations}</span>
+				{/if}
+			</span>
+			<span class="count">
+				<span class="count-num font-mono">{entityCount}</span>
+				<span class="count-label">{entityCount === 1 ? 'entity' : 'entities'}</span>
+			</span>
 		</div>
 
 		<div class="hdr-right">
 			<LayoutSwitcher />
-			<dl class="stats">
-				<div class="stat">
-					<dt>nodes</dt>
-					<dd class="num">{nodes}</dd>
-				</div>
-				<div class="stat">
-					<dt>edges</dt>
-					<dd class="num">{edges}</dd>
-				</div>
-				<div class="stat">
-					<dt>triples</dt>
-					<dd class="num">{triples}</dd>
-				</div>
-			</dl>
+
+			<div class="info-wrap">
+				<button
+					bind:this={infoBtnEl}
+					type="button"
+					class="info-btn"
+					class:open={infoOpen}
+					onclick={(e) => {
+						e.stopPropagation();
+						infoOpen = !infoOpen;
+					}}
+					aria-haspopup="dialog"
+					aria-expanded={infoOpen}
+					title="Scene details"
+					aria-label="Scene details"
+				>
+					<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+						<circle cx="7" cy="7" r="6" fill="none" stroke="currentColor" stroke-width="1.2" />
+						<circle cx="7" cy="4.1" r="0.85" fill="currentColor" />
+						<path d="M7 6.4V10.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+					</svg>
+				</button>
+
+				{#if infoOpen}
+					<div bind:this={infoMenuEl} class="info-menu" role="dialog" aria-label="Scene details">
+						<dl class="details">
+							<div class="d-row">
+								<dt>scene</dt>
+								<dd class="font-mono d-id" title={env.scene_id}>{env.scene_id}</dd>
+							</div>
+							<div class="d-row">
+								<dt>model</dt>
+								<dd class="font-mono" title={model}>{shortModel(model)}</dd>
+							</div>
+							{#if !prebuilt}
+								<div class="d-row">
+									<dt>latency</dt>
+									<dd class="font-mono">{(latency / 1000).toFixed(2)}s</dd>
+								</div>
+							{/if}
+							{#if retries > 0}
+								<div class="d-row">
+									<dt>repairs</dt>
+									<dd class="font-mono retry">{retries}</dd>
+								</div>
+							{/if}
+							<div class="d-sep"></div>
+							<div class="d-row">
+								<dt>nodes</dt>
+								<dd class="font-mono">{nodes}</dd>
+							</div>
+							<div class="d-row">
+								<dt>edges</dt>
+								<dd class="font-mono">{edges}</dd>
+							</div>
+							<div class="d-row">
+								<dt>triples</dt>
+								<dd class="font-mono">{triples}</dd>
+							</div>
+						</dl>
+					</div>
+				{/if}
+			</div>
 		</div>
 	</header>
 {/if}
@@ -88,12 +162,12 @@
 	.hdr-right {
 		display: flex;
 		align-items: center;
-		gap: var(--s5);
+		gap: var(--s3);
 		flex-shrink: 0;
 	}
 	.thumb {
-		width: 56px;
-		height: 56px;
+		width: 40px;
+		height: 40px;
 		object-fit: cover;
 		border-radius: var(--radius);
 		border: 1px solid var(--border-1);
@@ -109,33 +183,23 @@
 			var(--bg-1) 8px
 		);
 	}
-	.meta {
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-		min-width: 0;
-	}
-	.meta-row {
-		display: flex;
-		align-items: center;
-		gap: var(--s2);
-		min-width: 0;
-	}
-	.meta-row.sub {
-		font-size: var(--text-2xs);
-		color: var(--fg-4);
-	}
-	.scene-id {
-		font-size: var(--text-xs);
+	.count {
+		display: inline-flex;
+		align-items: baseline;
+		gap: 6px;
 		color: var(--fg-3);
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
+		min-width: 0;
 	}
-	.sep {
-		color: var(--border-2);
+	.count-num {
+		font-size: var(--text-lg);
+		font-weight: 500;
+		color: var(--fg-0);
+		line-height: 1;
+		font-variant-numeric: tabular-nums;
+	}
+	.count-label {
+		font-size: var(--text-xs);
+		color: var(--fg-4);
 	}
 	.retry {
 		color: var(--warning, var(--accent));
@@ -144,13 +208,14 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 6px;
-		padding: 3px 8px 3px 7px;
+		padding: 3px 9px 3px 8px;
 		border-radius: var(--radius-full);
 		font-size: var(--text-2xs);
-		letter-spacing: 0.06em;
+		letter-spacing: 0.02em;
 		border: 1px solid var(--border-1);
 		background: var(--bg-2);
 		color: var(--fg-3);
+		flex-shrink: 0;
 	}
 	.conf-pill .dot {
 		width: 6px;
@@ -175,55 +240,100 @@
 	.conf-pill.fail .dot {
 		background: var(--danger);
 	}
-	.stats {
-		display: flex;
-		align-items: stretch;
-		gap: 0;
-		margin: 0;
-		flex-shrink: 0;
-	}
-	.stat {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-end;
-		gap: 2px;
-		padding: 0 var(--s4);
-		border-left: 1px solid var(--border-1);
-		min-width: 64px;
-	}
-	.stat:first-child {
-		border-left: 0;
-	}
-	.stat dt {
-		font-family: var(--font-mono);
-		font-size: 9px;
-		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		color: var(--fg-4);
-	}
-	.stat dd {
-		margin: 0;
-		font-family: var(--font-mono);
-		font-size: var(--text-lg);
-		font-weight: 500;
-		color: var(--fg-0);
-		line-height: 1;
+	.conf-count {
+		padding: 0 5px;
+		border-radius: var(--radius-full);
+		background: color-mix(in srgb, var(--danger) 18%, transparent);
+		color: var(--danger);
 		font-variant-numeric: tabular-nums;
 	}
+
+	.info-wrap {
+		position: relative;
+	}
+	.info-btn {
+		display: inline-grid;
+		place-items: center;
+		width: 26px;
+		height: 26px;
+		padding: 0;
+		border: 1px solid var(--border-1);
+		border-radius: var(--radius-sm);
+		background: var(--bg-1);
+		color: var(--fg-4);
+		cursor: pointer;
+		transition:
+			color var(--duration-fast) var(--ease-out),
+			border-color var(--duration-fast) var(--ease-out),
+			background var(--duration-fast) var(--ease-out);
+	}
+	.info-btn:hover {
+		color: var(--fg-1);
+		border-color: var(--border-2);
+		background: var(--bg-2);
+	}
+	.info-btn.open {
+		color: var(--accent);
+		border-color: color-mix(in srgb, var(--accent) 45%, var(--border-1));
+		background: var(--accent-bg);
+	}
+
+	.info-menu {
+		position: absolute;
+		top: calc(100% + 6px);
+		right: 0;
+		width: 240px;
+		max-width: calc(100vw - 32px);
+		background: var(--bg-1);
+		border: 1px solid var(--border-1);
+		border-radius: var(--radius);
+		box-shadow: var(--shadow-lg);
+		z-index: 60;
+		padding: var(--s3);
+	}
+	.details {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		margin: 0;
+	}
+	.d-row {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: var(--s4);
+		padding: 3px 0;
+	}
+	.d-row dt {
+		font-size: var(--text-2xs);
+		color: var(--fg-4);
+		letter-spacing: 0.02em;
+	}
+	.d-row dd {
+		margin: 0;
+		font-size: var(--text-xs);
+		color: var(--fg-1);
+		font-variant-numeric: tabular-nums;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.d-id {
+		max-width: 150px;
+	}
+	.d-sep {
+		height: 1px;
+		background: var(--border-1);
+		margin: var(--s2) 0;
+	}
+
 	@media (max-width: 720px) {
-		.scene-id {
-			display: none;
-		}
 		.hdr-right {
-			gap: var(--s3);
-		}
-		.stat {
-			padding: 0 var(--s3);
-			min-width: 48px;
+			gap: var(--s2);
 		}
 		.thumb {
-			width: 44px;
-			height: 44px;
+			width: 36px;
+			height: 36px;
 		}
 	}
 </style>

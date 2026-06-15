@@ -10,13 +10,12 @@
 	import '@xyflow/svelte/dist/style.css';
 
 	import EntityNode from './EntityNode.svelte';
-	import ImageOverlay from './ImageOverlay.svelte';
 	import MaxButton from './MaxButton.svelte';
 	import FitOnLayout from './FitOnLayout.svelte';
 	import { scene } from '$lib/scene.svelte';
 	import { layout } from '$lib/layout.svelte';
 	import { parseBbox } from '$lib/bbox';
-	import { buildSceneView, type FrameSlot } from '$lib/render/sceneView';
+	import { buildSceneView, topLevelEntities, type FrameSlot } from '$lib/render/sceneView';
 
 	const nodeTypes = { entity: EntityNode };
 
@@ -46,12 +45,8 @@
 	});
 
 	// Top-level entities: not contained inside another entity's Has chip-row.
-	let topLevel = $derived.by(() => {
-		if (!view) return [];
-		const contained = new Set<string>();
-		for (const e of view.entities) for (const h of e.has) contained.add(h.to);
-		return view.entities.filter((e) => !contained.has(e.id));
-	});
+	// Shared with the Inspect list via topLevelEntities so both agree.
+	let topLevel = $derived.by(() => (view ? topLevelEntities(view) : []));
 
 	const CARD_W = 260;
 	const GAP_X = 32;
@@ -132,80 +127,19 @@
 	let hasFrame = $derived((view?.frame.length ?? 0) > 0);
 	let hasLayout = $derived(!!view?.composition && view.composition.qualities.length > 0);
 
-	// How many top-level entities carry a parseable box — drives the band header
-	// count and gates the whole image band.
-	let boxCount = $derived(topLevel.reduce((n, e) => n + (getBbox(e.id) ? 1 : 0), 0));
-
-	// Show the vertical split only when there's a preview AND at least one box to
-	// overlay. Otherwise the canvas fills .scene-flow exactly as before.
-	let hasImageBand = $derived(!!scene.imagePreview && boxCount > 0 && !isEmpty);
-
-	// Image band/graph visibility now comes from the shared layout store instead of
-	// a local toggle: the band body shows when image is visible (or maximized), the
-	// band height tracks the preset's imagePct, and the band/graph hide entirely
-	// when the opposite panel is maximized.
-	let imageShown = $derived(layout.imageVisible || layout.isMax('image'));
-	let bandGone = $derived(layout.isMax('graph'));
-	// Only collapse the graph for an image-maximize when there's actually an image
-	// band to fill the space. Without a band the maximize would hide BOTH panes
-	// (band gated on hasImageBand, graph on graph-gone) leaving the stage blank —
-	// so fall back to showing the graph.
-	let graphGone = $derived(layout.isMax('image') && hasImageBand);
-	let imageBasis = $derived(
-		layout.isMax('image') ? '100%' : layout.imageVisible ? layout.imagePct + '%' : 'auto'
-	);
-
 	// A single value that changes whenever the graph container is shown/hidden or
 	// resized — FitOnLayout re-fits the viewport on each change so nodes stay
-	// centred after band toggles and maximize/restore cycles.
-	let fitSignal = $derived(`${layout.maximized}|${imageBasis}|${bandGone}|${graphGone}`);
+	// centred after maximize/restore cycles AND when the user enters Graph mode
+	// (the canvas mounts hidden in other modes, so its first measured size is the
+	// mode switch, not initial node mount).
+	let fitSignal = $derived(`${layout.mode}|${layout.maximized}`);
 </script>
 
-<div class="scene-flow" class:split={hasImageBand}>
+<div class="scene-flow">
 	{#if isEmpty}
 		<div class="empty font-mono">no entities</div>
 	{:else}
-		{#if hasImageBand && !bandGone}
-			<div class="image-band" class:collapsed={!imageShown} style="--image-basis: {imageBasis}">
-				<div class="band-bar">
-					<span class="band-label font-mono">image</span>
-					<span class="band-count font-mono">{boxCount} {boxCount === 1 ? 'box' : 'boxes'}</span>
-					<button
-						type="button"
-						class="band-toggle"
-						aria-label={layout.imageVisible ? 'collapse image band' : 'expand image band'}
-						aria-expanded={layout.imageVisible}
-						onclick={() => layout.togglePanel('image')}
-					>
-						<svg
-							class="chevron"
-							class:up={layout.imageVisible}
-							width="12"
-							height="12"
-							viewBox="0 0 12 12"
-							aria-hidden="true"
-						>
-							<path
-								d="M3 4.5L6 7.5L9 4.5"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.4"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							/>
-						</svg>
-					</button>
-					<MaxButton panel="image" />
-				</div>
-				{#if imageShown}
-					<div class="band-body">
-						<ImageOverlay />
-					</div>
-				{/if}
-			</div>
-		{/if}
-
-		<div class="graph" class:graph-gone={graphGone}>
+		<div class="graph">
 			<SvelteFlow
 				bind:nodes
 				bind:edges
@@ -264,13 +198,6 @@
 		min-height: 0;
 		background: var(--bg-0);
 	}
-	/* When an image band is shown, the flow becomes a vertical stack: band on
-	 * top, graph filling the rest. Without the band the single .graph child still
-	 * fills 100% (position:absolute inset:0). */
-	.scene-flow.split {
-		display: flex;
-		flex-direction: column;
-	}
 	.empty {
 		display: grid;
 		place-items: center;
@@ -279,92 +206,13 @@
 		font-size: var(--text-2xs);
 	}
 
-	/* Collapsible image band — thin header bar + the overlay filling a share of the
-	 * flow height while expanded. The basis comes from the layout store via the
-	 * --image-basis var (preset imagePct, 100% when maximized, auto when collapsed).
-	 * Collapsed: only the bar remains. */
-	.image-band {
-		display: flex;
-		flex-direction: column;
-		flex: 0 0 var(--image-basis, 42%);
-		min-height: 120px;
-		border-bottom: 1px solid var(--border-1);
-		background: var(--bg-0);
-		overflow: hidden;
-	}
-	.image-band.collapsed {
-		flex: 0 0 auto;
-		min-height: 0;
-	}
-	.band-bar {
-		display: flex;
-		align-items: center;
-		gap: var(--s2);
-		flex-shrink: 0;
-		padding: 0 var(--s2);
-		height: 28px;
-		border-bottom: 1px solid var(--border-1);
-		background: var(--bg-1);
-	}
-	.image-band.collapsed .band-bar {
-		border-bottom: 0;
-	}
-	.band-label {
-		text-transform: uppercase;
-		letter-spacing: 0.06em;
-		font-size: 9px;
-		color: var(--fg-4);
-	}
-	.band-count {
-		font-size: 9px;
-		color: var(--fg-3);
-	}
-	.band-toggle {
-		margin-left: auto;
-		display: inline-grid;
-		place-items: center;
-		width: 20px;
-		height: 20px;
-		padding: 0;
-		border: 0;
-		border-radius: var(--radius-sm);
-		background: transparent;
-		color: var(--fg-3);
-		cursor: pointer;
-		transition: color var(--duration-fast) var(--ease-out);
-	}
-	.band-toggle:hover {
-		color: var(--fg-0);
-		background: var(--bg-2);
-	}
-	.chevron {
-		transform: rotate(180deg);
-		transition: transform var(--duration-fast) var(--ease-out);
-	}
-	.chevron.up {
-		transform: rotate(0deg);
-	}
-	.band-body {
-		flex: 1;
-		min-height: 0;
-		position: relative;
-	}
-
-	/* Graph region: fills remaining space in the split, or the whole container
-	 * (absolute inset) when there's no band. The chip-rail anchors to its bottom
-	 * either way, so it always overlays the graph and never the image band. */
+	/* Graph region fills the whole container. The image is shown standalone by
+	 * ScenePanel in Inspect/Source mode — this canvas is graph-only. The chip-rail
+	 * anchors to the graph's bottom, overlaying the canvas. */
 	.graph {
-		position: relative;
-		flex: 1;
-		min-height: 0;
-	}
-	.scene-flow:not(.split) .graph {
 		position: absolute;
 		inset: 0;
-	}
-	/* Image maximized: the graph collapses out so the band fills the flow. */
-	.graph.graph-gone {
-		display: none;
+		min-height: 0;
 	}
 	/* Pinned tool cluster (graph maximize/restore) floating over the canvas,
 	 * mirroring the top-left Controls but on the right. nodrag/nopan keeps clicks

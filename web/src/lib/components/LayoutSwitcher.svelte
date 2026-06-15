@@ -22,25 +22,23 @@
 			>
 				<svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true">
 					{#if p === 'image'}
-						<!-- big top band over a row -->
-						<rect class="g-fill" x="1" y="1" width="16" height="7" rx="1" />
-						<rect class="g-line" x="1" y="9.5" width="7" height="3.5" rx="1" />
-						<rect class="g-line" x="10" y="9.5" width="7" height="3.5" rx="1" />
-					{:else if p === 'balanced'}
-						<!-- even left / right -->
-						<rect class="g-fill" x="1" y="1" width="7.5" height="12" rx="1" />
-						<rect class="g-line" x="9.5" y="1" width="7.5" height="12" rx="1" />
-					{:else if p === 'notation'}
-						<!-- narrow left, wide right pane -->
-						<rect class="g-line" x="1" y="1" width="5" height="12" rx="1" />
-						<rect class="g-fill" x="7" y="1" width="10" height="12" rx="1" />
+						<!-- Inspect: big image over a list of rows -->
+						<rect class="g-fill" x="1" y="1" width="16" height="7.5" rx="1" />
+						<rect class="g-line" x="1" y="10" width="11" height="1.6" rx="0.8" />
+						<rect class="g-line" x="1" y="12.4" width="8" height="1.6" rx="0.8" />
+					{:else if p === 'graph'}
+						<!-- Graph: scatter of connected nodes -->
+						<line class="g-stroke" x1="4" y1="4" x2="9" y2="10" />
+						<line class="g-stroke" x1="14" y1="3.5" x2="9" y2="10" />
+						<circle class="g-fill" cx="4" cy="4" r="1.9" />
+						<circle class="g-fill" cx="14" cy="3.5" r="1.9" />
+						<circle class="g-fill" cx="9" cy="10" r="1.9" />
 					{:else}
-						<!-- graph: scatter of nodes -->
-						<circle class="g-fill" cx="4" cy="4" r="1.8" />
-						<circle class="g-fill" cx="13" cy="3.5" r="1.8" />
-						<circle class="g-fill" cx="8.5" cy="9.5" r="1.8" />
-						<line class="g-stroke" x1="4" y1="4" x2="8.5" y2="9.5" />
-						<line class="g-stroke" x1="13" y1="3.5" x2="8.5" y2="9.5" />
+						<!-- Source (notation): lines of text -->
+						<rect class="g-line" x="1" y="2" width="16" height="1.6" rx="0.8" />
+						<rect class="g-fill" x="1" y="5.5" width="11" height="1.6" rx="0.8" />
+						<rect class="g-line" x="1" y="9" width="14" height="1.6" rx="0.8" />
+						<rect class="g-line" x="1" y="12.5" width="9" height="1.6" rx="0.8" />
 					{/if}
 				</svg>
 				<span class="seg-label font-mono">{PRESET_META[p].label}</span>

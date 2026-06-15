@@ -1,10 +1,15 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { scene } from '$lib/scene.svelte';
 	import { copyText, download } from '$lib/utils';
 
 	let env = $derived(scene.envelope);
 	let copied = $state<string | null>(null);
 	let copiedPrompt = $state(false);
+
+	let open = $state(false);
+	let buttonEl: HTMLButtonElement | undefined = $state();
+	let menuEl: HTMLDivElement | undefined = $state();
 
 	// /api/skills response (subset). Fetched lazily once on first prompt-copy
 	// click and cached for the lifetime of the page; the manifest is keyed by
@@ -13,7 +18,7 @@
 
 	type Fmt = 'vson' | 'ttl' | 'json' | 'cypher' | 'mermaid' | 'graphml' | 'dot' | 'caption' | 'fol';
 
-	// `tooltip` carries the long-form label so the chip stays compact while
+	// `tooltip` carries the long-form label so each menu row stays compact while
 	// hover surfaces the canonical VSON-X / VSON-P / VSON-T family name.
 	const FORMATS: { id: Fmt; label: string; ext: string; mime: string; tooltip: string }[] = [
 		{ id: 'vson', label: 'penman', ext: 'vson', mime: 'text/plain', tooltip: 'VSON-P (Penman)' },
@@ -123,57 +128,114 @@
 	let promptLabel = $derived(
 		scene.notation === 'x' ? 'VSON-X system prompt' : 'VSON-P system prompt'
 	);
+
+	function onKey(e: KeyboardEvent) {
+		if (!open) return;
+		if (e.key === 'Escape') {
+			open = false;
+			e.preventDefault();
+			buttonEl?.focus();
+		}
+	}
+
+	function onDocClick(e: MouseEvent) {
+		if (!open) return;
+		const t = e.target as Node;
+		if (menuEl?.contains(t) || buttonEl?.contains(t)) return;
+		open = false;
+	}
+
+	function toggle(e: MouseEvent) {
+		e.stopPropagation();
+		open = !open;
+	}
+
+	$effect(() => {
+		if (open) {
+			tick().then(() => menuEl?.querySelector<HTMLElement>('button')?.focus());
+		}
+	});
 </script>
 
+<svelte:window onkeydown={onKey} onclick={onDocClick} />
+
 <div class="row">
-	<span class="label font-mono">export</span>
-	<div class="chips">
-		{#each FORMATS as f (f.id)}
-			<div class="chip" role="group">
+	<div class="relative">
+		<button
+			bind:this={buttonEl}
+			type="button"
+			class="export-btn"
+			onclick={toggle}
+			disabled={!env}
+			aria-haspopup="menu"
+			aria-expanded={open}
+			title="Export this scene graph"
+		>
+			<span class="dot" style:background={open ? 'var(--accent)' : 'var(--fg-4)'}></span>
+			<span class="export-label">Export</span>
+			<svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+				<path d="M2 4 L5 7 L8 4" stroke="currentColor" stroke-width="1.2" fill="none" />
+			</svg>
+		</button>
+
+		{#if open}
+			<div bind:this={menuEl} class="menu" role="menu" aria-label="Export formats">
+				{#each FORMATS as f (f.id)}
+					<div class="item" role="none">
+						<button
+							type="button"
+							role="menuitem"
+							class="item-main"
+							onclick={() => dl(f.id, f.ext, f.mime)}
+							title="{f.tooltip} · download .{f.ext}"
+						>
+							<span class="item-label font-mono">{f.label}</span>
+							<span class="item-hint">{f.tooltip}</span>
+						</button>
+						<button
+							type="button"
+							role="menuitem"
+							class="item-icon"
+							onclick={() => cp(f.id)}
+							aria-label="Copy {f.label}"
+							title="Copy {f.tooltip}"
+						>
+							{#if copied === f.id}
+								<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+									<path
+										d="M2 6.5 L4.5 9 L10 3"
+										stroke="var(--success)"
+										stroke-width="1.6"
+										fill="none"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									/>
+								</svg>
+							{:else}
+								<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+									<rect x="3" y="3" width="6" height="7" rx="1" stroke="currentColor" fill="none" />
+									<path d="M5 3 V1.5 H10 V8 H8.5" stroke="currentColor" fill="none" />
+								</svg>
+							{/if}
+						</button>
+					</div>
+				{/each}
+
+				<div class="menu-divider" role="separator"></div>
+
 				<button
-					class="chip-main"
-					onclick={() => dl(f.id, f.ext, f.mime)}
-					title="{f.tooltip} · download .{f.ext}"
+					type="button"
+					role="menuitem"
+					class="item-main prompt-item"
+					onclick={cpPrompt}
+					title="Copy the system prompt that produces {scene.notation === 'x' ? 'VSON-X' : 'VSON-P'}"
+					aria-label="Copy {promptLabel}"
 				>
-					{f.label}
-				</button>
-				<button
-					class="chip-icon"
-					onclick={() => cp(f.id)}
-					aria-label="Copy {f.label}"
-					title="Copy {f.tooltip}"
-				>
-					{#if copied === f.id}
-						<svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true">
-							<path
-								d="M2 6.5 L4.5 9 L10 3"
-								stroke="var(--success)"
-								stroke-width="1.6"
-								fill="none"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							/>
-						</svg>
-					{:else}
-						<svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true">
-							<rect x="3" y="3" width="6" height="7" rx="1" stroke="currentColor" fill="none" />
-							<path d="M5 3 V1.5 H10 V8 H8.5" stroke="currentColor" fill="none" />
-						</svg>
-					{/if}
+					<span class="item-label font-mono">{copiedPrompt ? 'copied' : 'system prompt'}</span>
+					<span class="item-hint">{promptLabel}</span>
 				</button>
 			</div>
-		{/each}
-		<span class="divider" aria-hidden="true"></span>
-		<div class="chip prompt-chip" role="group">
-			<button
-				class="chip-main"
-				onclick={cpPrompt}
-				title="Copy the system prompt that produces {scene.notation === 'x' ? 'VSON-X' : 'VSON-P'}"
-				aria-label="Copy {promptLabel}"
-			>
-				{copiedPrompt ? 'copied' : 'system prompt'}
-			</button>
-		</div>
+		{/if}
 	</div>
 </div>
 
@@ -181,80 +243,137 @@
 	.row {
 		display: flex;
 		align-items: center;
-		gap: var(--s3);
 		padding: var(--s2) var(--s5);
-		overflow-x: auto;
 	}
-	.label {
-		font-size: var(--text-2xs);
-		color: var(--fg-4);
-		text-transform: uppercase;
-		letter-spacing: 0.06em;
-		flex-shrink: 0;
+	.relative {
+		position: relative;
 	}
-	.chips {
-		display: flex;
-		gap: var(--s1);
-		flex-wrap: wrap;
-		align-items: center;
-	}
-	.divider {
-		width: 1px;
-		height: 16px;
-		background: var(--border-1);
-		margin: 0 4px;
-		flex-shrink: 0;
-	}
-	.prompt-chip {
-		border-color: color-mix(in srgb, var(--accent) 30%, var(--border-1));
-		background: color-mix(in srgb, var(--accent) 6%, transparent);
-	}
-	.prompt-chip .chip-main {
-		color: var(--accent);
-	}
-	.prompt-chip:hover {
-		border-color: var(--accent);
-	}
-	.prompt-chip:hover .chip-main {
-		background: color-mix(in srgb, var(--accent) 14%, transparent);
-	}
-	.chip {
+
+	.export-btn {
 		display: inline-flex;
-		align-items: stretch;
-		border: 1px solid var(--border-1);
-		border-radius: var(--radius-sm);
-		overflow: hidden;
-		transition: border-color var(--duration-fast) var(--ease-out);
-	}
-	.chip:hover {
-		border-color: var(--border-2);
-	}
-	.chip-main,
-	.chip-icon {
-		background: transparent;
-		border: 0;
-		padding: 4px 8px;
+		align-items: center;
+		gap: 6px;
+		padding: 4px 10px;
 		font-family: var(--font-mono);
 		font-size: var(--text-2xs);
 		color: var(--fg-3);
+		background: transparent;
+		border: 1px solid var(--border-1);
+		border-radius: var(--radius-sm);
+		cursor: pointer;
+		transition:
+			color var(--duration-fast) var(--ease-out),
+			border-color var(--duration-fast) var(--ease-out),
+			background var(--duration-fast) var(--ease-out);
+	}
+	.export-btn:hover:not(:disabled) {
+		color: var(--fg-1);
+		border-color: var(--border-2);
+		background: var(--bg-2);
+	}
+	.export-btn:disabled {
+		opacity: 0.5;
+		cursor: default;
+	}
+	.dot {
+		width: 6px;
+		height: 6px;
+		border-radius: var(--radius-full);
+	}
+	.export-label {
+		letter-spacing: 0.02em;
+	}
+
+	.menu {
+		position: absolute;
+		bottom: calc(100% + 6px);
+		left: 0;
+		width: 280px;
+		max-width: calc(100vw - 32px);
+		background: var(--bg-1);
+		border: 1px solid var(--border-1);
+		border-radius: var(--radius);
+		box-shadow: var(--shadow-lg);
+		z-index: 60;
+		padding: 4px;
+		display: flex;
+		flex-direction: column;
+		max-height: 70vh;
+		overflow-y: auto;
+	}
+
+	.item {
+		display: flex;
+		align-items: stretch;
+		border-radius: var(--radius-sm);
+		overflow: hidden;
+	}
+	.item:hover {
+		background: var(--bg-2);
+	}
+
+	.item-main {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		align-items: flex-start;
+		padding: 7px 10px;
+		border: 0;
+		background: transparent;
+		text-align: left;
 		cursor: pointer;
 		transition:
 			color var(--duration-fast) var(--ease-out),
 			background var(--duration-fast) var(--ease-out);
 	}
-	.chip-main:hover {
-		color: var(--accent);
+	.item-main:hover {
 		background: var(--accent-bg);
 	}
-	.chip-icon {
-		padding: 4px 6px;
-		border-left: 1px solid var(--border-1);
-		display: grid;
-		place-items: center;
+	.item-label {
+		font-size: var(--text-xs);
+		color: var(--fg-1);
+	}
+	.item-main:hover .item-label {
+		color: var(--accent);
+	}
+	.item-hint {
+		font-size: var(--text-2xs);
 		color: var(--fg-4);
 	}
-	.chip-icon:hover {
+
+	.item-icon {
+		flex-shrink: 0;
+		display: grid;
+		place-items: center;
+		width: 32px;
+		border: 0;
+		border-left: 1px solid var(--border-1);
+		background: transparent;
+		color: var(--fg-4);
+		cursor: pointer;
+		transition:
+			color var(--duration-fast) var(--ease-out),
+			background var(--duration-fast) var(--ease-out);
+	}
+	.item-icon:hover {
 		color: var(--fg-1);
 		background: var(--bg-2);
+	}
+
+	.menu-divider {
+		height: 1px;
+		background: var(--border-1);
+		margin: 4px 0;
+	}
+
+	.prompt-item {
+		border-radius: var(--radius-sm);
+	}
+	.prompt-item .item-label {
+		color: var(--accent);
+	}
+	.prompt-item:hover {
+		background: color-mix(in srgb, var(--accent) 10%, transparent);
 	}
 </style>

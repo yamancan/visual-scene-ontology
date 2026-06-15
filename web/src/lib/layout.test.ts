@@ -7,7 +7,7 @@
 // can't leak. localStorage is absent in the node env, so persist() is a no-op
 // and the default preset falls back to 'image'.
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { layout, PRESET_ORDER, PRESET_META } from './layout.svelte';
 
 const bodyCols = (editorFr: number, railFr: number) =>
@@ -22,12 +22,47 @@ describe('layout store — defaults & metadata', () => {
 		expect(layout.anyMax).toBe(false);
 	});
 
-	it('exposes preset order and metadata for every preset', () => {
-		expect(PRESET_ORDER).toEqual(['image', 'balanced', 'notation', 'graph']);
+	it('exposes the three modes in order with metadata for each', () => {
+		expect(PRESET_ORDER).toEqual(['image', 'graph', 'notation']);
+		expect(PRESET_ORDER).toHaveLength(3);
 		for (const p of PRESET_ORDER) {
 			expect(PRESET_META[p].label).toBeTruthy();
 			expect(PRESET_META[p].hint).toBeTruthy();
 		}
+		// User-facing relabel: Inspect / Graph / Source.
+		expect(PRESET_META.image.label).toBe('Inspect');
+		expect(PRESET_META.graph.label).toBe('Graph');
+		expect(PRESET_META.notation.label).toBe('Source');
+	});
+});
+
+describe('layout store — mode getter', () => {
+	beforeEach(() => layout.resetLayout());
+
+	it('maps each preset id to its user-facing mode', () => {
+		layout.setPreset('image');
+		expect(layout.mode).toBe('inspect');
+		layout.setPreset('graph');
+		expect(layout.mode).toBe('graph');
+		layout.setPreset('notation');
+		expect(layout.mode).toBe('source');
+	});
+
+	it('defaults to inspect mode', () => {
+		expect(layout.preset).toBe('image');
+		expect(layout.mode).toBe('inspect');
+	});
+});
+
+describe('layout store — Inspect rail default', () => {
+	beforeEach(() => layout.resetLayout());
+
+	it('keeps the entity-list rail visible by default in Inspect (image) mode', () => {
+		layout.setPreset('image');
+		expect(layout.mode).toBe('inspect');
+		// Notation is a MODE (Source), not the rail content, so the rail (entity
+		// list) must stay open by default — it is not hidden for the image preset.
+		expect(layout.railVisible).toBe(true);
 	});
 });
 
@@ -36,12 +71,7 @@ describe('layout store — bodyCols per preset (non-maximized)', () => {
 
 	it('image preset', () => {
 		layout.setPreset('image');
-		expect(layout.bodyCols).toBe(bodyCols(1.7, 0.7));
-	});
-
-	it('balanced preset', () => {
-		layout.setPreset('balanced');
-		expect(layout.bodyCols).toBe(bodyCols(1.4, 0.95));
+		expect(layout.bodyCols).toBe(bodyCols(1.7, 0.9));
 	});
 
 	it('notation preset', () => {
@@ -158,8 +188,48 @@ describe('layout store — visibility getters & overrides', () => {
 	it('facts visibility follows the preset default', () => {
 		layout.setPreset('image'); // factsOpen false
 		expect(layout.factsVisible).toBe(false);
-		layout.setPreset('balanced'); // factsOpen true
+		layout.setPreset('graph'); // factsOpen true
 		expect(layout.factsVisible).toBe(true);
+	});
+});
+
+describe('layout store — stored-preset migration', () => {
+	afterEach(() => {
+		vi.unstubAllGlobals();
+		vi.resetModules();
+	});
+
+	const stub = (stored: string | null) => {
+		const store = new Map<string, string>();
+		if (stored !== null) store.set('vson:layout', stored);
+		vi.stubGlobal('localStorage', {
+			getItem: (k: string) => store.get(k) ?? null,
+			setItem: (k: string, v: string) => void store.set(k, v),
+			removeItem: (k: string) => void store.delete(k)
+		});
+	};
+
+	it('migrates a stored "balanced" preset to image (Inspect)', async () => {
+		stub('balanced');
+		vi.resetModules();
+		const { layout: fresh } = await import('./layout.svelte');
+		expect(fresh.preset).toBe('image');
+		expect(fresh.mode).toBe('inspect');
+	});
+
+	it('treats any unknown stored value as the image default', async () => {
+		stub('nonsense');
+		vi.resetModules();
+		const { layout: fresh } = await import('./layout.svelte');
+		expect(fresh.preset).toBe('image');
+	});
+
+	it('honours a valid stored preset', async () => {
+		stub('graph');
+		vi.resetModules();
+		const { layout: fresh } = await import('./layout.svelte');
+		expect(fresh.preset).toBe('graph');
+		expect(fresh.mode).toBe('graph');
 	});
 });
 

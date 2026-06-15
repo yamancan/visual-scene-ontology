@@ -56,7 +56,12 @@
 
 {#if entries.length > 0}
 	<div class="gallery">
-		<button class="gallery-toggle" onclick={() => (expanded = !expanded)} aria-expanded={expanded}>
+		<button
+			type="button"
+			class="gallery-toggle"
+			onclick={() => (expanded = !expanded)}
+			aria-expanded={expanded}
+		>
 			<span class="caret" aria-hidden="true">{expanded ? '▾' : '▸'}</span>
 			<span class="toggle-label">spec examples</span>
 			<span class="count">{entries.length}</span>

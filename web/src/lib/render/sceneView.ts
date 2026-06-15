@@ -335,3 +335,32 @@ export function buildSceneView(graph: SceneGraph): SceneView {
 
 	return { composition, frame, entities, actions, spatial, temporal };
 }
+
+// ── Shared resting-view helpers ─────────────────────────────────────────────
+// Top-level entities: those NOT contained inside another entity's Has chip-row.
+// The Inspect list and the Graph canvas both build from this so they never
+// disagree on what counts as a standalone subject vs. a part.
+export function topLevelEntities(view: SceneView): EntityCardModel[] {
+	const contained = new Set<string>();
+	for (const e of view.entities) for (const h of e.has) contained.add(h.to);
+	return view.entities.filter((e) => !contained.has(e.id));
+}
+
+// The single quality hint shown at rest on a row/card: prefer a colour
+// dimension (the most scannable verification cue), else the first quality.
+// Shared so the Inspect list and the Graph card surface the same thing.
+export function restingHint(
+	qualities: Array<{ dim: string; value: string }>
+): { dim: string; value: string } | null {
+	if (!qualities.length) return null;
+	return qualities.find((q) => /colou?r/i.test(q.dim)) ?? qualities[0];
+}
+
+// A colour value safe to paint as a CSS swatch: a single colour word only, so
+// an extracted string can never inject CSS through the inline style attribute.
+// Returns null when the hint is not a paintable colour word.
+export function colorSwatch(hint: { dim: string; value: string } | null): string | null {
+	if (!hint || !/colou?r/i.test(hint.dim)) return null;
+	const v = hint.value.trim();
+	return /^[a-z]+$/i.test(v) ? v.toLowerCase() : null;
+}
