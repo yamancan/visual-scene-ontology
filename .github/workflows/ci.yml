@@ -81,9 +81,8 @@ jobs:
       - name: svelte-check
         run: pnpm check
 
-      # NOTE: `pnpm lint` (prettier --check + eslint) is intentionally not gated
-      # here yet — the tree carries pre-existing formatting drift across ~30
-      # files. Re-enable once a dedicated project-wide format pass has landed.
+      - name: Lint (prettier + eslint)
+        run: pnpm lint
 
       - name: Unit tests
         run: pnpm test
