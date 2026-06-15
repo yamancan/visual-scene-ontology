@@ -228,7 +228,9 @@
 					role="menuitem"
 					class="item-main prompt-item"
 					onclick={cpPrompt}
-					title="Copy the system prompt that produces {scene.notation === 'x' ? 'VSON-X' : 'VSON-P'}"
+					title="Copy the system prompt that produces {scene.notation === 'x'
+						? 'VSON-X'
+						: 'VSON-P'}"
 					aria-label="Copy {promptLabel}"
 				>
 					<span class="item-label font-mono">{copiedPrompt ? 'copied' : 'system prompt'}</span>

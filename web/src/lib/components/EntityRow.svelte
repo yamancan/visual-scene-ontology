@@ -120,8 +120,7 @@
 		onmouseleave={onLeave}
 	>
 		{#if showCrop}
-			<span class="crop" style={cropCss} aria-hidden="true"
-			></span>
+			<span class="crop" style={cropCss} aria-hidden="true"></span>
 		{:else}
 			<span class="crop crop-empty" aria-hidden="true">▣</span>
 		{/if}

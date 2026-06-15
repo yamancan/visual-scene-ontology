@@ -143,7 +143,7 @@
 						class:hovered={hov}
 						style="left:{b.bbox.x * 100}%; top:{b.bbox.y * 100}%; width:{b.bbox.w * 100}%; height:{b
 							.bbox.h * 100}%;"
-						aria-label="{labelFor(b)}"
+						aria-label={labelFor(b)}
 						aria-pressed={sel}
 						onclick={() => onClick(b.id)}
 						onmouseenter={() => scene.setHovered(b.id)}

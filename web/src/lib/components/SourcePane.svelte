@@ -151,7 +151,13 @@
 			</span>
 		{/if}
 		{#if scene.selectedNodeId}
-			<button type="button" class="clear-sel" aria-label="Clear selection" onclick={() => scene.setSelected(null)} title="Clear selection">
+			<button
+				type="button"
+				class="clear-sel"
+				aria-label="Clear selection"
+				onclick={() => scene.setSelected(null)}
+				title="Clear selection"
+			>
 				<span class="font-mono">{scene.selectedNodeId}</span>
 				<svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true">
 					<path d="M2 2 L8 8 M8 2 L2 8" stroke="currentColor" stroke-width="1.4" />

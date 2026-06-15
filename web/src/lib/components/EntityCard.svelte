@@ -186,11 +186,7 @@
 >
 	<header class="head">
 		{#if showCrop}
-			<span
-				class="crop"
-				style={cropCss}
-				aria-hidden="true"
-			></span>
+			<span class="crop" style={cropCss} aria-hidden="true"></span>
 		{:else}
 			<span class="ico" aria-hidden="true">{icon}</span>
 		{/if}

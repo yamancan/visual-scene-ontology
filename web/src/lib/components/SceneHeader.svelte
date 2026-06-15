@@ -104,7 +104,7 @@
 						<dl class="details">
 							<div class="d-row">
 								<dt>scene</dt>
-								<dd class="font-mono d-id" title={env.scene_id}>{env.scene_id}</dd>
+								<dd class="d-id font-mono" title={env.scene_id}>{env.scene_id}</dd>
 							</div>
 							<div class="d-row">
 								<dt>model</dt>
@@ -119,7 +119,7 @@
 							{#if retries > 0}
 								<div class="d-row">
 									<dt>repairs</dt>
-									<dd class="font-mono retry">{retries}</dd>
+									<dd class="retry font-mono">{retries}</dd>
 								</div>
 							{/if}
 							<div class="d-sep"></div>
