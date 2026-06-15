@@ -139,7 +139,8 @@ function createLayoutStore() {
 		// (non-maximized) preset+override visibility.
 		togglePanel(p: 'image' | 'facts' | 'rail') {
 			if (maximized !== null) maximized = null;
-			const current = p === 'image' ? api.imageVisible : p === 'facts' ? api.factsVisible : api.railVisible;
+			const current =
+				p === 'image' ? api.imageVisible : p === 'facts' ? api.factsVisible : api.railVisible;
 			overrides = { ...overrides, [p]: !current };
 		},
 		resetLayout() {

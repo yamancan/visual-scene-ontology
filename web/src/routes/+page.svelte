@@ -35,9 +35,8 @@
 					<div class="hero-copy">
 						<h1>Drop image, get scene graph.</h1>
 						<p>
-							Upload an image. <span class="num">~10s</span> later you'll have a SHACL-conformant
-							scene graph — entities, qualities, events, spatial facts. No account. Tweak what
-							you want.
+							Upload an image. <span class="num">~10s</span> later you'll have a SHACL-conformant scene
+							graph — entities, qualities, events, spatial facts. No account. Tweak what you want.
 						</p>
 					</div>
 

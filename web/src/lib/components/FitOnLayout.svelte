@@ -11,8 +11,10 @@
 	// `signal` is any value the parent flips on a relevant layout change (e.g. a
 	// string of maximized + imageBasis + bandGone + graphGone). We read it inside
 	// the effect so the effect re-runs on every change.
-	let { signal, options = { padding: 0.15 } }: { signal: unknown; options?: Record<string, unknown> } =
-		$props();
+	let {
+		signal,
+		options = { padding: 0.15 }
+	}: { signal: unknown; options?: Record<string, unknown> } = $props();
 
 	const { fitView } = useSvelteFlow();
 	const initialized = useNodesInitialized();

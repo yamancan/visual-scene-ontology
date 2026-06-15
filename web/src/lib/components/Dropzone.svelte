@@ -77,16 +77,15 @@
 		class:active={dragOver}
 		aria-label="Upload image"
 	>
-		<svg width="28" height="28" viewBox="0 0 32 32" fill="none" class="zone-icon" aria-hidden="true">
-			<rect
-				x="6"
-				y="8"
-				width="20"
-				height="16"
-				rx="1.5"
-				stroke="currentColor"
-				stroke-width="1.2"
-			/>
+		<svg
+			width="28"
+			height="28"
+			viewBox="0 0 32 32"
+			fill="none"
+			class="zone-icon"
+			aria-hidden="true"
+		>
+			<rect x="6" y="8" width="20" height="16" rx="1.5" stroke="currentColor" stroke-width="1.2" />
 			<circle cx="12" cy="14" r="1.6" fill="currentColor" />
 			<path
 				d="M9 22 L14 16 L19 21 L23 17 L26 20"

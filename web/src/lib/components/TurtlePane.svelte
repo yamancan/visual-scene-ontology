@@ -27,10 +27,7 @@
 	);
 
 	function escapeHtml(s: string): string {
-		return s
-			.replace(/&/g, '&amp;')
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;');
+		return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 	}
 
 	function highlight(line: string): string {
@@ -55,17 +52,14 @@
 
 <section class="wrap">
 	<header class="head">
-		<span class="font-mono head-label">{lines.length} lines</span>
+		<span class="head-label font-mono">{lines.length} lines</span>
 		<button class="copy" onclick={doCopy}>
 			{copied ? 'copied' : 'copy turtle'}
 		</button>
 	</header>
 	<div class="body">
-		<pre class="code">{#each lines as line, i (i)}<div class="ln"
-					><span class="lno">{i + 1}</span><code class="ltxt"
-						>{@html highlight(line) || ' '}</code
-					></div
-				>{/each}</pre>
+		<pre class="code">{#each lines as line, i (i)}<div class="ln"><span class="lno">{i + 1}</span
+					><code class="ltxt">{@html highlight(line) || ' '}</code></div>{/each}</pre>
 	</div>
 </section>
 

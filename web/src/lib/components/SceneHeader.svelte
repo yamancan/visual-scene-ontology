@@ -29,11 +29,7 @@
 			{/if}
 			<div class="meta">
 				<div class="meta-row">
-					<span
-						class="conf-pill"
-						class:pass={conforms === true}
-						class:fail={conforms === false}
-					>
+					<span class="conf-pill" class:pass={conforms === true} class:fail={conforms === false}>
 						<span class="dot"></span>
 						<span class="font-mono">{conforms ? 'CONFORMS' : 'VIOLATIONS'}</span>
 					</span>
@@ -47,7 +43,7 @@
 					{/if}
 					{#if retries > 0}
 						<span class="sep">·</span>
-						<span class="font-mono retry">{retries} repair{retries > 1 ? 's' : ''}</span>
+						<span class="retry font-mono">{retries} repair{retries > 1 ? 's' : ''}</span>
 					{/if}
 				</div>
 			</div>

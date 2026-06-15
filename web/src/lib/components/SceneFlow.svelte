@@ -166,11 +166,7 @@
 		<div class="empty font-mono">no entities</div>
 	{:else}
 		{#if hasImageBand && !bandGone}
-			<div
-				class="image-band"
-				class:collapsed={!imageShown}
-				style="--image-basis: {imageBasis}"
-			>
+			<div class="image-band" class:collapsed={!imageShown} style="--image-basis: {imageBasis}">
 				<div class="band-bar">
 					<span class="band-label font-mono">image</span>
 					<span class="band-count font-mono">{boxCount} {boxCount === 1 ? 'box' : 'boxes'}</span>
@@ -426,11 +422,7 @@
 	}
 	:global(.svelte-flow__edge-text) {
 		fill: var(--fg-1);
-		font-family:
-			ui-monospace,
-			SFMono-Regular,
-			Menlo,
-			monospace;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 		font-size: 10px;
 	}
 	:global(.svelte-flow__edge-textbg) {

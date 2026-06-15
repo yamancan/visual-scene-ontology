@@ -7,3 +7,7 @@ bun.lockb
 
 # Miscellaneous
 /static/
+
+# Markdown is managed separately (docs are owned/edited by hand, not
+# code-formatted), so keep it out of the prettier lint gate.
+*.md

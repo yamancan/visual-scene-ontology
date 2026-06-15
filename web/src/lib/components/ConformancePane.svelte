@@ -107,7 +107,11 @@
 						<dt>repairs</dt>
 						<dd>
 							{extraction.shacl_retries ?? 0}
-							{#if (extraction.shacl_retries ?? 0) > 0}<span class="warn"> · used</span>{:else}<span class="ok"> · clean</span>{/if}
+							{#if (extraction.shacl_retries ?? 0) > 0}<span class="warn"> · used</span>{:else}<span
+									class="ok"
+								>
+									· clean</span
+								>{/if}
 						</dd>
 					</div>
 					<div class="meta-row">

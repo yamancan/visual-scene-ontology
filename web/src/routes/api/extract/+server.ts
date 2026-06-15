@@ -93,10 +93,7 @@ function looksLikePenman(text: string): boolean {
 	return /^\s*\(/.test(text);
 }
 
-function resolveVariant(
-	bodyPrompt: string | undefined,
-	urlPrompt: string | null
-): PromptVariant {
+function resolveVariant(bodyPrompt: string | undefined, urlPrompt: string | null): PromptVariant {
 	const v = bodyPrompt ?? urlPrompt ?? 'skill';
 	if (v === 'full') return 'full';
 	if (v === 'skill-x') return 'skill-x';
@@ -240,7 +237,9 @@ async function runPenmanFlow(ctx: FlowCtx) {
 				messages: [
 					{
 						role: 'system',
-						content: [{ type: 'text', text: ctx.systemPrompt, cache_control: { type: 'ephemeral' } }]
+						content: [
+							{ type: 'text', text: ctx.systemPrompt, cache_control: { type: 'ephemeral' } }
+						]
 					},
 					{
 						role: 'user',
@@ -265,7 +264,11 @@ async function runPenmanFlow(ctx: FlowCtx) {
 	const envelope: VsonEnvelope = {
 		scene_id: shortId(),
 		version: '1.0',
-		source: { kind: 'image', sha256: ctx.sha256, ...(ctx.source_uri ? { uri: ctx.source_uri } : {}) },
+		source: {
+			kind: 'image',
+			sha256: ctx.sha256,
+			...(ctx.source_uri ? { uri: ctx.source_uri } : {})
+		},
 		vson_p: penmanText,
 		vson_t: turtle,
 		graph: walkPenmanToGraph(penmanText),
@@ -301,7 +304,9 @@ async function runVsonXFlow(ctx: FlowCtx) {
 	// If the first call drifted, treat the empty X as the "failed doc" and
 	// repair against the raw Penman text. The repair prompt re-anchors `~`.
 	let workingDoc = vsonXText ?? ctx.raw.trim();
-	let transpile = vsonXText ? await transpileVsonXToTurtle(vsonXText) : { ok: false as const, error: 'model emitted Penman, not VSON-X' };
+	let transpile = vsonXText
+		? await transpileVsonXToTurtle(vsonXText)
+		: { ok: false as const, error: 'model emitted Penman, not VSON-X' };
 	let conformance = transpile.ok ? await validateTurtle(transpile.turtle) : null;
 	let retries = 0;
 
@@ -316,7 +321,9 @@ async function runVsonXFlow(ctx: FlowCtx) {
 				messages: [
 					{
 						role: 'system',
-						content: [{ type: 'text', text: ctx.systemPrompt, cache_control: { type: 'ephemeral' } }]
+						content: [
+							{ type: 'text', text: ctx.systemPrompt, cache_control: { type: 'ephemeral' } }
+						]
 					},
 					{
 						role: 'user',
@@ -353,7 +360,11 @@ async function runVsonXFlow(ctx: FlowCtx) {
 	const envelope: VsonEnvelope = {
 		scene_id: shortId(),
 		version: '1.1',
-		source: { kind: 'image', sha256: ctx.sha256, ...(ctx.source_uri ? { uri: ctx.source_uri } : {}) },
+		source: {
+			kind: 'image',
+			sha256: ctx.sha256,
+			...(ctx.source_uri ? { uri: ctx.source_uri } : {})
+		},
 		// v1.1 X-mode sentinel: vson_p is empty until t2p ships in v1.2. The
 		// schema's if/then rule allows this iff vson_x is non-empty.
 		vson_p: '',

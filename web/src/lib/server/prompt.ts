@@ -27,18 +27,13 @@ const SKILL_X_FALLBACK =
 	'# vson-extractor-x is not shipped on this server.\n\nVisit /prompts to see which skills are available.';
 
 // Original 18 KB orchestrator prompt — strongest first-try conformance, opt-in via ?prompt=full.
-export const ORCHESTRATOR_SYSTEM_PROMPT = tryLoad(
-	'tools/extractor/prompts/orchestrator-system.md'
-);
+export const ORCHESTRATOR_SYSTEM_PROMPT = tryLoad('tools/extractor/prompts/orchestrator-system.md');
 
 // 4 KB distilled VSON-P skill — default for studio. Same five hard rules, smaller token footprint.
 export const SKILL_PROMPT = tryLoad('skills/vson-extractor/SKILL.md');
 
 // 7 KB VSON-X skill — opt-in via ?prompt=skill-x. Soft-loaded.
-export const SKILL_X_PROMPT = tryLoadOptional(
-	'skills/vson-extractor-x/SKILL.md',
-	SKILL_X_FALLBACK
-);
+export const SKILL_X_PROMPT = tryLoadOptional('skills/vson-extractor-x/SKILL.md', SKILL_X_FALLBACK);
 
 export const REPAIR_PROMPT_TEMPLATE = tryLoad('tools/extractor/prompts/specialized/repair.md');
 

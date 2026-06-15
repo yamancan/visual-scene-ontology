@@ -42,9 +42,7 @@ export interface TranspileErr {
 	error: string;
 }
 
-export async function transpilePenmanToTurtle(
-	vson_p: string
-): Promise<TranspileOk | TranspileErr> {
+export async function transpilePenmanToTurtle(vson_p: string): Promise<TranspileOk | TranspileErr> {
 	const dir = await mkdtemp(join(tmpdir(), 'vson-'));
 	const file = join(dir, 'in.vson');
 	try {
@@ -61,9 +59,7 @@ export async function transpilePenmanToTurtle(
 // already wires VSON_HOME + python3 lookup (cli/src/commands/convert_x2t.rs).
 // We keep the shell-out path so any future native Rust VSON-X parser can swap
 // in without touching the web layer.
-export async function transpileVsonXToTurtle(
-	vson_x: string
-): Promise<TranspileOk | TranspileErr> {
+export async function transpileVsonXToTurtle(vson_x: string): Promise<TranspileOk | TranspileErr> {
 	const dir = await mkdtemp(join(tmpdir(), 'vson-x-'));
 	const file = join(dir, 'in.x.vson');
 	try {
@@ -192,10 +188,7 @@ export function parseViolationReport(report: string): ParsedViolation[] {
 		const result_path = rpRaw ? localName(rpRaw) : undefined;
 		const severityRaw = (b.match(/Severity:\s*sh:(\w+)/) || [, ''])[1];
 		const severity = severityRaw
-			? ((severityRaw[0].toUpperCase() + severityRaw.slice(1)) as
-					| 'Violation'
-					| 'Warning'
-					| 'Info')
+			? ((severityRaw[0].toUpperCase() + severityRaw.slice(1)) as 'Violation' | 'Warning' | 'Info')
 			: 'Violation';
 		out.push({ message, shape, focus_node, result_path, severity });
 	}

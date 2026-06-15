@@ -8,11 +8,7 @@ import type { SceneGraph } from '../types';
 const escId = (s: string) => s.replace(/[^A-Za-z0-9_]/g, '_');
 const quoteCypher = (s: string) => `'${s.replace(/'/g, "\\'")}'`;
 const quoteXml = (s: string) =>
-	s
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;');
+	s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const quoteDot = (s: string) => `"${s.replace(/"/g, '\\"')}"`;
 
 /** Cypher CREATE statements. Pasteable into the Neo4j browser. */
@@ -27,8 +23,7 @@ export function toCypher(graph: SceneGraph): string {
 				props.push(`${k}: ${typeof v === 'number' ? v : quoteCypher(String(v))}`);
 		if (n.traits)
 			for (const [k, v] of Object.entries(n.traits))
-				if (Array.isArray(v))
-					props.push(`${k}: [${v.map((x) => quoteCypher(x)).join(', ')}]`);
+				if (Array.isArray(v)) props.push(`${k}: [${v.map((x) => quoteCypher(x)).join(', ')}]`);
 				else if (v) props.push(`${k}: ${quoteCypher(String(v))}`);
 		lines.push(`CREATE (${id}:${n.kind} {${props.join(', ')}});`);
 	}

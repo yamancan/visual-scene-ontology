@@ -5,7 +5,7 @@
 <div class="flex items-center gap-3 font-mono text-[12px] text-(--fg-3)">
 	<span class="relative flex h-2 w-12 overflow-hidden rounded-full bg-(--bg-2)">
 		<span
-			class="absolute inset-y-0 w-3 animate-pulse-slide rounded-full"
+			class="animate-pulse-slide absolute inset-y-0 w-3 rounded-full"
 			style:background="var(--accent)"
 		></span>
 	</span>

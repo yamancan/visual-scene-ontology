@@ -119,8 +119,8 @@
 						class="box box-full"
 						class:selected={sel}
 						class:hovered={hov}
-						style="left:{b.bbox.x * 100}%; top:{b.bbox.y * 100}%; width:{b.bbox.w *
-							100}%; height:{b.bbox.h * 100}%;"
+						style="left:{b.bbox.x * 100}%; top:{b.bbox.y * 100}%; width:{b.bbox.w * 100}%; height:{b
+							.bbox.h * 100}%;"
 						aria-label="{labelFor(b)} (full frame) — {fmtBbox(b.bbox)}"
 						aria-pressed={sel}
 						onclick={() => onClick(b.id)}
@@ -141,8 +141,8 @@
 						class="box"
 						class:selected={sel}
 						class:hovered={hov}
-						style="left:{b.bbox.x * 100}%; top:{b.bbox.y * 100}%; width:{b.bbox.w *
-							100}%; height:{b.bbox.h * 100}%;"
+						style="left:{b.bbox.x * 100}%; top:{b.bbox.y * 100}%; width:{b.bbox.w * 100}%; height:{b
+							.bbox.h * 100}%;"
 						aria-label="{labelFor(b)} — {fmtBbox(b.bbox)}"
 						aria-pressed={sel}
 						onclick={() => onClick(b.id)}

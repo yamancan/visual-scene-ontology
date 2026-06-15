@@ -151,11 +151,7 @@
 			</span>
 		{/if}
 		{#if scene.selectedNodeId}
-			<button
-				class="clear-sel"
-				onclick={() => scene.setSelected(null)}
-				title="Clear selection"
-			>
+			<button class="clear-sel" onclick={() => scene.setSelected(null)} title="Clear selection">
 				<span class="font-mono">{scene.selectedNodeId}</span>
 				<svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true">
 					<path d="M2 2 L8 8 M8 2 L2 8" stroke="currentColor" stroke-width="1.4" />
@@ -176,13 +172,12 @@
 				<p class="empty-hint font-mono">drop an image to extract a scene</p>
 			</div>
 		{:else}
-			<pre class="code">{#each lines as line, i (i)}{@const decl = declaresSelected(line, scene.selectedNodeId)}<div
-						class="ln"
-						class:declares={decl}
-						><span class="lno">{i + 1}</span><code class="ltxt"
+			<pre class="code">{#each lines as line, i (i)}{@const decl = declaresSelected(
+						line,
+						scene.selectedNodeId
+					)}<div class="ln" class:declares={decl}><span class="lno">{i + 1}</span><code class="ltxt"
 							>{@html highlight(line, scene.selectedNodeId) || ' '}</code
-						></div
-					>{/each}</pre>
+						></div>{/each}</pre>
 		{/if}
 	</div>
 </section>

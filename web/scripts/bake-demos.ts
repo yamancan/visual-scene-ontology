@@ -36,7 +36,10 @@ function mimeOf(ext: string): 'image/jpeg' | 'image/png' {
 	return ext.toLowerCase() === '.png' ? 'image/png' : 'image/jpeg';
 }
 
-async function bakeOne(entry: ManifestEntry, validate: boolean): Promise<{ entry: ManifestEntry; sha: string }> {
+async function bakeOne(
+	entry: ManifestEntry,
+	validate: boolean
+): Promise<{ entry: ManifestEntry; sha: string }> {
 	const filePath = resolve(DEMOS_DIR, basename(entry.path));
 	const bytes = await readFile(filePath);
 	const sha = createHash('sha256').update(bytes).digest('hex');
@@ -71,7 +74,9 @@ async function bakeOne(entry: ManifestEntry, validate: boolean): Promise<{ entry
 	const nodes = env.graph?.nodes?.length ?? 0;
 	const edges = env.graph?.edges?.length ?? 0;
 	const ms = Date.now() - t0;
-	console.log(`       conforms=${conforms} nodes=${nodes} edges=${edges} retries=${env.extraction?.shacl_retries ?? 0} ${ms}ms`);
+	console.log(
+		`       conforms=${conforms} nodes=${nodes} edges=${edges} retries=${env.extraction?.shacl_retries ?? 0} ${ms}ms`
+	);
 
 	if (validate && !conforms) {
 		throw new Error(`${entry.label}: did not conform after retries`);
@@ -92,9 +97,7 @@ async function main() {
 	const only = onlyArg ? onlyArg.slice('--only='.length) : null;
 
 	const manifest = JSON.parse(await readFile(MANIFEST, 'utf8')) as Manifest;
-	const entries = only
-		? manifest.entries.filter((e) => e.path.includes(only))
-		: manifest.entries;
+	const entries = only ? manifest.entries.filter((e) => e.path.includes(only)) : manifest.entries;
 
 	const baked: { entry: ManifestEntry; sha: string }[] = [];
 	for (const e of entries) {
@@ -109,10 +112,7 @@ async function main() {
 	// Write SHA index so the server can reverse-lookup demo bytes → envelope.
 	const shaIndex: Record<string, string> = {};
 	for (const b of baked) shaIndex[b.sha] = `${basename(b.entry.path, extname(b.entry.path))}.json`;
-	await writeFile(
-		resolve(ENVELOPES_DIR, 'index.json'),
-		JSON.stringify(shaIndex, null, 2) + '\n'
-	);
+	await writeFile(resolve(ENVELOPES_DIR, 'index.json'), JSON.stringify(shaIndex, null, 2) + '\n');
 	console.log(`[bake] wrote index.json (${Object.keys(shaIndex).length} entries)`);
 
 	// Update manifest.json with envelope_path + model_used.

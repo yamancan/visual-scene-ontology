@@ -18,12 +18,48 @@
 	const FORMATS: { id: Fmt; label: string; ext: string; mime: string; tooltip: string }[] = [
 		{ id: 'vson', label: 'penman', ext: 'vson', mime: 'text/plain', tooltip: 'VSON-P (Penman)' },
 		{ id: 'ttl', label: 'turtle', ext: 'ttl', mime: 'text/turtle', tooltip: 'VSON-T (Turtle 1.2)' },
-		{ id: 'json', label: 'json', ext: 'json', mime: 'application/json', tooltip: 'VSON envelope (JSON)' },
-		{ id: 'caption', label: 'caption', ext: 'txt', mime: 'text/plain', tooltip: 'English caption (deterministic, image-gen friendly)' },
-		{ id: 'fol', label: 'fol', ext: 'fol', mime: 'text/plain', tooltip: 'First-order logic (Prolog-style facts)' },
-		{ id: 'cypher', label: 'cypher', ext: 'cypher', mime: 'text/x-cypher', tooltip: 'Cypher CREATE statements' },
-		{ id: 'mermaid', label: 'mermaid', ext: 'mmd', mime: 'text/x-mermaid', tooltip: 'Mermaid graph diagram' },
-		{ id: 'graphml', label: 'graphml', ext: 'graphml', mime: 'application/graphml+xml', tooltip: 'GraphML (yEd, Gephi)' },
+		{
+			id: 'json',
+			label: 'json',
+			ext: 'json',
+			mime: 'application/json',
+			tooltip: 'VSON envelope (JSON)'
+		},
+		{
+			id: 'caption',
+			label: 'caption',
+			ext: 'txt',
+			mime: 'text/plain',
+			tooltip: 'English caption (deterministic, image-gen friendly)'
+		},
+		{
+			id: 'fol',
+			label: 'fol',
+			ext: 'fol',
+			mime: 'text/plain',
+			tooltip: 'First-order logic (Prolog-style facts)'
+		},
+		{
+			id: 'cypher',
+			label: 'cypher',
+			ext: 'cypher',
+			mime: 'text/x-cypher',
+			tooltip: 'Cypher CREATE statements'
+		},
+		{
+			id: 'mermaid',
+			label: 'mermaid',
+			ext: 'mmd',
+			mime: 'text/x-mermaid',
+			tooltip: 'Mermaid graph diagram'
+		},
+		{
+			id: 'graphml',
+			label: 'graphml',
+			ext: 'graphml',
+			mime: 'application/graphml+xml',
+			tooltip: 'GraphML (yEd, Gephi)'
+		},
 		{ id: 'dot', label: 'dot', ext: 'gv', mime: 'text/vnd.graphviz', tooltip: 'Graphviz DOT' }
 	];
 
@@ -84,7 +120,9 @@
 		}
 	}
 
-	let promptLabel = $derived(scene.notation === 'x' ? 'VSON-X system prompt' : 'VSON-P system prompt');
+	let promptLabel = $derived(
+		scene.notation === 'x' ? 'VSON-X system prompt' : 'VSON-P system prompt'
+	);
 </script>
 
 <div class="row">
@@ -130,9 +168,7 @@
 			<button
 				class="chip-main"
 				onclick={cpPrompt}
-				title="Copy the system prompt that produces {scene.notation === 'x'
-					? 'VSON-X'
-					: 'VSON-P'}"
+				title="Copy the system prompt that produces {scene.notation === 'x' ? 'VSON-X' : 'VSON-P'}"
 				aria-label="Copy {promptLabel}"
 			>
 				{copiedPrompt ? 'copied' : 'system prompt'}

@@ -24,11 +24,7 @@ describe('buildSceneView (lamp demo)', () => {
 	const view = buildSceneView(graph);
 
 	it('orders frame slots: context, style, camera', () => {
-		expect(view.frame.map((f) => f.kind)).toEqual([
-			'SceneContext',
-			'VisualStyle',
-			'CameraView'
-		]);
+		expect(view.frame.map((f) => f.kind)).toEqual(['SceneContext', 'VisualStyle', 'CameraView']);
 	});
 
 	it('extracts SceneContext properties', () => {

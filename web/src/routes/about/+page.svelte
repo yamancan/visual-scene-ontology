@@ -33,8 +33,8 @@
 				five hard rules, and a worked example. The model emitted a Penman tree — text that looks
 				like nested S-expressions. A small Rust binary (<code>vson</code>) rewrote that tree into
 				Turtle 1.2, then a SHACL validator checked it against the published shape graph. If it
-				conformed, you saw the graph. If it didn't, the server fed the violations back to the
-				model and asked for a fix, up to twice.
+				conformed, you saw the graph. If it didn't, the server fed the violations back to the model
+				and asked for a fix, up to twice.
 			</p>
 			<p class="aside">
 				The image bytes never leave the request body. They are not stored, not logged, not cached.
@@ -45,10 +45,11 @@
 		<section>
 			<h2>Why a graph?</h2>
 			<p>
-				A caption is fine for a search index. It is wrong for everything else. <em>"A queen with a
-				crown stands behind a knight"</em> hides the spatial relation, fuses two entities into one
-				phrase, and offers no way to say what the knight is holding. Try to query it. Try to merge
-				it with another caption of the same scene. It melts.
+				A caption is fine for a search index. It is wrong for everything else. <em
+					>"A queen with a crown stands behind a knight"</em
+				> hides the spatial relation, fuses two entities into one phrase, and offers no way to say what
+				the knight is holding. Try to query it. Try to merge it with another caption of the same scene.
+				It melts.
 			</p>
 			<p>
 				A graph is the format the rest of the stack already wants. Knowledge graphs, retrieval, 3D
@@ -63,9 +64,10 @@
 			<dl class="grid">
 				<dt>Frame</dt>
 				<dd>
-					The world from a viewer's chair: <code>SceneContext</code> (where), <code>VisualStyle</code>
-					(how rendered), <code>CameraView</code> (from where). Every directional spatial fact must
-					name a viewer; perspective is not optional.
+					The world from a viewer's chair: <code>SceneContext</code> (where),
+					<code>VisualStyle</code>
+					(how rendered), <code>CameraView</code> (from where). Every directional spatial fact must name
+					a viewer; perspective is not optional.
 				</dd>
 
 				<dt>Entity</dt>
@@ -96,8 +98,10 @@
 				</dd>
 			</dl>
 			<p>
-				The full vocabulary lives in <a href="https://github.com/yamancan/visual-scene-ontology/blob/main/docs/vson.md" rel="external">docs/vson.md</a>.
-				It is closed: out-of-vocabulary tokens fail SHACL by design.
+				The full vocabulary lives in <a
+					href="https://github.com/yamancan/visual-scene-ontology/blob/main/docs/vson.md"
+					rel="external">docs/vson.md</a
+				>. It is closed: out-of-vocabulary tokens fail SHACL by design.
 			</p>
 		</section>
 
@@ -144,7 +148,10 @@
 				image-graph corpora). Anyone can extend the vocabulary, ship a model that emits VSON, or
 				build a consumer that reads it. The
 				<a href="/" rel="self">studio</a> is one such consumer; the
-				<a href="https://github.com/yamancan/visual-scene-ontology/tree/main/skills/vson-extractor" rel="external">vson-extractor skill</a>
+				<a
+					href="https://github.com/yamancan/visual-scene-ontology/tree/main/skills/vson-extractor"
+					rel="external">vson-extractor skill</a
+				>
 				is one such producer.
 			</p>
 		</section>

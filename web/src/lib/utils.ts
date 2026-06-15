@@ -1,6 +1,4 @@
-export function fileToBase64(
-	file: File
-): Promise<{ b64: string; mime: string; preview: string }> {
+export function fileToBase64(file: File): Promise<{ b64: string; mime: string; preview: string }> {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader();
 		reader.onerror = () => reject(reader.error ?? new Error('FileReader failed'));

@@ -179,7 +179,11 @@
 >
 	<header class="head">
 		{#if showCrop}
-			<span class="crop" style={cropCss} title={cardBbox ? fmtBbox(cardBbox) : ''} aria-hidden="true"
+			<span
+				class="crop"
+				style={cropCss}
+				title={cardBbox ? fmtBbox(cardBbox) : ''}
+				aria-hidden="true"
 			></span>
 		{:else}
 			<span class="ico" aria-hidden="true">{icon}</span>
@@ -317,7 +321,16 @@
 						<span class="bbox-full font-mono">full</span>
 					{:else if b}
 						<svg class="bbox-mini" viewBox="0 0 24 24" aria-hidden="true">
-							<rect x="0.5" y="0.5" width="23" height="23" fill="none" stroke="currentColor" stroke-opacity="0.18" stroke-width="1" />
+							<rect
+								x="0.5"
+								y="0.5"
+								width="23"
+								height="23"
+								fill="none"
+								stroke="currentColor"
+								stroke-opacity="0.18"
+								stroke-width="1"
+							/>
 							<rect
 								x={(b.x * 23 + 0.5).toFixed(2)}
 								y={(b.y * 23 + 0.5).toFixed(2)}
@@ -367,10 +380,17 @@
 					<span class="g-key font-mono">occludes</span>
 					<span class="g-val font-mono">
 						{#each entity.geometry.occludes as o, i (o + i)}<button
-							type="button"
-							class="occludes-ref"
-							onclick={(ev) => focusItem(ev, { label: 'occludes', to: o, traits: { affordance: [] }, qualities: [], geometry: { occludes: [] } })}
-						>@{o}</button>{i < entity.geometry.occludes.length - 1 ? ', ' : ''}{/each}
+								type="button"
+								class="occludes-ref"
+								onclick={(ev) =>
+									focusItem(ev, {
+										label: 'occludes',
+										to: o,
+										traits: { affordance: [] },
+										qualities: [],
+										geometry: { occludes: [] }
+									})}>@{o}</button
+							>{i < entity.geometry.occludes.length - 1 ? ', ' : ''}{/each}
 					</span>
 				</div>
 			{/if}
@@ -451,7 +471,16 @@
 												<span class="bbox-full font-mono">full</span>
 											{:else if b}
 												<svg class="bbox-mini" viewBox="0 0 24 24" aria-hidden="true">
-													<rect x="0.5" y="0.5" width="23" height="23" fill="none" stroke="currentColor" stroke-opacity="0.18" stroke-width="1" />
+													<rect
+														x="0.5"
+														y="0.5"
+														width="23"
+														height="23"
+														fill="none"
+														stroke="currentColor"
+														stroke-opacity="0.18"
+														stroke-width="1"
+													/>
 													<rect
 														x={(b.x * 23 + 0.5).toFixed(2)}
 														y={(b.y * 23 + 0.5).toFixed(2)}

@@ -62,11 +62,7 @@
 		flex-shrink: 0;
 	}
 	.scene-title {
-		font-family:
-			ui-monospace,
-			SFMono-Regular,
-			Menlo,
-			monospace;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 		font-size: 12px;
 		font-weight: 700;
 		letter-spacing: 0.12em;

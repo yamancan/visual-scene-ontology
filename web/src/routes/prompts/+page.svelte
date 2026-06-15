@@ -68,8 +68,8 @@ dimension(q, Color). value(q, red).`;
 				prompt, expressive enough to encode a picture, strict enough that violations point
 				somewhere. One RDF graph underneath, three surface notations on top. Same predicate logic
 				either way:
-				<code>contains(scene, p) ∧ class(p, Person)</code> doesn't change because you wrote it with
-				sigils instead of parens.
+				<code>contains(scene, p) ∧ class(p, Person)</code> doesn't change because you wrote it with sigils
+				instead of parens.
 			</p>
 		</header>
 
@@ -100,8 +100,8 @@ dimension(q, Color). value(q, red).`;
 								diagnoses most failures. The studio default.
 							{:else if skill.id === 'vson-x'}
 								Eight prefix sigils, line-significant, no brackets. Cheaper in tokens.
-								Graph-equivalent to Penman across the gallery; one documented collapse on
-								symmetric spatial facts.
+								Graph-equivalent to Penman across the gallery; one documented collapse on symmetric
+								spatial facts.
 							{:else}
 								The eighteen-kilobyte original. Closed vocabulary inline, hard rules, a worked
 								example per primitive kind. Heaviest, and the size earns its keep when conformance
@@ -164,17 +164,16 @@ dimension(q, Color). value(q, red).`;
 
 			<p class="muted">
 				Two surface notations, one English caption, one logical form — all from one graph. The
-				studio's <code>caption</code> and <code>fol</code> exporters are deterministic functions of
-				the RDF, not separate prompts.
+				studio's <code>caption</code> and <code>fol</code> exporters are deterministic functions of the
+				RDF, not separate prompts.
 			</p>
 		</section>
 
 		<section>
 			<h2>Wire it in</h2>
 			<p>
-				Paste the prompt body as the <code>system</code> message. Cache it on the system block so
-				follow-up calls in the same conversation pay around 10% of the input-token cost on the
-				cached prefix.
+				Paste the prompt body as the <code>system</code> message. Cache it on the system block so follow-up
+				calls in the same conversation pay around 10% of the input-token cost on the cached prefix.
 			</p>
 
 			<pre class="snippet"><code>{ANTHROPIC_SNIPPET}</code></pre>
@@ -186,8 +185,8 @@ dimension(q, Color). value(q, red).`;
 				<a href="https://github.com/yamancan/visual-scene-ontology/tree/main/skills" rel="external"
 					>/skills/&lt;name&gt;/</a
 				>
-				on GitHub ships each prompt with a <code>conformance.json</code> acceptance fixture and
-				per-platform code snippets.
+				on GitHub ships each prompt with a <code>conformance.json</code> acceptance fixture and per-platform
+				code snippets.
 			</p>
 		</section>
 

@@ -296,10 +296,7 @@ async function main() {
 		}
 	}
 
-	writeFileSync(
-		resolve(ENVELOPES_DIR, 'index.json'),
-		JSON.stringify(shaIndex, null, 2) + '\n'
-	);
+	writeFileSync(resolve(ENVELOPES_DIR, 'index.json'), JSON.stringify(shaIndex, null, 2) + '\n');
 	writeFileSync(MANIFEST, JSON.stringify({ ...manifest, entries: updatedEntries }, null, 2) + '\n');
 	console.log(`[bake] wrote ${Object.keys(shaIndex).length} envelopes + index + manifest`);
 }

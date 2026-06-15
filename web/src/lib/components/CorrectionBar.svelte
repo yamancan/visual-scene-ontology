@@ -76,7 +76,10 @@
 			});
 			if (!res.ok) {
 				const text = await res.text();
-				scene.setCorrectionStatus('error', `correct failed · ${res.status} · ${text.slice(0, 200)}`);
+				scene.setCorrectionStatus(
+					'error',
+					`correct failed · ${res.status} · ${text.slice(0, 200)}`
+				);
 				return;
 			}
 			const corrected = (await res.json()) as VsonEnvelope;

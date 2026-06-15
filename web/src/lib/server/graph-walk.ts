@@ -485,4 +485,3 @@ export function walkTurtleToGraph(turtle: string): SceneGraph {
 
 	return { nodes, edges };
 }
-

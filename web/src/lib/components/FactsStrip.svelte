@@ -57,11 +57,16 @@
 							<span class="ref font-mono">@{s.ground ?? '?'}</span>
 							<span class="row-id font-mono">@{s.id}</span>
 							<span class="meta font-mono">
-								{#if s.rcc && s.directional}<span class="m"><span class="ns">rcc:</span>{s.rcc}</span>{/if}
+								{#if s.rcc && s.directional}<span class="m"
+										><span class="ns">rcc:</span>{s.rcc}</span
+									>{/if}
 								{#if s.proximal}<span class="m"><span class="ns">vso:</span>{s.proximal}</span>{/if}
 								{#if s.viewer}<span class="m">viewer:@{s.viewer}</span>{/if}
 								{#if needsViewer}
-									<span class="warn-chip" title="vss:DirectionalNeedsViewerShape — Talmy resolution requires a vso:viewer for any vso:directional fact">
+									<span
+										class="warn-chip"
+										title="vss:DirectionalNeedsViewerShape — Talmy resolution requires a vso:viewer for any vso:directional fact"
+									>
 										!viewer
 									</span>
 								{/if}

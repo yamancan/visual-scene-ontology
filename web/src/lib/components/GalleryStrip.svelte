@@ -56,11 +56,7 @@
 
 {#if entries.length > 0}
 	<div class="gallery">
-		<button
-			class="gallery-toggle"
-			onclick={() => (expanded = !expanded)}
-			aria-expanded={expanded}
-		>
+		<button class="gallery-toggle" onclick={() => (expanded = !expanded)} aria-expanded={expanded}>
 			<span class="caret" aria-hidden="true">{expanded ? '▾' : '▸'}</span>
 			<span class="toggle-label">spec examples</span>
 			<span class="count">{entries.length}</span>
@@ -68,8 +64,8 @@
 
 		{#if expanded}
 			<p class="gallery-help">
-				Hand-authored VSON documents that pass strict SHACL — one per construct.
-				Load any to see how the studio renders spec-conformant data.
+				Hand-authored VSON documents that pass strict SHACL — one per construct. Load any to see how
+				the studio renders spec-conformant data.
 			</p>
 
 			<ul class="grid">

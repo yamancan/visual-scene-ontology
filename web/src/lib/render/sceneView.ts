@@ -100,14 +100,7 @@ export interface SceneView {
 
 // Edge-label routing — single source of truth. Adding a new predicate is one
 // line. Order of checks in buildSceneView matches this typology.
-const POSSESSION_LABELS = new Set([
-	'wears',
-	'carries',
-	'holds',
-	'hasPart',
-	'partOf',
-	'embodies'
-]);
+const POSSESSION_LABELS = new Set(['wears', 'carries', 'holds', 'hasPart', 'partOf', 'embodies']);
 const PERDURANT_ROLE_LABELS = new Set([
 	'agent',
 	'patient',
