@@ -46,7 +46,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	if (!gb.graph?.nodes || !gb.graph?.edges)
 		throw error(400, 'expected { graph, format } with nodes + edges');
 
-	let out = '';
+	let out: string;
 	switch (gb.format) {
 		case 'cypher':
 			out = toCypher(gb.graph);

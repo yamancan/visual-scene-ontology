@@ -142,7 +142,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
 	const model = body.model && body.model.includes('/') ? body.model : undefined;
 
 	const usage = { input: 0, output: 0 };
-	let raw = '';
+	let raw: string;
 	try {
 		const initial = await chat({
 			model,

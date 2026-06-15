@@ -180,13 +180,13 @@ export function parseViolationReport(report: string): ParsedViolation[] {
 	const blocks = report.split(/Constraint (?:Violation|Warning) in /);
 	for (let i = 1; i < blocks.length; i++) {
 		const b = blocks[i];
-		const shape = (b.match(/^([A-Za-z]+ConstraintComponent)/) || [, 'unknown'])[1];
-		const message = (b.match(/Message:\s*(.+)/) || [, ''])[1].trim();
-		const fnRaw = (b.match(/Focus Node:\s*(.+)/) || [, ''])[1].trim();
+		const shape = (b.match(/^([A-Za-z]+ConstraintComponent)/) || ['', 'unknown'])[1];
+		const message = (b.match(/Message:\s*(.+)/) || ['', ''])[1].trim();
+		const fnRaw = (b.match(/Focus Node:\s*(.+)/) || ['', ''])[1].trim();
 		const focus_node = fnRaw ? localName(fnRaw) : undefined;
-		const rpRaw = (b.match(/Result Path:\s*(.+)/) || [, ''])[1].trim();
+		const rpRaw = (b.match(/Result Path:\s*(.+)/) || ['', ''])[1].trim();
 		const result_path = rpRaw ? localName(rpRaw) : undefined;
-		const severityRaw = (b.match(/Severity:\s*sh:(\w+)/) || [, ''])[1];
+		const severityRaw = (b.match(/Severity:\s*sh:(\w+)/) || ['', ''])[1];
 		const severity = severityRaw
 			? ((severityRaw[0].toUpperCase() + severityRaw.slice(1)) as 'Violation' | 'Warning' | 'Info')
 			: 'Violation';

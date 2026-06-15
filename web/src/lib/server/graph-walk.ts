@@ -174,7 +174,7 @@ export function walkPenmanToGraph(src: string): SceneGraph {
 	const seen = new Set<string>();
 
 	function ensureNode(id: string, kind: NodeKind | null, concept: string | null): GraphNode {
-		let existing = nodes.find((n) => n.id === id);
+		const existing = nodes.find((n) => n.id === id);
 		if (existing) {
 			if (kind && !existing.kind) existing.kind = kind;
 			if (concept && !existing.class && !KIND_VALUES.has(concept as NodeKind))

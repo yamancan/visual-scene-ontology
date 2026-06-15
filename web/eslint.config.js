@@ -37,8 +37,25 @@ export default defineConfig(
 		}
 	},
 	{
-		// Override or add rule settings here, such as:
-		// 'svelte/button-has-type': 'error'
-		rules: {}
+		rules: {
+			// The syntax highlighters (SourcePane / TurtlePane) escape every span
+			// through escapeHtml() before interpolating, so {@html} is safe here;
+			// the rule can't see the escaping and would force a noisier per-line
+			// disable in each file.
+			'svelte/no-at-html-tags': 'off',
+			// The only Map/Set instances flagged are transient locals built inside
+			// $derived.by() and immediately reduced to arrays — they are not
+			// reactive state, so SvelteMap/SvelteSet would be wrong, not safer.
+			'svelte/prefer-svelte-reactivity': 'off',
+			// Internal nav uses plain static hrefs by design; the app has no base
+			// path, so resolve() would add ceremony without behaviour change.
+			'svelte/no-navigation-without-resolve': 'off',
+			// Allow `_`-prefixed names to mark intentionally-unused bindings (e.g.
+			// the rest-omit pattern `const { [id]: _x, ...rest } = obj`).
+			'@typescript-eslint/no-unused-vars': [
+				'error',
+				{ argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }
+			]
+		}
 	}
 );

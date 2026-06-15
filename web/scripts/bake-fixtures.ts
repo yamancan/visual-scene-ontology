@@ -10,7 +10,7 @@
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { resolve, basename, extname, dirname } from 'node:path';
+import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { walkPenmanToGraph } from '../src/lib/server/graph-walk';
@@ -273,13 +273,6 @@ async function main() {
 				envelope_path: `/demos/envelopes/${envFile}`,
 				model_used: 'fixture-bake'
 			};
-		}
-
-		// cleanup temp files
-		try {
-			(await import('node:fs/promises')).then;
-		} catch {
-			// noop
 		}
 
 		console.log(
