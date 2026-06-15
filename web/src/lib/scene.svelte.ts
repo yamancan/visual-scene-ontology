@@ -31,6 +31,23 @@ function readStoredNotation(): Notation {
 export type RailTab = 'source' | 'turtle' | 'conformance';
 export type Notation = 'p' | 'x';
 
+// A staged, not-yet-applied correction to a single entity. Accumulated in the
+// store while the user reviews a scene; flushed to /api/correct on submit.
+export interface EntityEdit {
+	klass?: string;
+	qualities?: { dim: string; value: string }[];
+	note?: string;
+	remove?: boolean;
+}
+
+// A staged edit carries a real instruction iff it removes the entity, sets a
+// class, sets at least one quality, or has a non-blank note. An edit that the
+// user opened then cleared is a no-op: it must not count toward the badge nor
+// burn an LLM round-trip. Shared by pendingCount and CorrectionBar.send().
+export function isMeaningfulEdit(e: EntityEdit): boolean {
+	return !!(e.remove || e.klass || e.qualities?.length || e.note?.trim());
+}
+
 function createSceneStore() {
 	let envelope = $state<VsonEnvelope | null>(null);
 	let status = $state<ExtractStatus>('idle');
@@ -40,6 +57,20 @@ function createSceneStore() {
 	let model = $state<string>(readStoredModel());
 	let railTab = $state<RailTab>('source');
 	let notation = $state<Notation>(readStoredNotation());
+	let pendingEdits = $state<Record<string, EntityEdit>>({});
+	let sceneNote = $state('');
+	let hoveredNodeId = $state<string | null>(null);
+	let correctionStatus = $state<'idle' | 'correcting' | 'error'>('idle');
+	let correctionError = $state<string | null>(null);
+
+	// Drop any staged corrections — a new scene makes prior edits stale (their
+	// ids may not exist in the new graph). Shared by setEnvelope() and reset().
+	function clearCorrections() {
+		pendingEdits = {};
+		sceneNote = '';
+		correctionStatus = 'idle';
+		correctionError = null;
+	}
 
 	return {
 		get envelope() {
@@ -66,11 +97,35 @@ function createSceneStore() {
 		get notation() {
 			return notation;
 		},
+		get pendingEdits() {
+			return pendingEdits;
+		},
+		get sceneNote() {
+			return sceneNote;
+		},
+		get hoveredNodeId() {
+			return hoveredNodeId;
+		},
+		get correctionStatus() {
+			return correctionStatus;
+		},
+		get correctionError() {
+			return correctionError;
+		},
+		// How many distinct corrections are staged — one per *meaningful* entity
+		// edit (no-op edits the user opened then cleared don't count) plus one for
+		// a non-blank scene note. Drives the submit-button badge.
+		get pendingCount() {
+			const edits = Object.values(pendingEdits).filter(isMeaningfulEdit).length;
+			return edits + (sceneNote.trim() ? 1 : 0);
+		},
 		setEnvelope(e: VsonEnvelope | null) {
 			envelope = e;
 			// Drop any selection from a previous scene — its var won't exist
 			// in the new graph and we'd silently render a non-match.
 			selectedNodeId = null;
+			// New scene => any staged edits reference a graph that's gone.
+			clearCorrections();
 		},
 		setStatus(s: ExtractStatus) {
 			status = s;
@@ -104,6 +159,26 @@ function createSceneStore() {
 				/* ignore */
 			}
 		},
+		setEntityEdit(id: string, patch: Partial<EntityEdit>) {
+			pendingEdits = { ...pendingEdits, [id]: { ...(pendingEdits[id] ?? {}), ...patch } };
+		},
+		clearEntityEdit(id: string) {
+			const { [id]: _removed, ...rest } = pendingEdits;
+			pendingEdits = rest;
+		},
+		setSceneNote(s: string) {
+			sceneNote = s;
+		},
+		setHovered(id: string | null) {
+			hoveredNodeId = id;
+		},
+		setCorrectionStatus(s: 'idle' | 'correcting' | 'error', err?: string | null) {
+			correctionStatus = s;
+			correctionError = err ?? null;
+		},
+		clearCorrections() {
+			clearCorrections();
+		},
 		reset() {
 			envelope = null;
 			status = 'idle';
@@ -111,6 +186,8 @@ function createSceneStore() {
 			selectedNodeId = null;
 			imagePreview = null;
 			railTab = 'source';
+			hoveredNodeId = null;
+			clearCorrections();
 			// Don't clear `notation` — it's a sticky preference, like `model`.
 		}
 	};

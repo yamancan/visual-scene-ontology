@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { scene } from '$lib/scene.svelte';
+	import LayoutSwitcher from './LayoutSwitcher.svelte';
 
 	let env = $derived(scene.envelope);
 	let conforms = $derived(env?.conformance.conforms ?? null);
@@ -52,20 +53,23 @@
 			</div>
 		</div>
 
-		<dl class="stats">
-			<div class="stat">
-				<dt>nodes</dt>
-				<dd class="num">{nodes}</dd>
-			</div>
-			<div class="stat">
-				<dt>edges</dt>
-				<dd class="num">{edges}</dd>
-			</div>
-			<div class="stat">
-				<dt>triples</dt>
-				<dd class="num">{triples}</dd>
-			</div>
-		</dl>
+		<div class="hdr-right">
+			<LayoutSwitcher />
+			<dl class="stats">
+				<div class="stat">
+					<dt>nodes</dt>
+					<dd class="num">{nodes}</dd>
+				</div>
+				<div class="stat">
+					<dt>edges</dt>
+					<dd class="num">{edges}</dd>
+				</div>
+				<div class="stat">
+					<dt>triples</dt>
+					<dd class="num">{triples}</dd>
+				</div>
+			</dl>
+		</div>
 	</header>
 {/if}
 
@@ -84,6 +88,12 @@
 		align-items: center;
 		gap: var(--s4);
 		min-width: 0;
+	}
+	.hdr-right {
+		display: flex;
+		align-items: center;
+		gap: var(--s5);
+		flex-shrink: 0;
 	}
 	.thumb {
 		width: 56px;
@@ -207,6 +217,9 @@
 	@media (max-width: 720px) {
 		.scene-id {
 			display: none;
+		}
+		.hdr-right {
+			gap: var(--s3);
 		}
 		.stat {
 			padding: 0 var(--s3);

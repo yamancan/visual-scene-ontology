@@ -3,6 +3,7 @@
 	import SourcePane from './SourcePane.svelte';
 	import TurtlePane from './TurtlePane.svelte';
 	import ConformancePane from './ConformancePane.svelte';
+	import MaxButton from './MaxButton.svelte';
 
 	// The source tab follows the envelope: if the user's sticky notation matches
 	// what's in the envelope, label it that way; if not, label what we will
@@ -75,6 +76,9 @@
 				{/if}
 			</button>
 		{/each}
+		<div class="tabs-tools">
+			<MaxButton panel="notation" />
+		</div>
 	</div>
 
 	<div class="pane">
@@ -98,10 +102,16 @@
 	}
 	.tabs {
 		display: flex;
+		align-items: center;
 		gap: 0;
 		padding: 0 var(--s2);
 		border-bottom: 1px solid var(--border-1);
 		flex-shrink: 0;
+	}
+	.tabs-tools {
+		margin-left: auto;
+		display: inline-flex;
+		align-items: center;
 	}
 	.tab {
 		position: relative;

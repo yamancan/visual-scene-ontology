@@ -103,6 +103,88 @@ export function buildRepairXPrompt(failedDoc: string, shaclReport: string): stri
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+// Targeted correction prompts. Unlike extraction/repair these do NOT re-derive
+// the scene from the image — they apply a small, enumerated list of human edits
+// to an EXISTING document and return the COMPLETE corrected document with every
+// other entity/quality/edge/frame/id preserved verbatim.
+// ──────────────────────────────────────────────────────────────────────────────
+
+export interface CorrectionItem {
+	id: string;
+	klass?: string;
+	qualities?: { dim: string; value: string }[];
+	note?: string;
+	remove?: boolean;
+}
+
+// Render one correction item as a single human-readable instruction line.
+function renderCorrectionItem(item: CorrectionItem): string {
+	if (item.remove) {
+		return `- entity @${item.id}: REMOVE this entity`;
+	}
+	const parts: string[] = [];
+	if (item.klass) parts.push(`set class to ${item.klass}`);
+	for (const q of item.qualities ?? []) {
+		parts.push(`set quality ${q.dim} to ${q.value}`);
+	}
+	if (item.note) parts.push(`note: ${item.note}`);
+	const body = parts.length ? parts.join('; ') : 'no-op';
+	return `- entity @${item.id}: ${body}`;
+}
+
+function renderCorrectionList(items: CorrectionItem[], sceneNote?: string): string {
+	const lines = items.map(renderCorrectionItem);
+	if (sceneNote && sceneNote.trim()) {
+		lines.push(`Scene note: ${sceneNote.trim()}`);
+	}
+	return lines.join('\n');
+}
+
+export function buildCorrectionPrompt(
+	currentDoc: string,
+	items: CorrectionItem[],
+	sceneNote?: string
+): string {
+	return [
+		'You are applying targeted corrections to an existing VSON-P (Penman) document.',
+		'This is NOT a re-extraction. Apply ONLY the corrections listed below and return',
+		'the COMPLETE corrected document in the same Penman notation. Preserve every other',
+		'entity, quality, edge, frame, and id verbatim — do not re-derive, reorder, rename,',
+		'or drop anything that is not explicitly corrected.',
+		'',
+		'Corrections to apply:',
+		renderCorrectionList(items, sceneNote),
+		'',
+		'Current document:',
+		currentDoc,
+		'',
+		'Return the complete corrected Penman document only, no prose, no fences.'
+	].join('\n');
+}
+
+export function buildCorrectionXPrompt(
+	currentDoc: string,
+	items: CorrectionItem[],
+	sceneNote?: string
+): string {
+	return [
+		'You are applying targeted corrections to an existing VSON-X document.',
+		'This is NOT a re-extraction. Apply ONLY the corrections listed below and return',
+		'the COMPLETE corrected document in the same VSON-X notation. Preserve every other',
+		'entity, quality, edge, frame, and id verbatim — do not re-derive, reorder, rename,',
+		'or drop anything that is not explicitly corrected.',
+		'',
+		'Corrections to apply:',
+		renderCorrectionList(items, sceneNote),
+		'',
+		'Current document:',
+		currentDoc,
+		'',
+		'Return the complete corrected VSON-X document only; first character must be ~.'
+	].join('\n');
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // Skill manifest — surfaced via /api/skills and rendered on /prompts.
 // ──────────────────────────────────────────────────────────────────────────────
 
