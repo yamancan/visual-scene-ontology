@@ -125,11 +125,14 @@ export const POST: RequestHandler = async ({ request, url }) => {
 
 	// Cached-demo short-circuit. Only fires when the requested variant matches
 	// the variant the envelope was baked with — otherwise a `skill-x` request
-	// on a `skill`-baked demo would silently serve the wrong notation.
+	// on a `skill`-baked demo would silently serve the wrong notation. Compare
+	// the version *name* (left of `@`): the `full` variant bakes as
+	// `orchestrator-system@…`, not `full@…`, so a `${variant}@` prefix check
+	// would never fire for the default variant and re-extract every time.
 	const cached = tryServeDemo(body.sha256 ?? sha256);
 	if (cached) {
-		const baked = cached.extraction?.prompt_version ?? '';
-		if (baked.startsWith(`${variant}@`)) return json(cached);
+		const bakedName = (cached.extraction?.prompt_version ?? '').split('@')[0];
+		if (bakedName === promptVersionFor(variant).split('@')[0]) return json(cached);
 	}
 	if (variant === 'skill-x' && !isXSkillReady()) {
 		throw error(503, 'VSON-X skill not yet shipped on this server');
