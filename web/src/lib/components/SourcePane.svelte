@@ -6,28 +6,23 @@
 	let copied = $state(false);
 	let containerEl: HTMLDivElement | undefined = $state();
 
-	// Bidirectional fallback: honor sticky notation preference when the envelope
-	// carries that form, otherwise transparently render the other. v1.0 ships
-	// vson_p only; v1.1 X-mode ships vson_x only (back-conversion deferred to
-	// v1.2). Either direction can mismatch a stale sticky preference.
-	let preferred = $derived(
-		scene.notation === 'x' ? scene.envelope?.vson_x : scene.envelope?.vson_p
-	);
-	let alternate = $derived(
-		scene.notation === 'x' ? scene.envelope?.vson_p : scene.envelope?.vson_x
-	);
-	let preferredHasBody = $derived((preferred?.trim().length ?? 0) > 0);
-	let alternateHasBody = $derived((alternate?.trim().length ?? 0) > 0);
-	let body = $derived(preferredHasBody ? (preferred ?? '') : (alternate ?? ''));
-	let effective = $derived<'p' | 'x'>(
-		preferredHasBody ? scene.notation : scene.notation === 'x' ? 'p' : 'x'
-	);
-	let fallbackActive = $derived(!preferredHasBody && alternateHasBody);
+	// Bidirectional fallback: render the notation the store resolves as
+	// effective — the sticky preference when the envelope carries it, otherwise
+	// the other form transparently. v1.0 ships vson_p only; v1.1 X-mode ships
+	// vson_x only (back-conversion deferred to v1.2). `scene.effectiveNotation`
+	// is the shared source of truth (see scene.svelte.ts); deriving it here too
+	// is what let SourcePane and TabsRail disagree in the both-empty case.
+	let effective = $derived(scene.effectiveNotation);
+	let body = $derived((effective === 'x' ? scene.envelope?.vson_x : scene.envelope?.vson_p) ?? '');
+	// `effective` already prefers a non-empty form, so an empty body here means
+	// both forms are empty; a mismatch with the sticky preference means we fell
+	// back to the other form (and thus have content to show).
+	let isEmpty = $derived(body.trim().length === 0);
+	let fallbackActive = $derived(!isEmpty && effective !== scene.notation);
 	let lines = $derived(body.split('\n'));
 	let label = $derived(effective === 'x' ? 'vson-x' : 'penman');
 	let preferredLabel = $derived(scene.notation === 'x' ? 'vson-x' : 'penman');
 	let copyLabel = $derived(effective === 'x' ? 'copy vson-x' : 'copy penman');
-	let isEmpty = $derived(!preferredHasBody && !alternateHasBody);
 	let envelopeVersion = $derived(scene.envelope?.version ?? '');
 
 	async function doCopy() {

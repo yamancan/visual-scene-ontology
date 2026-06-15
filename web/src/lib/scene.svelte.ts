@@ -97,6 +97,18 @@ function createSceneStore() {
 		get notation() {
 			return notation;
 		},
+		// The notation that will actually render: honor the sticky `notation`
+		// preference when the envelope carries that form, else transparently fall
+		// back to whichever form has a body. When neither has a body, keep the
+		// preference (the source pane shows its empty state). Single source of
+		// truth — SourcePane (body + fallback chip) and TabsRail (tab label) both
+		// read this so they can never disagree, including the both-empty case.
+		get effectiveNotation(): Notation {
+			const xBody = (envelope?.vson_x?.trim().length ?? 0) > 0;
+			const pBody = (envelope?.vson_p?.trim().length ?? 0) > 0;
+			if (notation === 'x') return xBody ? 'x' : pBody ? 'p' : 'x';
+			return pBody ? 'p' : xBody ? 'x' : 'p';
+		},
 		get pendingEdits() {
 			return pendingEdits;
 		},

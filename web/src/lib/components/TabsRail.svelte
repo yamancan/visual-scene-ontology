@@ -5,26 +5,10 @@
 	import ConformancePane from './ConformancePane.svelte';
 	import MaxButton from './MaxButton.svelte';
 
-	// The source tab follows the envelope: if the user's sticky notation matches
-	// what's in the envelope, label it that way; if not, label what we will
-	// actually render (SourcePane falls back transparently). Avoids the dead-end
-	// where the tab promises "vson-x" and the pane shows an empty state.
-	let env = $derived(scene.envelope);
-	let xPresent = $derived((env?.vson_x?.trim().length ?? 0) > 0);
-	let pPresent = $derived((env?.vson_p?.trim().length ?? 0) > 0);
-	let effectiveNotation = $derived<'p' | 'x'>(
-		scene.notation === 'x'
-			? xPresent
-				? 'x'
-				: pPresent
-					? 'p'
-					: 'x'
-			: pPresent
-				? 'p'
-				: xPresent
-					? 'x'
-					: 'p'
-	);
+	// The source tab labels whatever SourcePane will actually render. Both read
+	// the same `scene.effectiveNotation` (see scene.svelte.ts) so the tab can
+	// never promise "vson-x" while the pane shows penman (or an empty state).
+	let effectiveNotation = $derived(scene.effectiveNotation);
 
 	let TABS = $derived<{ id: RailTab; label: string; sub: string }[]>([
 		{
