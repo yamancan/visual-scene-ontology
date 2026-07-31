@@ -62,6 +62,16 @@ jobs:
       - name: make envelope-check (studio envelope corpus SHACL-conforms)
         run: make envelope-check
 
+      # Not a verification of the repository, which is why `make site` is not in
+      # the check chain — it is proof that the publish surface can still be
+      # assembled from the tracked tree. build_site.py refuses to produce a
+      # site/ whose Turtle does not parse, whose landing page states a version
+      # the ontology does not declare, or which names the withdrawn namespace
+      # host outside the one owl:priorVersion record. Running it here means a
+      # deploy never discovers those on the day of the deploy.
+      - name: make site (publish surface assembles and self-checks)
+        run: make site
+
   web:
     name: Web studio (svelte-check · test · build)
     runs-on: ubuntu-latest
