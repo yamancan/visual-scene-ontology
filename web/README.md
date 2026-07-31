@@ -99,7 +99,7 @@ Limits, all rejected with a 400 and a one-line message: `image_b64` ≤ 8M chars
 
 Read at runtime via `$env/dynamic/private`.
 
-- `OPENROUTER_API_KEY` — **required**.
+- `OPENROUTER_API_KEY` — **required to serve visitors who bring no key of their own.** A request that carries neither this nor an `x-openrouter-key` header (see [Bring your own key](#bring-your-own-key)) fails with `no API key: set OPENROUTER_API_KEY or supply your own` (500). Cached demos are served before any key is read, so those work with neither.
 - `OPENROUTER_MODEL` — default `google/gemini-2.5-flash`. Used when a request names no model.
 - `OPENROUTER_ALLOWED_MODELS` — optional comma-separated id allowlist. Unset means any vision model OpenRouter serves. When set it narrows both the picker and what `/api/extract` and `/api/correct` accept.
 - `RATE_LIMIT_MAX` — POSTs to `/api/extract` + `/api/correct` per IP per window. Default `10`; `0` disables the limiter.
@@ -107,6 +107,19 @@ Read at runtime via `$env/dynamic/private`.
 - `VSON_BIN` — default `../cli/target/release/vson`. Override if installed elsewhere.
 - `PUBLIC_BASE_URL` — used as `HTTP-Referer` on OpenRouter calls.
 - `BODY_SIZE_LIMIT` — **`8M` is required for a `node build` deploy.** `@sveltejs/adapter-node` defaults to `512K`, which 413s any upload over ~380 KB before the route runs. `vite dev` ignores it, so this only bites in production.
+
+## Bring your own key
+
+The model picker's panel has an optional key field. A visitor-supplied
+OpenRouter key is held **in browser memory only** (`src/lib/byok.svelte.ts` —
+no localStorage, no cookie; a refresh forgets it) and rides each
+`/api/extract` / `/api/correct` request as an `x-openrouter-key` header. The
+server uses it for that request's upstream calls instead of
+`OPENROUTER_API_KEY`, then drops it — it is never stored, logged, or echoed
+back. The key does transit the server per request (TLS), so visitors who do
+not want to trust the operator should not use the field; either way, use a
+key with a spend limit (openrouter.ai → Keys → credit limit). Rate limiting
+and the model allowlist apply to BYOK requests unchanged.
 
 ## Demo strip
 
