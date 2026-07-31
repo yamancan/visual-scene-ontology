@@ -72,7 +72,8 @@ computation runs, not what a document or an envelope asserts.
   by a test, and installed via `pyodide.loadPackage` with explicit same-origin
   URLs — no micropip, no PyPI, no CDN, at build time or at runtime. The layer
   is strictly demand-loaded: keyless visitors never download a byte of it; the
-  first action that needs verification pulls ≈14 MB once per browser. If the
+  first action that needs verification pulls ≈16 MB raw (compressed in
+  transit) once per browser. If the
   runtime cannot boot on a device, the studio keeps the extracted document and
   reports validation as unavailable with CLI instructions.
 - **Version markers.** Software markers move to 1.3.0 (`CITATION.cff`, the
