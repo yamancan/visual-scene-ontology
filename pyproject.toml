@@ -25,6 +25,12 @@ dependencies = [
     # (tools/owlrl_check.py:_distinct_sets, tests/test_owlrl_check.py).
     # An older owlrl changes which clashes the gate can see.
     "owlrl>=7.1.4,<8",
+    # Envelope schema gate (scripts/deploy_preflight.sh validates a studio
+    # envelope against tools/schema/vson-output.schema.json). The 4.0 floor is
+    # where jsonschema gained the Draft 2020-12 validator that the schema's
+    # $schema declares; without this dependency the preflight gate caught the
+    # ImportError and skipped itself, so it asserted nothing.
+    "jsonschema>=4.0,<5",
 ]
 
 [tool.setuptools.packages.find]
