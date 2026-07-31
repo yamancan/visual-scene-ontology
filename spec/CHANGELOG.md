@@ -1,5 +1,88 @@
 # Changelog
 
+## v1.3.0 — 2026-07-31
+
+The static studio release. The web studio drops its server entirely: no
+backend process, no API routes, no operator API key — extraction goes from the
+visitor's browser straight to OpenRouter on the visitor's own key, and
+verification runs in the visitor's browser at CLI parity. **The envelope wire
+format is unchanged at 1.2, and the ontology and namespace are unchanged**: no
+class, property, shape, schema field, or IRI moves. v1.3 changes *where*
+computation runs, not what a document or an envelope asserts.
+
+- **Static-native studio.** `@sveltejs/adapter-node` is replaced by
+  `@sveltejs/adapter-static` with strict prerender: the deploy artifact is a
+  directory of files, published to a second Cloudflare Pages project
+  (`vson-studio.pages.dev`) by a manual `make web-deploy` — no CI deploy step,
+  no deploy secrets, and the `vson.pages.dev` namespace project is untouched.
+  The entire server surface is deleted: the five `/api/*` routes,
+  `hooks.server.ts`, and `$lib/server`, along with every runtime environment
+  variable that fed them (`OPENROUTER_API_KEY`, `OPENROUTER_MODEL`,
+  `OPENROUTER_ALLOWED_MODELS`, `PUBLIC_BASE_URL`, `RATE_LIMIT_MAX` /
+  `RATE_LIMIT_WINDOW_S`, `VSON_BIN`, `BODY_SIZE_LIMIT`). Prompts and the
+  skill manifest became compile-time constants of the bundle.
+- **In-browser two-gate verification at CLI parity.** A Pyodide web worker
+  mounts the repository's reference Python implementation — the Penman and
+  VSON-X transpilers with the shared routing tables, the SHACL helper, the
+  OWL RL check, the caption/FOL renderers, the shapes, and the vso/rcc8/allen
+  ontology trio — and runs the same two gates in the same order as
+  `vson validate`: pyshacl with `inference=rdfs` (Gate 1), then the owlrl
+  OWL 2 RL consistency check (Gate 2, only when Gate 1 passes). Parity is
+  pinned from both sides in CI: `make cli-check` now byte-compares Python vs
+  Rust `p2t` over the full corpus (throne room + all 16 gallery scenes), and
+  an offline worker vitest boots Pyodide from the committed wheels and asserts
+  byte-equal `p2t` output against the committed Turtle golden, both gate
+  verdicts on good and bad fixtures, and byte-equal caption/FOL output against
+  the CI fixtures. Caption and FOL exports ship in the studio again through
+  the same worker — the same renderers the CLI shells out to.
+- **Direct BYOK, and a keyless behavior change.** The visitor's OpenRouter key
+  is used to build an `Authorization` header on requests the browser makes
+  directly to `openrouter.ai`; it is held in tab memory only and never touches
+  the studio's origin — strictly stronger than the v1.2 relay, where the key
+  transited the operator's server per request. The operator-key free tier is
+  **removed**: with no server there is no server key, so live extraction of a
+  new image now requires the visitor's own key. Demos, the 16-scene gallery,
+  and byte-exact demo re-upload (a client-side sha256 short-circuit against
+  the baked index) remain the keyless $0 path, unchanged. The per-IP rate
+  limiter and the model allowlist died with the key they defended; the
+  operational bounds live on client-side in one test-pinned module (≤ 2 repair
+  rounds, unchanged correction caps), keeping live `shacl_retries` on the same
+  ceiling as the baked corpus.
+- **Generated hash-CSP, now covering static assets.** SvelteKit's nonce-mode
+  CSP config and the hand-written inline theme script are both gone (the
+  script moved verbatim to an external `static/theme-init.js`; `app.html`
+  carries zero inline scripts). A post-build generator scans every emitted
+  HTML page, sha256-hashes every remaining inline script (SvelteKit's own
+  hydration bootstrap), fails the build if it finds none, and writes a
+  Cloudflare Pages `_headers` file with one `Content-Security-Policy` covering
+  **every** response — pages, static assets, and the validation worker script,
+  which the v1.2 adapter-node hook never reached (the "gap" documented in the
+  v1.2 `web/README.md` is closed). Two directive deltas from v1.2:
+  `script-src` gains `'wasm-unsafe-eval'` (the worker's CSP comes from its own
+  script's response headers, so this is what licenses wasm compilation) and
+  `connect-src` gains `https://openrouter.ai`. HSTS joins the constant header
+  set (Pages is always TLS), `/pyodide/*` is cached immutable, and COEP is
+  deliberately absent — single-threaded Pyodide needs no SharedArrayBuffer.
+  Hashes are recomputed from actual build output on every build, so CSP drift
+  is impossible by construction.
+- **Self-hosted Pyodide payload — zero third-party origins.** The Pyodide core
+  runtime is copied at build time from the exact-pinned npm package into
+  `/pyodide/`; the pure-Python wheels (rdflib, pyshacl, owlrl and their
+  dependencies) are committed to the repository under a sha256 lock enforced
+  by a test, and installed via `pyodide.loadPackage` with explicit same-origin
+  URLs — no micropip, no PyPI, no CDN, at build time or at runtime. The layer
+  is strictly demand-loaded: keyless visitors never download a byte of it; the
+  first action that needs verification pulls ≈14 MB once per browser. If the
+  runtime cannot boot on a device, the studio keeps the extracted document and
+  reports validation as unavailable with CLI instructions.
+- **Version markers.** Software markers move to 1.3.0 (`CITATION.cff`, the
+  Python package, the Rust crate and its lock, the CLI strings, the web
+  package, the studio's displayed version). The ontology documents'
+  `owl:versionInfo`, both shapes profiles, the published landing page, and
+  the envelope schema's version enum deliberately stay at 1.2 — the
+  vocabulary, the namespace, and the wire format did not change, and
+  `make site` still proves the landing page and `owl:versionInfo` agree.
+
 ## v1.2.0 — 2026-07-31
 
 Namespace release. Every canonical VSON IRI moves off `https://vson.dev/` and
