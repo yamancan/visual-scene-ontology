@@ -102,7 +102,7 @@ python tools/extractor/baseline/extract.py --live --images path/to/image.jpg
 #   image, shacl_first_try, shacl_after_retries, retries, latency_ms, ...
 ```
 
-The hosted studio talks to OpenRouter; this baseline eval runner calls the Anthropic API directly.
+The studio at [`web/`](../web/) is a static site with no backend: extraction goes from the visitor's browser straight to OpenRouter on the visitor's own key, and validation runs in the browser too — a Pyodide worker executes the same two gates as `vson validate` (pyshacl SHACL, then owlrl OWL 2 RL), byte-pinned to the CLI in CI. This baseline eval runner calls the Anthropic API directly.
 
 The runner returns a SHACL-conformant `vson_p` string per image. To produce the full envelope from §1.1, wrap that string with the metadata fields described in §6. A reference wrapper (`vson generate <image>`) is planned for a future CLI release; the `cli/` crate versions independently of this spec.
 
@@ -900,11 +900,11 @@ The SHACL shapes file is [`shapes/vson-shapes.ttl`](../shapes/vson-shapes.ttl) �
 
 ## 7. Exporters
 
-| Target | Mapping | Status (v1.2) |
+| Target | Mapping | Status |
 |---|---|---|
 | Cypher / Neo4j | `:s :p :o` → `(s)-[r:p]->(o)`; `<<:s :p :o>> :q :v` → `r.q = v` | **shipped** in `vson export cypher` |
-| Caption (English) | deterministic graph → English, template-driven, no LLM | **shipped** in `vson export caption` |
-| FOL | reified nodes → Prolog-style first-order-logic facts | **shipped** in `vson export fol` |
+| Caption (English) | deterministic graph → English, template-driven, no LLM | **shipped** in `vson export caption` and the web studio (in-browser, same renderer) |
+| FOL | reified nodes → Prolog-style first-order-logic facts | **shipped** in `vson export fol` and the web studio (in-browser, same renderer) |
 | DOT / GraphML / Mermaid | nodes/edges → graph-viz formats | shipped in the web studio |
 | AMR | `Event` → AMR predicate; `agent`/`patient`/`instrument` → `:ARG0`/`:ARG1`/`:instrument` | spec only |
 | Visual Genome | `(s, p, o)` → VG relation row; `bbox2d` → VG bbox | spec only |
@@ -1033,6 +1033,7 @@ Gallery scenes 01–11 plus `12_persona` have a graph-equivalent VSON-X form und
 | Rust CLI (`vson`) | [`cli/`](../cli) | `validate`, `convert p2t/x2t`, `export cypher/caption/fol` | 43 tests (25 lib unit + 6 error-contract + 9 integration + 3 golden ✓) |
 | SHACL validator | `pyshacl` (shelled out by `vson validate`) | semantic well-formedness, strict profile (the relaxed profile ships as a shapes file; no command selects it yet) | 5 SHACL tests + 16 gallery passes |
 | Bare-VLM extractor | [`tools/extractor/baseline/extract.py`](../tools/extractor/baseline/extract.py) | image → VSON-P | offline cassette test |
+| Browser studio (v1.3) | [`web/`](../web) | runs the Python references above in a Pyodide worker, in the visitor's browser: transpile, two-gate validation, caption/FOL — no backend | offline worker-parity vitest byte-pins p2t, both gate verdicts, and caption/FOL against the CLI fixtures |
 | Routing tables (single source of truth) | [`cli/src/penman/routing-tables.json`](../cli/src/penman/routing-tables.json) | shared by Python + Rust — inside the crate so `include_str!` stays within the crate root and `cargo package` can verify-build it | Rust embeds it at compile time, the Python reference reads the same file at import time; `make cli-check` proves the two agree |
 
 A consumer is "VSON v1.2 reference-conformant" iff it accepts every document accepted by the Python references (`vson_penman.py` + `vson_x.py`) plus `pyshacl`, and rejects every document the references reject.
@@ -1090,7 +1091,7 @@ skills/vson-extractor/
 
 ### 13.2 Provider snippets
 
-Each major provider takes the skill body in a slightly different field; see the [skill README](../skills/vson-extractor/README.md) for working snippets against Anthropic, OpenAI, Gemini, OpenRouter, and the Anthropic Skills API. The studio at [`web/`](../web/) defaults to `SKILL.md`; pass `?prompt=full` to opt back to the longer 18 KB orchestrator prompt for maximum first-try conformance on hard scenes.
+Each major provider takes the skill body in a slightly different field; see the [skill README](../skills/vson-extractor/README.md) for working snippets against Anthropic, OpenAI, Gemini, OpenRouter, and the Anthropic Skills API. The studio at [`web/`](../web/) extracts with `SKILL.md` (the VSON-X skill when X notation is selected); the longer 18 KB orchestrator prompt is published on the studio's `/prompts` page for pipelines that want maximum first-try conformance on hard scenes.
 
 ### 13.3 Conformance test
 
@@ -1098,7 +1099,7 @@ A model claims VSON-extractor support if it conforms on first try (no SHACL repa
 
 ### 13.4 Why the skill, not the orchestrator prompt?
 
-The orchestrator prompt at [`tools/extractor/prompts/orchestrator-system.md`](../tools/extractor/prompts/orchestrator-system.md) is 18 KB. It includes upstream-tool routing, decision policies P1–P13, and a long worked example with bbox detections. That prompt is right when an extractor pipeline (the web studio / OpenRouter path) is feeding the model upstream tool outputs and you need maximum first-try conformance.
+The orchestrator prompt at [`tools/extractor/prompts/orchestrator-system.md`](../tools/extractor/prompts/orchestrator-system.md) is 18 KB. It includes upstream-tool routing, decision policies P1–P13, and a long worked example with bbox detections. That prompt is right when an extractor pipeline is feeding the model upstream tool outputs and you need maximum first-try conformance.
 
 The skill is right when a third-party caller wants to read VSON directly from an image with no pipeline — the model has nothing but the picture and the skill body. It is one-sixth the token cost, targets ≥ 80% first-try conformance — the certification threshold in [`skills/vson-extractor/conformance.json`](../skills/vson-extractor/conformance.json); measured results are pending (see [`tools/extractor/baseline/results.md`](../tools/extractor/baseline/results.md)) — and is small enough that prompt-cache hit rates are irrelevant: at this size, every provider's input charge is a rounding error.
 

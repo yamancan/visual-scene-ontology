@@ -2,6 +2,7 @@
 
 **Status:** Draft 1 · 2026-05-02
 **Note (v1.2):** the `vson.dev` hostnames below were aspirational and never registered; the published namespace is `https://w3id.org/vson/` — see [`docs/vson.md`](../vson.md) §5.1.
+**Note (v1.3):** the studio that actually shipped diverges from the plan below: it is a fully static, zero-backend SvelteKit site on Cloudflare Pages (`vson-studio.pages.dev`, beside the `vson.pages.dev` namespace project), with no accounts, no database, no share links, and no hosted APIs. Extraction goes browser → OpenRouter on the visitor's own key; verification runs in the visitor's browser (a Pyodide worker executing the CLI's two gates at byte-pinned parity); demos and gallery are the keyless $0 path. The hosted services (§2.4), the Next.js/tRPC/Postgres stack (§6 Phase 1), and the pricing tiers (§7) remain unbuilt. This document is kept as a historical strategy record — see [`web/README.md`](../../web/README.md) for the architecture that shipped.
 **Readers:** founding team, design lead, eng lead, first 10 users
 **Sibling docs:** `docs/strategy/brand.md`, `docs/strategy/roadmap.md` (forthcoming)
 

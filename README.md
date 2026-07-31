@@ -1,4 +1,4 @@
-# VSON — Visual Scene Ontology Notation, [v1.2](spec/CHANGELOG.md)
+# VSON — Visual Scene Ontology Notation, [v1.3](spec/CHANGELOG.md)
 
 [![CI](https://github.com/yamancan/visual-scene-ontology/actions/workflows/ci.yml/badge.svg)](https://github.com/yamancan/visual-scene-ontology/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
@@ -47,7 +47,7 @@ A curated **visual-scene profile of RDF-star** with:
 - **three concrete syntaxes**: Turtle-star (VSON-T, canonical), Penman (VSON-P, authoring), and **VSON-X** (compact, sigil-based, LLM-optimized — new in v1.1)
 - a deterministic **caption renderer** for image-generation models (graph → English, no LLM)
 - **SHACL** gatekeeping with strict + relaxed profiles
-- shipped **exporters**: Cypher / caption / FOL (CLI) and Cypher / DOT / GraphML / Mermaid (web studio), plus a published JSON-LD form; spec-only mappings for AMR / Visual Genome / Pixar USD
+- shipped **exporters**: Cypher / caption / FOL (CLI) and Cypher / DOT / GraphML / Mermaid / caption / FOL (web studio, all in-browser), plus a published JSON-LD form; spec-only mappings for AMR / Visual Genome / Pixar USD
 
 VSON does not invent a parser, grammar, or formal semantics. It rides on:
 - **RDF 1.2 / RDF-star** — abstract semantics
@@ -71,7 +71,8 @@ examples/         Throne-room scene + gallery/ (16 scenes, minimal → complex)
                   + gallery-x/ (scenes 01–11 plus 12_persona in VSON-X compact syntax)
 cli/              `vson` Rust CLI (validate / convert {p2t, x2t} / export {cypher, caption, fol})
                   + src/penman/routing-tables.json (single source of truth for both impls)
-web/              SvelteKit studio — drop image, get scene graph (stateless, OpenRouter)
+web/              Static SvelteKit studio — drop image, get scene graph; extraction
+                  and two-gate verification run in the browser (BYOK OpenRouter + Pyodide)
 tools/penman/     Reference Penman ↔ Turtle-star transpiler (Python)
 tools/vson_x/     VSON-X compact-syntax parser + emitter + cross-syntax graph-equivalence
 tools/render/     Deterministic graph → English caption renderer
@@ -106,7 +107,7 @@ cli/target/release/vson export caption examples/throne_room.vson
 
 # Run all tests (Python + Rust)
 make check        # 70 Python tests + 16-scene gallery + 2 schema parses
-make cli-check    # 32 Rust tests + graph-iso parity vs Python ref
+make cli-check    # Rust tests + byte-strict & graph-iso parity vs Python ref
 make x-check      # VSON-X gallery round-trip parity (11 pairs; 12_persona pending)
 ```
 
@@ -117,10 +118,10 @@ Run the studio locally:
 ```bash
 cd web
 pnpm install
-cp .env.example .env
-# add OPENROUTER_API_KEY to .env (https://openrouter.ai/keys)
 pnpm dev --open
 ```
+
+The studio is a **fully static site — no backend, no `.env`, no server key**. Demos and the 16-scene gallery run keyless at $0 from baked envelopes; live extraction of your own images runs on your own OpenRouter key, entered in the model picker, and the key goes browser → OpenRouter without ever touching a studio host. Verification runs in the browser too: a Pyodide worker executes the same two gates as `vson validate` (pyshacl SHACL, then owlrl OWL 2 RL), byte-pinned to the CLI in CI. `make web-deploy` publishes `web/build` to Cloudflare Pages (`vson-studio.pages.dev`); the namespace host `vson.pages.dev` is a separate project.
 
 ## Contribution boundary
 
@@ -134,7 +135,7 @@ VSON's genuinely-new content (everything else is W3C/ISO):
 6. **VSON-X compact syntax** (v1.1) — nine prefix sigils, no brackets, LL(1), bearer-class dispatch for `*K V`. Round-trips graph-equivalent to Penman across the 11 gallery scenes that have a VSON-X counterpart (12 files; 12_persona pending round-trip coverage).
 7. **Persona / cross-document identity** (v1.1) — `vso:Persona` Frame + `vso:embodies` lets the same character appear in many scenes with consistent invariants.
 8. **Deterministic caption renderer** — graph → English, template-driven, byte-identical CI fixtures.
-9. **Exporter matrix** — shipped Cypher / caption / FOL (CLI) and DOT / GraphML / Mermaid (web studio) exporters, plus a published JSON-LD form; spec-only mappings for AMR / Visual Genome / USD.
+9. **Exporter matrix** — shipped Cypher / caption / FOL (CLI) and DOT / GraphML / Mermaid / caption / FOL (web studio, in-browser) exporters, plus a published JSON-LD form; spec-only mappings for AMR / Visual Genome / USD.
 
 ## License
 
