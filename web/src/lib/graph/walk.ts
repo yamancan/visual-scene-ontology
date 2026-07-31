@@ -1,6 +1,7 @@
 // Projection-only Penman walker. Extracts {nodes, edges} for the UI graph
 // view. NOT a transpiler — it does NOT route to RCC/Allen/VSO namespaces.
-// Canonical translation lives in cli/target/release/vson on the server.
+// Canonical translation lives in the vson CLI and the byte-parity-checked
+// emitter the studio's Pyodide worker runs.
 //
 // Signal vs. noise filter:
 //  - Quality dimension/value pairs are folded into the parent's `properties`

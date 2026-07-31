@@ -28,17 +28,19 @@
 		<section>
 			<h2>What you just saw</h2>
 			<p>
-				You uploaded an image. The studio sent it to a vision-language model with a
+				You uploaded an image. Your browser sent it straight to a vision-language model through
+				OpenRouter, on your own key — the request never touches the studio host — with a
 				<a href="/prompts" rel="self">4 KB system prompt</a> that lists the closed vocabulary, the
 				five hard rules, and a worked example. The model emitted a Penman tree — text that looks
-				like nested S-expressions. A small Rust binary (<code>vson</code>) rewrote that tree into
-				Turtle 1.2, then a SHACL validator checked it against the published shape graph. If it
-				conformed, you saw the graph. If it didn't, the server fed the violations back to the model
-				and asked for a fix, up to twice.
+				like nested S-expressions. A Pyodide worker, also in your browser, rewrote that tree into
+				Turtle 1.2 with the reference emitter CI byte-compares against the <code>vson</code> CLI, then
+				checked it with the same two gates the CLI runs. If it conformed, you saw the graph. If it didn't,
+				the studio fed the violations back to the model and asked for a fix, up to twice.
 			</p>
 			<p class="aside">
-				The image bytes never leave the request body. They are not stored, not logged, not cached.
-				Only the resulting envelope (≤8 KB of text) is small enough to keep around.
+				The image goes from your browser to OpenRouter and nowhere else. There is no studio backend
+				to store, log, or cache it. Only the resulting envelope (≤8 KB of text) is small enough to
+				keep around.
 			</p>
 		</section>
 
@@ -119,19 +121,27 @@
 				<li>Trait values come from a closed enumeration.</li>
 			</ul>
 			<p>
-				If the model emits a non-conformant document, the server replies with the SHACL report and
-				asks the model to repair. Two retries, then it ships whatever it has with the violations
-				attached so the caller can see what failed. No silent corrections.
+				All of it runs in your browser: a Pyodide worker executes pyshacl over the shapes (Gate 1),
+				then an owlrl OWL 2 RL consistency check (Gate 2) — the same two gates, in the same order,
+				as <code>vson validate</code>. The first live validation downloads ~14 MB of runtime; after
+				that it is cached.
+			</p>
+			<p>
+				If the model emits a non-conformant document, the studio feeds the SHACL report back to the
+				model and asks it to repair. Up to two repair rounds, then it ships whatever it has with the
+				violations attached so you can see what failed. No silent corrections.
 			</p>
 		</section>
 
 		<section>
 			<h2>Why it's free</h2>
 			<p>
-				The five demo images are pre-extracted at build time, the envelopes are committed to the
-				repo, and clicking a thumbnail reads from disk — no model call, no API key, no spend. New
-				uploads route to OpenRouter against either our key (rate-limited free tier) or your own key
-				(unlimited, your spend). Image bytes are never persisted, in either path.
+				The five demo images were extracted once, for real, and their envelopes are committed to the
+				repo with the model's genuine provenance. Clicking a thumbnail fetches the baked envelope —
+				no model call, no API key, no spend. The sixteen gallery scenes are hand-authored conformant
+				fixtures served the same way. That is the keyless $0 path. A new upload is different: it
+				goes from your browser straight to OpenRouter on your own key — your spend — and never
+				routes through the studio host. Image bytes are never persisted, in either path.
 			</p>
 			<p class="aside">
 				The studio is stateless. Refresh the page and the scene is gone. There is no account, no
