@@ -123,8 +123,8 @@
 			<p>
 				All of it runs in your browser: a Pyodide worker executes pyshacl over the shapes (Gate 1),
 				then an owlrl OWL 2 RL consistency check (Gate 2) — the same two gates, in the same order,
-				as <code>vson validate</code>. The first live validation downloads ~14 MB of runtime; after
-				that it is cached.
+				as <code>vson validate</code>. The first live validation downloads ~16 MB of runtime (less
+				over the wire with compression); after that it is cached.
 			</p>
 			<p>
 				If the model emits a non-conformant document, the studio feeds the SHACL report back to the
