@@ -22,10 +22,19 @@ import {
 	systemPromptFor,
 	type PromptVariant
 } from '$lib/server/prompt';
-import { DEFAULT_MODEL, OpenRouterError, chat } from '$lib/server/openrouter';
+import {
+	DEFAULT_MODEL,
+	OpenRouterError,
+	chat,
+	resolveRequestedModel
+} from '$lib/server/openrouter';
 import { shortId } from '$lib/utils';
 
 const MAX_BYTES = 5 * 1024 * 1024;
+// Cheap pre-check on the string itself, before we do arithmetic on (or decode)
+// a hostile payload. 8M base64 chars ≈ 6 MB of bytes, so the 5 MB cap below is
+// still the binding limit; this one just bounds the work done to reach it.
+const MAX_B64_CHARS = 8_000_000;
 const MAX_REPAIR_RETRIES = 2;
 
 interface ExtractBody {
@@ -113,6 +122,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
 	if (body.mime !== 'image/jpeg' && body.mime !== 'image/png') {
 		throw error(400, 'mime must be image/jpeg or image/png');
 	}
+	if (body.image_b64.length > MAX_B64_CHARS) throw error(400, 'image_b64 exceeds 8M chars');
 	const approxBytes = Math.floor((body.image_b64.length * 3) / 4);
 	if (approxBytes > MAX_BYTES) throw error(400, 'image exceeds 5 MB cap');
 
@@ -139,7 +149,11 @@ export const POST: RequestHandler = async ({ request, url }) => {
 	const userText = variant === 'skill-x' ? BARE_EXTRACT_USER_X : BARE_EXTRACT_USER;
 
 	const t0 = Date.now();
-	const model = body.model && body.model.includes('/') ? body.model : undefined;
+	// Validate against the cached OpenRouter catalog: without it any string with
+	// a slash in it becomes a paid upstream call on the server's key.
+	const picked = await resolveRequestedModel(body.model);
+	if (!picked.ok) throw error(400, picked.reason);
+	const model = picked.model;
 
 	const usage = { input: 0, output: 0 };
 	let raw: string;

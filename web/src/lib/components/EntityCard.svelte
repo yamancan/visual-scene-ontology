@@ -457,7 +457,7 @@
 		align-items: start;
 	}
 	.ed-label {
-		font-size: 9px;
+		font-size: 10px;
 		color: var(--fg-4);
 		letter-spacing: 0.04em;
 		overflow: hidden;
@@ -525,7 +525,7 @@
 		white-space: nowrap;
 	}
 	.klass {
-		font-size: 9px;
+		font-size: 10px;
 		letter-spacing: 0.06em;
 		color: var(--fg-4);
 		margin-left: auto;
@@ -567,7 +567,7 @@
 		min-width: 0;
 	}
 	.part-pred {
-		font-size: 9px;
+		font-size: 10px;
 		color: var(--fg-4);
 		flex-shrink: 0;
 	}

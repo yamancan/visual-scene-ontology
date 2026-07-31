@@ -6,6 +6,11 @@
 	let env = $derived(scene.envelope);
 	let copied = $state<string | null>(null);
 	let copiedPrompt = $state(false);
+	// Transient failure twins of the `copied` flags. They replace the row's own
+	// label for the same ~1.1s beat, so a dead /api/export or a denied clipboard
+	// is visible without adding a permanent surface.
+	let failed = $state<string | null>(null);
+	let failedPrompt = $state(false);
 
 	let open = $state(false);
 	let buttonEl: HTMLButtonElement | undefined = $state();
@@ -73,55 +78,69 @@
 		if (fmt === 'vson') return env.vson_p;
 		if (fmt === 'ttl') return env.vson_t;
 		if (fmt === 'json') return JSON.stringify(env, null, 2);
-		if (fmt === 'caption' || fmt === 'fol') {
-			const r = await fetch('/api/export', {
-				method: 'POST',
-				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ vson_p: env.vson_p, format: fmt })
-			});
-			return await r.text();
-		}
-		const r = await fetch('/api/export', {
+		// caption/fol transpile from the Penman doc; the graph formats walk the
+		// JSON graph. Same endpoint, different input key.
+		const payload =
+			fmt === 'caption' || fmt === 'fol'
+				? { vson_p: env.vson_p, format: fmt }
+				: { graph: env.graph, format: fmt };
+		const res = await fetch('/api/export', {
 			method: 'POST',
 			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ graph: env.graph, format: fmt })
+			body: JSON.stringify(payload)
 		});
-		return await r.text();
+		// A non-2xx body is an error page, not an export. Without this guard the
+		// download lands as a "successful" .ttl full of failure text and the copy
+		// button reports "copied".
+		if (!res.ok) throw new Error(`export ${fmt} · ${res.status}`);
+		return await res.text();
+	}
+
+	function signalFailure(fmt: Fmt) {
+		failed = fmt;
+		setTimeout(() => {
+			if (failed === fmt) failed = null;
+		}, 1100);
 	}
 
 	async function dl(fmt: Fmt, ext: string, mime: string) {
 		if (!env) return;
-		const content = await getContent(fmt);
-		download(`${env.scene_id}.${ext}`, content, mime);
+		try {
+			const content = await getContent(fmt);
+			download(`${env.scene_id}.${ext}`, content, mime);
+		} catch {
+			signalFailure(fmt);
+		}
 	}
 
 	async function cp(fmt: Fmt) {
-		const content = await getContent(fmt);
-		const ok = await copyText(content);
-		if (ok) {
+		try {
+			const content = await getContent(fmt);
+			if (!(await copyText(content))) throw new Error('clipboard denied');
 			copied = fmt;
 			setTimeout(() => (copied = null), 1100);
+		} catch {
+			signalFailure(fmt);
 		}
 	}
 
 	async function cpPrompt() {
-		if (!promptCache) {
-			try {
-				const r = await fetch('/api/skills');
-				if (!r.ok) return;
-				const skills = (await r.json()) as Array<{ id: string; body: string }>;
+		try {
+			if (!promptCache) {
+				const res = await fetch('/api/skills');
+				if (!res.ok) throw new Error(`skills · ${res.status}`);
+				const skills = (await res.json()) as Array<{ id: string; body: string }>;
 				promptCache = Object.fromEntries(skills.map((s) => [s.id, s.body]));
-			} catch {
-				return;
 			}
-		}
-		const id = scene.notation === 'x' ? 'vson-x' : 'penman';
-		const body = promptCache[id];
-		if (!body) return;
-		const ok = await copyText(body);
-		if (ok) {
+			const id = scene.notation === 'x' ? 'vson-x' : 'penman';
+			const body = promptCache[id];
+			if (!body) throw new Error(`no skill body · ${id}`);
+			if (!(await copyText(body))) throw new Error('clipboard denied');
 			copiedPrompt = true;
 			setTimeout(() => (copiedPrompt = false), 1100);
+		} catch {
+			failedPrompt = true;
+			setTimeout(() => (failedPrompt = false), 1100);
 		}
 	}
 
@@ -189,7 +208,9 @@
 							onclick={() => dl(f.id, f.ext, f.mime)}
 							title="{f.tooltip} · download .{f.ext}"
 						>
-							<span class="item-label font-mono">{f.label}</span>
+							<span class="item-label font-mono" class:label-failed={failed === f.id}>
+								{failed === f.id ? 'export failed' : f.label}
+							</span>
 							<span class="item-hint">{f.tooltip}</span>
 						</button>
 						<button
@@ -233,7 +254,9 @@
 						: 'VSON-P'}"
 					aria-label="Copy {promptLabel}"
 				>
-					<span class="item-label font-mono">{copiedPrompt ? 'copied' : 'system prompt'}</span>
+					<span class="item-label font-mono" class:label-failed={failedPrompt}>
+						{failedPrompt ? 'copy failed' : copiedPrompt ? 'copied' : 'system prompt'}
+					</span>
 					<span class="item-hint">{promptLabel}</span>
 				</button>
 			</div>
@@ -377,5 +400,14 @@
 	}
 	.prompt-item:hover {
 		background: color-mix(in srgb, var(--accent) 10%, transparent);
+	}
+
+	/* Transient only — the label reverts after ~1.1s, so nothing here shows at
+	   rest. The `.item-main` prefix matches the specificity of
+	   `.item-main:hover .item-label`, and being last in the sheet breaks the
+	   tie; without it the failure text would repaint in the accent colour,
+	   because the pointer is still on the row that was just clicked. */
+	.item-main .item-label.label-failed {
+		color: var(--danger);
 	}
 </style>

@@ -275,6 +275,7 @@
 		pointer-events: none;
 	}
 	.box:hover .chip,
+	.box:focus-visible .chip,
 	.box.selected .chip,
 	.box.hovered .chip {
 		opacity: 1;

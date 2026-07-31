@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { scene } from '$lib/scene.svelte';
-	import { fileToBase64, formatBytes } from '$lib/utils';
+	import { formatBytes, prepareImageUpload } from '$lib/utils';
 	import type { VsonEnvelope } from '$lib/types';
 
 	let dragOver = $state(false);
@@ -8,6 +8,16 @@
 	let dropError = $state<string | null>(null);
 
 	const ACCEPT = ['image/jpeg', 'image/png'];
+
+	// The statuses a body-size proxy or a rate limiter in front of this app can
+	// return carry no useful body — echoing it would put a chunk of an error
+	// page where the user expects a scene. Everything else keeps the terse
+	// `status · detail` shape so an unexpected failure is still debuggable.
+	function extractFailure(status: number, text: string): string {
+		if (status === 413) return 'image too large for this server — try a smaller image';
+		if (status === 429) return 'rate limit reached — try again in a minute';
+		return `extract failed · ${status} · ${text.slice(0, 200)}`;
+	}
 
 	async function handleFile(file: File) {
 		if (!ACCEPT.includes(file.type)) {
@@ -21,10 +31,15 @@
 		dropError = null;
 		scene.setError(null);
 		scene.setStatus('uploading');
-		const { b64, mime, preview } = await fileToBase64(file);
-		scene.setImagePreview(preview);
-		scene.setStatus('calling');
 		try {
+			// Decode (and, above 1 MB, downscale) inside the try: a FileReader or
+			// canvas failure has to land in the same error path as a dead network
+			// instead of escaping as an unhandled rejection with the UI stuck on
+			// "uploading". The preview stays full-resolution; only the uploaded
+			// bytes shrink.
+			const { b64, mime, preview } = await prepareImageUpload(file);
+			scene.setImagePreview(preview);
+			scene.setStatus('calling');
 			const res = await fetch('/api/extract', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
@@ -36,8 +51,7 @@
 				})
 			});
 			if (!res.ok) {
-				const text = await res.text();
-				scene.setError(`extract failed · ${res.status} · ${text.slice(0, 200)}`);
+				scene.setError(extractFailure(res.status, await res.text()));
 				return;
 			}
 			const env = (await res.json()) as VsonEnvelope;

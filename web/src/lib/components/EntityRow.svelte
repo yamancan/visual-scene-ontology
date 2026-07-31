@@ -332,7 +332,7 @@
 		min-width: 0;
 	}
 	.klass {
-		font-size: 9px;
+		font-size: 10px;
 		letter-spacing: 0.06em;
 		color: var(--fg-4);
 		flex-shrink: 0;
@@ -372,7 +372,7 @@
 		border: 1px solid color-mix(in srgb, var(--fg-0) 22%, transparent);
 	}
 	.parts-count {
-		font-size: 9px;
+		font-size: 10px;
 		color: var(--fg-4);
 	}
 
@@ -476,7 +476,7 @@
 		color: var(--fg-0);
 	}
 	.part-pred {
-		font-size: 8px;
+		font-size: 10px;
 		letter-spacing: 0.04em;
 		color: var(--fg-4);
 	}
@@ -498,7 +498,7 @@
 		justify-content: space-between;
 	}
 	.editor-title {
-		font-size: 9px;
+		font-size: 10px;
 		letter-spacing: 0.08em;
 		color: var(--fg-4);
 	}
@@ -507,7 +507,7 @@
 		border: 0;
 		padding: 0;
 		color: var(--fg-3);
-		font-size: 9px;
+		font-size: 10px;
 		letter-spacing: 0.04em;
 		cursor: pointer;
 	}
@@ -529,7 +529,7 @@
 		align-items: start;
 	}
 	.ed-label {
-		font-size: 9px;
+		font-size: 10px;
 		color: var(--fg-4);
 		letter-spacing: 0.04em;
 		overflow: hidden;

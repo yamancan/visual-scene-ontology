@@ -25,9 +25,21 @@ const MIME: Record<GraphBody['format'] | VsonBody['format'], string> = {
 	fol: 'text/plain'
 };
 
+// `caption` and `fol` shell out to the `vson` binary, so an unbounded document
+// is an unbounded subprocess. Cap the notation fields before any spawn.
+const MAX_DOC_CHARS = 64 * 1024;
+const DOC_FIELDS = ['vson_p', 'vson_x'] as const;
+
 export const POST: RequestHandler = async ({ request }) => {
 	const body = (await request.json().catch(() => null)) as Body | null;
 	if (!body || !body.format) throw error(400, 'expected { graph, format } or { vson_p, format }');
+
+	for (const field of DOC_FIELDS) {
+		const doc = (body as unknown as Record<string, unknown>)[field];
+		if (typeof doc === 'string' && doc.length > MAX_DOC_CHARS) {
+			throw error(400, `${field} exceeds 64 KB cap`);
+		}
+	}
 
 	if (body.format === 'caption' || body.format === 'fol') {
 		const vb = body as VsonBody;

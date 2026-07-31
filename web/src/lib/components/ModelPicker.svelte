@@ -16,17 +16,30 @@
 	let query = $state('');
 	let models = $state<PickerModel[]>([]);
 	let loading = $state(true);
+	// Distinct from "the catalog loaded and matched nothing": a dead or
+	// unauthorised /api/models used to render as `no match`, which reads as
+	// "your query is wrong" instead of "the list never arrived".
+	let loadFailed = $state(false);
 	let buttonEl: HTMLButtonElement | undefined = $state();
 	let menuEl: HTMLDivElement | undefined = $state();
 	let searchEl: HTMLInputElement | undefined = $state();
 	let activeIdx = $state(0);
 
+	// Per-instance id root so the option ids stay unique and stable across
+	// re-renders (aria-activedescendant has to resolve to a real element).
+	const uid = $props.id();
+	const listId = `${uid}-list`;
+	function optionId(modelId: string): string {
+		return `${uid}-opt-${modelId.replace(/[^A-Za-z0-9_-]+/g, '-')}`;
+	}
+
 	onMount(async () => {
 		try {
 			const r = await fetch('/api/models');
-			if (r.ok) models = (await r.json()) as PickerModel[];
+			if (!r.ok) throw new Error(`models · ${r.status}`);
+			models = (await r.json()) as PickerModel[];
 		} catch {
-			/* leave empty */
+			loadFailed = true;
 		}
 		loading = false;
 	});
@@ -41,6 +54,11 @@
 				m.provider.toLowerCase().includes(q)
 		);
 	});
+
+	// Only the rendered slice is navigable — keyboard bounds and
+	// aria-activedescendant have to agree with what is actually in the DOM.
+	let visible = $derived(filtered.slice(0, 200));
+	let activeId = $derived(visible[activeIdx] ? optionId(visible[activeIdx].id) : undefined);
 
 	let current = $derived(models.find((m) => m.id === scene.model));
 
@@ -58,13 +76,13 @@
 			return;
 		}
 		if (e.key === 'ArrowDown') {
-			activeIdx = Math.min(activeIdx + 1, filtered.length - 1);
+			activeIdx = Math.min(activeIdx + 1, visible.length - 1);
 			e.preventDefault();
 		} else if (e.key === 'ArrowUp') {
 			activeIdx = Math.max(activeIdx - 1, 0);
 			e.preventDefault();
 		} else if (e.key === 'Enter') {
-			const m = filtered[activeIdx];
+			const m = visible[activeIdx];
 			if (m) pick(m);
 			e.preventDefault();
 		}
@@ -81,7 +99,7 @@
 		if (open) {
 			activeIdx = Math.max(
 				0,
-				filtered.findIndex((m) => m.id === scene.model)
+				visible.findIndex((m) => m.id === scene.model)
 			);
 			tick().then(() => searchEl?.focus());
 		}
@@ -121,7 +139,7 @@
 	</button>
 
 	{#if open}
-		<div bind:this={menuEl} class="menu" role="listbox">
+		<div bind:this={menuEl} class="menu">
 			<div class="search">
 				<input
 					bind:this={searchEl}
@@ -129,21 +147,32 @@
 					placeholder="search models…"
 					bind:value={query}
 					oninput={() => (activeIdx = 0)}
+					role="combobox"
+					aria-controls={listId}
+					aria-expanded="true"
+					aria-autocomplete="list"
+					aria-activedescendant={activeId}
+					aria-label="Search models"
 				/>
 				<span class="hint font-mono">{filtered.length}</span>
 			</div>
-			<div class="list">
+			<div class="list" id={listId} role="listbox" aria-label="Models">
 				{#if loading}
 					<div class="empty font-mono">loading…</div>
-				{:else if filtered.length === 0}
+				{:else if loadFailed}
+					<div class="empty font-mono">couldn't load models — using {shortId(scene.model)}</div>
+				{:else if visible.length === 0}
 					<div class="empty font-mono">no match</div>
 				{:else}
-					{#each filtered.slice(0, 200) as m, i (m.id)}
+					{#each visible as m, i (m.id)}
 						<button
 							type="button"
 							class="row"
 							class:active={i === activeIdx}
 							class:current={m.id === scene.model}
+							role="option"
+							id={optionId(m.id)}
+							aria-selected={m.id === scene.model}
 							onclick={() => pick(m)}
 							onmouseenter={() => (activeIdx = i)}
 						>

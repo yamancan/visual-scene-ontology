@@ -21,11 +21,24 @@ import {
 	type CorrectionItem,
 	type PromptVariant
 } from '$lib/server/prompt';
-import { DEFAULT_MODEL, OpenRouterError, chat } from '$lib/server/openrouter';
+import {
+	DEFAULT_MODEL,
+	OpenRouterError,
+	chat,
+	resolveRequestedModel
+} from '$lib/server/openrouter';
 import { shortId } from '$lib/utils';
 
 const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_B64_CHARS = 8_000_000;
 const MAX_REPAIR_RETRIES = 2;
+
+// Everything below is inlined into the correction prompt, so an uncapped field
+// is an uncapped upstream token bill. 64 KB is ~10x the largest document the
+// extractor has produced; 50 items is ~2x the entity count of a dense scene.
+const MAX_SOURCE_CHARS = 64 * 1024;
+const MAX_CORRECTIONS = 50;
+const MAX_CORRECTION_CHARS = 2 * 1024;
 
 interface CorrectBody {
 	image_b64?: string;
@@ -75,8 +88,22 @@ export const POST: RequestHandler = async ({ request }) => {
 	if (!body || typeof body.source !== 'string' || !body.source.trim()) {
 		throw error(400, 'expected a non-empty source document');
 	}
+	if (body.source.length > MAX_SOURCE_CHARS) {
+		throw error(400, 'source exceeds 64 KB cap');
+	}
 	if (!Array.isArray(body.corrections)) {
 		throw error(400, 'corrections must be an array');
+	}
+	if (body.corrections.length > MAX_CORRECTIONS) {
+		throw error(400, `too many corrections (max ${MAX_CORRECTIONS})`);
+	}
+	for (const item of body.corrections) {
+		if (JSON.stringify(item ?? null).length > MAX_CORRECTION_CHARS) {
+			throw error(400, 'correction item exceeds 2 KB cap');
+		}
+	}
+	if (typeof body.sceneNote === 'string' && body.sceneNote.length > MAX_CORRECTION_CHARS) {
+		throw error(400, 'sceneNote exceeds 2 KB cap');
 	}
 	if (body.notation !== 'p' && body.notation !== 'x') {
 		throw error(400, "notation must be 'p' or 'x'");
@@ -88,6 +115,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		if (body.mime !== 'image/jpeg' && body.mime !== 'image/png') {
 			throw error(400, 'mime must be image/jpeg or image/png');
 		}
+		if (body.image_b64.length > MAX_B64_CHARS) throw error(400, 'image_b64 exceeds 8M chars');
 		const approxBytes = Math.floor((body.image_b64.length * 3) / 4);
 		if (approxBytes > MAX_BYTES) throw error(400, 'image exceeds 5 MB cap');
 		sha256 = createHash('sha256').update(Buffer.from(body.image_b64, 'base64')).digest('hex');
@@ -118,7 +146,10 @@ export const POST: RequestHandler = async ({ request }) => {
 	];
 
 	const t0 = Date.now();
-	const model = body.model && body.model.includes('/') ? body.model : undefined;
+	// Same catalog check as /api/extract — this route relays on the same key.
+	const picked = await resolveRequestedModel(body.model);
+	if (!picked.ok) throw error(400, picked.reason);
+	const model = picked.model;
 
 	const usage = { input: 0, output: 0 };
 	let raw: string;
