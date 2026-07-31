@@ -86,8 +86,8 @@ cli-check:
 	@echo "==> Rust CLI: build + test"
 	@cd cli && cargo build --release --quiet
 	@cd cli && cargo test --quiet 2>&1 | tail -8
-	@echo "==> Rust CLI: golden parity with Python reference (rdflib to_isomorphic, throne_room + 16-scene gallery)"
-	@$(PY) -m tools.parity_check cli/target/release/vson
+	@echo "==> Rust CLI: golden parity with Python reference (byte + graph-iso, throne_room + 16-scene gallery)"
+	@$(PY) -m tools.parity_check --bytes cli/target/release/vson
 
 x-check:
 	@echo "==> VSON-X gallery round-trip parity vs Penman"
