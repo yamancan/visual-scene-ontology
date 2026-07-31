@@ -1,21 +1,18 @@
 """
 Round-trip and parse tests for the VSON-P transpiler.
 
-Run: python3 -m unittest tests.test_penman_roundtrip
-or:  python3 tests/test_penman_roundtrip.py
+Run from the repo root: python3 -m unittest tests.test_penman_roundtrip
 """
 
 from __future__ import annotations
 
 import os
-import sys
 import unittest
+
+from tools.penman import vson_penman as vp
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-sys.path.insert(0, os.path.join(ROOT, "tools", "penman"))
-
-import vson_penman as vp  # noqa: E402
 
 
 def read(name: str) -> str:

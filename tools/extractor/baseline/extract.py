@@ -2,7 +2,9 @@
 Bare-VLM baseline: image -> VSON-P -> Turtle -> SHACL.
 
 Records one row per (image, prompt-variant) pair to results.csv.
-Run live:  ANTHROPIC_API_KEY=sk-ant-... python extract.py --live --images images/
+Run live (from the repo root, so the `tools` package resolves):
+  ANTHROPIC_API_KEY=sk-ant-... python3 -m tools.extractor.baseline.extract \\
+      --live --images tools/extractor/baseline/images
 """
 
 from __future__ import annotations
@@ -10,17 +12,15 @@ from __future__ import annotations
 import argparse
 import base64
 import csv
-import json
-import os
 import sys
 import time
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(ROOT))
+from tools.penman import vson_penman as vp
+from tools.shacl_helper import validate_graph
 
-from tools.penman import vson_penman as vp  # noqa: E402
-from tools.shacl_helper import validate_graph  # noqa: E402
+# tools/extractor/baseline/extract.py -> baseline -> extractor -> tools -> root
+ROOT = Path(__file__).resolve().parents[3]
 
 MODEL = "claude-opus-4-7"
 MAX_REPAIR_RETRIES = 3
@@ -28,6 +28,19 @@ HERE = Path(__file__).resolve().parent
 SYSTEM_PROMPT = (ROOT / "tools/extractor/prompts/orchestrator-system.md").read_text()
 REPAIR_PROMPT = (ROOT / "tools/extractor/prompts/specialized/repair.md").read_text()
 USER_BARE = "No upstream tool evidence is available for this image. Emit your best VSON-P document directly from the image."
+
+# Column schema of one results.csv row — the keys `run_one` returns, in
+# write order. Tests assert against this constant so the row shape cannot
+# drift silently.
+ROW_FIELDS = (
+    "image",
+    "shacl_first_try",
+    "shacl_after_retries",
+    "retries",
+    "latency_ms",
+    "input_tokens",
+    "output_tokens",
+)
 
 
 def _call(client, system_text, user_blocks):
@@ -101,7 +114,7 @@ def main():
     images = sorted(p for p in Path(args.images).iterdir() if p.suffix.lower() in (".jpg", ".jpeg", ".png"))
     rows = [run_one(client, p, system_text) for p in images]
     with open(args.out, "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
+        w = csv.DictWriter(f, fieldnames=list(ROW_FIELDS))
         w.writeheader()
         w.writerows(rows)
     n = len(rows)

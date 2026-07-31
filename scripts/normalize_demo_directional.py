@@ -8,7 +8,8 @@ in_front_of, next_to), matching docs/vson.md and the gallery. The value-token
 rewrite is done on raw text so existing formatting is preserved; the stored
 conformance is only re-serialized when it is actually stale.
 
-Run after baking demos:  python3 scripts/normalize_demo_directional.py
+Run after baking demos, from the repo root so the `tools` package resolves:
+  python3 scripts/normalize_demo_directional.py
 """
 from __future__ import annotations
 
@@ -16,13 +17,12 @@ import glob
 import json
 import os
 import re
-import sys
 
 import rdflib
 
+from tools.shacl_helper import validate_graph
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, ROOT)
-from tools.shacl_helper import validate_graph  # noqa: E402
 
 ENV_DIR = os.path.join(ROOT, "web/static/demos/envelopes")
 REPL = {

@@ -17,17 +17,15 @@ Penman form produces.
 from __future__ import annotations
 
 import subprocess
-import sys
 import unittest
 from pathlib import Path
 
 import rdflib
 
-REPO = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO))
+from tools.vson_x import to_turtle as vson_x_to_turtle
+from tools.vson_x.equiv import graph_equivalent
 
-from tools.vson_x import to_turtle as vson_x_to_turtle  # noqa: E402
-from tools.vson_x.equiv import graph_equivalent  # noqa: E402
+REPO = Path(__file__).resolve().parent.parent
 
 CLI = REPO / "cli" / "target" / "release" / "vson"
 GALLERY_P = REPO / "examples" / "gallery"

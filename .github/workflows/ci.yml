@@ -27,22 +27,30 @@ jobs:
           python-version: "3.11"
           cache: pip
 
+      # pyproject.toml pins the dependency ranges and installs the `tools`
+      # package, so no sys.path juggling is needed. ruff powers `make lint-py`,
+      # which runs as part of `make check`.
       - name: Install Python deps
-        run: pip install rdflib pyshacl owlrl
+        run: pip install -e . ruff
 
+      # rustfmt + clippy are explicit: this action installs the minimal profile,
+      # and `make cli-check` gates on `cargo fmt --check` and `cargo clippy`.
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
 
       - name: Cache cargo build
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: cli
 
-      # make check = parse-ontology + penman-roundtrip + shacl + python tests + spec-check
+      # make check = parse-ontology + penman-roundtrip + shacl + owl-consistency
+      #            + python tests + spec-check + lint-py (ruff)
       - name: make check
         run: make check
 
-      - name: make cli-check (Rust build + tests + graph-iso parity vs Python)
+      - name: make cli-check (fmt + clippy + Rust build + tests + graph-iso parity vs Python)
         run: make cli-check
 
       - name: make x-check (VSON-X round-trip parity)

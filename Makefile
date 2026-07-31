@@ -1,21 +1,25 @@
 # VSON v1.1 — one-command verification
 
 PY ?= python3
-TOOLS = tools/penman/vson_penman.py
+# The transpiler runs as a module (python -m) so package-relative imports
+# resolve from the repo root — no sys.path juggling inside the sources.
+TOOLS = -m tools.penman.vson_penman
 EXAMPLE_VSON = examples/throne_room.vson
 EXAMPLE_TTL = examples/throne_room.ttl
 
-.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps cli-check spec-check x-check x-skill-check envelope-check web-check deploy-check clean
+.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check x-check x-skill-check envelope-check web-check deploy-check clean
 
 all: check
 
-check: parse-ontology penman-roundtrip shacl owl-consistency test spec-check
+check: parse-ontology penman-roundtrip shacl owl-consistency test spec-check lint-py
 
 # Everything the CI runs, minus the web app (which needs pnpm/node).
 check-all: check cli-check x-check x-skill-check envelope-check
 
+# Installs the pinned dependency ranges declared in pyproject.toml and puts
+# the `tools` package on sys.path (editable, so edits take effect immediately).
 deps:
-	$(PY) -m pip install --user --quiet rdflib pyshacl owlrl
+	$(PY) -m pip install --user --quiet -e .
 
 parse-ontology:
 	@echo "==> Parsing ontology, shapes, and example with rdflib"
@@ -48,18 +52,21 @@ shacl:
 
 owl-consistency:
 	@echo "==> OWL 2 RL consistency (disjointness clashes the rdfs-SHACL gate cannot see)"
-	@$(PY) tools/owlrl_check.py
+	@$(PY) -m tools.owlrl_check
 
 test:
 	@echo "==> Test suite"
 	@$(PY) -m unittest discover -s tests
+
+lint-py:
+	@echo "==> Python lint (ruff: pyflakes + pycodestyle errors)"
+	@$(PY) -m ruff check tools tests scripts
 
 spec-check:
 	@echo "==> Spec gallery: every example MUST SHACL-conform"
 	@$(PY) -c "import json, glob, subprocess, sys, os; \
 	from rdflib import Graph; \
 	import pyshacl; \
-	sys.path.insert(0, '.'); \
 	from tools.penman import vson_penman as vp; \
 	from tools.shacl_helper import validate_graph; \
 	files = sorted(glob.glob('examples/gallery/*.vson')); \
@@ -73,11 +80,14 @@ spec-check:
 	print('  OK both schemas parse')"
 
 cli-check:
+	@echo "==> Rust CLI: fmt + clippy"
+	@cd cli && cargo fmt --check
+	@cd cli && cargo clippy --all-targets -- -D warnings
 	@echo "==> Rust CLI: build + test"
 	@cd cli && cargo build --release --quiet
 	@cd cli && cargo test --quiet 2>&1 | tail -8
 	@echo "==> Rust CLI: golden parity with Python reference (rdflib to_isomorphic, throne_room + 16-scene gallery)"
-	@$(PY) tools/parity_check.py cli/target/release/vson
+	@$(PY) -m tools.parity_check cli/target/release/vson
 
 x-check:
 	@echo "==> VSON-X gallery round-trip parity vs Penman"
@@ -85,7 +95,7 @@ x-check:
 
 x-skill-check:
 	@echo "==> VSON-X skill conformance over gallery-x corpus"
-	@$(PY) tools/vson_x/skill_check.py \
+	@$(PY) -m tools.vson_x.skill_check \
 		--corpus examples/gallery-x \
 		--config skills/vson-extractor-x/conformance.json
 
@@ -105,7 +115,8 @@ web-check:
 	@echo "  OK web build, dist=$$(du -sh web/build 2>/dev/null | cut -f1 || echo n/a)"
 
 clean:
-	rm -rf __pycache__ tests/__pycache__ tools/penman/__pycache__
+	find . -name __pycache__ -type d -not -path './web/node_modules/*' -exec rm -rf {} +
+	rm -rf *.egg-info .ruff_cache
 	rm -f /tmp/throne_room.emitted.ttl /tmp/rust.ttl /tmp/py.ttl
 	cd cli && cargo clean --quiet 2>/dev/null || true
 	rm -rf web/.svelte-kit web/build

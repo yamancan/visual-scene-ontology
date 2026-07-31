@@ -8,8 +8,8 @@ gallery rather than a single example. (The previous gate diffed sorted triple
 strings for one file, which both missed broad coverage and forced byte-identical
 blank-node labels across the two implementations.)
 
-Usage:
-    python3 tools/parity_check.py [rust_binary] [files...]
+Usage (from the repo root, so the `tools` package resolves):
+    python3 -m tools.parity_check [rust_binary] [files...]
 With no files, checks examples/throne_room.vson + every examples/gallery/*.vson.
 """
 
@@ -23,10 +23,9 @@ import sys
 import rdflib
 from rdflib.compare import to_isomorphic
 
+from tools.penman import vson_penman as vp
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if ROOT not in sys.path:
-    sys.path.insert(0, ROOT)
-from tools.penman import vson_penman as vp  # noqa: E402
 
 
 def _files(argv):

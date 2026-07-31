@@ -17,18 +17,12 @@ Skipped automatically if rdflib/owlrl are not installed.
 
 from __future__ import annotations
 
-import os
-import sys
 import unittest
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(HERE)
-if ROOT not in sys.path:
-    sys.path.insert(0, ROOT)
-
 try:
+    import owlrl  # noqa: F401  — availability probe for the skip guard below
     import rdflib
-    import owlrl  # noqa: F401
+
     from tools.owlrl_check import clashes_for
 except ImportError:
     rdflib = None

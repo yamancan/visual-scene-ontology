@@ -9,18 +9,12 @@ Skipped automatically if rdflib/pyshacl are not installed.
 
 from __future__ import annotations
 
-import os
-import sys
 import unittest
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(HERE)
-if ROOT not in sys.path:
-    sys.path.insert(0, ROOT)
-
 try:
-    import rdflib
     import pyshacl
+    import rdflib
+
     from tools.shacl_helper import validate_path
 except ImportError:
     rdflib = None

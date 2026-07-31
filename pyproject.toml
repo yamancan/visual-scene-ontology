@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vson-tools"
+version = "1.1.1"
+description = "Reference transpilers, renderers and verification gates for the Visual Scene Ontology Notation (VSON) v1.1 spec."
+readme = "README.md"
+license = { file = "LICENSE" }
+# 3.9 is the floor because that is the maintainer's system Python; CI runs 3.11.
+# Both must stay green, so no 3.10+ syntax in tools/, scripts/ or tests/.
+requires-python = ">=3.9"
+
+dependencies = [
+    # Turtle/Turtle-star parsing and graph isomorphism (tools/parity_check.py).
+    "rdflib>=7.0,<8",
+    # SHACL gate (tools/shacl_helper.py, scripts/envelope_check.py).
+    "pyshacl>=0.25,<1",
+    # OWL 2 RL closure for tools/owlrl_check.py. The >=7.1.4 floor is
+    # load-bearing, not cosmetic: owlrl 7.1.4 collapses two trait-kinds on one
+    # functional trait property to owl:sameAs (prp-fp) but does NOT expand
+    # owl:AllDifferent into owl:differentFrom, so _distinct_sets() hand-rolls
+    # the eq-diff1 contradiction check against that exact behaviour
+    # (tools/owlrl_check.py:_distinct_sets, tests/test_owlrl_check.py).
+    # An older owlrl changes which clashes the gate can see.
+    "owlrl>=7.1.4,<8",
+]
+
+[tool.setuptools.packages.find]
+include = ["tools*"]
+namespaces = false
+
+[tool.setuptools.package-data]
+# tools.penman has no package data: its routing tables live inside the Rust
+# crate (cli/src/penman/routing-tables.json) so the crate stays self-contained
+# and packageable, and tools/penman/vson_penman.py reads them from the checkout.
+# setuptools cannot reach outside a package directory, so a non-editable
+# `pip install .` of vson-tools cannot carry that file. Every gate here installs
+# editable (`make deps` and CI both run `pip install -e .`), which keeps the
+# checkout paths live.
+"tools.render" = ["verbs.json"]
+
+[tool.ruff]
+target-version = "py39"
+
+[tool.ruff.lint]
+# Pyflakes (F) plus the pycodestyle errors that catch real defects: E4 imports,
+# E7 statement/comparison bugs, E9 syntax/IO errors. This is ruff's classic
+# default set, written out explicitly because CI installs ruff unpinned and its
+# built-in defaults widen between releases — an implicit default would turn a
+# ruff upgrade into a surprise CI failure on untouched code.
+select = ["E4", "E7", "E9", "F"]

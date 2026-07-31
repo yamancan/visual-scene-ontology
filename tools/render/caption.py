@@ -7,8 +7,7 @@ independent.
 
 Acceptance:
 - CI determinism test compares output to ground-truth fixtures in
-  tests/fixtures/captions/{01..11}.txt for the 11 gallery scenes.
-- Generation faithfulness is evaluated separately (Phase A 30-image gate).
+  tests/fixtures/captions/ for the 16-scene gallery.
 """
 
 from __future__ import annotations
@@ -17,8 +16,7 @@ import json
 import os
 from typing import Optional
 
-import rdflib
-from rdflib import RDF, BNode, Graph, Literal, URIRef
+from rdflib import RDF, Graph, Literal, URIRef
 from rdflib.namespace import Namespace
 
 VSO = Namespace("https://vson.dev/v1/ontology#")
@@ -245,7 +243,7 @@ def _ordinal(n: int) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _subjects_sentence(g: Graph, scene: URIRef, disc: dict[URIRef, str]) -> str:
+def _subjects_sentence(g: Graph, scene: URIRef, disc: dict[URIRef, Disc]) -> str:
     entities = _depicted_entities(g, scene)
     if not entities:
         return ""
@@ -312,7 +310,7 @@ def _all_spatial_targets(g: Graph, scene: URIRef) -> list[URIRef]:
     return sorted(out, key=str)
 
 
-def _entity_noun_phrase(g: Graph, entity: URIRef, discriminator: Optional[str] = None) -> str:
+def _entity_noun_phrase(g: Graph, entity: URIRef, discriminator: Optional[Disc] = None) -> str:
     """Build 'a red apple' / 'Alice, a joyful queen' / 'a heavy gold crown with lightning enchantment'.
 
     `discriminator`, when supplied, prepends a positional adjective ('leftmost',
@@ -431,7 +429,7 @@ def _proper_name(entity: URIRef) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _actions_sentences(g: Graph, scene: URIRef, disc: dict[URIRef, str]) -> list[str]:
+def _actions_sentences(g: Graph, scene: URIRef, disc: dict[URIRef, Disc]) -> list[str]:
     out: list[str] = []
     for t in _all_perdurant_targets(g, scene):
         types = set(g.objects(t, RDF.type))
@@ -448,7 +446,7 @@ def _actions_sentences(g: Graph, scene: URIRef, disc: dict[URIRef, str]) -> list
     return out
 
 
-def _event_sentence(g: Graph, ev: URIRef, disc: dict[URIRef, str]) -> str:
+def _event_sentence(g: Graph, ev: URIRef, disc: dict[URIRef, Disc]) -> str:
     lemma = _str_prop(g, ev, VSO.lemma) or ""
     agent = _ref_phrase(g, ev, VSO.agent, disc)
     patient = _ref_phrase(g, ev, VSO.patient, disc)
@@ -481,7 +479,7 @@ def _event_sentence(g: Graph, ev: URIRef, disc: dict[URIRef, str]) -> str:
     return " ".join(bits) + "."
 
 
-def _process_sentence(g: Graph, proc: URIRef, disc: dict[URIRef, str]) -> str:
+def _process_sentence(g: Graph, proc: URIRef, disc: dict[URIRef, Disc]) -> str:
     lemma = _str_prop(g, proc, VSO.lemma) or ""
     agent = _ref_phrase(g, proc, VSO.agent, disc)
     patient = _ref_phrase(g, proc, VSO.patient, disc)
@@ -508,7 +506,7 @@ def _process_sentence(g: Graph, proc: URIRef, disc: dict[URIRef, str]) -> str:
     return " ".join(bits) + "."
 
 
-def _stative_sentence(g: Graph, st: URIRef, disc: dict[URIRef, str]) -> str:
+def _stative_sentence(g: Graph, st: URIRef, disc: dict[URIRef, Disc]) -> str:
     lemma = _str_prop(g, st, VSO.lemma) or ""
     holder = _ref_phrase(g, st, VSO.holder, disc)
     theme = _ref_phrase(g, st, VSO.theme, disc)
@@ -693,7 +691,7 @@ def _qualities_by_dimension(g: Graph, entity: URIRef) -> dict[str, list[str]]:
     return out
 
 
-def _ref_phrase(g: Graph, subj: URIRef, pred: URIRef, disc: Optional[dict[URIRef, str]] = None) -> str:
+def _ref_phrase(g: Graph, subj: URIRef, pred: URIRef, disc: Optional[dict[URIRef, Disc]] = None) -> str:
     """For thematic role refs: produce 'Alice' / 'the apple' / 'a sword'."""
     for o in g.objects(subj, pred):
         if isinstance(o, URIRef):
@@ -704,7 +702,7 @@ def _ref_phrase(g: Graph, subj: URIRef, pred: URIRef, disc: Optional[dict[URIRef
 
 
 def _entity_short_phrase(
-    g: Graph, entity: URIRef, disc: Optional[dict[URIRef, "Disc"]] = None
+    g: Graph, entity: URIRef, disc: Optional[dict[URIRef, Disc]] = None
 ) -> str:
     """Short reference: proper name if Named, else 'the <discriminator?> <class>'."""
     individuation = _str_prop(g, entity, VSO.individuation)
@@ -770,12 +768,7 @@ def _main(argv: list[str]) -> int:
     if path.endswith(".vson"):
         # Lazy import to avoid pulling penman tools into tests that only
         # exercise the renderer with pre-parsed graphs.
-        import sys as _sys
-
-        _here = os.path.dirname(os.path.dirname(_HERE))
-        if _here not in _sys.path:
-            _sys.path.insert(0, _here)
-        from tools.penman import vson_penman as vp  # type: ignore
+        from tools.penman import vson_penman as vp
 
         with open(path, encoding="utf-8") as f:
             penman_src = f.read()

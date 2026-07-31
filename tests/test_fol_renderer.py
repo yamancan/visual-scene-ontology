@@ -15,17 +15,14 @@ Asserts:
 from __future__ import annotations
 
 import subprocess
-import sys
 import unittest
 from pathlib import Path
 
 import rdflib
 
+from tools.render.fol import render
+
 REPO = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO))
-
-from tools.render.fol import render  # noqa: E402
-
 GALLERY = REPO / "examples" / "gallery"
 FIXTURES = REPO / "tests" / "fixtures" / "fol"
 CLI = REPO / "cli" / "target" / "release" / "vson"
@@ -58,26 +55,29 @@ class GalleryFolTests(unittest.TestCase):
 
     def test_all_scenes_have_fixtures(self):
         for scene in self.scene_files:
-            self.assertTrue(
-                (FIXTURES / f"{scene.stem}.fol").exists(),
-                f"Missing FOL fixture for {scene.name}",
-            )
+            with self.subTest(scene=scene.name):
+                self.assertTrue(
+                    (FIXTURES / f"{scene.stem}.fol").exists(),
+                    f"Missing FOL fixture for {scene.name}",
+                )
 
     def test_byte_identical_to_fixture(self):
         for scene in self.scene_files:
-            fixture = FIXTURES / f"{scene.stem}.fol"
-            if not fixture.exists():
-                continue
-            expected = fixture.read_text(encoding="utf-8")
-            actual = render(_load_graph_from_vson(scene))
-            self.assertEqual(
-                actual, expected, f"FOL mismatch for {scene.name}"
-            )
+            with self.subTest(scene=scene.name):
+                fixture = FIXTURES / f"{scene.stem}.fol"
+                if not fixture.exists():
+                    continue
+                expected = fixture.read_text(encoding="utf-8")
+                actual = render(_load_graph_from_vson(scene))
+                self.assertEqual(
+                    actual, expected, f"FOL mismatch for {scene.name}"
+                )
 
     def test_deterministic_repeat(self):
         for scene in self.scene_files:
-            g = _load_graph_from_vson(scene)
-            self.assertEqual(render(g), render(g))
+            with self.subTest(scene=scene.name):
+                g = _load_graph_from_vson(scene)
+                self.assertEqual(render(g), render(g))
 
 
 class CollapseTests(unittest.TestCase):

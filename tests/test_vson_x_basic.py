@@ -12,8 +12,9 @@ Covers the initial parser scope:
   - Composition rendersAs special direct property
   - Viewer anchor (^cam)
 
-Stative (>), Event/Process (>>), Spatial (! / &) are deferred to
-subsequent slices and asserted as parse errors here.
+Stative (>), Event/Process (>>) and Spatial (! / &) are covered by
+StativeEventSpatialTests below, including the sigil-mismatch and
+Talmy fail-fast parse errors.
 
 Test invariant: VSON-X source and the corresponding gallery Penman
 source produce graph-equivalent RDF graphs (modulo blank-node
@@ -23,18 +24,16 @@ identity for auto-anonymous reified nodes; see tools.vson_x.equiv).
 from __future__ import annotations
 
 import subprocess
-import sys
 import unittest
 from pathlib import Path
 
 import rdflib
 
-REPO = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO))
+from tools.vson_x import to_turtle as vson_x_to_turtle
+from tools.vson_x.equiv import graph_equivalent
+from tools.vson_x.vson_x import parse, parse_with_warnings
 
-from tools.vson_x import to_turtle as vson_x_to_turtle  # noqa: E402
-from tools.vson_x.equiv import graph_equivalent  # noqa: E402
-from tools.vson_x.vson_x import parse  # noqa: E402
+REPO = Path(__file__).resolve().parent.parent
 
 CLI = REPO / "cli" / "target" / "release" / "vson"
 
@@ -284,6 +283,61 @@ class StativeEventSpatialTests(unittest.TestCase):
         )
         with self.assertRaises(SyntaxError):
             parse(src)
+
+    def test_modifier_on_thematic_role_rejected(self):
+        """A `~mod` on a thematic role has no v1.1 encoding — reject it
+        loudly instead of dropping the modifier on the floor."""
+        src = (
+            "~scene\n"
+            "  /CameraView @cam\n"
+            "  ^cam\n"
+            "  knight /PhysicalObject Generic Agentive *class Human\n"
+            "  boar /PhysicalObject Generic Agentive *class Animal\n"
+            "  knight >> strike boar *manner forceful ~very\n"
+        )
+        with self.assertRaises(SyntaxError) as ctx:
+            parse(src)
+        message = str(ctx.exception)
+        self.assertIn("very", message)
+        self.assertIn("manner", message)
+
+
+class ParseWarningTests(unittest.TestCase):
+    """Open lemmas take a default role frame and record a warning
+    (the routing tables in vson_x.py promise exactly this)."""
+
+    def test_unknown_event_lemma_records_warning(self):
+        src = (
+            "~scene\n"
+            "  /CameraView @cam\n"
+            "  ^cam\n"
+            "  knight /PhysicalObject Generic Agentive *class Human\n"
+            "  boar /PhysicalObject Generic Agentive *class Animal\n"
+            "  knight >> vanquish boar\n"
+        )
+        ast, warnings = parse_with_warnings(src)
+        self.assertEqual(len(warnings), 1, warnings)
+        self.assertIn("vanquish", warnings[0])
+        # The default frame still applies: Event with agent/patient.
+        event = next(
+            t for r, t in ast.edges
+            if r == "depicts" and getattr(t, "concept", None) == "Event"
+        )
+        roles = [r for r, _ in event.edges]
+        self.assertIn("agent", roles)
+        self.assertIn("patient", roles)
+
+    def test_known_lemma_records_no_warning(self):
+        src = (
+            "~scene\n"
+            "  /CameraView @cam\n"
+            "  ^cam\n"
+            "  knight /PhysicalObject Generic Agentive *class Human\n"
+            "  boar /PhysicalObject Generic Agentive *class Animal\n"
+            "  knight >> strike boar\n"
+        )
+        _ast, warnings = parse_with_warnings(src)
+        self.assertEqual(warnings, [])
 
 
 if __name__ == "__main__":

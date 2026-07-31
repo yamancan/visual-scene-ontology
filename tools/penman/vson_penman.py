@@ -4,19 +4,18 @@ VSON-P (Penman) ↔ VSON-T (Turtle-star) reference transpiler.
 Scope: this is a reference, not a production parser. It implements:
   - VSON-P parser (Penman concrete syntax tuned to VSV concept names)
   - VSON-P → Turtle-star emitter
-  - Triple-set normalizer (sort + canonicalize blank-node ids) for diffing
 
-Usage:
-  python3 vson_penman.py to-turtle <file.vson>
-  python3 vson_penman.py normalize <file.ttl|file.vson>
+Usage (from the repo root, so the `tools` package resolves):
+  python3 -m tools.penman.vson_penman to-turtle <file.vson>
 
 Concept names appearing after `/` are interpreted in the VSO namespace by
 default. Role names (after `:`) are interpreted in the VSO namespace; a few
 known temporal/causal roles route to the Allen and core namespaces.
 
-This file has no third-party dependencies — pure stdlib so the repo can be
-exercised without an install step. For production use, swap the Turtle parser
-in `normalize` for rdflib.
+This file has no third-party dependencies — pure stdlib plus the sibling
+tools.vson_ast module, so the transpiler runs without rdflib installed.
+Graph-level comparison (Rust CLI vs this reference) lives in
+tools/parity_check.py, which uses rdflib's `to_isomorphic`.
 """
 
 from __future__ import annotations
@@ -27,32 +26,36 @@ import re
 import sys
 from dataclasses import dataclass
 
-# Shared AST types live in tools/vson_ast.py so the upcoming VSON-X
-# parser can produce the same tree without duplicating the dataclasses.
-# We re-export them at module level for back-compat with any caller that
-# imports Ref/Lit/Node/Term/Triple from this module.
-#
-# Import strategy: prefer the qualified package path `tools.vson_ast`
-# so import identity is stable (`tools.vson_ast.Node is
-# tools.penman.vson_penman.Node`). Fall back to the bare `vson_ast`
-# import for the direct-invocation case (`python3 vson_penman.py ...`)
-# where the package root might not be on sys.path.
-_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_REPO_PARENT = os.path.dirname(_REPO_ROOT)
-if _REPO_PARENT not in sys.path:
-    sys.path.insert(0, _REPO_PARENT)
-try:
-    from tools.vson_ast import Lit, Node, Ref, Term, Triple  # noqa: E402,F401
-except ImportError:
-    if _REPO_ROOT not in sys.path:
-        sys.path.insert(0, _REPO_ROOT)
-    from vson_ast import Lit, Node, Ref, Term, Triple  # type: ignore  # noqa: E402,F401
+# Shared AST types live in tools/vson_ast.py so the VSON-X parser can produce
+# the same tree without duplicating the dataclasses. We re-export them at
+# module level for back-compat with any caller that imports
+# Ref/Lit/Node/Term/Triple from this module. The qualified package path keeps
+# import identity stable: `tools.vson_ast.Node is
+# tools.penman.vson_penman.Node`.
+from tools.vson_ast import Lit, Node, Ref, Term, Triple  # noqa: F401
 
-# Routing tables live in a sibling JSON file; both this reference and the
-# Rust CLI consume the same file so they cannot drift.
-_HERE = os.path.dirname(os.path.abspath(__file__))
-with open(os.path.join(_HERE, "routing-tables.json"), "r", encoding="utf-8") as _f:
-    _ROUTING = json.load(_f)
+# Routing tables live inside the Rust crate, at cli/src/penman/routing-tables.json.
+# They sit there rather than next to this module because the CLI embeds them with
+# `include_str!`, which may not reach outside the crate root without breaking
+# `cargo package`. This reference reads that same file, so the two implementations
+# still cannot drift; `make cli-check` proves it by graph isomorphism.
+#
+# The path is anchored to __file__ (three dirnames up from this file is the repo
+# root — the same idiom as tools/vson_x/skill_check.py), never to the working
+# directory, so it resolves identically under `python3 -m
+# tools.penman.vson_penman` from the repo root, under `unittest discover`, and
+# under an editable install invoked from any cwd.
+_REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ROUTING_TABLES_PATH = os.path.join(_REPO, "cli", "src", "penman", "routing-tables.json")
+try:
+    with open(ROUTING_TABLES_PATH, "r", encoding="utf-8") as _f:
+        _ROUTING = json.load(_f)
+except FileNotFoundError as _exc:  # pragma: no cover - checkout-shape failure
+    raise RuntimeError(
+        "VSON routing tables not found at {}. This reference reads them from the "
+        "Rust crate, so it needs a full checkout — a standalone install of the "
+        "vson-tools package does not carry the file.".format(ROUTING_TABLES_PATH)
+    ) from _exc
 
 VSO = _ROUTING["namespaces"]["vso"]
 ALLEN = _ROUTING["namespaces"]["allen"]
@@ -391,34 +394,6 @@ def to_turtle(src_text: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Normalizer — for round-trip diffing
-# ---------------------------------------------------------------------------
-
-TRIPLE_LINE_RE = re.compile(r"^\s*([^\s].*?)\s+\.\s*$")
-
-
-def normalize(text: str) -> str:
-    """Strip prefixes/comments, sort triple lines, return canonical form.
-
-    This is a *lexical* normalizer for diffing the emitter's output against
-    a hand-authored Turtle file with simple triple shapes (no Turtle property
-    lists or object lists). Documents using compact Turtle features should be
-    expanded first via rdflib.
-    """
-    out_lines = []
-    for line in text.splitlines():
-        s = line.strip()
-        if not s or s.startswith("#") or s.startswith("@prefix"):
-            continue
-        m = TRIPLE_LINE_RE.match(s)
-        if not m:
-            continue
-        out_lines.append(m.group(1).strip() + " .")
-    out_lines.sort()
-    return "\n".join(out_lines) + "\n"
-
-
-# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -435,11 +410,6 @@ def main(argv) -> int:
         return 2
     if cmd == "to-turtle":
         sys.stdout.write(to_turtle(text))
-        return 0
-    if cmd == "normalize":
-        if path.endswith(".vson"):
-            text = to_turtle(text)
-        sys.stdout.write(normalize(text))
         return 0
     print(f"unknown command: {cmd}", file=sys.stderr)
     return 2

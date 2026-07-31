@@ -16,33 +16,29 @@ Usage:
     from tools.vson_x import to_turtle
     turtle = to_turtle(open("scene.x.vson").read())
 
-Currently implemented (incremental):
+Implemented surface:
     - Composition root (~scene)
-    - Frame declarations (/CameraView, /VisualStyle, /SceneContext)
+    - Frame declarations (/CameraView, /VisualStyle, /SceneContext, /Persona)
     - Frame direct properties (*K V on Frame)
     - Entity declarations (handle /Class trait* *K V*)
     - Entity special direct properties (*class, *bbox2d, etc.)
     - Entity Quality dispatch (*K V -> hasQuality)
     - Composition Quality dispatch (*K V on root)
     - Viewer anchor (^cam)
+    - Stative (>), Event/Process (>>)
+    - SpatialFact, asymmetric (!) and symmetric (&)
 """
 
 from __future__ import annotations
 
-import os
 import re
 import sys
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
-# Import shared AST types so we feed the same Emitter as Penman.
-_HERE = os.path.dirname(os.path.abspath(__file__))
-_TOOLS = os.path.dirname(_HERE)
-_REPO = os.path.dirname(_TOOLS)
-if _REPO not in sys.path:
-    sys.path.insert(0, _REPO)
-from tools.vson_ast import Lit, Node, Ref, Term  # noqa: E402
-from tools.penman.vson_penman import Emitter  # noqa: E402
+# Shared AST types, so we feed the same Emitter as Penman.
+from tools.penman.vson_penman import Emitter
+from tools.vson_ast import Lit, Node, Ref, Term
 
 
 # ---------------------------------------------------------------------------
@@ -271,6 +267,10 @@ class Parser:
         self.i = 0
         # Auto-generated counters for blank-node-like vars (Quality, etc.)
         self._gen_counter = 0
+        # Non-fatal diagnostics collected while parsing (e.g. an open lemma
+        # falling back to the default role frame). Parse results are
+        # unaffected; `_main` prints these to stderr.
+        self.warnings: List[str] = []
 
     # ------------------------------------------------------------------
     # Token utilities
@@ -386,17 +386,13 @@ class Parser:
         if kind not in CONCEPT_KINDS:
             raise SyntaxError(f"unknown concept after /: {kind}")
 
-        # Optional handle: /CameraView @cam   or   /CameraView cam
+        # Optional handle, `@`-prefixed only: /CameraView @cam. A bare ident
+        # here cannot be told apart from a trait keyword without further
+        # lookahead, so Frames accept only @-handles (spec recommendation).
         var: Optional[str] = None
         if self.peek() and self.peek().kind == "@":
             self.consume("@")
             var = self.consume("IDENT").value
-        elif self.peek() and self.peek().kind == "IDENT" and not _is_trait(self.peek().value):
-            # Lookahead: a bare ident here is a handle, not a trait. We
-            # can't easily distinguish from a trait without next-next
-            # peek; for now accept only @-prefixed handles on Frames
-            # (matches spec recommendation).
-            pass
 
         if var is None:
             # Frames get NAMED IRIs (no leading underscore) so they
@@ -554,9 +550,15 @@ class Parser:
                 f"lemma '{lemma}' is Event/Process; use '>>' instead of '>'"
             )
 
-        lhs_slot, pos_slots = STATIVE_LEMMAS.get(
-            lemma, ("holder", ["theme"])  # default for unknown lemma
-        )
+        if lemma in STATIVE_LEMMAS:
+            lhs_slot, pos_slots = STATIVE_LEMMAS[lemma]
+        else:
+            # Open lemma — default to the holder/theme frame.
+            lhs_slot, pos_slots = ("holder", ["theme"])
+            self.warnings.append(
+                f"unknown Stative lemma '{lemma}': defaulting to "
+                "holder/theme roles"
+            )
         s_var = self.gen("s")
         s_node = Node(var=s_var, concept="Stative", edges=[
             ("lemma", Ref(lemma)),
@@ -588,6 +590,10 @@ class Parser:
             kind = "Event"
             lhs_slot, pos_slots = ("agent", ["patient"])
             prefix = "e"
+            self.warnings.append(
+                f"unknown lemma '{lemma}': defaulting to Event with "
+                "agent/patient roles"
+            )
 
         n_var = self.gen(prefix)
         node = Node(var=n_var, concept=kind, edges=[
@@ -605,8 +611,9 @@ class Parser:
         pos_slots: List[str],
     ) -> None:
         """Bind positional refs to their named slots per the lemma table,
-        then append `*K V` named arguments. Excess positional refs are a
-        parse error (clearer than silently dropping)."""
+        then append `*K V` named arguments. Excess positional refs and
+        modifiers on thematic roles are parse errors (clearer than
+        silently dropping)."""
         if len(refs) > len(pos_slots):
             raise SyntaxError(
                 f"too many positional arguments: lemma expects {len(pos_slots)}, got {len(refs)}"
@@ -614,13 +621,13 @@ class Parser:
         for i, ref in enumerate(refs):
             node.edges.append((pos_slots[i], ref))
         for key, value, modifier in kvs:
-            node.edges.append((key, value))
             if modifier is not None:
-                # Modifier on a thematic role (`*manner forceful ~very`) is
-                # unusual; for v1.1 we attach it as a sibling triple if
-                # the value is a node, else accept the modifier silently.
-                # The spec leaves this open; tests don't exercise it.
-                pass
+                raise SyntaxError(
+                    f"modifier ~{modifier} not valid on thematic role *{key}: "
+                    "v1.1 has no encoding for it — drop the modifier or move "
+                    "it onto a *K V Quality of an entity"
+                )
+            node.edges.append((key, value))
 
     # ------------------------------------------------------------------
     # SpatialFact `!` (asymmetric)  and  `&` (symmetric)
@@ -857,10 +864,21 @@ def _pascal_case(name: str) -> str:
 # ---------------------------------------------------------------------------
 
 
+def parse_with_warnings(src: str) -> Tuple[Node, List[str]]:
+    """Parse VSON-X source, returning the AST plus any parse warnings.
+
+    Warnings are non-fatal diagnostics (open lemmas taking a default role
+    frame); they never change the AST.
+    """
+    parser = Parser(tokenize(src))
+    node = parser.parse_document()
+    return node, parser.warnings
+
+
 def parse(src: str) -> Node:
     """Parse VSON-X source text into a shared-AST Composition node."""
-    toks = tokenize(src)
-    return Parser(toks).parse_document()
+    node, _warnings = parse_with_warnings(src)
+    return node
 
 
 def to_turtle(src: str) -> str:
@@ -882,7 +900,10 @@ def _main(argv: List[str]) -> int:
     with open(path, "r", encoding="utf-8") as f:
         text = f.read()
     if cmd == "to-turtle":
-        sys.stdout.write(to_turtle(text))
+        ast, warnings = parse_with_warnings(text)
+        sys.stdout.write(Emitter().emit(ast))
+        for w in warnings:
+            print(f"warning: {w}", file=sys.stderr)
         return 0
     print(f"unknown command: {cmd}", file=sys.stderr)
     return 2

@@ -11,9 +11,9 @@ the LLM bad patterns.
 Independent of LLM-emission smoke (scripts/d_smoke_eval.sh): this gate runs
 in CI without API credentials.
 
-Usage:
-    python tools/vson_x/skill_check.py
-    python tools/vson_x/skill_check.py --corpus examples/gallery-x \\
+Usage (from the repo root, so the `tools` package resolves):
+    python3 -m tools.vson_x.skill_check
+    python3 -m tools.vson_x.skill_check --corpus examples/gallery-x \\
         --config skills/vson-extractor-x/conformance.json
 """
 
@@ -26,16 +26,14 @@ import os
 import sys
 from typing import List, Tuple
 
-_HERE = os.path.dirname(os.path.abspath(__file__))
-_TOOLS = os.path.dirname(_HERE)
-_REPO = os.path.dirname(_TOOLS)
-if _REPO not in sys.path:
-    sys.path.insert(0, _REPO)
-
 from rdflib import Graph
 
 from tools.shacl_helper import validate_graph
 from tools.vson_x.vson_x import to_turtle
+
+# Repo root, used only to default --corpus/--config and to shorten printed
+# paths — tools/vson_x/skill_check.py -> tools/vson_x -> tools -> repo root.
+_REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def evaluate(path: str) -> Tuple[bool, str]:

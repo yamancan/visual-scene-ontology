@@ -21,12 +21,11 @@ is byte-identical across runs and across rdflib parses.
 
 Acceptance:
 - CI determinism test compares output to ground-truth fixtures in
-  tests/fixtures/fol/{01..11}.fol for the 11 gallery scenes.
+  tests/fixtures/fol/ for the 16-scene gallery.
 """
 
 from __future__ import annotations
 
-import os
 from typing import Optional
 
 from rdflib import RDF, BNode, Graph, Literal, URIRef
@@ -226,12 +225,8 @@ def _main(argv: list[str]) -> int:
     g = Graph()
 
     if path.endswith(".vson"):
-        import sys as _sys
-
-        _here = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        if _here not in _sys.path:
-            _sys.path.insert(0, _here)
-        from tools.penman import vson_penman as vp  # type: ignore
+        # Lazy import: Turtle input does not need the Penman transpiler.
+        from tools.penman import vson_penman as vp
 
         with open(path, encoding="utf-8") as f:
             penman_src = f.read()

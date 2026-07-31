@@ -10,8 +10,8 @@ inference="rdfs", which does NOT process owl:disjointWith, so a Composition
 (a Frame) inferred into vso:Entity via a property domain would slip through
 SHACL while being a genuine OWL 2 RL inconsistency.
 
-Usage:
-    python3 tools/owlrl_check.py [files...]
+Usage (from the repo root, so the `tools` package resolves):
+    python3 -m tools.owlrl_check [files...]
 With no args, checks examples/throne_room.ttl + every examples/gallery/*.vson.
 """
 
@@ -128,7 +128,7 @@ def clashes_for(doc: rdflib.Graph):
 def _load(path: str) -> rdflib.Graph:
     g = rdflib.Graph()
     if path.endswith(".vson"):
-        sys.path.insert(0, ROOT)
+        # Imported lazily: Turtle-only runs should not pay for the transpiler.
         from tools.penman import vson_penman as vp
 
         with open(path, encoding="utf-8") as fh:
