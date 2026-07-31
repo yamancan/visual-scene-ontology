@@ -38,6 +38,12 @@ VSON's pitch in one sentence: **"Author, validate, and render scene-graph descri
 
 A single statically-linked binary (Rust). No Python, no JVM. The unix-y interface engineers reach for first.
 
+> **Target surface, not shipped state.** Today the binary ships `validate`,
+> `convert p2t/x2t`, and `export cypher/caption/fol` (with `convert x2t` and
+> the caption/FOL exporters shelling out to Python). `t2p` is a stub, and
+> `init`, `query`, `render`, `generate`, `diff`, `lint`, and `serve` are
+> planned, not yet implemented.
+
 ```
 vson init <project>        scaffold .vson workspace + GH action + VS Code recs
 vson validate <files...>   SHACL conformance; exit 1 on failure (CI-friendly)
@@ -181,6 +187,8 @@ After dismiss, the user is editing the throne room. No video. No checklist. No "
 ### Flow A — P1 Engineer: integrate VSON into a generation pipeline
 
 **Goal:** drop VSON between an LLM and a layout-to-image renderer in one afternoon.
+
+*Target experience — several steps below (`brew install`, `vson init`, `validate -`, `vson generate`, `vson render`) depend on subcommands that are planned, not yet shipped; see §2.1.*
 
 ```
 00:00  brew install vson         (or `cargo install vson-cli`)

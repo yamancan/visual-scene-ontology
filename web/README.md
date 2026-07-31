@@ -1,6 +1,6 @@
 # vson web — drop image, graph out
 
-SvelteKit MVP. Stateless. One page, one endpoint. No DB, no auth, no sessions.
+SvelteKit studio over the VSON toolchain. Stateless: no DB, no auth, no sessions. Three pages — `/` (studio), `/about`, `/prompts` — and five endpoints: `/api/extract`, `/api/correct`, `/api/models`, `/api/export`, `/api/skills`.
 
 ## Run
 
@@ -16,12 +16,12 @@ cp .env.example .env
 pnpm dev --open
 ```
 
-Drop a JPEG or PNG. ~10s later the same page renders graph + Penman source + conformance.
+Drop a JPEG or PNG. ~10s later the same page renders graph + notation source + conformance. Fix what the model got wrong and re-run the correction through the same validator.
 
 ## Stack
 
 - SvelteKit 2 · Svelte 5 (runes) · Tailwind 4 · adapter-node
-- d3-force + raw SVG (no graph library)
+- `@xyflow/svelte` canvas for the relationship graph; the bounding-box overlay on the source image is percentage-positioned DOM, and the only SVG is inline icons
 - Custom primitives, no shadcn / bits-ui
 - Native fetch to OpenRouter (no SDK)
 - Server shells out to `cli/target/release/vson` for transpile + SHACL validate
@@ -29,22 +29,50 @@ Drop a JPEG or PNG. ~10s later the same page renders graph + Penman source + con
 ## Architecture
 
 ```
-browser                                      server (+server.ts)
-  pick image                                    /api/extract (POST)
-    ↓                                             body: {image_b64, mime}
-  POST /api/extract  ─────────────────────────►   ↓
-                                                  OpenRouter chat completions
-                                                  (Anthropic Claude Opus by default;
-                                                   OPENROUTER_MODEL overrides)
-                                                  ↓
-                                                  spawn vson convert p2t / validate
-                                                  ↓
-                                                  build VsonEnvelope per
-  ◄────────────────────── envelope JSON           tools/schema/vson-output.schema.json
-  render in $state — no client storage
+browser                                 server
+──────────────────────────────────────────────────────────────────────────────
+ModelPicker    ──GET  /api/models───►   OpenRouter model list, cached 10 min,
+               ◄──── picker rows ────    vision-input rows only
+
+DemoStrip      ──GET  /demos/*.json─►   baked envelope on disk — no model call,
+               ◄──── envelope JSON ──    renders with no API key set. A POST
+                                         carrying the same sha256 hits the same
+                                         cache server-side, so curl can't
+                                         bypass it either.
+
+Dropzone       ──POST /api/extract──►   per-IP rate limit  (hooks.server.ts)
+ {image_b64, mime,                       → model id checked against the catalog
+  model, prompt}                         → OpenRouter chat completions
+                                           prompt: skill | skill-x | full
+                                         → vson convert p2t   (x2t in X mode)
+                                         → vson validate      (SHACL)
+                                         → violations? repair prompt, ≤2 retries
+               ◄──── envelope JSON ──    shaped by
+                                         tools/schema/vson-output.schema.json
+
+EntityCard     ──POST /api/correct──►   per-IP rate limit, then the same
+ staged edits   {notation, source,       transpile → validate → repair loop —
+                 corrections[], model}   but the prompt is "apply these fixes to
+               ◄──── envelope JSON ──    this document", not "re-extract"
+
+ExportRow      ──POST /api/export───►   caption + FOL render through the vson
+               ◄──── text ───────────    binary; cypher / graphml / dot /
+                                         mermaid are pure JS
+
+NotationToggle ──GET  /api/skills───►   skill manifest + versions, and whether
+ExportRow      ◄──── manifest ───────    the X skill shipped on this server
+                                         (/prompts renders the same manifest
+                                          from a +page.server.ts load, no fetch)
+
+ScenePanel                              view modes — client-side only, no fetch:
+                                          Inspect  image + entity list (default)
+                                          Graph    xyflow canvas + spatial facts
+                                          Source   VSON-P/X · Turtle · conformance
 ```
 
-Refresh = clean slate. Persistent share links land in Phase 1.5.
+The envelope lives in `$state` and dies on refresh — nothing is persisted server-side, so there are no share links. `localStorage` holds four preferences only: model, notation, layout mode, theme.
+
+VSON-X is the line-oriented notation (`prompt: "skill-x"`, `notation: "x"`). It is served only when the X skill file is present; otherwise those requests get a 503 and `/api/skills` reports it unavailable.
 
 ## Wire format
 
@@ -54,31 +82,51 @@ Refresh = clean slate. Persistent share links land in Phase 1.5.
 {
   "image_b64": "<raw base64, no data:URL prefix>",
   "mime": "image/jpeg",
-  "source_uri": "optional"
+  "source_uri": "optional",
+  "model": "optional openrouter id, e.g. anthropic/claude-sonnet-4.6",
+  "prompt": "skill | skill-x | full",
+  "sha256": "optional — demo-cache lookup key"
 }
 ```
 
-Response: see [`tools/schema/vson-output.schema.json`](../tools/schema/vson-output.schema.json) — the canonical contract, mirrored at [src/lib/types.ts](src/lib/types.ts).
+`POST /api/correct` body: `{ notation: "p" | "x", source, corrections[], sceneNote?, model?, image_b64?, mime? }`.
+
+Response for both: see [`tools/schema/vson-output.schema.json`](../tools/schema/vson-output.schema.json) — the canonical contract, mirrored at [src/lib/types.ts](src/lib/types.ts).
+
+Limits, all rejected with a 400 and a one-line message: `image_b64` ≤ 8M chars (≤ 5 MB decoded), `source` ≤ 64 KB, ≤ 50 corrections of ≤ 2 KB each, exported `vson_p` / `vson_x` ≤ 64 KB. Unknown model ids are rejected against the cached OpenRouter catalog; if that list is briefly unreachable the check degrades to a shape check so a provider blip doesn't lock users out.
 
 ## Env
 
+Read at runtime via `$env/dynamic/private`.
+
 - `OPENROUTER_API_KEY` — **required**.
-- `OPENROUTER_MODEL` — default `anthropic/claude-opus-4.6`. Any vision-capable model on OpenRouter works.
+- `OPENROUTER_MODEL` — default `google/gemini-2.5-flash`. Used when a request names no model.
+- `OPENROUTER_ALLOWED_MODELS` — optional comma-separated id allowlist. Unset means any vision model OpenRouter serves. When set it narrows both the picker and what `/api/extract` and `/api/correct` accept.
+- `RATE_LIMIT_MAX` — POSTs to `/api/extract` + `/api/correct` per IP per window. Default `10`; `0` disables the limiter.
+- `RATE_LIMIT_WINDOW_S` — window length in seconds. Default `600`.
 - `VSON_BIN` — default `../cli/target/release/vson`. Override if installed elsewhere.
 - `PUBLIC_BASE_URL` — used as `HTTP-Referer` on OpenRouter calls.
+- `BODY_SIZE_LIMIT` — **`8M` is required for a `node build` deploy.** `@sveltejs/adapter-node` defaults to `512K`, which 413s any upload over ~380 KB before the route runs. `vite dev` ignores it, so this only bites in production.
 
 ## Demo strip
 
-`static/demos/manifest.json` controls the curated thumbnails below the dropzone. Drop a jpeg/png in `static/demos/` and add an entry. Empty manifest hides the strip.
+`static/demos/manifest.json` controls the curated thumbnails below the dropzone. Drop a jpeg/png in `static/demos/` and add an entry. Empty manifest hides the strip. An entry with an `envelope_path` renders from the baked JSON instead of calling a model — `scripts/bake-demos.ts` produces those, `scripts/reindex-demos.ts` rebuilds the sha256 index the server-side cache reads.
 
 ## Verify
 
 ```bash
 pnpm check     # svelte-check (0 errors)
+pnpm lint      # prettier --check + eslint
+pnpm test      # vitest, one run
 pnpm build     # production build
 pnpm preview   # serve build
 ```
 
 ## Deploy
 
-`@sveltejs/adapter-node` produces `build/` you can run with `node build`. Works on any VPS, Fly.io, Railway, Render. The Rust `vson` binary must be present at `VSON_BIN`, and `pyshacl` + `rdflib` must be on `PATH`.
+`@sveltejs/adapter-node` produces `build/` you can run with `node build`. Works on any VPS, Fly.io, Railway, Render. Alongside it:
+
+- **`BODY_SIZE_LIMIT=8M`.** The adapter's `512K` default rejects most photos with a 413 before SvelteKit routes the request, and the error looks like an app bug, not a config one. 8M is the pair for the 8M-char `image_b64` cap.
+- The Rust `vson` binary present at `VSON_BIN`, plus `pyshacl` + `rdflib` on `PATH`.
+- Behind a reverse proxy, set `ADDRESS_HEADER=x-forwarded-for` (and `XFF_DEPTH`). Otherwise every request appears to come from the proxy and the whole internet shares one rate-limit bucket.
+- Rate-limit state is in-memory and per process: N replicas allow N× the configured budget. Single box, or move to a shared store first.

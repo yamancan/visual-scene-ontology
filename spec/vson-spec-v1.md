@@ -1,7 +1,8 @@
 # VSON v1.0 — Specification
 
-**Status:** Draft 1.0 · 2026-05-01
-**Authors:** VSON Working Group
+**Status:** Superseded by docs/vson.md (v1.1, 2026-05-07). Retained for historical reference; do not cite it as the current spec.
+**Note:** in this historical document, **VSON-X** names the exporter layer (§8 below). v1.1 reassigned VSON-X to the compact sigil syntax, and exporters are now §7 of `docs/vson.md`.
+**Author:** Yamancan (github.com/yamancan)
 **Supersedes:** v0.1 (deprecated; see `spec/vson-spec-v0.1-deprecated.md`)
 
 ---
@@ -18,7 +19,8 @@ VSON-S     SHACL shapes (well-formedness)
 VSON-T     Canonical concrete syntax: Turtle-star
 VSON-P     Authoring concrete syntax: Penman (AMR-style nested)
 VSV        Closed vocabulary (predicates, role names, dimensions)
-VSO        Ontology (TBox) — OWL 2 RL, DOLCE-aligned
+VSO        Ontology (TBox) — OWL 2 RL; DOLCE-inspired top-level taxonomy
+           (Endurant / Perdurant / Quality / Region)
 RDF-star   Abstract semantics (W3C RDF 1.2)
 ```
 
@@ -50,7 +52,9 @@ The keywords MUST, SHOULD, MAY are interpreted per RFC 2119.
 
 ## 4. Core ontology (VSO, normative summary)
 
-### 4.1 Top-level taxonomy (DOLCE-aligned)
+### 4.1 Top-level taxonomy (DOLCE-inspired)
+
+The four top categories below take their names and the endurant/perdurant cut from DOLCE (Masolo, Borgo, Gangemi, Guarino & Oltramari 2003, *WonderWeb Deliverable D18: Ontology Library (final)*, ISTC-CNR). They are *inspired* by it, not aligned with it: no DOLCE IRI is imported and no DOLCE axiom is asserted. See `docs/vson.md` Appendix E for the full bibliography.
 
 ```
 vso:Entity
@@ -108,13 +112,17 @@ VSV declares standard OWL property characteristics; the reasoner derives closure
 | Directional (frame-relative) | `vso:above` `vso:below` `vso:leftOf` `vso:rightOf` `vso:inFrontOf` `vso:behind` |
 | Proximal | `vso:near` `vso:far` `vso:adjacent` |
 
-**Directional predicates appear only on `vso:SpatialFact` nodes that ALSO carry a `vso:viewer` referencing a `vso:CameraView`.** Bare directional triples are non-conformant. (This resolves Talmy figure/ground construal-dependence at the schema level.)
+**Directional predicates appear only on `vso:SpatialFact` nodes that ALSO carry a `vso:viewer` referencing a `vso:CameraView`.** Bare directional triples are non-conformant. Directional facts are viewer-anchored by schema — VSON commits to the relative frame of reference (Levinson 2003) and makes the anchor explicit and machine-checkable; intrinsic and absolute frames are out of scope for v1.x. Figure/ground asymmetry follows Talmy 2000. The RCC-8 names are those of Randell, Cui & Cohn 1992, taken as a closed value vocabulary rather than as the composition calculus; full citations are in `docs/vson.md` Appendix E.
 
 ### 5.2 Temporal — Allen interval algebra
 
+The thirteen base relations of Allen 1983, again as names with inverses rather than as the composition table (see `docs/vson.md` Appendix E):
+
 `allen:before` `allen:after` `allen:meets` `allen:metBy` `allen:overlaps` `allen:overlappedBy` `allen:starts` `allen:startedBy` `allen:during` `allen:contains` `allen:finishes` `allen:finishedBy` `allen:equals`
 
-### 5.3 Thematic roles (PropBank/FrameNet/schema.org-aligned)
+### 5.3 Thematic roles
+
+A closed inventory of coarse VerbNet-style thematic roles (Kipper Schuler 2005); PropBank's per-sense argument numbering (Palmer, Gildea & Kingsbury 2005) and FrameNet's frame-specific role names (Baker, Fillmore & Lowe 1998) are the finer-grained alternatives VSON deliberately avoids. Citations in `docs/vson.md` Appendix E.
 
 Used on `vso:Event` and `vso:Process`:
 `vso:agent` `vso:patient` `vso:theme` `vso:instrument` `vso:recipient` `vso:source` `vso:goal` `vso:beneficiary` `vso:experiencer` `vso:stimulus` `vso:location` `vso:time` `vso:manner` `vso:cause` `vso:result`
@@ -205,4 +213,4 @@ A VSON-P document MUST round-trip with VSON-T modulo blank-node renaming and tri
 | `[P:scopes]` from supplementary | `vso:framedBy` from `Composition` to `Frame` subtype |
 | `[P:contains]` | `vso:depicts` (Composition → Entity) or `vso:partOf` (mereology) |
 
-A compliant migrator implementation is provided in `tools/migrate_v01.py` (forthcoming).
+There is no migrator tool. v0.1 documents must be migrated by hand using the table above.
