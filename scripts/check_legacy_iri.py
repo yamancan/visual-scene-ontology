@@ -68,13 +68,6 @@ ALLOW: "dict[str, tuple[int | None, str]]" = {
         "exception). All four are mentions of a dead name, none is a minted "
         "IRI.",
     ),
-    "web/src/routes/about/+page.svelte": (
-        1,
-        "the 'What's next' section still promises a public IRI host at "
-        "vson.dev — a claim that is now false. C4a deletes it. When it does, "
-        "this gate goes red on 1 != 0, which is the reminder to delete this "
-        "entry with it.",
-    ),
     # --- unbounded: documents whose job is to record ------------------------
     "spec/vson-spec-v1.md": (
         UNBOUNDED,
