@@ -121,6 +121,68 @@ not want to trust the operator should not use the field; either way, use a
 key with a spend limit (openrouter.ai → Keys → credit limit). Rate limiting
 and the model allowlist apply to BYOK requests unchanged.
 
+## Response headers
+
+The studio renders model output as markup, so the policy worth having is the one
+that stops injected markup becoming injected script.
+
+**CSP** is declared in [`svelte.config.js`](svelte.config.js) because SvelteKit
+builds the header itself, splicing in a per-response nonce:
+
+```
+default-src 'self'; worker-src 'self'; connect-src 'self'; img-src 'self' data:;
+object-src 'none'; script-src 'self' 'nonce-…'; style-src 'self' 'unsafe-inline';
+style-src-attr 'unsafe-inline'; base-uri 'self'; form-action 'self';
+frame-ancestors 'none'
+```
+
+Nonce mode, not hash mode: the FOUC guard in [`src/app.html`](src/app.html) is
+hand-written, and a hash would drift silently the first time someone edited it.
+The guard carries `nonce="%sveltekit.nonce%"`, which doubles as a tripwire —
+SvelteKit throws at build time if a page is ever marked prerenderable, because a
+nonce cannot be baked into a static file.
+
+Two relaxations, both deliberate:
+
+- `style-src 'unsafe-inline'` — Svelte emits component styles as inline
+  `<style>` elements. Repeated as `style-src-attr` because `style-src` does not
+  cover `style=""` attributes, which is how the bbox overlay positions itself.
+- `img-src data:` — the dropzone previews through `FileReader.readAsDataURL` and
+  the entity crops re-use that data URL. `blob:` is **not** listed: `download()`
+  navigates an `<a download>` to a blob URL, which no fetch directive governs.
+
+**Constant headers**, from [`src/lib/server/security-headers.ts`](src/lib/server/security-headers.ts),
+applied in [`src/hooks.server.ts`](src/hooks.server.ts) to both exits — the
+normal response and the 429 early return: `x-content-type-options: nosniff`,
+`referrer-policy: strict-origin-when-cross-origin`, `x-frame-options: DENY`,
+`permissions-policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()`,
+`cross-origin-opener-policy: same-origin`, `cross-origin-resource-policy: same-origin`.
+
+`strict-transport-security` is added only when the request arrived over
+`https:`, so a dev server cannot pin `localhost` to HTTPS in your browser for a
+year. Behind a TLS-terminating proxy you need `ORIGIN=https://…` (or
+`PROTOCOL_HEADER=x-forwarded-proto`) for that check to see the real scheme.
+
+### The gap
+
+`@sveltejs/adapter-node` serves `static/` and `_app/immutable/` through sirv,
+**before** hooks run. Fonts, demo images and hashed bundles therefore come back
+with a `Content-Type` and nothing else — no nosniff, no CORP. Only responses the
+SvelteKit handler produces get the constant headers. If that matters for a given
+deployment, add them at the reverse proxy, which sees every response.
+
+CSP is unaffected: it governs documents, and every document is rendered by the
+handler. Two related facts, so nobody hunts for a bug: JSON API responses carry
+the constant headers but no CSP (SvelteKit attaches CSP to page renders only, and
+a JSON body is not a document), and the policy ships as a response header with no
+`<meta http-equiv>` twin, because SvelteKit only emits the meta tag when
+prerendering and nothing here is prerendered.
+
+[`tests/security-headers.test.ts`](tests/security-headers.test.ts) pins the
+directive set, the nonce wiring, and the exact header key set. It cannot prove a
+browser accepts the policy — check the console against a real `node build` for
+that.
+
 ## Demo strip
 
 `static/demos/manifest.json` controls the curated thumbnails below the dropzone. Drop a jpeg/png in `static/demos/` and add an entry. Empty manifest hides the strip. An entry with an `envelope_path` renders from the baked JSON instead of calling a model — `scripts/bake-demos.ts` produces those, `scripts/reindex-demos.ts` rebuilds the sha256 index the server-side cache reads.
