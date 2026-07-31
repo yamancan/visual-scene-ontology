@@ -15,8 +15,8 @@
     dc:title "VSON RCC-8 value vocabulary" ;
     dc:creator "yamancan" ;
     dc:license <https://www.apache.org/licenses/LICENSE-2.0> ;
-    dc:modified "2026-07-30"^^xsd:date ;
-    owl:versionInfo "1.1" ;
+    dc:modified "2026-07-31"^^xsd:date ;
+    owl:versionInfo "1.2" ;
     vann:preferredNamespacePrefix "rcc" ;
     vann:preferredNamespaceUri "https://w3id.org/vson/v1/rcc8#" .
 

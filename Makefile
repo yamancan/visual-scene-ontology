@@ -1,4 +1,4 @@
-# VSON v1.1 — one-command verification
+# VSON v1.2 — one-command verification
 
 PY ?= python3
 # The transpiler runs as a module (python -m) so package-relative imports

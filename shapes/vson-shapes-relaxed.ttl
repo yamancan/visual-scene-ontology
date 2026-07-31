@@ -19,11 +19,11 @@
     dc:title "VSON-S shapes (relaxed profile)" ;
     dc:creator "yamancan" ;
     dc:license <https://www.apache.org/licenses/LICENSE-2.0> ;
-    dc:modified "2026-07-30"^^xsd:date ;
-    owl:versionInfo "1.1" ;
+    dc:modified "2026-07-31"^^xsd:date ;
+    owl:versionInfo "1.2" ;
     vann:preferredNamespacePrefix "vss" ;
     vann:preferredNamespaceUri "https://w3id.org/vson/v1/shapes#" ;
-    rdfs:label "VSON v1.1 SHACL shapes — relaxed profile" ;
+    rdfs:label "VSON v1.2 SHACL shapes — relaxed profile" ;
     rdfs:comment "Relaxed validation profile for partial / authoring-time documents. Carries the same shapes as vson-shapes.ttl (strict), but downgrades to sh:Warning the dimension-completeness constraints: Talmy viewer, Event/Process/Stative lemma, Quality dimension/value, Quality modifier. Structural-integrity constraints (Composition.depicts, FrameNotDepicted, SpatialFact.figure/ground, RCC/directional/proximal value vocab, Negation/BeliefState/Quantification/Annotation slots, Persona.hasInvariant, trait enums) remain sh:Violation. No shipped command selects this profile yet; the test suite exercises it via tools/shacl_helper (tests/test_shapes_gate.py). Documents that conform under strict also conform under relaxed (no strict shape was made stricter)." .
 
 #################################################################

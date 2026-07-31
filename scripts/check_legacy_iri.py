@@ -57,8 +57,8 @@ ALLOW: "dict[str, tuple[int | None, str]]" = {
         "versionIRI the prior release actually declared; rewriting it would "
         "assert a name that release never carried. It is a record, not a "
         "resolvable name. docs/vson.md §8 states it as the one exception to "
-        "IRI immutability. R2 moves it forward one version and the count "
-        "stays 1.",
+        "IRI immutability. v1.2 moved it forward to the versionIRI the v1.1.1 "
+        "tag actually declared; the count stays 1.",
     ),
     "docs/vson.md": (
         4,

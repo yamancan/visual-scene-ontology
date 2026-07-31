@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy preflight for VSON v1.1 + Phase D (vson-extractor-x).
+# Deploy preflight for VSON v1.2 + Phase D (vson-extractor-x).
 #
 # Verifies: Rust binary, Python entry points, x2t round-trip on canonical
 # fixture, /api/skills health, /api/extract X-mode dry-run on a stable demo.

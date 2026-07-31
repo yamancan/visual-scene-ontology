@@ -9,21 +9,21 @@
 <https://w3id.org/vson/v1/ontology>
     a owl:Ontology ;
     rdfs:label "Visual Scene Ontology (VSO)" ;
-    rdfs:comment "TBox for VSON v1.1: the entity taxonomy, the frame layer, the reification node classes, and the closed value vocabularies the SHACL shapes validate against." ;
-    dc:title "Visual Scene Ontology (VSO) v1.1" ;
+    rdfs:comment "TBox for VSON v1.2: the entity taxonomy, the frame layer, the reification node classes, and the closed value vocabularies the SHACL shapes validate against." ;
+    dc:title "Visual Scene Ontology (VSO) v1.2" ;
     dc:description "OWL 2 RL-checkable TBox; eight bridge properties are intentionally untyped rdf:Property to admit mixed literal/IRI/quoted-triple objects, placing the full graph outside OWL 2 DL. DOLCE-inspired. Companion to VSV vocabulary and VSON-S shapes." ;
     dc:creator "yamancan" ;
     dc:license <https://www.apache.org/licenses/LICENSE-2.0> ;
-    dc:modified "2026-07-30"^^xsd:date ;
-    owl:versionInfo "1.1" ;
-    owl:versionIRI <https://w3id.org/vson/v1.1/ontology> ;
-    # LEGACY IRI — deliberately NOT migrated to w3id.org. v1.0 published its
-    # versionIRI under the project's earlier, never-registered host; that
-    # string is the record of what v1.0 declared, and rewriting it would
-    # assert a name v1.0 never carried. It does not dereference and is not
-    # meant to. This is the one legacy-host IRI allowlisted outside the
-    # historical specification documents.
-    owl:priorVersion <https://vson.dev/v1.0/ontology> ;
+    dc:modified "2026-07-31"^^xsd:date ;
+    owl:versionInfo "1.2" ;
+    owl:versionIRI <https://w3id.org/vson/v1.2/ontology> ;
+    # LEGACY IRI — deliberately NOT migrated to w3id.org. The v1.1.1 release
+    # declared exactly this versionIRI, under the project's earlier,
+    # never-registered host (git tag v1.1.1 is the record). Rewriting it to
+    # w3id.org would assert a name that release never carried. It does not
+    # dereference and is not meant to. This is the one legacy-host IRI
+    # allowlisted outside the historical specification documents.
+    owl:priorVersion <https://vson.dev/v1.1/ontology> ;
     vann:preferredNamespacePrefix "vso" ;
     vann:preferredNamespaceUri "https://w3id.org/vson/v1/ontology#" .
 
