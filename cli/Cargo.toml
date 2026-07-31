@@ -6,6 +6,9 @@ rust-version = "1.75"
 description = "VSON v1.1 CLI — Penman/Turtle transpilation, SHACL validation, Cypher/caption/FOL export"
 license = "Apache-2.0"
 repository = "https://github.com/yamancan/visual-scene-ontology"
+readme = "README.md"
+keywords = ["rdf", "scene-graph", "penman", "shacl", "cli"]
+categories = ["command-line-utilities", "parser-implementations"]
 
 [[bin]]
 name = "vson"
@@ -21,6 +24,11 @@ once_cell = "1.19"
 [dev-dependencies]
 assert_cmd = "2"
 predicates = "3"
+
+# `make cli-check` runs `cargo clippy --all-targets -- -D warnings`; pinning the
+# policy here means a bare `cargo clippy` fails on the same lints the gate does.
+[lints.clippy]
+all = "deny"
 
 [profile.release]
 lto = true

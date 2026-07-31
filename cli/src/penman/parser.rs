@@ -41,7 +41,9 @@ impl Parser {
 
     pub fn parse_node(&mut self) -> Result<Node, String> {
         match self.peek() {
-            Some(TokKind::LParen) => { self.i += 1; }
+            Some(TokKind::LParen) => {
+                self.i += 1;
+            }
             other => return Err(format!("expected '(', got {:?}", other)),
         }
         let var = match self.bump().map(|t| t.kind.clone()) {
@@ -56,11 +58,18 @@ impl Parser {
                 other => return Err(format!("expected concept id after '/', got {:?}", other)),
             };
         }
-        let mut node = Node { var, concept, edges: Vec::new() };
+        let mut node = Node {
+            var,
+            concept,
+            edges: Vec::new(),
+        };
         loop {
             match self.peek() {
                 None => return Err("unexpected EOF inside node".into()),
-                Some(TokKind::RParen) => { self.i += 1; return Ok(node); }
+                Some(TokKind::RParen) => {
+                    self.i += 1;
+                    return Ok(node);
+                }
                 Some(TokKind::Role(_)) => {
                     let role = match self.bump().map(|t| t.kind.clone()) {
                         Some(TokKind::Role(s)) => s,

@@ -12,7 +12,10 @@ struct Emitter {
 
 impl Emitter {
     fn new() -> Self {
-        Self { triples: Vec::new(), declared_vars: HashSet::new() }
+        Self {
+            triples: Vec::new(),
+            declared_vars: HashSet::new(),
+        }
     }
 
     fn iri_for_var(&self, var: &str) -> String {
@@ -108,7 +111,8 @@ impl Emitter {
     fn emit_node(&mut self, node: &Node) -> String {
         let subj = self.iri_for_var(&node.var);
         if let Some(c) = &node.concept {
-            self.triples.push(format!("{} a {} .", subj, self.concept_to_iri(c)));
+            self.triples
+                .push(format!("{} a {} .", subj, self.concept_to_iri(c)));
         }
         for (role, target) in &node.edges {
             if ROUTING.container_roles.contains(role) {
@@ -191,8 +195,7 @@ mod tests {
 
     #[test]
     fn underscore_var_becomes_blank_node() {
-        let out =
-            to_turtle("(s / Composition :hasFact (_sf / SpatialFact :rcc EC))").unwrap();
+        let out = to_turtle("(s / Composition :hasFact (_sf / SpatialFact :rcc EC))").unwrap();
         assert!(out.contains("_:_sf a "), "got: {out}");
         assert!(
             !out.lines().any(|l| l.starts_with(":_sf")),

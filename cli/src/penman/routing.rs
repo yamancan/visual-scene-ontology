@@ -1,14 +1,19 @@
-//! Loads `tools/penman/routing-tables.json` at compile time.
+//! Loads the sibling `routing-tables.json` at compile time.
 //!
 //! The JSON is the single source of truth for VSON-P -> Turtle role routing.
-//! Embedding it via `include_str!` means the binary is self-contained and
-//! cannot drift from the Python reference between builds.
+//! It lives inside the crate (`cli/src/penman/`) rather than next to the Python
+//! reference so that `include_str!` never reaches outside the crate root — a
+//! path outside it packages fine but fails the `cargo package` verify build,
+//! which would make the crate unpublishable. The Python reference at
+//! `tools/penman/vson_penman.py` reads this same file out of the checkout at
+//! import time, so the two implementations still cannot drift — `make
+//! cli-check` proves it by graph isomorphism over the gallery.
 
 use once_cell::sync::Lazy;
 use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
 
-const ROUTING_JSON: &str = include_str!("../../../tools/penman/routing-tables.json");
+const ROUTING_JSON: &str = include_str!("routing-tables.json");
 
 #[derive(Deserialize)]
 struct Raw {

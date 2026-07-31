@@ -1,6 +1,7 @@
 //! `vson convert p2t|t2p <file>`. Penman -> Turtle is fully implemented;
-//! Turtle -> Penman is deferred to a future sprint (no native Rust Turtle
-//! parser yet).
+//! Turtle -> Penman is deferred to a future sprint — there is no native Rust
+//! Turtle parser yet, and no reference implementation in any language: the
+//! Python transpiler goes Penman -> Turtle only.
 
 use super::{Error, Result};
 use std::io::Write;
@@ -15,7 +16,9 @@ pub fn p2t(file: &Path) -> Result<()> {
 
 pub fn t2p(_file: &Path) -> Result<()> {
     Err(Error::Usage(
-        "t2p (Turtle -> Penman) is not implemented in v0.1. Use the Python reference: \
-         python tools/penman/vson_penman.py to-penman <file.ttl>".into(),
+        "t2p (Turtle -> Penman) is not implemented, and no reference \
+         implementation exists yet — the Python transpiler \
+         (tools/penman/vson_penman.py) converts Penman -> Turtle only."
+            .into(),
     ))
 }

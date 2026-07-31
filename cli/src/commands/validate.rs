@@ -1,11 +1,69 @@
-//! `vson validate <files...>` — shells out to `pyshacl --abort` and maps
-//! its exit code to ours. Exits 0 on conform, 1 on violation.
+//! `vson validate <files...>` — runs both of the gates CI runs, per input.
 //!
-//! For .vson inputs we transpile to a temp .ttl first.
+//! Gate 1 (SHACL): `pyshacl --abort` over the shapes plus the three ontology
+//! files, with `rdfs` inference.
+//! Gate 2 (OWL 2 RL): `python3 -m tools.owlrl_check <file>`, run from the
+//! resolved home. It catches `owl:disjointWith` / `owl:AllDifferent` clashes
+//! that gate 1 is structurally blind to, because `rdfs` inference never
+//! processes disjointness. A file is `OK` only once it clears both.
+//!
+//! Exit contract:
+//!   0 — every input cleared both gates;
+//!   1 — an input genuinely failed a gate (SHACL violation or OWL clash);
+//!   2 — a gate never reached a verdict (missing dependency, unparseable
+//!       input, wrong `--home`, ...).
+//!
+//! Telling 1 from 2 takes more than the child's exit status. Both `pyshacl`
+//! and `python3 -m tools.owlrl_check` exit 1 for "did not conform" *and* for
+//! "crashed with an uncaught exception" — an unparseable `.ttl` and a missing
+//! `owlrl` module both land on 1. So this module captures the child's stdout
+//! and looks for the report each tool writes only when it truly ran; anything
+//! else at exit 1 is a broken toolchain, not a broken document.
+//!
+//! Output discipline: the `OK` / `FAIL` lines are the only thing on stdout, so
+//! `vson validate` is scriptable. Every human-readable report goes to stderr.
+//!
+//! For `.vson` inputs the Penman source is transpiled to a temp `.ttl` first,
+//! and both gates read that temp file.
 
 use super::{Error, Result};
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Output};
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+/// A temp file that deletes itself on drop.
+///
+/// The drop guard is the point: the gates can bail out through `?` between
+/// creating a temp file and reaching any cleanup line, and a `remove_file` at
+/// the bottom of the loop never runs on those paths.
+struct TempFile(PathBuf);
+
+impl TempFile {
+    fn create(stem: &str, body: &str) -> Result<Self> {
+        // pid keeps concurrent `vson` processes apart; the counter keeps two
+        // inputs that share a file stem apart within one process.
+        static SEQ: AtomicUsize = AtomicUsize::new(0);
+        let mut path = std::env::temp_dir();
+        path.push(format!(
+            "vson_{}_{}_{}.ttl",
+            stem,
+            std::process::id(),
+            SEQ.fetch_add(1, Ordering::Relaxed)
+        ));
+        std::fs::write(&path, body)?;
+        Ok(TempFile(path))
+    }
+
+    fn path(&self) -> &Path {
+        &self.0
+    }
+}
+
+impl Drop for TempFile {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_file(&self.0);
+    }
+}
 
 fn vson_home(explicit: Option<&Path>) -> PathBuf {
     if let Some(p) = explicit {
@@ -15,34 +73,179 @@ fn vson_home(explicit: Option<&Path>) -> PathBuf {
         return PathBuf::from(p);
     }
     // Fall back to the working directory; the user is expected to invoke from
-    // the repo root, which is the documented v0.1 contract.
+    // the repo root, which is the documented contract.
     PathBuf::from(".")
 }
 
-fn ensure_pyshacl_available() -> Result<()> {
-    match Command::new("pyshacl").arg("--help").output() {
-        Ok(_) => Ok(()),
-        Err(_) => Err(Error::Usage(
-            "pyshacl not on PATH. Install with: pip install pyshacl".into(),
-        )),
+/// A filename-safe stem for a temp file. The input's own stem is user-supplied
+/// text that would otherwise land verbatim in a path we construct.
+fn temp_stem(file: &Path) -> String {
+    let cleaned: String = file
+        .file_stem()
+        .map(|s| s.to_string_lossy().into_owned())
+        .unwrap_or_default()
+        .chars()
+        .filter(|c| c.is_ascii_alphanumeric() || *c == '_' || *c == '-')
+        .collect();
+    if cleaned.is_empty() {
+        "input".to_string()
+    } else {
+        cleaned
     }
 }
 
-fn transpile_to_temp(file: &Path) -> Result<PathBuf> {
+fn transpile_to_temp(file: &Path) -> Result<TempFile> {
     let src = std::fs::read_to_string(file)?;
     let ttl = crate::penman::to_turtle(&src).map_err(Error::Parse)?;
-    let mut tmp = std::env::temp_dir();
-    let stem = file.file_stem().and_then(|s| s.to_str()).unwrap_or("vson");
-    tmp.push(format!("vson_{}_{}.ttl", stem, std::process::id()));
-    std::fs::write(&tmp, ttl)?;
-    Ok(tmp)
+    TempFile::create(&temp_stem(file), &ttl)
+}
+
+/// The child's cwd is the resolved home, so a relative input path given
+/// against *our* cwd would not resolve there.
+fn absolutize(p: &Path) -> PathBuf {
+    std::fs::canonicalize(p).unwrap_or_else(|_| p.to_path_buf())
+}
+
+/// Run a gate, turning a failed spawn into the "your toolchain is not set up"
+/// usage error rather than a bare `io` error.
+fn spawn(cmd: &mut Command, program: &str) -> Result<Output> {
+    cmd.output().map_err(|e| {
+        Error::Usage(format!(
+            "could not run `{}`: {}\n\
+             Both validate gates need python3 with pyshacl, rdflib and owlrl. \
+             Install them with `make deps` from the repo root.",
+            program, e
+        ))
+    })
+}
+
+/// How much of a child's stderr a message carries. A Python traceback runs to
+/// 30+ frames and only its last lines say anything a CLI user can act on.
+const MAX_STDERR_LINES: usize = 12;
+
+fn exit_status(out: &Output) -> String {
+    match out.status.code() {
+        Some(c) => format!("exited {}", c),
+        None => "was killed by a signal".to_string(),
+    }
+}
+
+/// The last `max_lines` lines of `text`, flagged when anything was dropped.
+fn tail(text: &str, max_lines: usize) -> String {
+    let text = text.trim_end();
+    let lines: Vec<&str> = text.lines().collect();
+    if lines.len() <= max_lines {
+        return text.to_string();
+    }
+    format!(
+        "[{} earlier line(s) omitted]\n{}",
+        lines.len() - max_lines,
+        lines[lines.len() - max_lines..].join("\n")
+    )
+}
+
+/// Everything a failing gate said, on *our* stderr. The child's own stderr is
+/// forwarded too — it is normally empty on a verdict, but a Python warning
+/// landing there is exactly the kind of thing that must not be swallowed.
+fn forward(report: &str, child_stderr: &[u8]) {
+    let report = report.trim_end();
+    if !report.is_empty() {
+        eprintln!("{}", report);
+    }
+    let extra = tail(&String::from_utf8_lossy(child_stderr), MAX_STDERR_LINES);
+    if !extra.is_empty() {
+        eprintln!("{}", extra);
+    }
+}
+
+/// A child's stderr, shaped for embedding in an error message.
+fn stderr_excerpt(bytes: &[u8]) -> String {
+    let text = tail(&String::from_utf8_lossy(bytes), MAX_STDERR_LINES);
+    if text.is_empty() {
+        "(the tool wrote nothing to stderr)".to_string()
+    } else {
+        text
+    }
+}
+
+/// Gate 1 — SHACL. `Ok(true)` conforms, `Ok(false)` is a genuine violation,
+/// `Err(Usage)` means pyshacl never reached a verdict.
+fn shacl_gate(shapes: &Path, ontology: &Path, data: &Path, label: &Path) -> Result<bool> {
+    let out = spawn(
+        Command::new("pyshacl")
+            .arg("--abort")
+            .arg("-s")
+            .arg(shapes)
+            .arg("-e")
+            .arg(ontology)
+            .args(["-i", "rdfs"])
+            .arg(data),
+        "pyshacl",
+    )?;
+    let report = String::from_utf8_lossy(&out.stdout);
+
+    // Verified against pyshacl 0.31.0: a violation exits 1 with the report on
+    // stdout, while a data graph that will not parse also exits 1 — but with
+    // an empty stdout and a traceback on stderr. The report is the tell.
+    match out.status.code() {
+        Some(0) => Ok(true),
+        Some(1) if report.contains("Conforms:") || report.contains("Validation Failure result") => {
+            forward(&report, &out.stderr);
+            Ok(false)
+        }
+        _ => Err(Error::Usage(format!(
+            "pyshacl could not validate {} ({}):\n{}",
+            label.display(),
+            exit_status(&out),
+            stderr_excerpt(&out.stderr)
+        ))),
+    }
+}
+
+/// Gate 2 — OWL 2 RL consistency. `Ok(true)` is consistent, `Ok(false)` is a
+/// genuine disjointness/distinctness clash, `Err(Usage)` means the checker
+/// never reached a verdict.
+fn owl_gate(home: &Path, data: &Path, label: &Path) -> Result<bool> {
+    // Module form, matching the Makefile's `owl-consistency` target and the
+    // checker's own documented usage: `python3 -m` puts the cwd on sys.path,
+    // so the `tools` package resolves from the home we set below.
+    let out = spawn(
+        Command::new("python3")
+            .arg("-m")
+            .arg("tools.owlrl_check")
+            .arg(absolutize(data))
+            .current_dir(home),
+        "python3 -m tools.owlrl_check",
+    )?;
+    let report = String::from_utf8_lossy(&out.stdout);
+
+    // Same overloaded exit 1 as pyshacl: a real clash and a missing `owlrl`
+    // module are indistinguishable by status. The checker's own summary line
+    // is only printed when it actually ran the closure.
+    match out.status.code() {
+        Some(0) => Ok(true),
+        Some(1) if report.contains("owl-consistency:") => {
+            forward(&report, &out.stderr);
+            Ok(false)
+        }
+        _ => Err(Error::Usage(format!(
+            "the OWL 2 RL gate could not check {} ({}):\n{}",
+            label.display(),
+            exit_status(&out),
+            stderr_excerpt(&out.stderr)
+        ))),
+    }
 }
 
 pub fn run(files: &[PathBuf], home: Option<&Path>) -> Result<()> {
-    ensure_pyshacl_available()?;
     let home = vson_home(home);
     let shapes = home.join("shapes/vson-shapes.ttl");
-    let ont_files = ["ontology/vso.ttl", "ontology/rcc8.ttl", "ontology/allen.ttl"];
+    let owl_check = home.join("tools/owlrl_check.py");
+    let ont_files = [
+        "ontology/vso.ttl",
+        "ontology/rcc8.ttl",
+        "ontology/allen.ttl",
+    ];
 
     for path in &ont_files {
         if !home.join(path).exists() {
@@ -59,53 +262,50 @@ pub fn run(files: &[PathBuf], home: Option<&Path>) -> Result<()> {
             home.display()
         )));
     }
+    if !owl_check.exists() {
+        return Err(Error::Usage(format!(
+            "tools/owlrl_check.py not found under VSON_HOME={}; the OWL 2 RL gate needs it",
+            home.display()
+        )));
+    }
+
+    // pyshacl takes a single ontology graph, so the three ontology files are
+    // concatenated into one temp Turtle file for inoculation. Built once: the
+    // blob does not depend on the input being checked.
+    let ont_blob = ont_files
+        .iter()
+        .map(|p| std::fs::read_to_string(home.join(p)))
+        .collect::<std::io::Result<Vec<_>>>()?
+        .join("\n");
+    let ontology = TempFile::create("ont", &ont_blob)?;
 
     let mut any_failed = false;
     for file in files {
-        let (data_path, _tmp_guard): (PathBuf, Option<PathBuf>) = match file
-            .extension()
-            .and_then(|e| e.to_str())
-        {
-            Some("vson") => {
-                let p = transpile_to_temp(file)?;
-                (p.clone(), Some(p))
-            }
-            _ => (file.clone(), None),
+        // The guard lives for the whole iteration, so the transpiled Turtle is
+        // still on disk while both gates read it, and gone after.
+        let transpiled = match file.extension().and_then(|e| e.to_str()) {
+            Some("vson") => Some(transpile_to_temp(file)?),
+            _ => None,
         };
+        let data = transpiled.as_ref().map_or(file.as_path(), TempFile::path);
 
-        // pyshacl supports a single ontology graph; concatenate the three
-        // ontology files into a temp Turtle file for inoculation.
-        let ont_blob = ont_files
-            .iter()
-            .map(|p| std::fs::read_to_string(home.join(p)))
-            .collect::<std::io::Result<Vec<_>>>()?
-            .join("\n");
-        let mut ont_tmp = std::env::temp_dir();
-        ont_tmp.push(format!("vson_ont_{}.ttl", std::process::id()));
-        std::fs::write(&ont_tmp, ont_blob)?;
-
-        let status = Command::new("pyshacl")
-            .arg("--abort")
-            .args(["-s", shapes.to_str().unwrap()])
-            .args(["-e", ont_tmp.to_str().unwrap()])
-            .args(["-i", "rdfs"])
-            .arg(data_path.to_str().unwrap())
-            .status()?;
-        let _ = std::fs::remove_file(&ont_tmp);
-        if let Some(t) = _tmp_guard {
-            let _ = std::fs::remove_file(t);
-        }
-
-        if status.success() {
-            println!("OK  {}", file.display());
-        } else {
-            println!("FAIL {}", file.display());
+        if !shacl_gate(&shapes, ontology.path(), data, file)? {
+            println!("FAIL {} (shacl)", file.display());
             any_failed = true;
+            continue;
         }
+        if !owl_gate(&home, data, file)? {
+            println!("FAIL {} (owl-consistency)", file.display());
+            any_failed = true;
+            continue;
+        }
+        println!("OK  {}", file.display());
     }
 
     if any_failed {
-        Err(Error::Validation("one or more files failed validation".into()))
+        Err(Error::Validation(
+            "one or more files failed validation".into(),
+        ))
     } else {
         Ok(())
     }

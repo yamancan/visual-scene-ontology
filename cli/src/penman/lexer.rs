@@ -82,21 +82,37 @@ pub fn tokenize(src: &str) -> Result<Vec<Tok>, String> {
             continue;
         }
         if cap.name("lp").is_some() {
-            out.push(Tok { kind: TokKind::LParen });
+            out.push(Tok {
+                kind: TokKind::LParen,
+            });
         } else if cap.name("rp").is_some() {
-            out.push(Tok { kind: TokKind::RParen });
+            out.push(Tok {
+                kind: TokKind::RParen,
+            });
         } else if let Some(g) = cap.name("str") {
-            out.push(Tok { kind: TokKind::Str(decode_escapes(g.as_str())) });
+            out.push(Tok {
+                kind: TokKind::Str(decode_escapes(g.as_str())),
+            });
         } else if let Some(g) = cap.name("role") {
-            out.push(Tok { kind: TokKind::Role(g.as_str().to_string()) });
+            out.push(Tok {
+                kind: TokKind::Role(g.as_str().to_string()),
+            });
         } else if cap.name("slash").is_some() {
-            out.push(Tok { kind: TokKind::Slash });
+            out.push(Tok {
+                kind: TokKind::Slash,
+            });
         } else if let Some(g) = cap.name("unit") {
-            out.push(Tok { kind: TokKind::Unit(g.as_str().to_string()) });
+            out.push(Tok {
+                kind: TokKind::Unit(g.as_str().to_string()),
+            });
         } else if let Some(g) = cap.name("num") {
-            out.push(Tok { kind: TokKind::Num(g.as_str().to_string()) });
+            out.push(Tok {
+                kind: TokKind::Num(g.as_str().to_string()),
+            });
         } else if let Some(g) = cap.name("id") {
-            out.push(Tok { kind: TokKind::Id(g.as_str().to_string()) });
+            out.push(Tok {
+                kind: TokKind::Id(g.as_str().to_string()),
+            });
         } else if let Some(g) = cap.name("bad") {
             return Err(format!("unexpected character: {:?}", g.as_str()));
         }
