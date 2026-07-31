@@ -1,0 +1,40 @@
+# Cloudflare Pages response headers for the VSON namespace surface.
+#
+# Content-Type is the whole point of this file. A static host guesses from the
+# extension, and neither .ttl nor .jsonld is in its default table: served as
+# text/plain or application/octet-stream, an RDF client that content-negotiates
+# refuses the document even though the bytes are correct. Each published path is
+# named exactly — no wildcards below the root rule — so the set of typed paths
+# and the set of published files are checked against each other at build time
+# (scripts/build_site.py).
+#
+# Rules are matched most-specific-first by Pages; the /* block adds headers to
+# every response rather than replacing the ones below.
+
+/*
+  Access-Control-Allow-Origin: *
+  X-Content-Type-Options: nosniff
+
+/v1/ontology.ttl
+  Content-Type: text/turtle; charset=utf-8
+
+/v1/rcc8.ttl
+  Content-Type: text/turtle; charset=utf-8
+
+/v1/allen.ttl
+  Content-Type: text/turtle; charset=utf-8
+
+/v1/shapes.ttl
+  Content-Type: text/turtle; charset=utf-8
+
+/v1/shapes-relaxed.ttl
+  Content-Type: text/turtle; charset=utf-8
+
+/v1/context.jsonld
+  Content-Type: application/ld+json; charset=utf-8
+
+/v1/schema/vson-output.schema.json
+  Content-Type: application/schema+json; charset=utf-8
+
+/v1/schema/vson-jsonld.schema.json
+  Content-Type: application/schema+json; charset=utf-8

@@ -1,0 +1,45 @@
+{
+  "_doc": "Published JSON-LD context for VSON v1, served at https://w3id.org/vson/v1/context.jsonld. It binds the seven Composition-level reference properties of tools/schema/vson-jsonld.schema.json to their VSO IRIs, so a JSON-LD processor reading a VSON scene materializes the same RDF graph the Turtle surface (vson_t) carries. Everything not named here still expands: @vocab points at the ontology namespace, so any additional key becomes an IRI in it rather than being dropped. That is deliberate and it is also the limit of this file — a context maps names, it cannot reject anything. Well-formedness of a VSON graph is enforced by the SHACL shapes at https://w3id.org/vson/v1/shapes.ttl (relaxed profile: https://w3id.org/vson/v1/shapes-relaxed.ttl) over the materialized graph, never by this context and never by JSON Schema alone. The prefix bindings below are read-consistent with cli/src/penman/routing-tables.json, the single site where the project mints its namespaces; tests/test_jsonld_context.py fails if the two ever disagree.",
+  "@context": {
+    "vso": "https://w3id.org/vson/v1/ontology#",
+    "rcc": "https://w3id.org/vson/v1/rcc8#",
+    "allen": "https://w3id.org/vson/v1/allen#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+
+    "@vocab": "https://w3id.org/vson/v1/ontology#",
+
+    "depicts": {
+      "@id": "vso:depicts",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "framedBy": {
+      "@id": "vso:framedBy",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "viewedBy": {
+      "@id": "vso:viewedBy",
+      "@type": "@id"
+    },
+    "rendersAs": {
+      "@id": "vso:rendersAs",
+      "@type": "@id"
+    },
+    "hasQuality": {
+      "@id": "vso:hasQuality",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "hasFact": {
+      "@id": "vso:hasFact",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "occurs": {
+      "@id": "vso:occurs",
+      "@type": "@id",
+      "@container": "@set"
+    }
+  }
+}

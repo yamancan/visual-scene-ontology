@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>VSON — Visual Scene Ontology Notation</title>
+    <meta
+      name="description"
+      content="Namespace documents for VSON: the VSO ontology, the RCC-8 and Allen value vocabularies, the SHACL shapes, the JSON-LD context and the JSON Schemas."
+    />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #ffffff;
+        --fg: #1b1b1b;
+        --muted: #5c5c5c;
+        --rule: #e2e2e2;
+        --link: #0b5cad;
+        --code-bg: #f4f4f4;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #121212;
+          --fg: #e8e8e8;
+          --muted: #a2a2a2;
+          --rule: #2e2e2e;
+          --link: #7cb6ef;
+          --code-bg: #1e1e1e;
+        }
+      }
+      body {
+        background: var(--bg);
+        color: var(--fg);
+        font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        margin: 0 auto;
+        max-width: 46rem;
+        padding: 3rem 1.25rem 5rem;
+      }
+      h1 {
+        font-size: 1.6rem;
+        margin: 0 0 0.25rem;
+      }
+      h2 {
+        border-top: 1px solid var(--rule);
+        font-size: 1.05rem;
+        margin: 2.5rem 0 0.5rem;
+        padding-top: 1.5rem;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      a {
+        color: var(--link);
+      }
+      code {
+        background: var(--code-bg);
+        border-radius: 3px;
+        font-size: 0.9em;
+        padding: 0.1em 0.35em;
+        word-break: break-all;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .note {
+        border-left: 3px solid var(--rule);
+        color: var(--muted);
+        font-size: 0.92rem;
+        margin: 2rem 0;
+        padding: 0.1rem 0 0.1rem 1rem;
+      }
+      footer {
+        border-top: 1px solid var(--rule);
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>VSON — Visual Scene Ontology Notation</h1>
+    <p class="meta">
+      Version <span id="version">1.1</span> · Apache-2.0 ·
+      <a href="https://github.com/yamancan/visual-scene-ontology"
+        >github.com/yamancan/visual-scene-ontology</a
+      >
+    </p>
+
+    <p>
+      VSON represents what is in a picture as a typed, validatable RDF graph:
+      the entities depicted, the qualities they bear, the spatial and temporal
+      facts that hold between them, and the frame the scene is seen through.
+      The OWL ontology below declares the terms, and the SHACL shapes decide
+      whether a given document is well-formed — well-formedness is a validation
+      result here, not a convention.
+    </p>
+    <p>
+      This host serves the namespace documents themselves. The project — the
+      transpilers, the CLI, the test corpus and the specification — lives in the
+      GitHub repository linked above.
+    </p>
+
+    <h2 id="ontology">Ontology</h2>
+    <p>
+      <a href="/v1/ontology.ttl">/v1/ontology.ttl</a> — the VSO TBox: entity
+      taxonomy, frame layer, reification node classes and the closed value
+      vocabularies the shapes validate against.<br />
+      Namespace <code>https://w3id.org/vson/v1/ontology#</code>, prefix
+      <code>vso:</code>.
+    </p>
+
+    <h2 id="rcc8">RCC-8 value vocabulary</h2>
+    <p>
+      <a href="/v1/rcc8.ttl">/v1/rcc8.ttl</a> — the eight RCC-8 base relation
+      names, as a closed vocabulary of values for <code>vso:rcc</code>.<br />
+      Namespace <code>https://w3id.org/vson/v1/rcc8#</code>, prefix
+      <code>rcc:</code>.
+    </p>
+
+    <h2 id="allen">Allen interval relations</h2>
+    <p>
+      <a href="/v1/allen.ttl">/v1/allen.ttl</a> — Allen's thirteen base
+      relations on intervals, declared as object properties between perdurants,
+      with their inverses.<br />
+      Namespace <code>https://w3id.org/vson/v1/allen#</code>, prefix
+      <code>allen:</code>.
+    </p>
+
+    <h2 id="shapes">SHACL shapes — strict profile</h2>
+    <p>
+      <a href="/v1/shapes.ttl">/v1/shapes.ttl</a> — the shapes a conformant
+      VSON document must satisfy.<br />
+      Shape names are minted in <code>https://w3id.org/vson/v1/shapes#</code>,
+      prefix <code>vss:</code>.
+    </p>
+
+    <h2 id="shapes-relaxed">SHACL shapes — relaxed profile</h2>
+    <p>
+      <a href="/v1/shapes-relaxed.ttl">/v1/shapes-relaxed.ttl</a> — the partial
+      validation profile, for documents still being extracted or repaired. It
+      shares the <code>vss:</code> namespace with the strict profile; the two
+      are separate documents, not separate vocabularies.
+    </p>
+
+    <h2 id="context">JSON-LD context</h2>
+    <p>
+      <a href="/v1/context.jsonld">/v1/context.jsonld</a> — binds the
+      Composition-level reference properties to their VSO IRIs so a JSON-LD
+      processor materializes the same graph the Turtle surface carries. It maps
+      names; it does not constrain them. The shapes above are what enforce
+      well-formedness.
+    </p>
+
+    <h2 id="schema">JSON Schemas</h2>
+    <p>
+      <a href="/v1/schema/vson-output.schema.json"
+        >/v1/schema/vson-output.schema.json</a
+      >
+      — the extractor response envelope.<br />
+      <a href="/v1/schema/vson-jsonld.schema.json"
+        >/v1/schema/vson-jsonld.schema.json</a
+      >
+      — the structural skeleton of the JSON-LD scene form.
+    </p>
+    <p>
+      Both are structural only. A payload can satisfy either schema and still
+      fail SHACL.
+    </p>
+
+    <p class="note">
+      <strong>Canonical names.</strong> The canonical IRIs are
+      <code>https://w3id.org/vson/v1/…</code> — permanent identifiers under the
+      W3C Permanent Identifier Community Group. The redirect from those names to
+      the documents on this host is still under review; until it merges, resolve
+      the paths on this host directly. The names above are what a document
+      should cite either way: they are the identifiers, this host is only where
+      the bytes currently sit.
+    </p>
+
+    <footer>
+      <p>
+        Source and issue tracker:
+        <a href="https://github.com/yamancan/visual-scene-ontology"
+          >github.com/yamancan/visual-scene-ontology</a
+        >. Licensed under the
+        <a href="https://www.apache.org/licenses/LICENSE-2.0"
+          >Apache License 2.0</a
+        >.
+      </p>
+    </footer>
+  </body>
+</html>

@@ -26,6 +26,11 @@ web/node_modules/
 web/.svelte-kit/
 web/build/
 
+# Publish surface: `make site` assembles it from publish/ plus the tracked
+# ontology, shapes and schema files. Reproducible, never edited by hand — edit
+# the sources under publish/ instead.
+/site/
+
 # Markdown files — do not commit, in any subfolder.
 # Existing tracked .md files (README.md, docs/vson.md, spec/*.md, etc.)
 # remain tracked; this rule only blocks NEW .md from being staged.
