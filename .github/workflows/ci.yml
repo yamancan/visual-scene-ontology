@@ -46,7 +46,7 @@ jobs:
           workspaces: cli
 
       # make check = parse-ontology + penman-roundtrip + shacl + owl-consistency
-      #            + python tests + spec-check + lint-py (ruff)
+      #            + python tests + spec-check + lint-py (ruff) + iri-check
       - name: make check
         run: make check
 

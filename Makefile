@@ -7,11 +7,11 @@ TOOLS = -m tools.penman.vson_penman
 EXAMPLE_VSON = examples/throne_room.vson
 EXAMPLE_TTL = examples/throne_room.ttl
 
-.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check x-check x-skill-check envelope-check web-check deploy-check clean
+.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check iri-check x-check x-skill-check envelope-check web-check deploy-check clean
 
 all: check
 
-check: parse-ontology penman-roundtrip shacl owl-consistency test spec-check lint-py
+check: parse-ontology penman-roundtrip shacl owl-consistency test spec-check lint-py iri-check
 
 # Everything the CI runs, minus the web app (which needs pnpm/node).
 check-all: check cli-check x-check x-skill-check envelope-check
@@ -98,6 +98,10 @@ x-skill-check:
 	@$(PY) -m tools.vson_x.skill_check \
 		--corpus examples/gallery-x \
 		--config skills/vson-extractor-x/conformance.json
+
+iri-check:
+	@echo "==> Legacy IRI gate: the withdrawn namespace host MUST NOT reappear"
+	@$(PY) scripts/check_legacy_iri.py
 
 envelope-check:
 	@echo "==> Studio envelope corpus: every committed envelope MUST SHACL-conform"
