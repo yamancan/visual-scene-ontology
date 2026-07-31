@@ -20,21 +20,7 @@
 			crossorigin="anonymous"
 		/>
 		<title>vson</title>
-		<script nonce="%sveltekit.nonce%">
-			(function () {
-				try {
-					var stored = localStorage.getItem('vson-mode');
-					var mode = stored === 'light' || stored === 'dark' ? stored : 'dark';
-					var theme = mode === 'light' ? 'paper' : 'graphite';
-					document.documentElement.setAttribute('data-mode', mode);
-					document.documentElement.setAttribute('data-theme', theme);
-					var meta = document.querySelector('meta[name="theme-color"]');
-					if (meta) meta.content = mode === 'light' ? '#fbfaf7' : '#0d0d0d';
-				} catch (e) {
-					/* keep default */
-				}
-			})();
-		</script>
+		<script src="/theme-init.js"></script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

@@ -6,9 +6,9 @@
 //
 //   1. the CSP the app ships (a directive dropped in a refactor is invisible
 //      until someone audits the live headers),
-//   2. the nonce wiring in app.html (nonce mode only protects a hand-written
-//      inline script if that script actually carries the placeholder — miss it
-//      and the theme guard is blocked at runtime, not at build),
+//   2. app.html carrying zero inline scripts (the theme guard is an external
+//      static/theme-init.js licensed by script-src 'self'; a hand-written
+//      inline script snuck back in would need nonce or hash plumbing again),
 //   3. the constant header set (so adding one is a deliberate edit here, and
 //      deleting one fails).
 
@@ -84,22 +84,27 @@ describe('content-security-policy', () => {
 	});
 });
 
-describe('app.html nonce wiring', () => {
+describe('app.html inline-script hygiene', () => {
 	const html = readFileSync(APP_HTML, 'utf8');
 
 	// Open tags of scripts with no src= — i.e. the ones whose body is inline
-	// and therefore needs a nonce under script-src 'self'.
+	// and would therefore need a nonce or hash under script-src 'self'.
 	const inlineScripts = html.match(/<script\b(?![^>]*\bsrc=)[^>]*>/g) ?? [];
-	const noncedScripts = html.match(/<script\b[^>]*\bnonce="%sveltekit\.nonce%"[^>]*>/g) ?? [];
 
-	it('has at least one inline script to protect', () => {
-		// If this ever hits zero the nonce plumbing is dead weight and the
-		// assertion below would pass vacuously.
-		expect(inlineScripts.length).toBeGreaterThan(0);
+	it('carries zero inline scripts', () => {
+		// The theme guard lives in static/theme-init.js, loaded as a blocking
+		// external script that script-src 'self' licenses with no per-script
+		// plumbing. An inline script reappearing here would ship blocked.
+		expect(inlineScripts.length).toBe(0);
 	});
 
-	it('nonces every inline script', () => {
-		expect(noncedScripts.length).toBe(inlineScripts.length);
+	it('loads the external theme guard as a blocking head script', () => {
+		expect(html).toContain('<script src="/theme-init.js"></script>');
+	});
+
+	it('has no nonce placeholder left behind', () => {
+		// The placeholder existed solely for the removed inline theme script.
+		expect(html).not.toContain('%sveltekit.nonce%');
 	});
 });
 
