@@ -1,6 +1,7 @@
 # VSON — Productization Strategy
 
 **Status:** Draft 1 · 2026-05-02
+**Note (v1.2):** the `vson.dev` hostnames below were aspirational and never registered; the published namespace is `https://w3id.org/vson/` — see [`docs/vson.md`](../vson.md) §5.1.
 **Readers:** founding team, design lead, eng lead, first 10 users
 **Sibling docs:** `docs/strategy/brand.md`, `docs/strategy/roadmap.md` (forthcoming)
 

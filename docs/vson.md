@@ -77,7 +77,7 @@ cli/target/release/vson validate examples/gallery/01_minimal.vson
 # OK  examples/gallery/01_minimal.vson
 
 cli/target/release/vson convert p2t examples/gallery/01_minimal.vson
-# @prefix vso:   <https://vson.dev/v1/ontology#> .
+# @prefix vso:   <https://w3id.org/vson/v1/ontology#> .
 # @prefix :      <https://example.org/scenes/anonymous#> .
 # :scene a vso:Composition .
 # :cam a vso:CameraView .
@@ -272,7 +272,7 @@ The three perdurant lists are routing tables, not a closed vocabulary: a lemma a
 
 ### 4.4 JSON-LD form
 
-A VSON document MAY be exchanged as JSON-LD bound to context `https://vson.dev/v1/context.jsonld`. Structural skeleton in [`tools/schema/vson-jsonld.schema.json`](../tools/schema/vson-jsonld.schema.json). Well-formedness is enforced by SHACL on the materialized graph, not by JSON Schema alone.
+A VSON document MAY be exchanged as JSON-LD bound to context `https://w3id.org/vson/v1/context.jsonld`. Structural skeleton in [`tools/schema/vson-jsonld.schema.json`](../tools/schema/vson-jsonld.schema.json). Well-formedness is enforced by SHACL on the materialized graph, not by JSON Schema alone.
 
 ### 4.5 Image-extractor envelope (the Quick Start payload)
 
@@ -294,17 +294,21 @@ Per-field template:
 
 | Prefix | IRI | Purpose |
 |---|---|---|
-| `vso:`   | `https://vson.dev/v1/ontology#` | Core ontology and vocabulary |
-| `vss:`   | `https://vson.dev/v1/shapes#`   | SHACL shape names |
-| `rcc:`   | `https://vson.dev/v1/rcc8#`     | RCC-8 base relations |
-| `allen:` | `https://vson.dev/v1/allen#`   | Allen interval relations |
+| `vso:`   | `https://w3id.org/vson/v1/ontology#` | Core ontology and vocabulary |
+| `vss:`   | `https://w3id.org/vson/v1/shapes#`   | SHACL shape names |
+| `rcc:`   | `https://w3id.org/vson/v1/rcc8#`     | RCC-8 base relations |
+| `allen:` | `https://w3id.org/vson/v1/allen#`   | Allen interval relations |
 | `xsd:`   | `http://www.w3.org/2001/XMLSchema#` | Datatypes |
 | `rdf:`   | `http://www.w3.org/1999/02/22-rdf-syntax-ns#` | RDF |
 | `rdfs:`  | `http://www.w3.org/2000/01/rdf-schema#` | RDFS |
 | `sh:`    | `http://www.w3.org/ns/shacl#`   | SHACL |
 | `:`      | `https://example.org/scenes/anonymous#` (default; consumers MAY override) | Document-local |
 
-These IRIs are stable names; they do not yet dereference (hosting under evaluation — `vson.dev` registration vs a `w3id.org` redirect).
+**Namespace host — resolved in v1.2.** Through v1.1 every canonical IRI above was minted under `https://vson.dev/`, a hostname this project never registered: squattable by anyone, permanently non-dereferenceable, and dependent on one maintainer paying one registrar forever. v1.2 remints all five namespaces under `https://w3id.org/vson/` — the W3C Permanent Identifier Community Group's redirect service, which is free, community-maintained, and designed to keep resolving after any single maintainer stops paying attention. That permanence is the property a namespace host has to have and a private domain cannot promise.
+
+The old names are **withdrawn, not aliased.** There is no `owl:sameAs` bridge, no redirect, and no shape that targets them: a document minted under `https://vson.dev/` selects zero focus nodes against the v1.2 shapes and does not validate. Withdrawal is the honest option here precisely because the legacy names had **zero external consumers** — they never dereferenced, no third party could have resolved or cached them, and every producer and consumer of them lives in this repository. Aliasing would have preserved a name that was never real.
+
+These IRIs are stable names. They do not dereference yet: the w3id redirect is not registered at the time of writing. See §8 for the immutability rule and its one historical exception.
 
 ### 5.2 `vso:Composition`
 
@@ -472,7 +476,7 @@ Reified property. Always a node, never an inline literal on the bearer.
 
 #### 5.5.1 Dimension registry (closed under the VSO namespace)
 
-**The registry is closed.** The VSO namespace carries exactly the twenty-one dimensions below — no others. A `vso:dimension` whose value is any other IRI under `https://vson.dev/v1/ontology#` is an orphan VSO term and the document is **non-conformant** by clause C2 (§2). Producers **MUST NOT** mint new `vso:` dimensions.
+**The registry is closed.** The VSO namespace carries exactly the twenty-one dimensions below — no others. A `vso:dimension` whose value is any other IRI under `https://w3id.org/vson/v1/ontology#` is an orphan VSO term and the document is **non-conformant** by clause C2 (§2). Producers **MUST NOT** mint new `vso:` dimensions.
 
 **Extension stays open.** A dimension the registry does not carry is minted under the producer's *own* namespace, never under `vso:` — `[ a vso:Quality ; vso:dimension :Reflectance ; vso:value "matte" ]` with `:` bound to the document namespace is conformant, and is profile-specific rather than portable (§8). This is the only sanctioned way to extend the axis set inside v1.x.
 
@@ -850,7 +854,7 @@ Producer-side metadata — model, prompt version, retry count, latency, token co
     "captured_at": "2026-05-02T11:14:00Z"
   },
   "vson_p": "(scene / Composition :viewedBy (cam / CameraView :angle low :focalLength 35mm :framing medium_shot) :depicts (alice / PhysicalObject :individuation Named :animacy Agentive :countability Count :class Human))",
-  "vson_t": "@prefix vso: <https://vson.dev/v1/ontology#> .\n:scene a vso:Composition .\n:scene vso:viewedBy :cam .\n...",
+  "vson_t": "@prefix vso: <https://w3id.org/vson/v1/ontology#> .\n:scene a vso:Composition .\n:scene vso:viewedBy :cam .\n...",
   "graph": {
     "nodes": [
       { "id": "scene", "kind": "Composition" },
@@ -912,7 +916,8 @@ The SHACL shapes file is [`shapes/vson-shapes.ttl`](../shapes/vson-shapes.ttl) �
 
 ## 8. Versioning and extension
 
-- **IRI immutability.** All IRIs under `https://vson.dev/v1/` are immutable. v2.0 will use `https://vson.dev/v2/`. Concurrent versions can coexist.
+- **IRI immutability.** All IRIs under `https://w3id.org/vson/v1/` are immutable. v2.0 will use `https://w3id.org/vson/v2/`. Concurrent versions can coexist. The rule binds from v1.2 forward, under the w3id host. It did not survive the host itself: the pre-v1.2 `https://vson.dev/v1/` names this clause used to cover were withdrawn, not aliased — see §5.1 for why that was the honest resolution and not a silent breach.
+- **One historical exception.** `ontology/vso.ttl` keeps its `owl:priorVersion` under the legacy `vson.dev` host and carries a `LEGACY IRI` comment saying so. That string is the `owl:versionIRI` the prior release actually declared; rewriting it would assert a name that release never carried, which falsifies a record rather than migrating one. It is a record, not a resolvable name, and nothing dereferences it. [`scripts/check_legacy_iri.py`](../scripts/check_legacy_iri.py) pins it as the only legacy-host IRI in the repository outside prose that documents the migration or preserves a historical record; every other occurrence fails the build.
 - **Backwards compatibility within v1.x.** v1.x MAY add classes, properties, and shapes. v1.x **MUST NOT** remove or rename existing terms, change cardinalities to be more restrictive, or change SHACL shapes in a way that invalidates previously-conformant documents.
 - **Private extensions.** Authors MAY define private predicates under their own namespace. Private predicates SHOULD NOT shadow VSV terms. Documents using private predicates are **profile-specific**, not portable.
 - **Closed vocabularies.** §5.12 lists closed enumerations. Producers **MUST NOT** invent values; consumers **MAY** treat unknown values as `Unknown`.
@@ -1099,7 +1104,7 @@ The skill is right when a third-party caller wants to read VSON directly from an
 
 ### 13.5 Public surface
 
-The studio's "what is this" page lives at [`/about`](https://studio.vson.dev/about). It is the canonical public-facing explanation; the spec (this document) is the canonical machine-readable contract. They should not drift.
+The studio's "what is this" page is [`web/src/routes/about/+page.svelte`](../web/src/routes/about/+page.svelte), served at `/about` by any running studio. It is the canonical public-facing explanation; the spec (this document) is the canonical machine-readable contract. They should not drift.
 
 ---
 
@@ -1107,7 +1112,7 @@ The studio's "what is this" page lives at [`/about`](https://studio.vson.dev/abo
 
 ### A.1 Extractor response envelope
 
-The full schema lives at [`tools/schema/vson-output.schema.json`](../tools/schema/vson-output.schema.json) and is normative. Its `$id` is `https://vson.dev/v1/schema/vson-output.schema.json`.
+The full schema lives at [`tools/schema/vson-output.schema.json`](../tools/schema/vson-output.schema.json) and is normative. Its `$id` is `https://w3id.org/vson/v1/schema/vson-output.schema.json`.
 
 The schema body is reproduced below. Producers MUST validate every emitted envelope against this schema; consumers MAY trust an envelope that already passed validation upstream.
 

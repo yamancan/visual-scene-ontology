@@ -1,5 +1,7 @@
 # VSON Studio — UI Flows (detailed)
 
+**Note (v1.2):** the `vson.dev` hostnames below were aspirational and never registered; the published namespace is `https://w3id.org/vson/` — see [`docs/vson.md`](../vson.md) §5.1.
+
 Companion to [`productization.md`](./productization.md). This file expands the three canonical flows into frame-level interaction specs that an engineer can implement and a designer can prototype against.
 
 > **Design lineage we're stealing from:** Linear (palette, density, status bar), Figma (bidirectional source/visual), Arc (sidebar choreography), Notion (artifact-as-onboarding), Cursor (Cmd-K inline AI), Vercel (deploy-as-narrative), Stripe (typographic restraint).

@@ -1,6 +1,7 @@
 # VSON Extractor — Architecture (image → graph)
 
 **Status:** Draft 1 · 2026-05-02
+**Note (v1.2):** the `vson.dev` hostnames below were aspirational and never registered; the published namespace is `https://w3id.org/vson/` — see [`docs/vson.md`](../vson.md) §5.1.
 **Companion:** [`tools/extractor/prompts/orchestrator-system.md`](../../tools/extractor/prompts/orchestrator-system.md) · [`docs/strategy/productization.md`](./productization.md)
 
 ---

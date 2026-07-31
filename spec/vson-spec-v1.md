@@ -2,6 +2,7 @@
 
 **Status:** Superseded by docs/vson.md (v1.1, 2026-05-07). Retained for historical reference; do not cite it as the current spec.
 **Note:** in this historical document, **VSON-X** names the exporter layer (§8 below). v1.1 reassigned VSON-X to the compact sigil syntax, and exporters are now §7 of `docs/vson.md`.
+**Namespace:** the `https://vson.dev/…` IRIs below are the names v1.0 actually published, retained here unchanged as the record; v1.2 remints every VSON namespace under `https://w3id.org/vson/` and withdraws these — see `docs/vson.md` §5.1.
 **Author:** Yamancan (github.com/yamancan)
 **Supersedes:** v0.1 (deprecated; see `spec/vson-spec-v0.1-deprecated.md`)
 
