@@ -1,5 +1,5 @@
 // Direct browser client for OpenRouter — the zero-backend replacement for
-// lib/server/openrouter.ts. The visitor's own key rides every request as
+// the deleted server-side relay. The visitor's own key rides every request as
 // `Authorization: Bearer`, built INTERNALLY from the byok store, so the key
 // goes browser → openrouter.ai and never touches this site's host.
 //
