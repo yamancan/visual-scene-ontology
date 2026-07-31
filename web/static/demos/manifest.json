@@ -35,13 +35,6 @@
       "mime": "image/jpeg",
       "envelope_path": "/demos/envelopes/lamp.json",
       "model_used": "google/gemini-2.5-flash"
-    },
-    {
-      "path": "/demos/lookbook.jpg",
-      "label": "Lookbook",
-      "mime": "image/jpeg",
-      "envelope_path": "/demos/envelopes/lookbook.json",
-      "model_used": "google/gemini-2.5-flash"
     }
   ]
 }
