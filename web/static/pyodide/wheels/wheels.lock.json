@@ -1,0 +1,36 @@
+{
+	"wheels": [
+		{
+			"filename": "html5rdf-1.2.1-py2.py3-none-any.whl",
+			"sha256": "1f519121bc366af3e485310dc8041d2e86e5173c1a320fac3dc9d2604069b83e"
+		},
+		{
+			"filename": "owlrl-7.6.2-py3-none-any.whl",
+			"sha256": "83347bf7f133979e87b2b18695d51d25510b99cec3f6919b5df05d4fbf058ae0"
+		},
+		{
+			"filename": "packaging-26.1-py3-none-any.whl",
+			"sha256": "2719239437268bcea22845651a242f2c252e2ed984645161dd203546f2a52219"
+		},
+		{
+			"filename": "prettytable-3.18.0-py3-none-any.whl",
+			"sha256": "b3346e0e6f79180833aebaac088ae926340586cf6d7d991b9eb125b65f72313a"
+		},
+		{
+			"filename": "pyparsing-3.3.2-py3-none-any.whl",
+			"sha256": "101eece4e324f842bf46e6f821fe5bc62d79b9ebfa3b399b6aff0e0ab0ee400f"
+		},
+		{
+			"filename": "pyshacl-0.40.1-py3-none-any.whl",
+			"sha256": "27dd58c8ddfa103303b4a8c40b2c666332ffc912dbcd3137f7adc7b7bc5e6bda"
+		},
+		{
+			"filename": "rdflib-7.6.0-py3-none-any.whl",
+			"sha256": "30c0a3ebf4c0e09215f066be7246794b6492e054e782d7ac2a34c9f70a15e0dd"
+		},
+		{
+			"filename": "wcwidth-0.6.0-py3-none-any.whl",
+			"sha256": "96f634dd982132bdf265366a2db9c2d676afcd837f7d0bf07a15d094a667cfd1"
+		}
+	]
+}
