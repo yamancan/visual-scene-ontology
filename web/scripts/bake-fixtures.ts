@@ -13,7 +13,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { walkPenmanToGraph } from '../src/lib/server/graph-walk';
+import { walkPenmanToGraph } from '../src/lib/graph/walk';
 import type { VsonEnvelope } from '../src/lib/types';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

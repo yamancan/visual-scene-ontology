@@ -2,7 +2,7 @@ import { error, text } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import type { SceneGraph } from '$lib/types';
 import { renderCaption, renderFol } from '$lib/server/cli';
-import { toCypher, toDot, toGraphML, toMermaid } from '$lib/server/exporters';
+import { toCypher, toDot, toGraphML, toMermaid } from '$lib/graph/exporters';
 
 interface GraphBody {
 	graph: SceneGraph;

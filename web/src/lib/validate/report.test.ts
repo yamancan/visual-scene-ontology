@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { localName, parseViolationReport } from './cli';
+import { localName, parseViolationReport } from './report';
 
 describe('localName', () => {
 	it('unwraps angle-bracketed IRI and takes fragment', () => {

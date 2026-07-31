@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 
 import type { RequestHandler } from './$types';
 import type { VsonEnvelope } from '$lib/types';
-import { walkPenmanToGraph, walkTurtleToGraph } from '$lib/server/graph-walk';
+import { walkPenmanToGraph, walkTurtleToGraph } from '$lib/graph/walk';
 import {
 	parseViolationReport,
 	transpilePenmanToTurtle,
