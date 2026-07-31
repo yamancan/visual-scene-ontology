@@ -1,5 +1,5 @@
 {
-  "$comment": "Acceptance fixture for any model that wants to claim VSON-X-extractor support. Each entry is a public-domain image bundled with the studio. Same images as vson-extractor — graph topology should match modulo the single SpatialFact-edge collapse documented in docs/vson-x-semantics.md §4.4. A model passes if at least 4/5 envelopes conform on first try, AND the Talmy-gate fixture (street) MUST conform.",
+  "$comment": "Acceptance fixture for any model that wants to claim VSON-X-extractor support. Each entry references an image bundled with the studio. Same images as vson-extractor — graph topology should match modulo the single SpatialFact-edge collapse documented in docs/vson-x-semantics.md §4.4. A model passes if at least 4/5 envelopes conform on first try, AND the Talmy-gate fixture (street) MUST conform.",
   "version": "1.0.0",
   "skill": "vson-extractor-x",
   "output": "vson_x",

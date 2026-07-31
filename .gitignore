@@ -31,6 +31,24 @@ web/build/
 # remain tracked; this rule only blocks NEW .md from being staged.
 *.md
 
+# CONTRIBUTOR WARNING: because of the `*.md` rule above, a NEW markdown file is
+# invisible to git until its exact path is negated below. If you add one and
+# `git status` does not show it, that is why — add a `!path/to/file.md` line here.
+#
+# Normative markdown that MUST ship (loaded at runtime or referenced by
+# tracked sources — see web/src/lib/server/prompt.ts and
+# scripts/deploy_preflight.sh).
+!docs/vson-x-semantics.md
+!skills/vson-extractor-x/SKILL.md
+!skills/vson-extractor-x/README.md
+!tools/extractor/prompts/specialized/repair-x.md
+# Repo-policy files GitHub surfaces from the root.
+!SECURITY.md
+!CONTRIBUTING.md
+
+# Generated eval artifacts (scripts/d_smoke_eval.sh writes here)
+reports/
+
 # Stray example images — the curated examples/ corpus is .vson/.ttl text.
 examples/*.jpg
 examples/*.jpeg

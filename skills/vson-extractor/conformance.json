@@ -1,5 +1,5 @@
 {
-  "$comment": "Acceptance fixture for any model that wants to claim VSON-extractor support. Each entry is a public-domain image bundled with the studio. A model passes if at least 4/5 envelopes conform on first try (no repair retry) and node/edge counts fall within the recorded ranges.",
+  "$comment": "Acceptance fixture for any model that wants to claim VSON-extractor support. Each entry references an image bundled with the studio. A model passes if at least 4/5 envelopes conform on first try (no repair retry) and node/edge counts fall within the recorded ranges.",
   "version": "1.0.0",
   "skill": "vson-extractor",
   "fixtures": [
