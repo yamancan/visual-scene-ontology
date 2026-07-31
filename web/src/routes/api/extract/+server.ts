@@ -286,7 +286,7 @@ async function runPenmanFlow(ctx: FlowCtx) {
 
 	const envelope: VsonEnvelope = {
 		scene_id: shortId(),
-		version: '1.0',
+		version: '1.2',
 		source: {
 			kind: 'image',
 			sha256: ctx.sha256,
@@ -383,14 +383,14 @@ async function runVsonXFlow(ctx: FlowCtx) {
 
 	const envelope: VsonEnvelope = {
 		scene_id: shortId(),
-		version: '1.1',
+		version: '1.2',
 		source: {
 			kind: 'image',
 			sha256: ctx.sha256,
 			...(ctx.source_uri ? { uri: ctx.source_uri } : {})
 		},
-		// v1.1 X-mode sentinel: vson_p is empty until t2p ships in v1.2. The
-		// schema's if/then rule allows this iff vson_x is non-empty.
+		// X-mode sentinel: vson_p is empty until t2p ships. The schema's
+		// if/then rule allows this iff vson_x is non-empty.
 		vson_p: '',
 		vson_t: turtle,
 		vson_x: finalX,

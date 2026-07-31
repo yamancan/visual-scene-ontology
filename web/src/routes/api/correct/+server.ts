@@ -264,7 +264,7 @@ async function runPenmanFlow(ctx: FlowCtx) {
 
 	const envelope: VsonEnvelope = {
 		scene_id: shortId(),
-		version: '1.0',
+		version: '1.2',
 		source: buildSource(ctx.sha256),
 		vson_p: penmanText,
 		vson_t: turtle,
@@ -353,7 +353,7 @@ async function runVsonXFlow(ctx: FlowCtx) {
 
 	const envelope: VsonEnvelope = {
 		scene_id: shortId(),
-		version: '1.1',
+		version: '1.2',
 		source: buildSource(ctx.sha256),
 		vson_p: '',
 		vson_t: turtle,

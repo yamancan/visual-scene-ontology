@@ -15,8 +15,8 @@
     },
     "version": {
       "type": "string",
-      "enum": ["1.0", "1.0.5", "1.1"],
-      "description": "VSON spec version. \"1.0\" for v1.0 strict. \"1.0.5\" for v1.0 + caption renderer + Phase 0 ontology additions (vso:class, vso:modifier, Persona). \"1.1\" adds VSON-X surface form and partial validation profile. Backwards-compatible: every v1.0 envelope remains valid under newer spec versions."
+      "enum": ["1.0", "1.0.5", "1.1", "1.2"],
+      "description": "VSON spec version. \"1.0\" for v1.0 strict. \"1.0.5\" for v1.0 + caption renderer + Phase 0 ontology additions (vso:class, vso:modifier, Persona). \"1.1\" adds VSON-X surface form and partial validation profile. \"1.2\" re-mints the VSO/RCC-8/Allen/shape namespaces under https://w3id.org/vson/, replacing the host v1.0-v1.1 published under (withdrawn, not aliased — see spec/CHANGELOG.md v1.2.0); envelope structure is unchanged from 1.1. Backwards-compatible: every v1.0 envelope remains valid under newer spec versions."
     },
     "source": {
       "type": "object",
@@ -33,7 +33,7 @@
     },
     "vson_p": {
       "type": "string",
-      "description": "VSON-P (Penman) authoring form. SHOULD be the canonical authoring artifact when extraction targets Penman. Consumers MUST round-trip vson_p -> vson_t via the reference transpiler and SHOULD NOT diverge from vson_t. v1.1: in VSON-X mode this field is the empty string \"\" (back-conversion to Penman is deferred to v1.2 when t2p ships); v1.1 envelopes MUST satisfy the if/then rule below — at least one of vson_p or vson_x is non-empty.",
+      "description": "VSON-P (Penman) authoring form. SHOULD be the canonical authoring artifact when extraction targets Penman. Consumers MUST round-trip vson_p -> vson_t via the reference transpiler and SHOULD NOT diverge from vson_t. v1.1 and later: in VSON-X mode this field is the empty string \"\" (back-conversion to Penman is deferred to a future version, whenever t2p ships); those envelopes MUST satisfy the if/then rule below — at least one of vson_p or vson_x is non-empty.",
       "examples": ["(s / Composition :viewedBy (c / CameraView :angle eye_level) :depicts (a / PhysicalObject :class Apple))"]
     },
     "vson_t": {
@@ -102,8 +102,8 @@
       "then": { "properties": { "vson_p": { "minLength": 3 } } }
     },
     {
-      "$comment": "v1.1: at least one authoring surface (vson_p or vson_x) MUST be non-empty. Either Penman extraction (vson_p non-empty, vson_x absent) or VSON-X extraction (vson_p='', vson_x non-empty).",
-      "if": { "properties": { "version": { "const": "1.1" } } },
+      "$comment": "v1.1 and v1.2: at least one authoring surface (vson_p or vson_x) MUST be non-empty. Either Penman extraction (vson_p non-empty, vson_x absent) or VSON-X extraction (vson_p='', vson_x non-empty). Every version admitted by the enum above that allows an empty vson_p MUST be listed here, or the rule silently stops applying to it.",
+      "if": { "properties": { "version": { "enum": ["1.1", "1.2"] } } },
       "then": {
         "anyOf": [
           { "properties": { "vson_p": { "minLength": 3 } } },

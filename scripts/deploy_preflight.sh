@@ -50,25 +50,47 @@ for f in skills/vson-extractor-x/SKILL.md \
   fi
 done
 
-echo "==> Schema parses + accepts v1.1 X-mode envelope"
+echo "==> Schema admits v1.1 and v1.2 X-mode envelopes, and rejects surface-less ones"
 python3 - <<'PY' || exit 1
 import json, sys
-try:
-    import jsonschema
-except ImportError:
-    print("  WARN jsonschema not installed; skipping schema test", file=sys.stderr)
-    sys.exit(0)
+# jsonschema is a declared dependency (pyproject.toml). An ImportError here is
+# a broken environment, not a reason to skip: this gate used to soft-skip and
+# therefore asserted nothing.
+import jsonschema
+
 schema = json.load(open('tools/schema/vson-output.schema.json'))
-v11x = {
-    'scene_id': 'preflight',
-    'version': '1.1',
-    'vson_p': '',
-    'vson_x': '~scene\n  /CameraView @cam *angle eye_level\n  ^cam\n',
-    'vson_t': ':scene a vso:Composition .',
-    'conformance': {'conforms': True}
-}
-jsonschema.validate(v11x, schema)
-print('  OK schema accepts v1.1 X-mode envelope')
+
+
+def x_envelope(version):
+    return {
+        'scene_id': 'preflight',
+        'version': version,
+        'vson_p': '',
+        'vson_x': '~scene\n  /CameraView @cam *angle eye_level\n  ^cam\n',
+        'vson_t': ':scene a vso:Composition .',
+        'conformance': {'conforms': True},
+    }
+
+
+# 1.2 is what the studio emits now; 1.1 stays in the gate because older
+# envelopes must keep validating. Each version is also checked against the
+# anyOf rule that requires at least one authoring surface — the rule is keyed
+# by an explicit version list, so a newly admitted version that is not listed
+# there would pass vacuously.
+for version in ('1.1', '1.2'):
+    jsonschema.validate(x_envelope(version), schema)
+    print('  OK schema accepts v%s X-mode envelope' % version)
+
+    surfaceless = x_envelope(version)
+    surfaceless['vson_x'] = ''
+    try:
+        jsonschema.validate(surfaceless, schema)
+    except jsonschema.ValidationError:
+        print('  OK schema rejects v%s envelope with no authoring surface' % version)
+    else:
+        print('  FAIL v%s envelope with empty vson_p and vson_x validated' % version,
+              file=sys.stderr)
+        sys.exit(1)
 PY
 
 echo "==> Corpus skill-check (gallery-x conformance)"
@@ -94,7 +116,7 @@ if [[ -n "${DEV_SERVER_URL:-}" ]]; then
   if curl -fsS -X POST "$DEV_SERVER_URL/api/extract" \
        -H 'content-type: application/json' \
        --data-binary "$payload" \
-       | python3 -c "import json,sys; e=json.load(sys.stdin); assert e.get('version')=='1.1' or e.get('vson_p'), 'envelope shape'; print('  envelope OK')" >/dev/null
+       | python3 -c "import json,sys; e=json.load(sys.stdin); assert e.get('version') in ('1.1','1.2') or e.get('vson_p'), 'envelope shape'; print('  envelope OK')" >/dev/null
   then
     echo_ok "/api/extract X-mode dry-run"
   else
