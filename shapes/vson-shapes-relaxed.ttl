@@ -5,11 +5,37 @@
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix dc:    <http://purl.org/dc/terms/> .
+@prefix vann:  <http://purl.org/vocab/vann/> .
 
+# The document IRI names the shapes graph itself, not a shape inside it. It was
+# typed sh:NodeShape until v1.1 — inert at validation time (a node shape with no
+# sh:target* and no constraints selects nothing), but wrong as metadata: it told
+# every reader and every vocabulary tool that this file's identity is a shape.
+# owl:Ontology is what the declaration always meant.
 <https://vson.dev/v1/shapes-relaxed>
-    a sh:NodeShape ;
+    a owl:Ontology ;
+    dc:title "VSON-S shapes (relaxed profile)" ;
+    dc:creator "yamancan" ;
+    dc:license <https://www.apache.org/licenses/LICENSE-2.0> ;
+    dc:modified "2026-07-30"^^xsd:date ;
+    owl:versionInfo "1.1" ;
+    vann:preferredNamespacePrefix "vss" ;
+    vann:preferredNamespaceUri "https://vson.dev/v1/shapes#" ;
     rdfs:label "VSON v1.1 SHACL shapes — relaxed profile" ;
-    rdfs:comment "Relaxed validation profile for partial / authoring-time documents. Carries the same shapes as vson-shapes.ttl (strict), but downgrades to sh:Warning the dimension-completeness constraints: Talmy viewer, Event/Process/Stative lemma, Quality dimension/value, Quality modifier. Structural-integrity constraints (Composition.depicts, FrameNotDepicted, SpatialFact.figure/ground, RCC/directional/proximal value vocab, Negation/BeliefState/Quantification/Annotation slots, Persona.hasInvariant, trait enums) remain sh:Violation. Used by `vson validate --partial`. Documents that conform under strict also conform under relaxed (no strict shape was made stricter)." .
+    rdfs:comment "Relaxed validation profile for partial / authoring-time documents. Carries the same shapes as vson-shapes.ttl (strict), but downgrades to sh:Warning the dimension-completeness constraints: Talmy viewer, Event/Process/Stative lemma, Quality dimension/value, Quality modifier. Structural-integrity constraints (Composition.depicts, FrameNotDepicted, SpatialFact.figure/ground, RCC/directional/proximal value vocab, Negation/BeliefState/Quantification/Annotation slots, Persona.hasInvariant, trait enums) remain sh:Violation. No shipped command selects this profile yet; the test suite exercises it via tools/shacl_helper (tests/test_shapes_gate.py). Documents that conform under strict also conform under relaxed (no strict shape was made stricter)." .
+
+#################################################################
+# NB — why the sh:class checks below carry sh:not guards
+#
+# Mirrors the note at the top of shapes/vson-shapes.ttl. Validation runs with
+# inference="rdfs", so a sh:class naming the property's own rdfs:range is
+# entailed onto every value node and can never fail on its own. The sh:not
+# guards name the classes ontology/vso.ttl declares disjoint from that range, so
+# a wrongly-typed value carries both its asserted type and the entailed range
+# type and the guard fires. Severities follow this profile's usual split.
+#################################################################
 
 #################################################################
 # STRUCTURAL FLOOR — sh:Violation in both profiles
@@ -25,7 +51,9 @@ vss:CompositionShape a sh:NodeShape ;
     sh:property [
         sh:path vso:framedBy ;
         sh:nodeKind sh:BlankNodeOrIRI ;
-        sh:class vso:Frame
+        sh:class vso:Frame ;
+        sh:not [ sh:class vso:Entity ] ;
+        sh:message "vso:framedBy must reference a Frame (SceneContext / VisualStyle / CameraView / Persona), never an Entity."
     ] .
 
 vss:SpatialFactShape a sh:NodeShape ;
@@ -100,7 +128,9 @@ vss:BeliefStateShape a sh:NodeShape ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:class vso:Endurant ;
-        sh:message "BeliefState must have exactly one experiencer (Endurant)."
+        sh:not [ sh:class vso:Perdurant ] ;
+        sh:not [ sh:class vso:Frame ] ;
+        sh:message "BeliefState must have exactly one experiencer, and it must be an Endurant — not a Perdurant or a Frame."
     ] ;
     sh:property [
         sh:path vso:proposition ;
@@ -167,22 +197,33 @@ vss:PersonaShape a sh:NodeShape ;
         sh:path vso:hasInvariant ;
         sh:minCount 1 ;
         sh:class vso:Quality ;
-        sh:message "Persona must declare at least one hasInvariant Quality."
+        # NOT vso:Entity: Quality is rdfs:subClassOf vso:Entity, so an Entity
+        # guard would fire on every well-formed Persona. See the strict file.
+        sh:not [ sh:class vso:Endurant ] ;
+        sh:not [ sh:class vso:Perdurant ] ;
+        sh:not [ sh:class vso:Region ] ;
+        sh:not [ sh:class vso:Frame ] ;
+        sh:message "Persona must declare at least one hasInvariant Quality; an invariant may not be an Endurant, Perdurant, Region, or Frame."
     ] .
 
 #################################################################
-# RELAXED — sh:Warning under --partial; sh:Violation under strict
+# RELAXED — sh:Warning in this profile; sh:Violation under strict
 #################################################################
 
-# Talmy viewer — relaxed in this profile (severity on property shape, not NodeShape)
+# Talmy viewer — relaxed in this profile (severity on property shape, not
+# NodeShape). The sh:not guard that de-vacuates sh:class rides the same property
+# shape, so it too reports at sh:Warning here: this profile downgrades the whole
+# Talmy-viewer constraint, and splitting it would silently make one half of an
+# existing shape stricter than the strict-to-relaxed contract in the header.
 vss:DirectionalNeedsViewerShape a sh:NodeShape ;
     sh:targetSubjectsOf vso:directional ;
     sh:property [
         sh:path vso:viewer ;
         sh:minCount 1 ;
         sh:class vso:CameraView ;
+        sh:not [ sh:class vso:Entity ] ;
         sh:severity sh:Warning ;
-        sh:message "Directional spatial facts SHOULD have a vso:viewer (CameraView) for construal disambiguation. (Relaxed-profile warning.)"
+        sh:message "Directional spatial facts SHOULD have a vso:viewer, and that viewer SHOULD be a CameraView, never an Entity. (Relaxed-profile warning.)"
     ] .
 
 # Event / Process / Stative lemma — relaxed
@@ -200,7 +241,10 @@ vss:EventShape a sh:NodeShape ;
         sh:path vso:agent ;
         sh:nodeKind sh:BlankNodeOrIRI ;
         sh:maxCount 1 ;
-        sh:class vso:Endurant
+        sh:class vso:Endurant ;
+        sh:not [ sh:class vso:Perdurant ] ;
+        sh:not [ sh:class vso:Frame ] ;
+        sh:message "vso:agent must reference an Endurant, not a Perdurant or a Frame."
     ] .
 
 vss:ProcessShape a sh:NodeShape ;
@@ -212,9 +256,18 @@ vss:StativeShape a sh:NodeShape ;
     sh:targetClass vso:Stative ;
     sh:property [ sh:path vso:lemma ; sh:datatype xsd:string ; sh:minCount 1 ;
                   sh:severity sh:Warning ] ;
-    sh:property [ sh:path vso:experiencer ; sh:maxCount 1 ; sh:class vso:Endurant ] .
+    sh:property [ sh:path vso:experiencer ; sh:maxCount 1 ; sh:class vso:Endurant ;
+                  sh:not [ sh:class vso:Perdurant ] ;
+                  sh:not [ sh:class vso:Frame ] ;
+                  sh:message "vso:experiencer must reference an Endurant, not a Perdurant or a Frame." ] .
 
 # Quality dim/value — relaxed
+#
+# No sh:in on vso:dimension here either, for the reason spelled out beside the
+# strict QualityShape in shapes/vson-shapes.ttl: the VSO dimension registry is
+# closed only within the VSO namespace, document-namespace dimensions stay
+# conformant, and the closed half is enforced by owl:AllDifferent in
+# ontology/vso.ttl plus the C2 coverage test in tests/test_shapes_gate.py.
 vss:QualityShape a sh:NodeShape ;
     sh:targetClass vso:Quality ;
     sh:property [
@@ -288,4 +341,14 @@ vss:CountabilityShape a sh:NodeShape ;
         sh:path vso:countability ;
         sh:in ( vso:Count vso:Mass vso:Collective ) ;
         sh:maxCount 1
+    ] .
+
+# Fourth trait axis; non-functional (0..n), hence no sh:maxCount. Parity with the
+# strict file.
+vss:AffordanceShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:affordance ;
+    sh:property [
+        sh:path vso:affordance ;
+        sh:in ( vso:Holdable vso:Wearable vso:Mountable vso:Container vso:Edible ) ;
+        sh:message "vso:affordance value must be one of the five published affordances (Holdable|Wearable|Mountable|Container|Edible)."
     ] .

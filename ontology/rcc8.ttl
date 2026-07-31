@@ -2,25 +2,64 @@
 @prefix vso:  <https://vson.dev/v1/ontology#> .
 @prefix owl:  <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dc:   <http://purl.org/dc/terms/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix vann: <http://purl.org/vocab/vann/> .
+@prefix geo:  <http://www.opengis.net/ont/geosparql#> .
 
 <https://vson.dev/v1/rcc8>
     a owl:Ontology ;
     rdfs:label "RCC-8 spatial topology" ;
-    rdfs:comment "Region Connection Calculus 8 base relations, jointly exhaustive and pairwise disjoint." .
+    rdfs:comment "The 8 RCC-8 base relation names as a closed value vocabulary for vso:rcc; JEPD holds in the intended interpretation; composition-table reasoning is out of scope." ;
+    dc:title "VSON RCC-8 value vocabulary" ;
+    dc:creator "yamancan" ;
+    dc:license <https://www.apache.org/licenses/LICENSE-2.0> ;
+    dc:modified "2026-07-30"^^xsd:date ;
+    owl:versionInfo "1.1" ;
+    vann:preferredNamespacePrefix "rcc" ;
+    vann:preferredNamespaceUri "https://vson.dev/v1/rcc8#" .
 
 # RCC-8 base relations as instances of a relation class so they can be values
 # of vso:rcc on a SpatialFact. (The relations are the eight values, not edge predicates.)
-rcc:Relation a owl:Class .
+rcc:Relation a owl:Class ;
+    rdfs:label "Relation" ;
+    rdfs:comment "Class of the eight RCC-8 base relation values; its instances are the admissible objects of vso:rcc on a vso:SpatialFact." .
 
-rcc:DC    a rcc:Relation ; rdfs:label "DC"    ; rdfs:comment "Disconnected." .
-rcc:EC    a rcc:Relation ; rdfs:label "EC"    ; rdfs:comment "Externally connected (touching, no overlap)." .
-rcc:PO    a rcc:Relation ; rdfs:label "PO"    ; rdfs:comment "Partial overlap." .
-rcc:EQ    a rcc:Relation ; rdfs:label "EQ"    ; rdfs:comment "Equal regions." .
-rcc:TPP   a rcc:Relation ; rdfs:label "TPP"   ; rdfs:comment "Tangential proper part." .
-rcc:NTPP  a rcc:Relation ; rdfs:label "NTPP"  ; rdfs:comment "Non-tangential proper part." .
-rcc:TPPi  a rcc:Relation ; rdfs:label "TPPi"  ; rdfs:comment "Inverse of TPP." .
-rcc:NTPPi a rcc:Relation ; rdfs:label "NTPPi" ; rdfs:comment "Inverse of NTPP." .
+# Alignment note. Each SKOS close-match triple below points at the OGC
+# GeoSPARQL RCC-8 term with the same intended reading. GeoSPARQL models its
+# terms as binary properties between features, while VSON models them as values
+# on a reified SpatialFact, so the match is advisory: it records the shared
+# reading and imports no OWL entailment.
 
-# JEPD: pairwise disjoint, jointly exhaustive
+rcc:DC    a rcc:Relation ; rdfs:label "DC"    ;
+          rdfs:comment "Disconnected: the two regions share no points at all." ;
+          skos:closeMatch geo:rcc8dc .
+rcc:EC    a rcc:Relation ; rdfs:label "EC"    ;
+          rdfs:comment "Externally connected: the regions touch along their boundaries but their interiors do not overlap." ;
+          skos:closeMatch geo:rcc8ec .
+rcc:PO    a rcc:Relation ; rdfs:label "PO"    ;
+          rdfs:comment "Partial overlap: the regions share interior points, yet neither is a part of the other." ;
+          skos:closeMatch geo:rcc8po .
+rcc:EQ    a rcc:Relation ; rdfs:label "EQ"    ;
+          rdfs:comment "Equal: the two regions occupy exactly the same points." ;
+          skos:closeMatch geo:rcc8eq .
+rcc:TPP   a rcc:Relation ; rdfs:label "TPP"   ;
+          rdfs:comment "Tangential proper part: the figure is a proper part of the ground and the two boundaries touch." ;
+          skos:closeMatch geo:rcc8tpp .
+rcc:NTPP  a rcc:Relation ; rdfs:label "NTPP"  ;
+          rdfs:comment "Non-tangential proper part: the figure lies wholly inside the ground without their boundaries touching." ;
+          skos:closeMatch geo:rcc8ntpp .
+rcc:TPPi  a rcc:Relation ; rdfs:label "TPPi"  ;
+          rdfs:comment "Inverse of TPP: the ground is a tangential proper part of the figure." ;
+          skos:closeMatch geo:rcc8tppi .
+rcc:NTPPi a rcc:Relation ; rdfs:label "NTPPi" ;
+          rdfs:comment "Inverse of NTPP: the ground is a non-tangential proper part of the figure." ;
+          skos:closeMatch geo:rcc8ntppi .
+
+# owl:AllDifferent asserts only that the eight names denote distinct values, so
+# that two RCC-8 values on one SpatialFact cannot be quietly equated. It does
+# not encode JEPD — joint exhaustiveness and pairwise disjointness hold in the
+# intended interpretation, not as axioms here.
 [] a owl:AllDifferent ;
    owl:distinctMembers ( rcc:DC rcc:EC rcc:PO rcc:EQ rcc:TPP rcc:NTPP rcc:TPPi rcc:NTPPi ) .

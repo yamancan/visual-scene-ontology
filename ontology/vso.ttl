@@ -4,12 +4,62 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix dc:    <http://purl.org/dc/terms/> .
+@prefix vann:  <http://purl.org/vocab/vann/> .
 
 <https://vson.dev/v1/ontology>
     a owl:Ontology ;
+    rdfs:label "Visual Scene Ontology (VSO)" ;
+    rdfs:comment "TBox for VSON v1.1: the entity taxonomy, the frame layer, the reification node classes, and the closed value vocabularies the SHACL shapes validate against." ;
     dc:title "Visual Scene Ontology (VSO) v1.1" ;
-    dc:description "OWL 2 RL ontology for visual scenes. DOLCE-aligned. Companion to VSV vocabulary and VSON-S shapes." ;
-    owl:versionInfo "1.1" .
+    dc:description "OWL 2 RL-checkable TBox; eight bridge properties are intentionally untyped rdf:Property to admit mixed literal/IRI/quoted-triple objects, placing the full graph outside OWL 2 DL. DOLCE-inspired. Companion to VSV vocabulary and VSON-S shapes." ;
+    dc:creator "yamancan" ;
+    dc:license <https://www.apache.org/licenses/LICENSE-2.0> ;
+    dc:modified "2026-07-30"^^xsd:date ;
+    owl:versionInfo "1.1" ;
+    owl:versionIRI <https://vson.dev/v1.1/ontology> ;
+    owl:priorVersion <https://vson.dev/v1.0/ontology> ;
+    vann:preferredNamespacePrefix "vso" ;
+    vann:preferredNamespaceUri "https://vson.dev/v1/ontology#" .
+
+#################################################################
+# Profile status — read this before quoting a profile name
+#
+# Everything in this file is expressible in OWL 2 RL, and tools/owlrl_check.py
+# materializes the OWL 2 RL closure of (this ontology + a document) to catch
+# disjointness and distinctness clashes. That is the "RL-checkable" claim in
+# dc:description, and it is the only profile claim made.
+#
+# It is NOT a claim that a VSON document is an OWL 2 DL ontology. Eight
+# properties are declared as bare `a rdf:Property` — neither owl:ObjectProperty
+# nor owl:DatatypeProperty — because each one bridges object kinds that OWL 2
+# keeps apart (a property may not be both object- and datatype-valued, and
+# quoted triples are outside OWL 2 altogether):
+#
+#   vso:value             literal OR IRI. The :alice Quality bundle in
+#                         examples/throne_room.ttl carries a string ("joyful"),
+#                         an integer (30) and an IRI (:queen) as values of three
+#                         Qualities on one entity; typing the property either way
+#                         would outlaw one of the three.
+#   vso:class             IRI when the Penman transpiler compiles a bareword;
+#                         xsd:string literals are equally conformant.
+#   vso:time              temporal grounding (the thematic-role table in
+#                         docs/vson.md): an interval or event IRI, or a literal
+#                         time expression. No shipped example uses it yet.
+#   vso:manner            bareword adverbial. The reference transpiler emits it
+#                         as xsd:string (role_value_as_string in
+#                         tools/penman/routing-tables.json); left untyped so an
+#                         IRI-valued manner from another producer is not a
+#                         declaration clash.
+#   vso:proposition       RDF-star quoted triple OR a vso:Annotation node (§18).
+#   vso:negatedStatement  same dual form.
+#   vso:qDomain           same dual form.
+#   vso:scope             same dual form.
+#
+# Consequence: a graph that uses any of the eight is outside OWL 2 DL, so it
+# must not be described as DL- or EL-conformant. The RL gate still applies,
+# because OWL 2 RL is specified as a rule set over arbitrary RDF graphs rather
+# than over a typed DL ontology.
+#################################################################
 
 #################################################################
 # 1. Top-level taxonomy
@@ -23,7 +73,7 @@ vso:Quality       a owl:Class ; rdfs:subClassOf vso:Entity ; rdfs:label "Quality
 vso:Region        a owl:Class ; rdfs:subClassOf vso:Entity ; rdfs:label "Region"     ; rdfs:comment "A space or interval (positions, times, zones)." .
 
 # Endurants
-vso:PhysicalObject a owl:Class ; rdfs:subClassOf vso:Endurant ; rdfs:label "PhysicalObject" .
+vso:PhysicalObject a owl:Class ; rdfs:subClassOf vso:Endurant ; rdfs:label "PhysicalObject" ; rdfs:comment "A bounded, countable material thing: person, animal, artifact, plant." .
 vso:Aggregate      a owl:Class ; rdfs:subClassOf vso:Endurant ; rdfs:label "Aggregate"      ; rdfs:comment "Crowd, swarm, forest." .
 vso:Substance      a owl:Class ; rdfs:subClassOf vso:Endurant ; rdfs:label "Substance"      ; rdfs:comment "Mass nouns: water, smoke, blood." .
 
@@ -35,20 +85,35 @@ vso:Stative a owl:Class ; rdfs:subClassOf vso:Perdurant ; rdfs:label "Stative" ;
 # Endurants/Perdurants are disjoint (DOLCE)
 [] a owl:AllDisjointClasses ; owl:members ( vso:Endurant vso:Perdurant vso:Quality vso:Region ) .
 
+# The three Perdurant subtypes are pairwise disjoint: an occurrence is punctual
+# (Event), durative (Process), or static (Stative). The aspectual distinction is
+# exclusive, so a node typed into two of them is an error the owl-consistency
+# gate should report rather than silently accept.
+[] a owl:AllDisjointClasses ; owl:members ( vso:Event vso:Process vso:Stative ) .
+
 #################################################################
 # 2. Frame layer (perspectival; NOT an Entity)
 #################################################################
 
 vso:Frame          a owl:Class ; rdfs:label "Frame" ; rdfs:comment "Perspectival or organizational layer; not part of the depicted world." .
-vso:SceneContext   a owl:Class ; rdfs:subClassOf vso:Frame ; rdfs:label "SceneContext" .
-vso:VisualStyle    a owl:Class ; rdfs:subClassOf vso:Frame ; rdfs:label "VisualStyle" .
-vso:CameraView     a owl:Class ; rdfs:subClassOf vso:Frame ; rdfs:label "CameraView" .
+vso:SceneContext   a owl:Class ; rdfs:subClassOf vso:Frame ; rdfs:label "SceneContext" ; rdfs:comment "Setting of the scene: venue, atmosphere, time of day, weather." .
+vso:VisualStyle    a owl:Class ; rdfs:subClassOf vso:Frame ; rdfs:label "VisualStyle" ; rdfs:comment "How the scene is rendered: aesthetic, palette, medium." .
+vso:CameraView     a owl:Class ; rdfs:subClassOf vso:Frame ; rdfs:label "CameraView" ; rdfs:comment "The vantage point the scene is seen from; the viewer a directional SpatialFact is relative to." .
 vso:Composition    a owl:Class ; rdfs:subClassOf vso:Frame ; rdfs:label "Composition" ; rdfs:comment "Mereological root for a scene." .
 vso:Persona        a owl:Class ; rdfs:subClassOf vso:Frame ; rdfs:label "Persona"
                    ; rdfs:comment "Cross-document identity carrier. Links scene Entities (via vso:embodies) to stable identity invariants (via vso:hasInvariant). Persona IRIs MAY be shared across multiple VSON documents." .
 
 # Frame is disjoint from Entity (the world ≠ the lens)
 vso:Frame  owl:disjointWith vso:Entity .
+
+# The five Frame subtypes are pairwise disjoint: a node is a camera, or a style,
+# or a context, or the composition root, or a persona — never two at once.
+# Several of them are also reachable by an edge whose rdfs:range names the
+# subtype (vso:viewedBy → CameraView, vso:rendersAs → VisualStyle, vso:embodies
+# → Persona), so without this axiom a node reached by two such edges would
+# silently acquire both types instead of raising an OWL 2 RL clash.
+[] a owl:AllDisjointClasses ; owl:members
+   ( vso:SceneContext vso:VisualStyle vso:CameraView vso:Composition vso:Persona ) .
 
 #################################################################
 # 3. Reification node classes
@@ -58,9 +123,24 @@ vso:SpatialFact   a owl:Class ; rdfs:label "SpatialFact"
                   ; rdfs:comment "Reified spatial relation between figure and ground; topological (RCC-8) and/or directional (with mandatory viewer) and/or proximal." .
 vso:Negation      a owl:Class ; rdfs:label "Negation"
                   ; rdfs:comment "Reified negation of an RDF-star quoted triple." .
-vso:Quantification a owl:Class ; rdfs:label "Quantification" .
+vso:Quantification a owl:Class ; rdfs:label "Quantification"
+                  ; rdfs:comment "Reified quantified statement: a quantifier lexeme, a bound variable, an optional domain restriction, and a scope." .
 vso:BeliefState   a owl:Class ; rdfs:label "BeliefState"
                   ; rdfs:comment "Reified propositional attitude." .
+
+# The reification classes are pairwise disjoint, and jointly disjoint from the
+# Frame layer. (vso:Annotation is declared in §18; the axiom lives here because
+# it constrains this family.) Without this, the owl-consistency gate cannot see
+# a node reified as two incompatible kinds at once.
+#
+# vso:Entity is deliberately NOT a member. vso:depicts has rdfs:range vso:Entity
+# and the shipped corpus legitimately attaches reification nodes with it
+# (examples/throne_room.ttl depicts two SpatialFacts; gallery 13/14/15 depict a
+# Negation / BeliefState / Quantification). vss:DepictsEntityShape already
+# records that as a migrating convention at sh:Warning severity; promoting it to
+# an OWL disjointness would make those conformant documents inconsistent.
+[] a owl:AllDisjointClasses ; owl:members
+   ( vso:SpatialFact vso:Negation vso:Quantification vso:BeliefState vso:Annotation vso:Frame ) .
 
 #################################################################
 # 4. Trait individuals (orthogonal axes)
@@ -68,29 +148,43 @@ vso:BeliefState   a owl:Class ; rdfs:label "BeliefState"
 
 vso:IndividuationKind a owl:Class ; rdfs:label "IndividuationKind"
                       ; rdfs:comment "Closed axis of individuation: Generic | Named | Kind | Skolem." .
-vso:Generic a vso:IndividuationKind .
-vso:Named   a vso:IndividuationKind .
-vso:Kind    a vso:IndividuationKind .
-vso:Skolem  a vso:IndividuationKind .
+vso:Generic a vso:IndividuationKind ; rdfs:label "Generic"
+            ; rdfs:comment "An unnamed instance of a class — 'a knight', not a particular knight tracked across scenes." .
+vso:Named   a vso:IndividuationKind ; rdfs:label "Named"
+            ; rdfs:comment "A specific individual bearing a proper name (Alice, Excalibur)." .
+vso:Kind    a vso:IndividuationKind ; rdfs:label "Kind"
+            ; rdfs:comment "The class itself rather than any instance of it — reference to horses as a kind." .
+vso:Skolem  a vso:IndividuationKind ; rdfs:label "Skolem"
+            ; rdfs:comment "A particular but unnamed individual, tracked within the document by a minted handle." .
 
 vso:AnimacyKind a owl:Class ; rdfs:label "AnimacyKind"
                 ; rdfs:comment "Closed axis of animacy: Agentive | Inert." .
-vso:Agentive a vso:AnimacyKind .
-vso:Inert    a vso:AnimacyKind .
+vso:Agentive a vso:AnimacyKind ; rdfs:label "Agentive"
+             ; rdfs:comment "An agent — human, animal, or animated mechanism — capable of initiating action." .
+vso:Inert    a vso:AnimacyKind ; rdfs:label "Inert"
+             ; rdfs:comment "Inanimate matter: furniture, vegetation, weapons at rest." .
 
 vso:CountabilityKind a owl:Class ; rdfs:label "CountabilityKind"
                      ; rdfs:comment "Closed axis of countability: Count | Mass | Collective." .
-vso:Count      a vso:CountabilityKind .
-vso:Mass       a vso:CountabilityKind .
-vso:Collective a vso:CountabilityKind .
+vso:Count      a vso:CountabilityKind ; rdfs:label "Count"
+               ; rdfs:comment "An individuable thing that can be counted one by one." .
+vso:Mass       a vso:CountabilityKind ; rdfs:label "Mass"
+               ; rdfs:comment "An uncountable substance measured rather than counted; the countability of vso:Substance." .
+vso:Collective a vso:CountabilityKind ; rdfs:label "Collective"
+               ; rdfs:comment "A plurality carried on one node rather than enumerated; the countability of vso:Aggregate." .
 
 vso:Affordance a owl:Class ; rdfs:label "Affordance"
                ; rdfs:comment "Affordance an Endurant offers (Holdable, Wearable, Mountable, Container, Edible)." .
-vso:Holdable   a vso:Affordance .
-vso:Wearable   a vso:Affordance .
-vso:Mountable  a vso:Affordance .
-vso:Container  a vso:Affordance .
-vso:Edible     a vso:Affordance .
+vso:Holdable   a vso:Affordance ; rdfs:label "Holdable"
+               ; rdfs:comment "Can be grasped and carried in the hand." .
+vso:Wearable   a vso:Affordance ; rdfs:label "Wearable"
+               ; rdfs:comment "Can be worn on the body." .
+vso:Mountable  a vso:Affordance ; rdfs:label "Mountable"
+               ; rdfs:comment "Can be climbed onto, sat on, or ridden." .
+vso:Container  a vso:Affordance ; rdfs:label "Container"
+               ; rdfs:comment "Can hold other things inside it." .
+vso:Edible     a vso:Affordance ; rdfs:label "Edible"
+               ; rdfs:comment "Can be eaten or drunk." .
 
 # Trait-kind individuals are pairwise distinct (mirrors the rcc8.ttl JEPD
 # discipline). Without this, asserting two kinds on one functional trait
@@ -99,6 +193,11 @@ vso:Edible     a vso:Affordance .
 [] a owl:AllDifferent ; owl:distinctMembers ( vso:Generic vso:Named vso:Kind vso:Skolem ) .
 [] a owl:AllDifferent ; owl:distinctMembers ( vso:Agentive vso:Inert ) .
 [] a owl:AllDifferent ; owl:distinctMembers ( vso:Count vso:Mass vso:Collective ) .
+# vso:affordance is non-functional (0..n per Endurant), so the sibling axes'
+# prp-fp collapse does not apply here; the distinctness is asserted for parity
+# so that no downstream axiom or reasoner may quietly equate two affordances.
+[] a owl:AllDifferent ; owl:distinctMembers
+   ( vso:Holdable vso:Wearable vso:Mountable vso:Container vso:Edible ) .
 
 #################################################################
 # 5. Trait properties
@@ -106,35 +205,59 @@ vso:Edible     a vso:Affordance .
 
 vso:individuation a owl:ObjectProperty , owl:FunctionalProperty ;
     rdfs:domain vso:Entity ;
-    rdfs:range  vso:IndividuationKind .
+    rdfs:range  vso:IndividuationKind ;
+    rdfs:label "individuation" ;
+    rdfs:comment "How the Entity is individuated; exactly one vso:IndividuationKind per Entity." .
 
 vso:animacy       a owl:ObjectProperty , owl:FunctionalProperty ;
     rdfs:domain vso:Entity ;
-    rdfs:range  vso:AnimacyKind .
+    rdfs:range  vso:AnimacyKind ;
+    rdfs:label "animacy" ;
+    rdfs:comment "Whether the Entity is agentive or inert; exactly one vso:AnimacyKind per Entity." .
 
 vso:countability  a owl:ObjectProperty , owl:FunctionalProperty ;
     rdfs:domain vso:Entity ;
-    rdfs:range  vso:CountabilityKind .
+    rdfs:range  vso:CountabilityKind ;
+    rdfs:label "countability" ;
+    rdfs:comment "Whether the Entity is counted, measured, or collective; exactly one vso:CountabilityKind per Entity." .
 
 vso:affordance    a owl:ObjectProperty ;
     rdfs:domain vso:Endurant ;
-    rdfs:range  vso:Affordance .
+    rdfs:range  vso:Affordance ;
+    rdfs:label "affordance" ;
+    rdfs:comment "An affordance the Endurant offers; unlike the other trait axes this one is non-functional (zero or more per Endurant)." .
 
 #################################################################
 # 6. Frame-attachment properties
 #################################################################
 
-vso:framedBy   a owl:ObjectProperty ; rdfs:domain vso:Composition ; rdfs:range vso:Frame .
-vso:depicts    a owl:ObjectProperty ; rdfs:domain vso:Composition ; rdfs:range vso:Entity .
-vso:viewedBy   a owl:ObjectProperty ; rdfs:domain vso:Composition ; rdfs:range vso:CameraView .
-vso:rendersAs  a owl:ObjectProperty ; rdfs:domain vso:Composition ; rdfs:range vso:VisualStyle .
+vso:framedBy   a owl:ObjectProperty ; rdfs:domain vso:Composition ; rdfs:range vso:Frame ;
+               rdfs:label "framedBy" ;
+               rdfs:comment "Attaches a Frame node (context, style, camera, persona) to the Composition it frames." .
+vso:depicts    a owl:ObjectProperty ; rdfs:domain vso:Composition ; rdfs:range vso:Entity ;
+               rdfs:label "depicts" ;
+               rdfs:comment "An Entity shown in the Composition; a Composition must depict at least one." .
+vso:viewedBy   a owl:ObjectProperty ; rdfs:domain vso:Composition ; rdfs:range vso:CameraView ;
+               rdfs:label "viewedBy" ;
+               rdfs:comment "The CameraView the Composition is seen from." .
+vso:rendersAs  a owl:ObjectProperty ; rdfs:domain vso:Composition ; rdfs:range vso:VisualStyle ;
+               rdfs:label "rendersAs" ;
+               rdfs:comment "The VisualStyle the Composition is rendered in." .
 
 # vso:hasFact attaches reification nodes (SpatialFact, Negation, BeliefState,
 # Quantification, Annotation) to a Composition. Distinct from vso:depicts,
 # which is reserved for vso:Entity (the depicted world). Range deliberately
 # unconstrained at the OWL level (multiple classes); SHACL can tighten later.
 vso:hasFact    a owl:ObjectProperty ; rdfs:domain vso:Composition ;
+               rdfs:label "hasFact" ;
                rdfs:comment "Attaches a reification node (SpatialFact, Negation, BeliefState, Quantification, Annotation) to a Composition. Use vso:depicts only for vso:Entity targets." .
+
+# vso:occurs — documented in docs/vson.md §5.2 and emitted by the gallery
+# (05/06/07/09) and the studio envelope corpus, but undeclared until now, which
+# made those documents fail conformance clause C2 (no orphan VSO terms).
+vso:occurs     a owl:ObjectProperty ; rdfs:domain vso:Composition ; rdfs:range vso:Perdurant ;
+               rdfs:label "occurs" ;
+               rdfs:comment "Events / Processes / Statives observed within this composition; producers MAY also use vso:depicts for perdurants, and both forms are conformant." .
 
 #################################################################
 # 7. Quality attachment
@@ -152,17 +275,24 @@ vso:Composition rdfs:subClassOf vso:QualityBearer .
 
 vso:hasQuality a owl:ObjectProperty ;
     rdfs:domain vso:QualityBearer ;
-    rdfs:range  vso:Quality .
+    rdfs:range  vso:Quality ;
+    rdfs:label "hasQuality" ;
+    rdfs:comment "Attaches a contingent, per-scene Quality to an Entity or a Composition." .
 
 vso:dimension a owl:ObjectProperty , owl:FunctionalProperty ;
-    rdfs:domain vso:Quality .
+    rdfs:domain vso:Quality ;
+    rdfs:label "dimension" ;
+    rdfs:comment "Which axis a Quality measures (Color, Affect, Role, ...); exactly one per Quality." .
 
 vso:value a rdf:Property ;
-    rdfs:domain vso:Quality .
+    rdfs:domain vso:Quality ;
+    rdfs:label "value" ;
+    rdfs:comment "The reading of a Quality on its dimension; deliberately untyped so a string, a number, or an IRI are all admissible (see the Profile status note at the top of this file)." .
 
 vso:modifier a owl:DatatypeProperty ;
     rdfs:domain vso:Quality ;
     rdfs:range  xsd:string ;
+    rdfs:label "modifier" ;
     rdfs:comment "Optional adverbial modifier on a Quality (e.g., 'dark' on Color, 'very' on Weight). Snake_case bareword. Cardinality 0..1; SHACL-enforced via vss:QualityModifierShape (relaxed; absence is normal)." .
 
 # vso:class — declared here because it appears in docs and gallery examples
@@ -172,79 +302,191 @@ vso:modifier a owl:DatatypeProperty ;
 # emitted by the Penman parser when a bare ID is given).
 vso:class a rdf:Property ;
     rdfs:domain vso:Entity ;
+    rdfs:label "class" ;
     rdfs:comment "Domain-class designation from the open class registry (Knight, Crown, Sword, Woman, Apple, ...). Open vocabulary. Values typically IRIs in the document namespace when emitted from bareword input; xsd:string literals also conformant. Range intentionally unconstrained." .
 
 # Persona linkage — embodies and hasInvariant
 vso:embodies a owl:ObjectProperty ;
     rdfs:domain vso:Entity ;
     rdfs:range  vso:Persona ;
+    rdfs:label "embodies" ;
     rdfs:comment "Entity embodies (instantiates) a Persona in this scene. The Persona's vso:hasInvariant Qualities are stable identity facts shared across embodiments." .
 
 vso:hasInvariant a owl:ObjectProperty ;
     rdfs:domain vso:Persona ;
     rdfs:range  vso:Quality ;
+    rdfs:label "hasInvariant" ;
     rdfs:comment "Invariant Quality of the Persona — stable across embodiments (hair color, build, etc.). Contrast with vso:hasQuality which is contingent per scene." .
 
-# Common quality dimensions
+# Quality dimensions — CLOSED registry under the VSO namespace.
+#
+# The registry is exactly the vso:Dimension individuals declared below. This
+# file is the single source of the list; docs/vson.md §5.5.1 restates it in
+# table form and nothing else is normative. Adding a member is a v1.x-compatible
+# change (§8); removing or renaming one is not.
 vso:Dimension a owl:Class ; rdfs:label "Dimension"
-              ; rdfs:comment "Registry of Quality dimensions (Color, Weight, Material, Affect, Age, Role, Size, Enchantment)." .
-vso:Color      a vso:Dimension .
-vso:Weight     a vso:Dimension .
-vso:Material   a vso:Dimension .
-vso:Affect     a vso:Dimension .   # mood
-vso:Age        a vso:Dimension .
-vso:Role       a vso:Dimension .
-vso:Size       a vso:Dimension .
-vso:Enchantment a vso:Dimension .
+              ; rdfs:comment "Registry of Quality dimensions. CLOSED under the VSO namespace: the admissible values of vso:dimension in this namespace are exactly the vso:Dimension individuals declared in this file, and any other vson.dev IRI in that slot is an orphan VSO term — non-conformant under clause C2 (docs/vson.md §2). A producer needing a further dimension MUST mint it under its own document namespace, never under vso:." .
+vso:Color      a vso:Dimension ; rdfs:label "Color"
+               ; rdfs:comment "Perceived colour of the bearer." .
+vso:Weight     a vso:Dimension ; rdfs:label "Weight"
+               ; rdfs:comment "Heaviness of the bearer, as read off the scene rather than measured." .
+vso:Material   a vso:Dimension ; rdfs:label "Material"
+               ; rdfs:comment "What the bearer is made of (stone, silk, iron)." .
+vso:Affect     a vso:Dimension ; rdfs:label "Affect"
+               ; rdfs:comment "Mood or emotional state attributed to the bearer." .
+vso:Age        a vso:Dimension ; rdfs:label "Age"
+               ; rdfs:comment "Age of the bearer, as a number of years or an age band." .
+vso:Role       a vso:Dimension ; rdfs:label "Role"
+               ; rdfs:comment "Social or narrative role the bearer occupies in the scene (queen, knight)." .
+vso:Size       a vso:Dimension ; rdfs:label "Size"
+               ; rdfs:comment "Relative size of the bearer." .
+vso:Enchantment a vso:Dimension ; rdfs:label "Enchantment"
+               ; rdfs:comment "Magical or supernatural property attributed to the bearer." .
+
+# Composition, action, and quantity axes. ActionState/Layout/Focal are emitted
+# into the VSO namespace by the Penman transpiler from examples/throne_room.vson
+# and examples/gallery/11_throne_room.vson, so they must be declared here or the
+# shipped corpus violates C2. Amount is the VSON-X `*amount` key.
+vso:ActionState a vso:Dimension ; rdfs:label "ActionState"
+               ; rdfs:comment "Transient action phase of an Entity (drawn, raised, running)." .
+vso:Layout     a vso:Dimension ; rdfs:label "Layout"
+               ; rdfs:comment "Compositional dimension: how the scene is arranged; borne by a Composition." .
+vso:Focal      a vso:Dimension ; rdfs:label "Focal"
+               ; rdfs:comment "Compositional dimension: what the scene draws attention to; borne by a Composition." .
+vso:Amount     a vso:Dimension ; rdfs:label "Amount"
+               ; rdfs:comment "How much of the bearer there is, for Substances and Aggregates read as quantity rather than count." .
+
+# Appearance axes. Hair/Skin/Pose carry the Persona invariants of
+# docs/vson.md §5.3.4 and examples/gallery/12_persona.vson; Eye carries the
+# second invariant of the §5.3.4 worked example. Hairstyle/Eyewear/Headwear/
+# Outfit/Fit are the remaining members of the VSON-X closed dimension
+# vocabulary (docs/vson-x-semantics.md §3.2.1), which the VSON-X emitter turns
+# into VSO-namespace IRIs the same way — undeclared, they would be orphan terms
+# the moment a fashion or portrait scene used them.
+vso:Hair       a vso:Dimension ; rdfs:label "Hair"
+               ; rdfs:comment "Hair of the bearer, as colour or length (auburn, black_short); a common Persona invariant." .
+vso:Hairstyle  a vso:Dimension ; rdfs:label "Hairstyle"
+               ; rdfs:comment "Cut or styling of the bearer's hair (bob, braided, ponytail), as distinct from its colour or length." .
+vso:Skin       a vso:Dimension ; rdfs:label "Skin"
+               ; rdfs:comment "Skin tone or complexion of the bearer; a common Persona invariant." .
+vso:Eye        a vso:Dimension ; rdfs:label "Eye"
+               ; rdfs:comment "Eye colour of the bearer; a common Persona invariant." .
+vso:Eyewear    a vso:Dimension ; rdfs:label "Eyewear"
+               ; rdfs:comment "Eyewear the bearer is wearing (sunglasses, round_frames)." .
+vso:Headwear   a vso:Dimension ; rdfs:label "Headwear"
+               ; rdfs:comment "Headwear the bearer is wearing (beanie, wide_brim_hat)." .
+vso:Outfit     a vso:Dimension ; rdfs:label "Outfit"
+               ; rdfs:comment "The garment or ensemble the bearer is wearing, read as a whole (trench_coat, three_piece_suit)." .
+vso:Fit        a vso:Dimension ; rdfs:label "Fit"
+               ; rdfs:comment "How the bearer's garment sits on the body (oversized, tailored, cropped)." .
+vso:Pose       a vso:Dimension ; rdfs:label "Pose"
+               ; rdfs:comment "Bodily posture of the bearer." .
 
 # vso:dimension is owl:FunctionalProperty, so a Quality asserting two dimensions
 # collapses them to owl:sameAs via prp-fp. Declaring the dimension individuals
 # pairwise-distinct turns that collapse into a detectable eq-diff1 clash in the
 # owl-consistency gate — mirroring the individuation/animacy/countability axes.
+# This list MUST name every vso:Dimension individual declared above: a member
+# left out is a member that can silently sameAs-collapse.
+# tests/test_shapes_gate.py pins the two sets equal.
 [] a owl:AllDifferent ; owl:distinctMembers
-   ( vso:Color vso:Weight vso:Material vso:Affect vso:Age vso:Role vso:Size vso:Enchantment ) .
+   ( vso:Color vso:Weight vso:Material vso:Affect vso:Age vso:Role vso:Size vso:Enchantment
+     vso:ActionState vso:Layout vso:Focal vso:Amount
+     vso:Hair vso:Hairstyle vso:Skin vso:Eye vso:Eyewear vso:Headwear vso:Outfit vso:Fit
+     vso:Pose ) .
 
 #################################################################
 # 8. Thematic-role properties (used on Event / Process / Stative)
 #################################################################
 
-vso:agent       a owl:ObjectProperty ; rdfs:range vso:Endurant .
-vso:patient     a owl:ObjectProperty ; rdfs:range vso:Endurant .
-vso:theme       a owl:ObjectProperty .
-vso:instrument  a owl:ObjectProperty ; rdfs:range vso:PhysicalObject .
-vso:recipient   a owl:ObjectProperty ; rdfs:range vso:Endurant .
-vso:source      a owl:ObjectProperty .
-vso:goal        a owl:ObjectProperty .
-vso:beneficiary a owl:ObjectProperty ; rdfs:range vso:Endurant .
-vso:experiencer a owl:ObjectProperty ; rdfs:range vso:Endurant .
-vso:stimulus    a owl:ObjectProperty .
-vso:location    a owl:ObjectProperty .
-vso:time        a rdf:Property .
-vso:manner      a rdf:Property .
-vso:cause       a owl:ObjectProperty ; rdfs:range vso:Perdurant .
-vso:result      a owl:ObjectProperty .
+vso:agent       a owl:ObjectProperty ; rdfs:range vso:Endurant ;
+                rdfs:label "agent" ;
+                rdfs:comment "Volitional doer of an Event or Process." .
+vso:patient     a owl:ObjectProperty ; rdfs:range vso:Endurant ;
+                rdfs:label "patient" ;
+                rdfs:comment "Entity affected or changed by an Event." .
+vso:theme       a owl:ObjectProperty ;
+                rdfs:label "theme" ;
+                rdfs:comment "Entity standing in the relation or state without being changed by it." .
+vso:instrument  a owl:ObjectProperty ; rdfs:range vso:PhysicalObject ;
+                rdfs:label "instrument" ;
+                rdfs:comment "Means or tool the Event is carried out with." .
+vso:recipient   a owl:ObjectProperty ; rdfs:range vso:Endurant ;
+                rdfs:label "recipient" ;
+                rdfs:comment "Goal-receiver in a transfer Event." .
+vso:source      a owl:ObjectProperty ;
+                rdfs:label "source" ;
+                rdfs:comment "Origin the transfer or motion starts from." .
+vso:goal        a owl:ObjectProperty ;
+                rdfs:label "goal" ;
+                rdfs:comment "Target or destination the Event or Process is directed at." .
+vso:beneficiary a owl:ObjectProperty ; rdfs:range vso:Endurant ;
+                rdfs:label "beneficiary" ;
+                rdfs:comment "Entity for whose benefit the Event is performed." .
+vso:experiencer a owl:ObjectProperty ; rdfs:range vso:Endurant ;
+                rdfs:label "experiencer" ;
+                rdfs:comment "Sentient Endurant holding a cognitive or perceptual Stative." .
+vso:stimulus    a owl:ObjectProperty ;
+                rdfs:label "stimulus" ;
+                rdfs:comment "What the experiencer of a Stative is oriented toward." .
+vso:location    a owl:ObjectProperty ;
+                rdfs:label "location" ;
+                rdfs:comment "Where the perdurant takes place." .
+vso:time        a rdf:Property ;
+                rdfs:label "time" ;
+                rdfs:comment "When the perdurant takes place; untyped so an interval IRI or a literal time expression are both admissible." .
+vso:manner      a rdf:Property ;
+                rdfs:label "manner" ;
+                rdfs:comment "Adverbial manner of the perdurant, a snake_case bareword (swift, careful, forceful)." .
+vso:cause       a owl:ObjectProperty ; rdfs:range vso:Perdurant ;
+                rdfs:label "cause" ;
+                rdfs:comment "Perdurant that brought this one about, recorded as a role on the caused perdurant." .
+vso:result      a owl:ObjectProperty ;
+                rdfs:label "result" ;
+                rdfs:comment "State or entity the Event brings into being." .
 vso:lemma       a owl:DatatypeProperty ; rdfs:range xsd:string ;
-                rdfs:comment "PropBank-style frame lemma identifier (e.g. 'strike', 'give-01')." .
-vso:holder      a owl:ObjectProperty ; rdfs:range vso:Endurant .
+                rdfs:label "lemma" ;
+                rdfs:comment "Bare snake_case verb naming the perdurant (e.g. 'strike', 'look_at'); frame-index suffixes such as PropBank's '-01' are not used." .
+vso:holder      a owl:ObjectProperty ; rdfs:range vso:Endurant ;
+                rdfs:label "holder" ;
+                rdfs:comment "Possessor in a hold / wear / own Stative." .
 
 #################################################################
 # 9. Stative possession (object-world, not graph)
 #################################################################
 
-vso:holds   a owl:ObjectProperty ; rdfs:domain vso:Endurant ; rdfs:range vso:PhysicalObject .
-vso:wears   a owl:ObjectProperty ; rdfs:domain vso:Endurant ; rdfs:range vso:PhysicalObject .
-vso:owns    a owl:ObjectProperty ; rdfs:domain vso:Endurant ; rdfs:range vso:Endurant .
-vso:carries a owl:ObjectProperty ; rdfs:domain vso:Endurant ; rdfs:range vso:PhysicalObject .
+vso:holds   a owl:ObjectProperty ; rdfs:domain vso:Endurant ; rdfs:range vso:PhysicalObject ;
+            rdfs:label "holds" ;
+            rdfs:comment "The subject has the object in hand or grip at the depicted moment." .
+vso:wears   a owl:ObjectProperty ; rdfs:domain vso:Endurant ; rdfs:range vso:PhysicalObject ;
+            rdfs:label "wears" ;
+            rdfs:comment "The subject has the object on its body as clothing, armour, or ornament." .
+vso:owns    a owl:ObjectProperty ; rdfs:domain vso:Endurant ; rdfs:range vso:Endurant ;
+            rdfs:label "owns" ;
+            rdfs:comment "The subject possesses the object independently of the depicted moment." .
+vso:carries a owl:ObjectProperty ; rdfs:domain vso:Endurant ; rdfs:range vso:PhysicalObject ;
+            rdfs:label "carries" ;
+            rdfs:comment "The subject bears the object along with it, not necessarily in hand." .
 
 #################################################################
 # 10. Mereology (with axioms)
 #################################################################
 
-vso:partOf       a owl:ObjectProperty , owl:TransitiveProperty .
-vso:hasPart      a owl:ObjectProperty , owl:TransitiveProperty ; owl:inverseOf vso:partOf .
-vso:properPartOf a owl:ObjectProperty , owl:TransitiveProperty ; rdfs:subPropertyOf vso:partOf .
-vso:overlaps     a owl:ObjectProperty , owl:SymmetricProperty .
-vso:disjoint     a owl:ObjectProperty , owl:SymmetricProperty .
+vso:partOf       a owl:ObjectProperty , owl:TransitiveProperty ;
+                 rdfs:label "partOf" ;
+                 rdfs:comment "The subject is a part of the object; transitive, inverse of vso:hasPart." .
+vso:hasPart      a owl:ObjectProperty , owl:TransitiveProperty ; owl:inverseOf vso:partOf ;
+                 rdfs:label "hasPart" ;
+                 rdfs:comment "The object is a part of the subject; transitive, inverse of vso:partOf." .
+vso:properPartOf a owl:ObjectProperty , owl:TransitiveProperty ; rdfs:subPropertyOf vso:partOf ;
+                 rdfs:label "properPartOf" ;
+                 rdfs:comment "The subject is a part of the object and not identical to it; a sub-property of vso:partOf." .
+vso:overlaps     a owl:ObjectProperty , owl:SymmetricProperty ;
+                 rdfs:label "overlaps" ;
+                 rdfs:comment "The two entities share at least one part; symmetric." .
+vso:disjoint     a owl:ObjectProperty , owl:SymmetricProperty ;
+                 rdfs:label "disjoint" ;
+                 rdfs:comment "The two entities share no part; symmetric." .
 
 #################################################################
 # 11. Spatial — RCC-8 + directional + proximal
@@ -259,12 +501,18 @@ vso:disjoint     a owl:ObjectProperty , owl:SymmetricProperty .
 # the Penman transpiler, and docs/vson.md (e.g. :sf vso:directional vso:left_of).
 vso:Direction a owl:Class ; rdfs:label "Direction"
               ; rdfs:comment "Closed set of frame-relative directional values (values of vso:directional)." .
-vso:above       a vso:Direction ; rdfs:label "above" .
-vso:below       a vso:Direction ; rdfs:label "below" .
-vso:left_of     a vso:Direction ; rdfs:label "left_of" .
-vso:right_of    a vso:Direction ; rdfs:label "right_of" .
-vso:in_front_of a vso:Direction ; rdfs:label "in_front_of" .
-vso:behind      a vso:Direction ; rdfs:label "behind" .
+vso:above       a vso:Direction ; rdfs:label "above"
+                ; rdfs:comment "The figure is higher than the ground in the viewer's frame." .
+vso:below       a vso:Direction ; rdfs:label "below"
+                ; rdfs:comment "The figure is lower than the ground in the viewer's frame." .
+vso:left_of     a vso:Direction ; rdfs:label "left_of"
+                ; rdfs:comment "The figure is to the viewer's left of the ground." .
+vso:right_of    a vso:Direction ; rdfs:label "right_of"
+                ; rdfs:comment "The figure is to the viewer's right of the ground." .
+vso:in_front_of a vso:Direction ; rdfs:label "in_front_of"
+                ; rdfs:comment "The figure is nearer to the viewer than the ground is." .
+vso:behind      a vso:Direction ; rdfs:label "behind"
+                ; rdfs:comment "The figure is further from the viewer than the ground is." .
 
 [] a owl:AllDifferent ; owl:distinctMembers ( vso:above vso:below vso:left_of vso:right_of vso:in_front_of vso:behind ) .
 
@@ -275,41 +523,74 @@ vso:behind      a vso:Direction ; rdfs:label "behind" .
 # closed value class.
 vso:ProximityKind a owl:Class ; rdfs:label "ProximityKind"
                   ; rdfs:comment "Closed set of proximity values (values of vso:proximal)." .
-vso:near        a vso:ProximityKind ; rdfs:label "near" .
-vso:far         a vso:ProximityKind ; rdfs:label "far" .
-vso:adjacent    a vso:ProximityKind ; rdfs:label "adjacent" .
-vso:next_to     a vso:ProximityKind ; rdfs:label "next_to" .
-vso:facing      a vso:ProximityKind ; rdfs:label "facing" .
+vso:near        a vso:ProximityKind ; rdfs:label "near"
+                ; rdfs:comment "The figure is close to the ground relative to the scale of the scene." .
+vso:far         a vso:ProximityKind ; rdfs:label "far"
+                ; rdfs:comment "The figure is distant from the ground relative to the scale of the scene." .
+vso:adjacent    a vso:ProximityKind ; rdfs:label "adjacent"
+                ; rdfs:comment "The figure is immediately beside the ground, with nothing between them." .
+vso:next_to     a vso:ProximityKind ; rdfs:label "next_to"
+                ; rdfs:comment "The figure is beside the ground, without the no-gap reading vso:adjacent asserts." .
+vso:facing      a vso:ProximityKind ; rdfs:label "facing"
+                ; rdfs:comment "The figure is turned toward the ground." .
 
 [] a owl:AllDifferent ; owl:distinctMembers ( vso:near vso:far vso:adjacent vso:next_to vso:facing ) .
 
 # SpatialFact structural properties
-vso:figure      a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain vso:SpatialFact .
-vso:ground      a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain vso:SpatialFact .
-vso:rcc         a owl:ObjectProperty ; rdfs:domain vso:SpatialFact .
-vso:directional a owl:ObjectProperty ; rdfs:domain vso:SpatialFact .
-vso:proximal    a owl:ObjectProperty ; rdfs:domain vso:SpatialFact .
-vso:viewer      a owl:ObjectProperty ; rdfs:domain vso:SpatialFact ; rdfs:range vso:CameraView .
+vso:figure      a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain vso:SpatialFact ;
+                rdfs:label "figure" ;
+                rdfs:comment "The entity being located by the SpatialFact; exactly one per fact." .
+vso:ground      a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain vso:SpatialFact ;
+                rdfs:label "ground" ;
+                rdfs:comment "The entity the figure is located against; exactly one per fact." .
+vso:rcc         a owl:ObjectProperty ; rdfs:domain vso:SpatialFact ;
+                rdfs:label "rcc" ;
+                rdfs:comment "Topological reading of the fact, valued by one of the eight rcc:Relation individuals." .
+vso:directional a owl:ObjectProperty ; rdfs:domain vso:SpatialFact ;
+                rdfs:label "directional" ;
+                rdfs:comment "Frame-relative reading of the fact, valued by a vso:Direction; requires a vso:viewer." .
+vso:proximal    a owl:ObjectProperty ; rdfs:domain vso:SpatialFact ;
+                rdfs:label "proximal" ;
+                rdfs:comment "Distance reading of the fact, valued by a vso:ProximityKind." .
+vso:viewer      a owl:ObjectProperty ; rdfs:domain vso:SpatialFact ; rdfs:range vso:CameraView ;
+                rdfs:label "viewer" ;
+                rdfs:comment "The CameraView a directional reading is relative to; mandatory whenever vso:directional is present." .
 
 #################################################################
 # 12. Causal (distinct from action)
 #################################################################
 
-vso:causes   a owl:ObjectProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant .
-vso:enables  a owl:ObjectProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant .
-vso:prevents a owl:ObjectProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant .
-vso:triggers a owl:ObjectProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant .
+vso:causes   a owl:ObjectProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant ;
+             rdfs:label "causes" ;
+             rdfs:comment "The subject perdurant brings the object perdurant about." .
+vso:enables  a owl:ObjectProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant ;
+             rdfs:label "enables" ;
+             rdfs:comment "The subject perdurant makes the object perdurant possible without bringing it about." .
+vso:prevents a owl:ObjectProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant ;
+             rdfs:label "prevents" ;
+             rdfs:comment "The subject perdurant keeps the object perdurant from occurring." .
+vso:triggers a owl:ObjectProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant ;
+             rdfs:label "triggers" ;
+             rdfs:comment "The subject perdurant sets the object perdurant off immediately." .
 
 #################################################################
 # 13. Modal / propositional attitudes
 #################################################################
 
-vso:believes  a owl:ObjectProperty ; rdfs:domain vso:Endurant .
-vso:intends   a owl:ObjectProperty ; rdfs:domain vso:Endurant .
-vso:perceives a owl:ObjectProperty ; rdfs:domain vso:Endurant .
+vso:believes  a owl:ObjectProperty ; rdfs:domain vso:Endurant ;
+              rdfs:label "believes" ;
+              rdfs:comment "Links an Endurant to the BeliefState holding what it takes to be true." .
+vso:intends   a owl:ObjectProperty ; rdfs:domain vso:Endurant ;
+              rdfs:label "intends" ;
+              rdfs:comment "Links an Endurant to the BeliefState holding what it aims to bring about." .
+vso:perceives a owl:ObjectProperty ; rdfs:domain vso:Endurant ;
+              rdfs:label "perceives" ;
+              rdfs:comment "Links an Endurant to the BeliefState holding what it senses." .
 vso:proposition a rdf:Property ; rdfs:domain vso:BeliefState ;
+                  rdfs:label "proposition" ;
                   rdfs:comment "The proposition that is believed/intended/perceived. Range is an RDF-star quoted triple in canonical Turtle 1.2 form, OR a vso:Annotation reified node (RDF 1.1 portable) — both forms are conformant per spec §18." .
 vso:negatedStatement a rdf:Property ; rdfs:domain vso:Negation ;
+                  rdfs:label "negatedStatement" ;
                   rdfs:comment "The negated proposition. Range is an RDF-star quoted triple OR a vso:Annotation reified node (same dual-form policy as vso:proposition)." .
 
 # Quantification properties (spec §6, §13). The vso:Quantification class is a
@@ -317,13 +598,17 @@ vso:negatedStatement a rdf:Property ; rdfs:domain vso:Negation ;
 # an optional domain restriction, and a scope (the predicated proposition).
 vso:quantifier a owl:DatatypeProperty ; rdfs:domain vso:Quantification ;
                 rdfs:range xsd:string ;
+                rdfs:label "quantifier" ;
                 rdfs:comment "Quantifier lexeme. Closed list: 'all', 'every', 'some', 'no', 'most', 'few'. Stored as snake_case xsd:string." .
 vso:variable   a owl:DatatypeProperty ; rdfs:domain vso:Quantification ;
                 rdfs:range xsd:string ;
+                rdfs:label "variable" ;
                 rdfs:comment "Variable name bound by the quantifier (e.g. 'x', 'horse'). Plain xsd:string token; appears as the subject in scope/domain triples." .
 vso:qDomain    a rdf:Property ; rdfs:domain vso:Quantification ;
+                rdfs:label "qDomain" ;
                 rdfs:comment "Optional domain restriction. Range is an RDF-star quoted triple OR a vso:Annotation reified node (same dual-form policy)." .
 vso:scope      a rdf:Property ; rdfs:domain vso:Quantification ;
+                rdfs:label "scope" ;
                 rdfs:comment "The proposition predicated of the bound variable. Range is an RDF-star quoted triple OR a vso:Annotation reified node." .
 
 #################################################################
@@ -331,41 +616,74 @@ vso:scope      a rdf:Property ; rdfs:domain vso:Quantification ;
 #################################################################
 
 vso:bbox2d        a owl:DatatypeProperty ; rdfs:range xsd:string ;
+                  rdfs:label "bbox2d" ;
                   rdfs:comment "Bounding box in image coords as 'x,y,w,h' (pixels) or normalized 'nx,ny,nw,nh'." .
 vso:position3d    a owl:DatatypeProperty ; rdfs:range xsd:string ;
+                  rdfs:label "position3d" ;
                   rdfs:comment "World position 'x,y,z'." .
-vso:scale3d       a owl:DatatypeProperty ; rdfs:range xsd:string .
+vso:scale3d       a owl:DatatypeProperty ; rdfs:range xsd:string ;
+                  rdfs:label "scale3d" ;
+                  rdfs:comment "World scale 'sx,sy,sz'." .
 vso:rotation      a owl:DatatypeProperty ; rdfs:range xsd:string ;
+                  rdfs:label "rotation" ;
                   rdfs:comment "Quaternion 'qx,qy,qz,qw' or Euler 'rx,ry,rz'." .
-vso:occludes      a owl:ObjectProperty ; rdfs:domain vso:PhysicalObject ; rdfs:range vso:PhysicalObject .
-vso:visibleFraction a owl:DatatypeProperty ; rdfs:range xsd:decimal .
+vso:occludes      a owl:ObjectProperty ; rdfs:domain vso:PhysicalObject ; rdfs:range vso:PhysicalObject ;
+                  rdfs:label "occludes" ;
+                  rdfs:comment "The subject stands in front of the object and hides part of it from the viewer." .
+vso:visibleFraction a owl:DatatypeProperty ; rdfs:range xsd:decimal ;
+                  rdfs:label "visibleFraction" ;
+                  rdfs:comment "Fraction of the entity still visible after occlusion, in [0,1]." .
 
 #################################################################
 # 15. Camera schema (USD-aligned)
 #################################################################
 
-vso:angle         a owl:DatatypeProperty ; rdfs:domain vso:CameraView .
-vso:focalLength   a owl:DatatypeProperty ; rdfs:domain vso:CameraView .
-vso:framing       a owl:DatatypeProperty ; rdfs:domain vso:CameraView .
-vso:lookAt        a owl:ObjectProperty   ; rdfs:domain vso:CameraView .
-vso:cameraPosition a owl:DatatypeProperty ; rdfs:domain vso:CameraView .
+vso:angle         a owl:DatatypeProperty ; rdfs:domain vso:CameraView ;
+                  rdfs:label "angle" ;
+                  rdfs:comment "Vertical camera attitude: eye_level, low, high, dutch, top_down, worms_eye." .
+vso:focalLength   a owl:DatatypeProperty ; rdfs:domain vso:CameraView ;
+                  rdfs:label "focalLength" ;
+                  rdfs:comment "Lens focal length as a 35mm-equivalent string ('24mm', '85mm') or a bare number of millimetres." .
+vso:framing       a owl:DatatypeProperty ; rdfs:domain vso:CameraView ;
+                  rdfs:label "framing" ;
+                  rdfs:comment "Shot size: extreme_close_up, close_up, medium_shot, wide_shot, extreme_wide_shot." .
+vso:lookAt        a owl:ObjectProperty   ; rdfs:domain vso:CameraView ;
+                  rdfs:label "lookAt" ;
+                  rdfs:comment "Reserved; not used by any shipped syntax or example." .
+vso:cameraPosition a owl:DatatypeProperty ; rdfs:domain vso:CameraView ;
+                  rdfs:label "cameraPosition" ;
+                  rdfs:comment "Free-form positional cue for the camera ('front_left_dolly', 'overhead')." .
 
 #################################################################
 # 16. Style schema
 #################################################################
 
-vso:aesthetic a owl:DatatypeProperty ; rdfs:domain vso:VisualStyle .
-vso:palette   a owl:DatatypeProperty ; rdfs:domain vso:VisualStyle .
-vso:medium    a owl:DatatypeProperty ; rdfs:domain vso:VisualStyle .
+vso:aesthetic a owl:DatatypeProperty ; rdfs:domain vso:VisualStyle ;
+              rdfs:label "aesthetic" ;
+              rdfs:comment "Overall visual idiom of the rendering (photographic, oil_painting, anime, noir, ...)." .
+vso:palette   a owl:DatatypeProperty ; rdfs:domain vso:VisualStyle ;
+              rdfs:label "palette" ;
+              rdfs:comment "Dominant colour treatment (warm, cool, monochrome, pastel, neon, ...)." .
+vso:medium    a owl:DatatypeProperty ; rdfs:domain vso:VisualStyle ;
+              rdfs:label "medium" ;
+              rdfs:comment "Physical or digital carrier of the image (photograph, canvas, paper, digital, fresco, ...)." .
 
 #################################################################
 # 17. Scene context schema
 #################################################################
 
-vso:venue      a owl:DatatypeProperty ; rdfs:domain vso:SceneContext .
-vso:atmosphere a owl:DatatypeProperty ; rdfs:domain vso:SceneContext .
-vso:timeOfDay  a owl:DatatypeProperty ; rdfs:domain vso:SceneContext .
-vso:weather    a owl:DatatypeProperty ; rdfs:domain vso:SceneContext .
+vso:venue      a owl:DatatypeProperty ; rdfs:domain vso:SceneContext ;
+               rdfs:label "venue" ;
+               rdfs:comment "Where the scene is set, as a snake_case noun (throne_room, marketplace, forest_path); open vocabulary." .
+vso:atmosphere a owl:DatatypeProperty ; rdfs:domain vso:SceneContext ;
+               rdfs:label "atmosphere" ;
+               rdfs:comment "Emotional register of the setting (tense, calm, somber, festive, ominous, ...)." .
+vso:timeOfDay  a owl:DatatypeProperty ; rdfs:domain vso:SceneContext ;
+               rdfs:label "timeOfDay" ;
+               rdfs:comment "Time of day the scene is set at (dawn, morning, noon, afternoon, dusk, night)." .
+vso:weather    a owl:DatatypeProperty ; rdfs:domain vso:SceneContext ;
+               rdfs:label "weather" ;
+               rdfs:comment "Weather of the setting (clear, cloudy, rain, snow, fog, storm, indoor)." .
 
 #################################################################
 # 18. Probability / provenance
@@ -387,9 +705,19 @@ vso:weather    a owl:DatatypeProperty ; rdfs:domain vso:SceneContext .
 
 vso:Annotation         a owl:Class ; rdfs:label "Annotation"
                        ; rdfs:comment "Reified annotation of a triple. Equivalent to an RDF-star quoted triple." .
-vso:annotatedSubject   a owl:ObjectProperty ; rdfs:domain vso:Annotation .
-vso:annotatedPredicate a owl:ObjectProperty ; rdfs:domain vso:Annotation .
-vso:annotatedObject    a owl:ObjectProperty ; rdfs:domain vso:Annotation .
+vso:annotatedSubject   a owl:ObjectProperty ; rdfs:domain vso:Annotation ;
+                       rdfs:label "annotatedSubject" ;
+                       rdfs:comment "Subject of the triple this Annotation is about." .
+vso:annotatedPredicate a owl:ObjectProperty ; rdfs:domain vso:Annotation ;
+                       rdfs:label "annotatedPredicate" ;
+                       rdfs:comment "Predicate of the triple this Annotation is about." .
+vso:annotatedObject    a owl:ObjectProperty ; rdfs:domain vso:Annotation ;
+                       rdfs:label "annotatedObject" ;
+                       rdfs:comment "Object of the triple this Annotation is about." .
 
-vso:probability a owl:DatatypeProperty ; rdfs:range xsd:decimal .
-vso:confidence  a owl:DatatypeProperty ; rdfs:range xsd:decimal .
+vso:probability a owl:DatatypeProperty ; rdfs:range xsd:decimal ;
+                rdfs:label "probability" ;
+                rdfs:comment "Probability in [0,1] that the annotated triple holds." .
+vso:confidence  a owl:DatatypeProperty ; rdfs:range xsd:decimal ;
+                rdfs:label "confidence" ;
+                rdfs:comment "Producer's confidence in [0,1] in the annotated triple." .

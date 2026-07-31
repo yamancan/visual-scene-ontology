@@ -5,10 +5,44 @@
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix dc:    <http://purl.org/dc/terms/> .
+@prefix vann:  <http://purl.org/vocab/vann/> .
 
+# The document IRI names the shapes graph itself, not a shape inside it. It was
+# typed sh:NodeShape until v1.1 — inert at validation time (a node shape with no
+# sh:target* and no constraints selects nothing), but wrong as metadata: it told
+# every reader and every vocabulary tool that this file's identity is a shape.
+# owl:Ontology is what the declaration always meant.
 <https://vson.dev/v1/shapes>
-    a sh:NodeShape ;
-    rdfs:label "VSON v1.1 SHACL shapes" .
+    a owl:Ontology ;
+    rdfs:label "VSON v1.1 SHACL shapes" ;
+    rdfs:comment "Strict validation profile: the shapes a conformant VSON document must satisfy." ;
+    dc:title "VSON-S shapes (strict profile)" ;
+    dc:creator "yamancan" ;
+    dc:license <https://www.apache.org/licenses/LICENSE-2.0> ;
+    dc:modified "2026-07-30"^^xsd:date ;
+    owl:versionInfo "1.1" ;
+    vann:preferredNamespacePrefix "vss" ;
+    vann:preferredNamespaceUri "https://vson.dev/v1/shapes#" .
+
+#################################################################
+# NB — why the sh:class checks below carry sh:not guards
+#
+# Validation runs with inference="rdfs" (docs/vson.md §2, clause C3). Six of the
+# sh:class checks in this file sit on a property whose rdfs:range in
+# ontology/vso.ttl already names that very class, so the type is *entailed* onto
+# every value node before validation and the bare sh:class can never fail — it
+# is vacuously true. Each of those sites therefore also carries sh:not guards
+# naming the classes vso.ttl declares disjoint from the range. A value asserted
+# into a disjoint class keeps its asserted type AND picks up the entailed range
+# type, so the sh:not fires and the check has teeth. Same reasoning as the
+# vss:HasQualityShape note further down, which documented the trap first.
+#
+# Guarded sites: CompositionShape/framedBy, EventShape/agent,
+# StativeShape/experiencer, DirectionalNeedsViewerShape/viewer,
+# BeliefStateShape/experiencer, PersonaShape/hasInvariant.
+#################################################################
 
 #################################################################
 # Composition — must depict ≥1 entity, must be framed
@@ -24,7 +58,11 @@ vss:CompositionShape a sh:NodeShape ;
     sh:property [
         sh:path vso:framedBy ;
         sh:nodeKind sh:BlankNodeOrIRI ;
-        sh:class vso:Frame
+        sh:class vso:Frame ;
+        # sh:class vso:Frame is entailed (vso:framedBy rdfs:range vso:Frame).
+        # Frame owl:disjointWith Entity, so an Entity-typed frame fires here.
+        sh:not [ sh:class vso:Entity ] ;
+        sh:message "vso:framedBy must reference a Frame (SceneContext / VisualStyle / CameraView / Persona), never an Entity."
     ] .
 
 #################################################################
@@ -44,7 +82,14 @@ vss:EventShape a sh:NodeShape ;
         sh:path vso:agent ;
         sh:nodeKind sh:BlankNodeOrIRI ;
         sh:maxCount 1 ;
-        sh:class vso:Endurant
+        sh:class vso:Endurant ;
+        # sh:class vso:Endurant is entailed (vso:agent rdfs:range vso:Endurant).
+        # Endurant is disjoint from Perdurant (ontology/vso.ttl §1) and from
+        # Frame (Frame ⊥ Entity), so an occurrence or a camera used as an
+        # agent fires here.
+        sh:not [ sh:class vso:Perdurant ] ;
+        sh:not [ sh:class vso:Frame ] ;
+        sh:message "vso:agent must reference an Endurant, not a Perdurant or a Frame."
     ] .
 
 vss:ProcessShape a sh:NodeShape ;
@@ -54,11 +99,34 @@ vss:ProcessShape a sh:NodeShape ;
 vss:StativeShape a sh:NodeShape ;
     sh:targetClass vso:Stative ;
     sh:property [ sh:path vso:lemma ; sh:datatype xsd:string ; sh:minCount 1 ] ;
-    sh:property [ sh:path vso:experiencer ; sh:maxCount 1 ; sh:class vso:Endurant ] .
+    # Same entailed-range guard as EventShape/agent above.
+    sh:property [ sh:path vso:experiencer ; sh:maxCount 1 ; sh:class vso:Endurant ;
+                  sh:not [ sh:class vso:Perdurant ] ;
+                  sh:not [ sh:class vso:Frame ] ;
+                  sh:message "vso:experiencer must reference an Endurant, not a Perdurant or a Frame." ] .
 
 #################################################################
 # Quality — must have dimension and value, exactly once each
 #################################################################
+
+# No sh:in on vso:dimension, deliberately — and this is the one place a reader
+# will look for it. The VSO dimension registry (ontology/vso.ttl, docs/vson.md
+# §5.5) is closed only *within the VSO namespace*: a Quality MAY carry a
+# dimension IRI minted under the document's own namespace, and shipped v1.x
+# documents did exactly that (examples/throne_room.ttl declared :Layout,
+# :Focal, and :ActionState locally before the registry absorbed them). An
+# sh:in listing the registry members would reject those documents, which §8
+# forbids — v1.x MUST NOT change a shape so that a previously-conformant
+# document stops conforming.
+#
+# What enforces the closed half of the policy instead:
+#   - owl:AllDifferent over every registered dimension in ontology/vso.ttl, so
+#     two dimensions on one Quality clash detectably in the owl-consistency
+#     gate rather than sameAs-collapsing (vso:dimension is functional);
+#   - the C2 coverage test in tests/test_shapes_gate.py, which fails if any
+#     corpus document asserts a VSO-namespace IRI the ontology never declared.
+# Clause C2 (docs/vson.md §2) already says validate-time SHACL does not
+# establish C2; this comment records why that gap is by design here.
 
 vss:QualityShape a sh:NodeShape ;
     sh:targetClass vso:Quality ;
@@ -113,7 +181,11 @@ vss:DirectionalNeedsViewerShape a sh:NodeShape ;
         sh:path vso:viewer ;
         sh:minCount 1 ;
         sh:class vso:CameraView ;
-        sh:message "Directional spatial facts require a vso:viewer (CameraView) for construal disambiguation."
+        # sh:class vso:CameraView is entailed (vso:viewer rdfs:range
+        # vso:CameraView). CameraView is a Frame, and Frame owl:disjointWith
+        # Entity, so a viewer pointed at a depicted object fires here.
+        sh:not [ sh:class vso:Entity ] ;
+        sh:message "Directional spatial facts require a vso:viewer for construal disambiguation, and that viewer must be a CameraView, never an Entity."
     ] .
 
 # rcc value must be one of the eight RCC-8 base relations.
@@ -168,6 +240,19 @@ vss:CountabilityShape a sh:NodeShape ;
         sh:path vso:countability ;
         sh:in ( vso:Count vso:Mass vso:Collective ) ;
         sh:maxCount 1
+    ] .
+
+# Affordance is the fourth trait axis of the trait bundle documented at
+# docs/vson.md §3.2 (individuation × animacy × countability × affordance) and
+# §5.4. Unlike its three siblings it is NOT functional —
+# an Endurant may offer several affordances — so this shape pins the closed
+# vocabulary without a sh:maxCount.
+vss:AffordanceShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:affordance ;
+    sh:property [
+        sh:path vso:affordance ;
+        sh:in ( vso:Holdable vso:Wearable vso:Mountable vso:Container vso:Edible ) ;
+        sh:message "vso:affordance value must be one of the five published affordances (Holdable|Wearable|Mountable|Container|Edible)."
     ] .
 
 #################################################################
@@ -227,7 +312,10 @@ vss:BeliefStateShape a sh:NodeShape ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:class vso:Endurant ;
-        sh:message "BeliefState must have exactly one experiencer (Endurant)."
+        # Entailed-range guard — see the NB at the top of this file.
+        sh:not [ sh:class vso:Perdurant ] ;
+        sh:not [ sh:class vso:Frame ] ;
+        sh:message "BeliefState must have exactly one experiencer, and it must be an Endurant — not a Perdurant or a Frame."
     ] ;
     sh:property [
         sh:path vso:proposition ;
@@ -299,7 +387,17 @@ vss:PersonaShape a sh:NodeShape ;
         sh:path vso:hasInvariant ;
         sh:minCount 1 ;
         sh:class vso:Quality ;
-        sh:message "Persona must declare at least one hasInvariant Quality."
+        # sh:class vso:Quality is entailed (vso:hasInvariant rdfs:range
+        # vso:Quality). NB the guard here must NOT name vso:Entity: Quality is
+        # itself rdfs:subClassOf vso:Entity, so an Entity guard would fire on
+        # every well-formed Persona. Quality's actual disjoint siblings are
+        # Endurant / Perdurant / Region (ontology/vso.ttl §1), plus the Frame
+        # layer.
+        sh:not [ sh:class vso:Endurant ] ;
+        sh:not [ sh:class vso:Perdurant ] ;
+        sh:not [ sh:class vso:Region ] ;
+        sh:not [ sh:class vso:Frame ] ;
+        sh:message "Persona must declare at least one hasInvariant Quality; an invariant may not be an Endurant, Perdurant, Region, or Frame."
     ] .
 
 # vss:EmbodimentConsistencyShape — Entity's hasQuality on dimension D should not

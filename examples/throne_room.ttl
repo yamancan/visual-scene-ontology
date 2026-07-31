@@ -24,8 +24,8 @@
                  :gaze_alice_bob, :hold_bob_sword,
                  :loc_crown_alice, :pos_alice_bob,
                  :strike, :charge ;
-    vso:hasQuality [ a vso:Quality ; vso:dimension :Layout ; vso:value "triangular" ] ,
-                   [ a vso:Quality ; vso:dimension :Focal  ; vso:value "center"     ] .
+    vso:hasQuality [ a vso:Quality ; vso:dimension vso:Layout ; vso:value "triangular" ] ,
+                   [ a vso:Quality ; vso:dimension vso:Focal  ; vso:value "center"     ] .
 
 :ctx a vso:SceneContext ;
     vso:venue      "throne_room" ;
@@ -70,7 +70,7 @@
     vso:animacy       vso:Agentive ;
     vso:countability  vso:Count ;
     rdf:type          :Boar ;
-    vso:hasQuality [ a vso:Quality ; vso:dimension :ActionState ; vso:value "charging" ] .
+    vso:hasQuality [ a vso:Quality ; vso:dimension vso:ActionState ; vso:value "charging" ] .
 
 :crown a vso:PhysicalObject ;
     vso:individuation vso:Generic ;
@@ -168,7 +168,7 @@
 :Crown    a rdfs:Class ; rdfs:subClassOf vso:PhysicalObject .
 :Sword    a rdfs:Class ; rdfs:subClassOf vso:PhysicalObject .
 
-# Extension dimensions used above
-:Layout      a vso:Dimension .
-:Focal       a vso:Dimension .
-:ActionState a vso:Dimension .
+# No document-local dimensions: Layout, Focal, and ActionState are registered
+# members of the closed VSO dimension registry (ontology/vso.ttl, docs/vson.md
+# §5.5), so this document uses the vso: IRIs directly. A dimension the registry
+# does not carry would be declared here, under this document's namespace.
