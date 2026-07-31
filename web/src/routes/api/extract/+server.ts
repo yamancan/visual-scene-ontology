@@ -15,13 +15,11 @@ import {
 import {
 	BARE_EXTRACT_USER,
 	BARE_EXTRACT_USER_X,
-	buildRepairPrompt,
-	buildRepairXPrompt,
 	isXSkillReady,
 	promptVersionFor,
-	systemPromptFor,
 	type PromptVariant
-} from '$lib/server/prompt';
+} from '$lib/prompts/meta';
+import { buildRepairPrompt, buildRepairXPrompt, systemPromptFor } from '$lib/prompts/bodies';
 import {
 	DEFAULT_MODEL,
 	OpenRouterError,

@@ -1,28 +1,10 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { scene, type Notation } from '$lib/scene.svelte';
+	import { isXSkillReady } from '$lib/prompts/meta';
 
-	interface SkillManifestEntry {
-		id: 'penman' | 'vson-x' | 'orchestrator';
-		available: boolean;
-	}
-
-	// Default to true; flips to false only if /api/skills explicitly says X is
-	// not shipped. This avoids disabling the toggle when the manifest endpoint
-	// is slow or temporarily unreachable.
-	let xAvailable = $state(true);
-
-	onMount(async () => {
-		try {
-			const res = await fetch('/api/skills');
-			if (!res.ok) return;
-			const skills = (await res.json()) as SkillManifestEntry[];
-			const x = skills.find((s) => s.id === 'vson-x');
-			if (x && !x.available) xAvailable = false;
-		} catch {
-			/* keep default */
-		}
-	});
+	// Compile-time fact: whether skills/vson-extractor-x/SKILL.md was present
+	// in the checkout when this bundle was built. No fetch, no loading state.
+	const xAvailable = isXSkillReady();
 
 	function pick(n: Notation) {
 		if (n === 'x' && !xAvailable) return;

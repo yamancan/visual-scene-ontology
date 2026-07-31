@@ -16,9 +16,10 @@
 	let buttonEl: HTMLButtonElement | undefined = $state();
 	let menuEl: HTMLDivElement | undefined = $state();
 
-	// /api/skills response (subset). Fetched lazily once on first prompt-copy
-	// click and cached for the lifetime of the page; the manifest is keyed by
-	// stable skill id so subsequent clicks for either notation are zero-cost.
+	// Skill bodies, keyed by stable skill id. The ~36 KB $lib/prompts/bodies
+	// chunk is dynamic-imported once on first prompt-copy click and cached for
+	// the lifetime of the page; subsequent clicks for either notation are
+	// zero-cost.
 	let promptCache: Record<string, string> | null = null;
 
 	type Fmt = 'vson' | 'ttl' | 'json' | 'cypher' | 'mermaid' | 'graphml' | 'dot' | 'caption' | 'fol';
@@ -127,10 +128,8 @@
 	async function cpPrompt() {
 		try {
 			if (!promptCache) {
-				const res = await fetch('/api/skills');
-				if (!res.ok) throw new Error(`skills · ${res.status}`);
-				const skills = (await res.json()) as Array<{ id: string; body: string }>;
-				promptCache = Object.fromEntries(skills.map((s) => [s.id, s.body]));
+				const { loadSkillManifest } = await import('$lib/prompts/bodies');
+				promptCache = Object.fromEntries(loadSkillManifest().map((s) => [s.id, s.body]));
 			}
 			const id = scene.notation === 'x' ? 'vson-x' : 'penman';
 			const body = promptCache[id];

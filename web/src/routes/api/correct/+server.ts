@@ -13,14 +13,12 @@ import {
 import {
 	buildCorrectionPrompt,
 	buildCorrectionXPrompt,
-	buildRepairPrompt,
-	buildRepairXPrompt,
 	isXSkillReady,
 	promptVersionFor,
-	systemPromptFor,
 	type CorrectionItem,
 	type PromptVariant
-} from '$lib/server/prompt';
+} from '$lib/prompts/meta';
+import { buildRepairPrompt, buildRepairXPrompt, systemPromptFor } from '$lib/prompts/bodies';
 import {
 	DEFAULT_MODEL,
 	OpenRouterError,

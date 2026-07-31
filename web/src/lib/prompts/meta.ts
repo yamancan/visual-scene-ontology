@@ -1,66 +1,33 @@
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+// Compile-time prompt METADATA. This module must stay tiny and free of any
+// static dependency on the prompt bodies: it is imported by always-loaded UI
+// (NotationToggle) and by the extraction routes, while the ~36 KB of canonical
+// prompt text lives in ./bodies — a separate, lazily-imported chunk. Anything
+// that needs the actual text imports ./bodies at the call site; a static
+// import of ./bodies from here would chain the whole text into first paint.
 
-// Resolve repo files. In dev cwd is web/; in node-adapter prod cwd is web/build.
-const REPO_ROOT = resolve(process.cwd(), '..');
+export type PromptVariant = 'skill' | 'skill-x' | 'full';
 
-function tryLoad(rel: string): string {
-	try {
-		return readFileSync(resolve(REPO_ROOT, rel), 'utf8');
-	} catch {
-		return readFileSync(resolve(process.cwd(), '../..', rel), 'utf8');
-	}
+export const PROMPT_VARIANTS: readonly PromptVariant[] = ['skill', 'skill-x', 'full'];
+
+// Compile-time X-skill availability. import.meta.glob resolves its key set at
+// build time, so a missing skills/vson-extractor-x/SKILL.md degrades this to
+// `false` (and the notation toggle to "unavailable") instead of breaking the
+// build. The non-eager form records only the file list — the body itself is
+// never loaded through this glob.
+const SKILL_X_FILES = import.meta.glob('../../../../skills/vson-extractor-x/SKILL.md', {
+	query: '?raw'
+});
+
+/** True iff the VSON-X skill file was present in the checkout at build time. */
+export function isXSkillReady(): boolean {
+	return Object.keys(SKILL_X_FILES).length > 0;
 }
-
-// Soft variant. Returns fallback when the file is missing — used for skills that
-// may not yet be shipped (e.g. vson-extractor-x before D.1 lands). Hard-failing
-// here would crash server startup and block the rest of the app.
-function tryLoadOptional(rel: string, fallback: string): string {
-	try {
-		return tryLoad(rel);
-	} catch {
-		return fallback;
-	}
-}
-
-const SKILL_X_FALLBACK =
-	'# vson-extractor-x is not shipped on this server.\n\nVisit /prompts to see which skills are available.';
-
-// Original 18 KB orchestrator prompt — strongest first-try conformance, opt-in via ?prompt=full.
-export const ORCHESTRATOR_SYSTEM_PROMPT = tryLoad('tools/extractor/prompts/orchestrator-system.md');
-
-// 4 KB distilled VSON-P skill — default for studio. Same five hard rules, smaller token footprint.
-export const SKILL_PROMPT = tryLoad('skills/vson-extractor/SKILL.md');
-
-// 7 KB VSON-X skill — opt-in via ?prompt=skill-x. Soft-loaded.
-export const SKILL_X_PROMPT = tryLoadOptional('skills/vson-extractor-x/SKILL.md', SKILL_X_FALLBACK);
-
-export const REPAIR_PROMPT_TEMPLATE = tryLoad('tools/extractor/prompts/specialized/repair.md');
-
-export const REPAIR_X_PROMPT_TEMPLATE = tryLoadOptional(
-	'tools/extractor/prompts/specialized/repair-x.md',
-	'# repair-x not shipped\n\nThe failed VSON-X document was:\n\n{{FAILED_DOCUMENT}}\n\nReport:\n\n{{SHACL_REPORT}}\n\nFix and re-emit. The first character MUST be `~`.'
-);
 
 export const BARE_EXTRACT_USER =
 	'Emit the VSON-P document for this image. Output ONLY the Penman — start with `(`, end with `)`. No prose, no fences.';
 
 export const BARE_EXTRACT_USER_X =
 	'Emit the VSON-X document for this image. The first line MUST start with `~scene`. Output ONLY VSON-X — no prose, no fences, no Penman parens.';
-
-export type PromptVariant = 'skill' | 'skill-x' | 'full';
-
-export function systemPromptFor(variant: PromptVariant): string {
-	switch (variant) {
-		case 'full':
-			return ORCHESTRATOR_SYSTEM_PROMPT;
-		case 'skill-x':
-			return SKILL_X_PROMPT;
-		case 'skill':
-		default:
-			return SKILL_PROMPT;
-	}
-}
 
 export function promptVersionFor(variant: PromptVariant): string {
 	switch (variant) {
@@ -78,30 +45,13 @@ export function userPromptFor(variant: PromptVariant): string {
 	return variant === 'skill-x' ? BARE_EXTRACT_USER_X : BARE_EXTRACT_USER;
 }
 
-/** True iff the VSON-X skill body was loaded from disk (not the fallback stub). */
-export function isXSkillReady(): boolean {
-	return SKILL_X_PROMPT !== SKILL_X_FALLBACK && SKILL_X_PROMPT.length > 100;
-}
-
-export function buildRepairPrompt(failedDoc: string, shaclReport: string): string {
-	return REPAIR_PROMPT_TEMPLATE.replace('{{FAILED_DOCUMENT}}', failedDoc).replace(
-		'{{SHACL_REPORT}}',
-		shaclReport.slice(0, 4000)
-	);
-}
-
-export function buildRepairXPrompt(failedDoc: string, shaclReport: string): string {
-	return REPAIR_X_PROMPT_TEMPLATE.replace('{{FAILED_DOCUMENT}}', failedDoc).replace(
-		'{{SHACL_REPORT}}',
-		shaclReport.slice(0, 4000)
-	);
-}
-
 // ──────────────────────────────────────────────────────────────────────────────
 // Targeted correction prompts. Unlike extraction/repair these do NOT re-derive
 // the scene from the image — they apply a small, enumerated list of human edits
 // to an EXISTING document and return the COMPLETE corrected document with every
-// other entity/quality/edge/frame/id preserved verbatim.
+// other entity/quality/edge/frame/id preserved verbatim. They are pure string
+// builders over their arguments, which is why they live here and not in
+// ./bodies.
 // ──────────────────────────────────────────────────────────────────────────────
 
 export interface CorrectionItem {
@@ -180,7 +130,8 @@ export function buildCorrectionXPrompt(
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Skill manifest — surfaced via /api/skills and rendered on /prompts.
+// Skill manifest shape — built by ./bodies (which holds the text), rendered on
+// /prompts and behind ExportRow's system-prompt copy.
 // ──────────────────────────────────────────────────────────────────────────────
 
 export interface SkillManifestEntry {
@@ -191,36 +142,4 @@ export interface SkillManifestEntry {
 	body: string;
 	size_bytes: number;
 	available: boolean;
-}
-
-export function loadSkillManifest(): SkillManifestEntry[] {
-	return [
-		{
-			id: 'penman',
-			notation: 'VSON-P (Penman)',
-			output: 'vson_p',
-			version: 'skill@1.0.0',
-			body: SKILL_PROMPT,
-			size_bytes: Buffer.byteLength(SKILL_PROMPT, 'utf8'),
-			available: true
-		},
-		{
-			id: 'vson-x',
-			notation: 'VSON-X (compact)',
-			output: 'vson_x',
-			version: 'skill-x@1.0.0',
-			body: SKILL_X_PROMPT,
-			size_bytes: Buffer.byteLength(SKILL_X_PROMPT, 'utf8'),
-			available: isXSkillReady()
-		},
-		{
-			id: 'orchestrator',
-			notation: 'VSON-P (full pipeline)',
-			output: 'vson_p',
-			version: 'orchestrator-system@1.0',
-			body: ORCHESTRATOR_SYSTEM_PROMPT,
-			size_bytes: Buffer.byteLength(ORCHESTRATOR_SYSTEM_PROMPT, 'utf8'),
-			available: true
-		}
-	];
 }
