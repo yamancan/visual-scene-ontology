@@ -13,6 +13,7 @@ import repairTemplate from '../../../../tools/extractor/prompts/specialized/repa
 import repairXTemplate from '../../../../tools/extractor/prompts/specialized/repair-x.md?raw';
 
 import { isXSkillReady, type PromptVariant, type SkillManifestEntry } from './meta';
+import { SHACL_REPORT_SLICE_CHARS } from '../extract/limits';
 
 const SKILL_X_FALLBACK =
 	'# vson-extractor-x is not shipped on this server.\n\nVisit /prompts to see which skills are available.';
@@ -55,14 +56,14 @@ export function systemPromptFor(variant: PromptVariant): string {
 export function buildRepairPrompt(failedDoc: string, shaclReport: string): string {
 	return REPAIR_PROMPT_TEMPLATE.replace('{{FAILED_DOCUMENT}}', failedDoc).replace(
 		'{{SHACL_REPORT}}',
-		shaclReport.slice(0, 4000)
+		shaclReport.slice(0, SHACL_REPORT_SLICE_CHARS)
 	);
 }
 
 export function buildRepairXPrompt(failedDoc: string, shaclReport: string): string {
 	return REPAIR_X_PROMPT_TEMPLATE.replace('{{FAILED_DOCUMENT}}', failedDoc).replace(
 		'{{SHACL_REPORT}}',
-		shaclReport.slice(0, 4000)
+		shaclReport.slice(0, SHACL_REPORT_SLICE_CHARS)
 	);
 }
 
