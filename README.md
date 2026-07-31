@@ -5,6 +5,8 @@
 
 A vision-language model's description of an image is unvalidated prose — nothing machine-checks it against the picture, so you cannot query it, diff two runs, or fail a build on it. VSON is a compact scene-graph notation in which every claim about an image — an object, a property, a spatial relation, an action — is a checkable graph assertion, gated by SHACL shapes (the W3C standard for validating graph structure). It is built for image-generation pipelines, scene-graph and knowledge-representation researchers, and people evaluating VLM output, and it ships as a single-file spec, a Rust CLI, and a drop-an-image web studio.
 
+Canonical namespace: **`https://w3id.org/vson/v1/`**. The ontology, shapes, JSON-LD context, and schemas are published at [vson.pages.dev/v1/](https://vson.pages.dev/v1/ontology.ttl); the w3id redirect that makes the canonical IRIs dereference is [pending review](https://github.com/perma-id/w3id.org/pull/6471) — until it merges, resolve the Pages URLs directly.
+
 ## graph in, English out — deterministic, no LLM
 
 A scene in VSON-P, the Penman authoring syntax — [`examples/gallery/03_spatial_topology.vson`](examples/gallery/03_spatial_topology.vson):

@@ -308,7 +308,7 @@ Per-field template:
 
 The old names are **withdrawn, not aliased.** There is no `owl:sameAs` bridge, no redirect, and no shape that targets them: a document minted under `https://vson.dev/` selects zero focus nodes against the v1.2 shapes and does not validate. Withdrawal is the honest option here precisely because the legacy names had **zero external consumers** — they never dereferenced, no third party could have resolved or cached them, and every producer and consumer of them lives in this repository. Aliasing would have preserved a name that was never real.
 
-These IRIs are stable names. They do not dereference yet: the w3id redirect is not registered at the time of writing. See §8 for the immutability rule and its one historical exception.
+These IRIs are stable names, and the documents behind them are published: the ontology, shapes, JSON-LD context, and schemas are served at `https://vson.pages.dev/v1/` (a static site assembled from this repository by `scripts/build_site.py`). The w3id redirect that makes the canonical `w3id.org/vson` IRIs dereference is [pending review](https://github.com/perma-id/w3id.org/pull/6471); until it merges, resolve the Pages URLs directly. See §8 for the immutability rule and its one historical exception.
 
 ### 5.2 `vso:Composition`
 
