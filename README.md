@@ -1,4 +1,4 @@
-# VSON — Visual Scene Ontology Notation, [v1.1](spec/CHANGELOG.md)
+# VSON — Visual Scene Ontology Notation, [v1.2](spec/CHANGELOG.md)
 
 [![CI](https://github.com/yamancan/visual-scene-ontology/actions/workflows/ci.yml/badge.svg)](https://github.com/yamancan/visual-scene-ontology/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)

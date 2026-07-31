@@ -2,10 +2,10 @@
 
 | Field | Value |
 |---|---|
-| Status | Normative for VSON-X surface semantics, v1.1 stable |
-| Date | 2026-07-30 |
+| Status | Normative for VSON-X surface semantics, v1.2 stable |
+| Date | 2026-07-31 |
 | Scope | Bearer dispatch, sigil → graph mapping, lemma aspect routing, and the ontology and shape declarations VSON-X depends on. The grammar itself lives in [`docs/vson.md`](./vson.md) Appendix D. |
-| Companion | [`docs/vson.md`](./vson.md) (canonical v1.1 spec) · [`ontology/vso.ttl`](../ontology/vso.ttl) (TBox) · [`shapes/vson-shapes.ttl`](../shapes/vson-shapes.ttl) (validation) · [`tools/vson_x/vson_x.py`](../tools/vson_x/vson_x.py) (reference parser) |
+| Companion | [`docs/vson.md`](./vson.md) (canonical v1.2 spec) · [`ontology/vso.ttl`](../ontology/vso.ttl) (TBox) · [`shapes/vson-shapes.ttl`](../shapes/vson-shapes.ttl) (validation) · [`tools/vson_x/vson_x.py`](../tools/vson_x/vson_x.py) (reference parser) |
 
 The keywords **MUST**, **MUST NOT**, **SHOULD**, **MAY** are interpreted per RFC 2119 as updated by RFC 8174 — that is, only when they appear in all capitals.
 

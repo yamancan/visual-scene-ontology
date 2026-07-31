@@ -1,11 +1,11 @@
-# VSON v1.1 — Visual Scene Ontology Notation
+# VSON v1.2 — Visual Scene Ontology Notation
 
 **Specification, Quick Start, Reference, JSON Schema, and Example Gallery — single document, RFC-style.**
 
 | Field | Value |
 |---|---|
-| Status | v1.1 stable |
-| Date | 2026-05-07 |
+| Status | v1.2 stable |
+| Date | 2026-07-31 |
 | Editors | Yamancan (github.com/yamancan) |
 | Source repo | this repository (root: `visual-scene-ontology/`) |
 | Normative source | this document; `docs/vson-x-semantics.md`; `shapes/vson-shapes.ttl`; `ontology/*.ttl`; `tools/schema/*.json` — ranked in §2 |
@@ -91,7 +91,7 @@ cli/target/release/vson export cypher examples/gallery/01_minimal.vson
 # ...
 ```
 
-If the `Conforms: True` line printed, the document is a valid VSON v1.1 scene. **You are done with Quick Start.** The rest of this document is reference material.
+If the `Conforms: True` line printed, the document is a valid VSON v1.2 scene. **You are done with Quick Start.** The rest of this document is reference material.
 
 ### 1.4 First image → graph (preview)
 
@@ -110,7 +110,7 @@ The runner returns a SHACL-conformant `vson_p` string per image. To produce the 
 
 ## 2. Conformance
 
-A document is a **conformant VSON v1.1 document** iff all of the following hold:
+A document is a **conformant VSON v1.2 document** iff all of the following hold:
 
 | # | Requirement |
 |---|---|
@@ -900,7 +900,7 @@ The SHACL shapes file is [`shapes/vson-shapes.ttl`](../shapes/vson-shapes.ttl) �
 
 ## 7. Exporters
 
-| Target | Mapping | Status (v1.1) |
+| Target | Mapping | Status (v1.2) |
 |---|---|---|
 | Cypher / Neo4j | `:s :p :o` → `(s)-[r:p]->(o)`; `<<:s :p :o>> :q :v` → `r.q = v` | **shipped** in `vson export cypher` |
 | Caption (English) | deterministic graph → English, template-driven, no LLM | **shipped** in `vson export caption` |
@@ -1035,7 +1035,7 @@ Gallery scenes 01–11 plus `12_persona` have a graph-equivalent VSON-X form und
 | Bare-VLM extractor | [`tools/extractor/baseline/extract.py`](../tools/extractor/baseline/extract.py) | image → VSON-P | offline cassette test |
 | Routing tables (single source of truth) | [`cli/src/penman/routing-tables.json`](../cli/src/penman/routing-tables.json) | shared by Python + Rust — inside the crate so `include_str!` stays within the crate root and `cargo package` can verify-build it | Rust embeds it at compile time, the Python reference reads the same file at import time; `make cli-check` proves the two agree |
 
-A consumer is "VSON v1.1 reference-conformant" iff it accepts every document accepted by the Python references (`vson_penman.py` + `vson_x.py`) plus `pyshacl`, and rejects every document the references reject.
+A consumer is "VSON v1.2 reference-conformant" iff it accepts every document accepted by the Python references (`vson_penman.py` + `vson_x.py`) plus `pyshacl`, and rejects every document the references reject.
 
 ---
 

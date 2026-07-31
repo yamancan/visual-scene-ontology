@@ -1,5 +1,114 @@
 # Changelog
 
+## v1.2.0 — 2026-07-31
+
+Namespace release. Every canonical VSON IRI moves off `https://vson.dev/` and
+onto `https://w3id.org/vson/`, and for the first time the documents behind
+those names are actually published. No class, property, cardinality, shape
+severity, or envelope field changes: a v1.1 document becomes a v1.2 document
+by rewriting its namespace and nothing else.
+
+- **Canonical namespace is now `https://w3id.org/vson/v1/`.** `vson.dev` was
+  never registered by this project — it was squattable by anyone, permanently
+  non-dereferenceable, and dependent on one maintainer paying one registrar
+  forever. w3id.org is the W3C Permanent Identifier Community Group's redirect
+  service: free, community-maintained, and designed to keep resolving after
+  any single maintainer stops paying attention. That permanence is the one
+  property a namespace host must have and a private domain cannot promise. All
+  five namespaces (`v1/ontology#`, `v1/rcc8#`, `v1/allen#`, `v1/shapes#`,
+  `v1/shapes-relaxed`), both JSON Schema `$id`s, and the JSON-LD context IRI
+  moved in a single commit. `cli/src/penman/routing-tables.json` is the sole
+  mint site for both the Rust and Python emitters, so the move was three lines
+  there plus a mechanical substitution everywhere the names were baked.
+- **The old names are withdrawn, not aliased.** There is no `owl:sameAs`
+  bridge, no redirect, and no shape that targets them: a document minted under
+  the old host selects zero focus nodes against the v1.2 shapes and does not
+  validate. Withdrawal is defensible here precisely because the legacy names
+  had **zero external consumers** — they never dereferenced, so no third party
+  could ever have resolved or cached them, and every producer and consumer of
+  them lived in this repository. Aliasing would have preserved a name that was
+  never real. See `docs/vson.md` §5.1 and §8.
+- **One legacy IRI survives, deliberately.** `ontology/vso.ttl` keeps
+  `owl:priorVersion <https://vson.dev/v1.1/ontology>` under a `LEGACY IRI`
+  comment. That string is the `owl:versionIRI` the v1.1.1 release actually
+  declared (`git show v1.1.1:ontology/vso.ttl`); rewriting it to w3id.org would
+  assert a name that release never carried, falsifying a record instead of
+  migrating one. It is a record, not a resolvable name, and nothing
+  dereferences it. §8 states it as the one exception to IRI immutability, and
+  the gate pins it at exactly one occurrence.
+- **`vsv:` was never minted, and stays unminted.** The superseded
+  `spec/vson-spec-v1.md` prefix table lists a `vsv:` prefix bound to a
+  `.../v1/vocab#` namespace, but no ontology, shape, transpiler, schema, or
+  example ever emitted a term under it — the closed value vocabularies live in
+  the `vso:` namespace. It was left exactly where it is, in a historical
+  document, and was deliberately excluded from the migration: re-minting it
+  under the new host would have created, for the first time, a namespace that
+  has never existed.
+- **Two anti-vacuity gates, both landed before the rename.** SHACL selects
+  focus nodes by IRI, so a half-migrated repository would have made every
+  conformance gate vacuously green — zero focus nodes selected, `conforms=true`,
+  nothing checked. `envelope-check` now reads the expected VSO namespace from
+  the routing tables and requires each committed envelope to carry it, to parse
+  to at least one `vso:Composition` (the shapes' actual target), and to name no
+  legacy host; conformance alone is no longer accepted as evidence. `iri-check`
+  (`scripts/check_legacy_iri.py`, wired into `make check` and therefore CI)
+  scans every tracked file and fails on any occurrence of the withdrawn host
+  outside an allowlist of historical documents, with exact pinned counts rather
+  than upper bounds.
+- **The namespace is published and dereferenceable.** `make site`
+  (`scripts/build_site.py`) assembles the three ontology documents, both SHACL
+  profiles, the JSON-LD context, both JSON Schemas, a landing page, and a
+  Cloudflare Pages `_headers` file into the exact paths the IRIs name, and
+  self-checks the result: every Turtle parses, every JSON parses, no served
+  file names the withdrawn host, and the landing page's version equals
+  `owl:versionInfo`. The surface is live at `https://vson.pages.dev/v1/`. The
+  w3id redirect that makes the canonical IRIs themselves resolve is **pending
+  review** at <https://github.com/perma-id/w3id.org/pull/6471>; until it
+  merges, resolve the Pages URLs directly. The release does not depend on that
+  PR — IRIs are names, and these names now have documents behind them either
+  way.
+- **JSON-LD context shipped.** `ontology/context.jsonld` — the IRI §4.4 has
+  named since v1.0 and which never existed — now exists: prefix bindings for
+  `vso`/`rcc`/`allen`, an `@vocab`, and `@type: @id` declarations for the seven
+  structural predicates. `tests/test_jsonld_context.py` requires every `@id` in
+  it to resolve to a subject declared in `ontology/vso.ttl` and its namespaces
+  to equal the routing tables'.
+- **Envelope wire version `1.2`.** The schema's version enum admits `"1.2"`
+  and the studio's four envelope constructors emit it. The envelope structure
+  is unchanged from 1.1; what changes is the namespace of the IRIs inside
+  `vson_t`. The `if`/`then` clause requiring at least one non-empty authoring
+  surface was keyed to `"const": "1.1"` and is now keyed to
+  `"enum": ["1.1", "1.2"]` — widening the version enum without that change
+  would have silently switched the rule off for 1.2 envelopes. The preflight
+  now asserts both directions for both versions: a valid X-mode envelope
+  validates, and a surface-less one is rejected. The baked demo corpus keeps
+  its historical `1.0`/`1.1` labels; those envelopes are real extractions and
+  relabelling them would misstate their provenance.
+- **Web studio: bring your own OpenRouter key.** A visitor can paste their own
+  key into the model picker and spend it instead of the operator's. The key
+  rides one request in an `x-openrouter-key` header, is passed to the upstream
+  call and dropped — never stored, never logged, never echoed back — and on the
+  client it lives in module memory for the lifetime of the tab only: no
+  localStorage, no sessionStorage, no cookie, no URL. A malformed header is a
+  400 rather than a silent fallback to the server's key.
+- **Web studio: CSP and security response headers.** The studio previously had
+  neither. Content-Security-Policy is declared in `svelte.config.js` in nonce
+  mode (SvelteKit splices a per-response nonce; the hand-written FOUC guard in
+  `app.html` carries `%sveltekit.nonce%`, so no hash can drift out of date),
+  with `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, and
+  `frame-ancestors 'none'`. Alongside it: `nosniff`, a strict-origin referrer
+  policy, `X-Frame-Options: DENY`, a `Permissions-Policy` disabling
+  camera/microphone/geolocation/payment/USB, COOP and CORP at `same-origin`,
+  and HSTS on HTTPS requests only. One honest gap is documented in
+  `web/README.md`: adapter-node's static file server answers before hooks run,
+  so files under `static/` do not receive the response-header set (CSP is
+  unaffected — it governs documents).
+- **Release plumbing.** `jsonschema` is a declared dependency, so the preflight
+  schema gate can no longer skip itself on an ImportError; version markers are
+  synchronized at 1.2.0 across `CITATION.cff`, `pyproject.toml`, the Rust crate
+  and its lockfile, the CLI's version strings, the ontology and shapes
+  documents, the studio, and the published landing page.
+
 ## v1.1.1 — 2026-07-30
 
 Editorial, verification, and packaging release. No wire-format or vocabulary
