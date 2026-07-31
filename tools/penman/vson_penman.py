@@ -377,10 +377,17 @@ class Emitter:
     def emit(self, root: Node) -> str:
         self.collect_declared(root)
         self.emit_node(root)
+        # The three VSON namespaces come from the routing tables, exactly as
+        # cli/src/penman/emitter.rs interpolates ROUTING.{vso,allen,rcc}. Written
+        # out as literals here, this header was the one place where the Python
+        # reference minted a namespace of its own: editing the tables would have
+        # moved the body IRIs and left the prefix lines behind, so both emitters
+        # would still parse and only the parity gate would notice. xsd stays a
+        # literal on both sides — it is the W3C constant, not ours to route.
         head = (
-            "@prefix vso:   <https://vson.dev/v1/ontology#> .\n"
-            "@prefix allen: <https://vson.dev/v1/allen#> .\n"
-            "@prefix rcc:   <https://vson.dev/v1/rcc8#> .\n"
+            f"@prefix vso:   <{VSO}> .\n"
+            f"@prefix allen: <{ALLEN}> .\n"
+            f"@prefix rcc:   <{RCC}> .\n"
             "@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n"
             f"@prefix :      <{self.default_ns}> .\n\n"
         )
