@@ -33,6 +33,26 @@ export interface ChatRequest {
 	messages: ChatMessage[];
 	max_tokens?: number;
 	temperature?: number;
+	/** BYOK: caller-supplied key used for this request only, never stored. */
+	apiKey?: string;
+}
+
+// BYOK header contract: printable ASCII, sane length. The value is read per
+// request, passed down the call stack, and dropped — never logged, never
+// persisted, never echoed back in a response.
+const BYOK_HEADER = 'x-openrouter-key';
+const BYOK_RE = /^[\x21-\x7e]{8,240}$/;
+
+/**
+ * Read the visitor's own OpenRouter key from the request headers.
+ * `undefined` = header absent (use the server key); `null` = header present
+ * but malformed (callers should 400 rather than silently bill the server key).
+ */
+export function byokKeyFrom(headers: Headers): string | undefined | null {
+	const raw = headers.get(BYOK_HEADER);
+	if (raw === null) return undefined;
+	const key = raw.trim();
+	return BYOK_RE.test(key) ? key : null;
 }
 
 export interface ChatResponse {
@@ -65,8 +85,10 @@ export class OpenRouterError extends Error {
 const ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 
 export async function chat(req: ChatRequest, signal?: AbortSignal): Promise<ChatResponse> {
-	const apiKey = env.OPENROUTER_API_KEY;
-	if (!apiKey) throw new OpenRouterError('OPENROUTER_API_KEY not set', 500);
+	const apiKey = req.apiKey ?? env.OPENROUTER_API_KEY;
+	if (!apiKey) {
+		throw new OpenRouterError('no API key: set OPENROUTER_API_KEY or supply your own', 500);
+	}
 
 	const body = JSON.stringify({
 		model: req.model ?? DEFAULT_MODEL,

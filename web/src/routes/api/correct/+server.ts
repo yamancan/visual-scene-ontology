@@ -24,6 +24,7 @@ import {
 import {
 	DEFAULT_MODEL,
 	OpenRouterError,
+	byokKeyFrom,
 	chat,
 	resolveRequestedModel
 } from '$lib/server/openrouter';
@@ -151,11 +152,16 @@ export const POST: RequestHandler = async ({ request }) => {
 	if (!picked.ok) throw error(400, picked.reason);
 	const model = picked.model;
 
+	// BYOK: a visitor-supplied key rides this one request and is dropped after.
+	const apiKey = byokKeyFrom(request.headers);
+	if (apiKey === null) throw error(400, 'x-openrouter-key header is malformed');
+
 	const usage = { input: 0, output: 0 };
 	let raw: string;
 	try {
 		const initial = await chat({
 			model,
+			apiKey,
 			messages: [
 				{
 					role: 'system',
@@ -181,6 +187,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	const ctx: FlowCtx = {
 		raw,
 		model,
+		apiKey,
 		systemPrompt,
 		promptVersion,
 		usage,
@@ -199,6 +206,7 @@ export const POST: RequestHandler = async ({ request }) => {
 interface FlowCtx {
 	raw: string;
 	model: string | undefined;
+	apiKey: string | undefined;
 	systemPrompt: string;
 	promptVersion: string;
 	usage: { input: number; output: number };
@@ -226,6 +234,7 @@ async function runPenmanFlow(ctx: FlowCtx) {
 		try {
 			const repair = await chat({
 				model: ctx.model,
+				apiKey: ctx.apiKey,
 				messages: [
 					{
 						role: 'system',
@@ -302,6 +311,7 @@ async function runVsonXFlow(ctx: FlowCtx) {
 		try {
 			const repair = await chat({
 				model: ctx.model,
+				apiKey: ctx.apiKey,
 				messages: [
 					{
 						role: 'system',

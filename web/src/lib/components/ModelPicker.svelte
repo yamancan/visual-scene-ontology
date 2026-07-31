@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { scene } from '$lib/scene.svelte';
+	import { byok } from '$lib/byok.svelte';
 
 	interface PickerModel {
 		id: string;
@@ -193,6 +194,20 @@
 					{/each}
 				{/if}
 			</div>
+			<div class="byok">
+				<input
+					type="password"
+					placeholder="your OpenRouter key (optional)"
+					value={byok.key}
+					oninput={(e) => byok.set(e.currentTarget.value)}
+					autocomplete="off"
+					spellcheck="false"
+					aria-label="Your OpenRouter key (optional)"
+				/>
+				<span class="byok-hint font-mono">
+					{byok.active ? 'used instead of the server key' : 'kept in memory, never stored'}
+				</span>
+			</div>
 		</div>
 	{/if}
 </div>
@@ -334,5 +349,30 @@
 	}
 	.row-meta .cache {
 		color: var(--success);
+	}
+
+	.byok {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 8px 12px;
+		border-top: 1px solid var(--border-0);
+	}
+	.byok input {
+		flex: 1;
+		background: transparent;
+		border: 0;
+		outline: 0;
+		color: var(--fg-1);
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+	}
+	.byok input::placeholder {
+		color: var(--fg-4);
+	}
+	.byok-hint {
+		font-size: var(--text-2xs);
+		color: var(--fg-4);
+		white-space: nowrap;
 	}
 </style>

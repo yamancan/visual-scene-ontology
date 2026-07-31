@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { scene } from '$lib/scene.svelte';
+	import { byok } from '$lib/byok.svelte';
 	import type { VsonEnvelope } from '$lib/types';
 
 	interface DemoEntry {
@@ -69,7 +70,7 @@
 			scene.setStatus('calling');
 			const res = await fetch('/api/extract', {
 				method: 'POST',
-				headers: { 'content-type': 'application/json' },
+				headers: { 'content-type': 'application/json', ...byok.headers() },
 				body: JSON.stringify({ image_b64: b64, mime, source_uri: e.path, model: scene.model })
 			});
 			if (!res.ok) {

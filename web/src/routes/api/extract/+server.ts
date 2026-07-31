@@ -25,6 +25,7 @@ import {
 import {
 	DEFAULT_MODEL,
 	OpenRouterError,
+	byokKeyFrom,
 	chat,
 	resolveRequestedModel
 } from '$lib/server/openrouter';
@@ -149,6 +150,9 @@ export const POST: RequestHandler = async ({ request, url }) => {
 	const userText = variant === 'skill-x' ? BARE_EXTRACT_USER_X : BARE_EXTRACT_USER;
 
 	const t0 = Date.now();
+	// BYOK: a visitor-supplied key rides this one request and is dropped after.
+	const apiKey = byokKeyFrom(request.headers);
+	if (apiKey === null) throw error(400, 'x-openrouter-key header is malformed');
 	// Validate against the cached OpenRouter catalog: without it any string with
 	// a slash in it becomes a paid upstream call on the server's key.
 	const picked = await resolveRequestedModel(body.model);
@@ -160,6 +164,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
 	try {
 		const initial = await chat({
 			model,
+			apiKey,
 			messages: [
 				{
 					role: 'system',
@@ -196,6 +201,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
 		return await runVsonXFlow({
 			raw,
 			model,
+			apiKey,
 			systemPrompt,
 			promptVersion,
 			usage,
@@ -208,6 +214,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
 	return await runPenmanFlow({
 		raw,
 		model,
+		apiKey,
 		systemPrompt,
 		promptVersion,
 		usage,
@@ -224,6 +231,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
 interface FlowCtx {
 	raw: string;
 	model: string | undefined;
+	apiKey: string | undefined;
 	systemPrompt: string;
 	promptVersion: string;
 	usage: { input: number; output: number };
@@ -248,6 +256,7 @@ async function runPenmanFlow(ctx: FlowCtx) {
 		try {
 			const repair = await chat({
 				model: ctx.model,
+				apiKey: ctx.apiKey,
 				messages: [
 					{
 						role: 'system',
@@ -332,6 +341,7 @@ async function runVsonXFlow(ctx: FlowCtx) {
 		try {
 			const repair = await chat({
 				model: ctx.model,
+				apiKey: ctx.apiKey,
 				messages: [
 					{
 						role: 'system',

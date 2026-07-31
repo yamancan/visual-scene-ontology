@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { scene, isMeaningfulEdit } from '$lib/scene.svelte';
+	import { byok } from '$lib/byok.svelte';
 	import type { VsonEnvelope } from '$lib/types';
 	import type { Notation } from '$lib/scene.svelte';
 
@@ -71,7 +72,7 @@
 		try {
 			const res = await fetch('/api/correct', {
 				method: 'POST',
-				headers: { 'content-type': 'application/json' },
+				headers: { 'content-type': 'application/json', ...byok.headers() },
 				body: JSON.stringify(body)
 			});
 			if (!res.ok) {

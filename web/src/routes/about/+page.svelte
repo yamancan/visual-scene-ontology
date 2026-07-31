@@ -159,8 +159,8 @@
 		<section>
 			<h2>What's next</h2>
 			<p>
-				A bring-your-own-key flow, an IndexedDB envelope cache so re-uploading the same image is
-				free for you too, streaming responses, and a public IRI host at <code>vson.dev/v1/…</code>
+				An IndexedDB envelope cache so re-uploading the same image is free for you too, streaming
+				responses, and a public IRI host at <code>vson.dev/v1/…</code>
 				so the ontology is dereferenceable. Status, in honest terms, is on
 				<a href="https://github.com/yamancan/visual-scene-ontology" rel="external">GitHub</a>.
 			</p>
