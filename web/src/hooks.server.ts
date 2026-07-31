@@ -12,6 +12,7 @@
 
 import type { Handle, RequestEvent } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
+import { SECURITY_HEADERS, HSTS_HEADER, HSTS_VALUE } from '$lib/server/security-headers';
 
 const METERED_PATHS = new Set(['/api/extract', '/api/correct']);
 
@@ -84,6 +85,22 @@ function normalizePath(pathname: string): string {
 	return pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
 }
 
+/**
+ * Stamp the constant security headers onto a response. Applied to every
+ * response this hook can reach — including the 429, which is an early return
+ * and would otherwise be the one bare response the app emits.
+ */
+function harden(response: Response, event: RequestEvent): Response {
+	for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
+		response.headers.set(name, value);
+	}
+	// Only over TLS: see the note in security-headers.ts.
+	if (event.url.protocol === 'https:') {
+		response.headers.set(HSTS_HEADER, HSTS_VALUE);
+	}
+	return response;
+}
+
 export const handle: Handle = async ({ event, resolve }) => {
 	if (
 		MAX > 0 &&
@@ -98,15 +115,18 @@ export const handle: Handle = async ({ event, resolve }) => {
 				error: `rate limit: ${MAX} requests per ${WINDOW_S}s`,
 				retry_after_s: retryAfter
 			};
-			return new Response(JSON.stringify(payload) + '\n', {
-				status: 429,
-				headers: {
-					'content-type': 'application/json',
-					'retry-after': String(retryAfter),
-					'cache-control': 'no-store'
-				}
-			});
+			return harden(
+				new Response(JSON.stringify(payload) + '\n', {
+					status: 429,
+					headers: {
+						'content-type': 'application/json',
+						'retry-after': String(retryAfter),
+						'cache-control': 'no-store'
+					}
+				}),
+				event
+			);
 		}
 	}
-	return resolve(event);
+	return harden(await resolve(event), event);
 };
