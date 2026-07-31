@@ -83,14 +83,14 @@ class TokenizerAndParseSmokeTests(unittest.TestCase):
         g = _load(turtle)
         # Apple should have a Quality with dimension Color, value red
         qualities = list(g.subjects(
-            predicate=rdflib.URIRef("https://vson.dev/v1/ontology#dimension"),
-            object=rdflib.URIRef("https://vson.dev/v1/ontology#Color"),
+            predicate=rdflib.URIRef("https://w3id.org/vson/v1/ontology#dimension"),
+            object=rdflib.URIRef("https://w3id.org/vson/v1/ontology#Color"),
         ))
         self.assertEqual(len(qualities), 1, "expected one Quality with dimension Color")
         # Its value is :red
         values = list(g.objects(
             qualities[0],
-            rdflib.URIRef("https://vson.dev/v1/ontology#value"),
+            rdflib.URIRef("https://w3id.org/vson/v1/ontology#value"),
         ))
         self.assertEqual(len(values), 1)
         self.assertTrue(str(values[0]).endswith("#red"))
@@ -105,7 +105,7 @@ class TokenizerAndParseSmokeTests(unittest.TestCase):
         turtle = vson_x_to_turtle(src)
         g = _load(turtle)
         modifiers = list(g.objects(
-            predicate=rdflib.URIRef("https://vson.dev/v1/ontology#modifier")
+            predicate=rdflib.URIRef("https://w3id.org/vson/v1/ontology#modifier")
         ))
         self.assertEqual(len(modifiers), 1)
         self.assertEqual(str(modifiers[0]), "dark")
@@ -213,7 +213,7 @@ class StativeEventSpatialTests(unittest.TestCase):
         g.parse(data=turtle, format="turtle")
         statives = list(g.subjects(
             predicate=rdflib.URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            object=rdflib.URIRef("https://vson.dev/v1/ontology#Stative"),
+            object=rdflib.URIRef("https://w3id.org/vson/v1/ontology#Stative"),
         ))
         self.assertEqual(len(statives), 1, "expected one Stative node")
 
@@ -233,7 +233,7 @@ class StativeEventSpatialTests(unittest.TestCase):
         g.parse(data=turtle, format="turtle")
         events = list(g.subjects(
             predicate=rdflib.URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            object=rdflib.URIRef("https://vson.dev/v1/ontology#Event"),
+            object=rdflib.URIRef("https://w3id.org/vson/v1/ontology#Event"),
         ))
         self.assertEqual(len(events), 1)
 
@@ -254,7 +254,7 @@ class StativeEventSpatialTests(unittest.TestCase):
         g.parse(data=turtle, format="turtle")
         sfs = list(g.subjects(
             predicate=rdflib.URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            object=rdflib.URIRef("https://vson.dev/v1/ontology#SpatialFact"),
+            object=rdflib.URIRef("https://w3id.org/vson/v1/ontology#SpatialFact"),
         ))
         self.assertEqual(len(sfs), 2, "symmetric `&` must emit two SpatialFact nodes")
 

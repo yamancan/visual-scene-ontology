@@ -5,8 +5,8 @@ that consumes it — a term browser, a hover tooltip in the studio, or a person
 opening the Turtle for the first time. v1.1 annotated the whole namespace; these
 tests keep that from silently rotting:
 
-  (a) Every IRI subject in the vson.dev namespace, across all three ontology
-      files, carries at least one rdfs:label and at least one rdfs:comment.
+  (a) Every IRI subject in the w3id.org/vson namespace, across all three
+      ontology files, carries at least one rdfs:label and one rdfs:comment.
       Adding a term without documenting it fails here.
 
   (b) Each ontology document declares the publishing header it claims to have:
@@ -33,14 +33,14 @@ except ImportError:  # pragma: no cover — dependency probe for the skip guard
     ONTOLOGY_FILES = ()
     ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-VSON_HOST = "vson.dev"
+VSON_HOST = "w3id.org/vson"
 VANN = "http://purl.org/vocab/vann/"
 
 # The document IRI each ontology file declares its header on.
 DOCUMENT_IRIS = {
-    "ontology/vso.ttl": "https://vson.dev/v1/ontology",
-    "ontology/rcc8.ttl": "https://vson.dev/v1/rcc8",
-    "ontology/allen.ttl": "https://vson.dev/v1/allen",
+    "ontology/vso.ttl": "https://w3id.org/vson/v1/ontology",
+    "ontology/rcc8.ttl": "https://w3id.org/vson/v1/rcc8",
+    "ontology/allen.ttl": "https://w3id.org/vson/v1/allen",
 }
 
 

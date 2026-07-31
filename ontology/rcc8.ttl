@@ -1,5 +1,5 @@
-@prefix rcc:  <https://vson.dev/v1/rcc8#> .
-@prefix vso:  <https://vson.dev/v1/ontology#> .
+@prefix rcc:  <https://w3id.org/vson/v1/rcc8#> .
+@prefix vso:  <https://w3id.org/vson/v1/ontology#> .
 @prefix owl:  <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix dc:   <http://purl.org/dc/terms/> .
@@ -8,7 +8,7 @@
 @prefix vann: <http://purl.org/vocab/vann/> .
 @prefix geo:  <http://www.opengis.net/ont/geosparql#> .
 
-<https://vson.dev/v1/rcc8>
+<https://w3id.org/vson/v1/rcc8>
     a owl:Ontology ;
     rdfs:label "RCC-8 spatial topology" ;
     rdfs:comment "The 8 RCC-8 base relation names as a closed value vocabulary for vso:rcc; JEPD holds in the intended interpretation; composition-table reasoning is out of scope." ;
@@ -18,7 +18,7 @@
     dc:modified "2026-07-30"^^xsd:date ;
     owl:versionInfo "1.1" ;
     vann:preferredNamespacePrefix "rcc" ;
-    vann:preferredNamespaceUri "https://vson.dev/v1/rcc8#" .
+    vann:preferredNamespaceUri "https://w3id.org/vson/v1/rcc8#" .
 
 # RCC-8 base relations as instances of a relation class so they can be values
 # of vso:rcc on a SpatialFact. (The relations are the eight values, not edge predicates.)

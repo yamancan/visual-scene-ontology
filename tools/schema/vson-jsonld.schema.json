@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://vson.dev/v1/schema/vson-jsonld.schema.json",
+  "$id": "https://w3id.org/vson/v1/schema/vson-jsonld.schema.json",
   "title": "VSON Scene as JSON-LD",
   "description": "JSON-LD projection of a VSON v1.0 scene. The @context binds local keys to VSO/Allen/RCC IRIs so consumers can either (a) parse with a JSON-LD processor and get the same RDF graph as vson_t, or (b) walk the JSON tree directly. Note: this schema is structural only -- well-formedness is enforced by SHACL on the graph, not by JSON Schema.",
   "type": "object",
@@ -8,7 +8,7 @@
   "properties": {
     "@context": {
       "oneOf": [
-        { "type": "string", "format": "uri", "const": "https://vson.dev/v1/context.jsonld" },
+        { "type": "string", "format": "uri", "const": "https://w3id.org/vson/v1/context.jsonld" },
         { "type": "object" }
       ]
     },

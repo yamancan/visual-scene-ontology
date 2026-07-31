@@ -25,7 +25,7 @@ fn convert_p2t_produces_parseable_turtle() {
     );
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert!(stdout.contains("@prefix vso:"));
-    assert!(stdout.contains(":scene a <https://vson.dev/v1/ontology#Composition>"));
+    assert!(stdout.contains(":scene a <https://w3id.org/vson/v1/ontology#Composition>"));
     assert!(
         stdout.contains("\"strike\""),
         "lemma should route to string"
@@ -135,7 +135,7 @@ fn convert_x2t_produces_parseable_turtle() {
     );
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert!(stdout.contains("@prefix vso:"));
-    assert!(stdout.contains(":scene a <https://vson.dev/v1/ontology#Composition>"));
+    assert!(stdout.contains(":scene a <https://w3id.org/vson/v1/ontology#Composition>"));
     assert!(stdout.contains("hasQuality"), "quality kv must reify");
 }
 

@@ -1,7 +1,7 @@
 # Negative SHACL fixture: Event without a lemma.
 # MUST fail vss:EventShape.
 
-@prefix vso: <https://vson.dev/v1/ontology#> .
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
 @prefix :    <https://example.org/scenes/bad3#> .
 
 :c a vso:Composition ; vso:depicts :e, :a .

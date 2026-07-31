@@ -94,23 +94,23 @@ class ParserTests(unittest.TestCase):
 class EmitterTests(unittest.TestCase):
     def test_concept_emits_rdf_type(self) -> None:
         ttl = vp.to_turtle("(a / PhysicalObject)")
-        self.assertIn("a <https://vson.dev/v1/ontology#PhysicalObject>", ttl)
+        self.assertIn("a <https://w3id.org/vson/v1/ontology#PhysicalObject>", ttl)
 
     def test_role_iri(self) -> None:
         ttl = vp.to_turtle("(a / Event :agent (b / PhysicalObject))")
-        self.assertIn("<https://vson.dev/v1/ontology#agent>", ttl)
+        self.assertIn("<https://w3id.org/vson/v1/ontology#agent>", ttl)
 
     def test_allen_routing(self) -> None:
         ttl = vp.to_turtle(
             "(c / Composition :temporal (e1 :before e2))"
         )
-        self.assertIn("<https://vson.dev/v1/allen#before>", ttl)
+        self.assertIn("<https://w3id.org/vson/v1/allen#before>", ttl)
 
     def test_rcc_routing(self) -> None:
         ttl = vp.to_turtle(
             "(c / Composition :depicts (sf / SpatialFact :rcc EC))"
         )
-        self.assertIn("<https://vson.dev/v1/rcc8#EC>", ttl)
+        self.assertIn("<https://w3id.org/vson/v1/rcc8#EC>", ttl)
 
     def test_string_escapes_emit_valid_turtle(self) -> None:
         # A source `\n` round-trips through emit as a Turtle escape, never a raw
@@ -158,21 +158,21 @@ class ThroneRoomTests(unittest.TestCase):
         src = read("throne_room.vson")
         ttl = vp.to_turtle(src)
         # Spot checks: critical reified nodes are present
-        self.assertIn("a <https://vson.dev/v1/ontology#Event>", ttl)
-        self.assertIn("a <https://vson.dev/v1/ontology#Stative>", ttl)
-        self.assertIn("a <https://vson.dev/v1/ontology#SpatialFact>", ttl)
-        self.assertIn("a <https://vson.dev/v1/ontology#CameraView>", ttl)
-        self.assertIn("a <https://vson.dev/v1/ontology#VisualStyle>", ttl)
-        self.assertIn("a <https://vson.dev/v1/ontology#SceneContext>", ttl)
-        self.assertIn("a <https://vson.dev/v1/ontology#Composition>", ttl)
+        self.assertIn("a <https://w3id.org/vson/v1/ontology#Event>", ttl)
+        self.assertIn("a <https://w3id.org/vson/v1/ontology#Stative>", ttl)
+        self.assertIn("a <https://w3id.org/vson/v1/ontology#SpatialFact>", ttl)
+        self.assertIn("a <https://w3id.org/vson/v1/ontology#CameraView>", ttl)
+        self.assertIn("a <https://w3id.org/vson/v1/ontology#VisualStyle>", ttl)
+        self.assertIn("a <https://w3id.org/vson/v1/ontology#SceneContext>", ttl)
+        self.assertIn("a <https://w3id.org/vson/v1/ontology#Composition>", ttl)
         # Trait properties
-        self.assertIn("<https://vson.dev/v1/ontology#individuation>", ttl)
-        self.assertIn("<https://vson.dev/v1/ontology#animacy>", ttl)
+        self.assertIn("<https://w3id.org/vson/v1/ontology#individuation>", ttl)
+        self.assertIn("<https://w3id.org/vson/v1/ontology#animacy>", ttl)
         # Causation and temporal
-        self.assertIn("<https://vson.dev/v1/ontology#causes>", ttl)
-        self.assertIn("<https://vson.dev/v1/allen#before>", ttl)
+        self.assertIn("<https://w3id.org/vson/v1/ontology#causes>", ttl)
+        self.assertIn("<https://w3id.org/vson/v1/allen#before>", ttl)
         # SpatialFact viewer (Talmy resolution)
-        self.assertIn("<https://vson.dev/v1/ontology#viewer>", ttl)
+        self.assertIn("<https://w3id.org/vson/v1/ontology#viewer>", ttl)
 
 
 if __name__ == "__main__":

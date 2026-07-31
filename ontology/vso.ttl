@@ -1,4 +1,4 @@
-@prefix vso:   <https://vson.dev/v1/ontology#> .
+@prefix vso:   <https://w3id.org/vson/v1/ontology#> .
 @prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
@@ -6,7 +6,7 @@
 @prefix dc:    <http://purl.org/dc/terms/> .
 @prefix vann:  <http://purl.org/vocab/vann/> .
 
-<https://vson.dev/v1/ontology>
+<https://w3id.org/vson/v1/ontology>
     a owl:Ontology ;
     rdfs:label "Visual Scene Ontology (VSO)" ;
     rdfs:comment "TBox for VSON v1.1: the entity taxonomy, the frame layer, the reification node classes, and the closed value vocabularies the SHACL shapes validate against." ;
@@ -16,10 +16,16 @@
     dc:license <https://www.apache.org/licenses/LICENSE-2.0> ;
     dc:modified "2026-07-30"^^xsd:date ;
     owl:versionInfo "1.1" ;
-    owl:versionIRI <https://vson.dev/v1.1/ontology> ;
+    owl:versionIRI <https://w3id.org/vson/v1.1/ontology> ;
+    # LEGACY IRI — deliberately NOT migrated to w3id.org. v1.0 published its
+    # versionIRI under the project's earlier, never-registered host; that
+    # string is the record of what v1.0 declared, and rewriting it would
+    # assert a name v1.0 never carried. It does not dereference and is not
+    # meant to. This is the one legacy-host IRI allowlisted outside the
+    # historical specification documents.
     owl:priorVersion <https://vson.dev/v1.0/ontology> ;
     vann:preferredNamespacePrefix "vso" ;
-    vann:preferredNamespaceUri "https://vson.dev/v1/ontology#" .
+    vann:preferredNamespaceUri "https://w3id.org/vson/v1/ontology#" .
 
 #################################################################
 # Profile status — read this before quoting a profile name
@@ -325,7 +331,7 @@ vso:hasInvariant a owl:ObjectProperty ;
 # table form and nothing else is normative. Adding a member is a v1.x-compatible
 # change (§8); removing or renaming one is not.
 vso:Dimension a owl:Class ; rdfs:label "Dimension"
-              ; rdfs:comment "Registry of Quality dimensions. CLOSED under the VSO namespace: the admissible values of vso:dimension in this namespace are exactly the vso:Dimension individuals declared in this file, and any other vson.dev IRI in that slot is an orphan VSO term — non-conformant under clause C2 (docs/vson.md §2). A producer needing a further dimension MUST mint it under its own document namespace, never under vso:." .
+              ; rdfs:comment "Registry of Quality dimensions. CLOSED under the VSO namespace: the admissible values of vso:dimension in this namespace are exactly the vso:Dimension individuals declared in this file, and any other w3id.org/vson IRI in that slot is an orphan VSO term — non-conformant under clause C2 (docs/vson.md §2). A producer needing a further dimension MUST mint it under its own document namespace, never under vso:." .
 vso:Color      a vso:Dimension ; rdfs:label "Color"
                ; rdfs:comment "Perceived colour of the bearer." .
 vso:Weight     a vso:Dimension ; rdfs:label "Weight"

@@ -158,10 +158,10 @@ export interface ParsedViolation {
 
 // Strip pyshacl's IRI/blank-node decoration down to the bare local name so
 // the UI can match it against graph node ids. Examples seen in the wild:
-//   "<http://vson.dev/scene/2026-05-02#sf1>"  → "sf1"
-//   "vson:sf1"                                 → "sf1"
-//   "_:b0"                                     → "b0"
-//   "sf1"                                      → "sf1"
+//   "<https://example.org/scenes/2026-05-02#sf1>"  → "sf1"
+//   "vson:sf1"                                     → "sf1"
+//   "_:b0"                                         → "b0"
+//   "sf1"                                          → "sf1"
 export function localName(raw: string): string {
 	let s = raw.trim();
 	if (s.startsWith('<') && s.endsWith('>')) s = s.slice(1, -1);

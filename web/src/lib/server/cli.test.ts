@@ -3,11 +3,11 @@ import { localName, parseViolationReport } from './cli';
 
 describe('localName', () => {
 	it('unwraps angle-bracketed IRI and takes fragment', () => {
-		expect(localName('<http://vson.dev/scene/abc#sf1>')).toBe('sf1');
+		expect(localName('<https://example.org/scenes/abc#sf1>')).toBe('sf1');
 	});
 
 	it('takes last segment after slash when no fragment', () => {
-		expect(localName('<http://vson.dev/scene/sf1>')).toBe('sf1');
+		expect(localName('<https://example.org/scenes/sf1>')).toBe('sf1');
 	});
 
 	it('strips qname prefix', () => {
@@ -38,7 +38,7 @@ Conforms: False
 Constraint Violation in MinCountConstraintComponent (http://www.w3.org/ns/shacl#MinCountConstraintComponent):
 \tSeverity: sh:Violation
 \tSource Shape: vss:DirectionalNeedsViewerShape
-\tFocus Node: <http://vson.dev/scene/abc#sf1>
+\tFocus Node: <https://example.org/scenes/abc#sf1>
 \tResult Path: vson:viewer
 \tMessage: SpatialFact with :directional must carry :viewer.
 `;

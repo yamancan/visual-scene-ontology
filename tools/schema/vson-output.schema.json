@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://vson.dev/v1/schema/vson-output.schema.json",
+  "$id": "https://w3id.org/vson/v1/schema/vson-output.schema.json",
   "title": "VSON Extractor Response Envelope",
   "description": "JSON envelope returned by an image-to-VSON extractor. Carries the canonical Penman text, the derived Turtle, optional structured graph, and metadata. A consumer that only wants the graph reads .vson_p; a consumer that wants triples reads .vson_t; a consumer that wants nodes/edges for a UI reads .graph.",
   "type": "object",

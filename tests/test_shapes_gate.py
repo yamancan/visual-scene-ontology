@@ -45,9 +45,9 @@ except ImportError:  # pragma: no cover — dependency probe for the skip guards
     ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     validate_graph = None
 
-VSO_NS = "https://vson.dev/v1/ontology#"
+VSO_NS = "https://w3id.org/vson/v1/ontology#"
 SH_NS = "http://www.w3.org/ns/shacl#"
-VSS_NS = "https://vson.dev/v1/shapes#"
+VSS_NS = "https://w3id.org/vson/v1/shapes#"
 
 STRICT_SHAPES = "shapes/vson-shapes.ttl"
 RELAXED_SHAPES = "shapes/vson-shapes-relaxed.ttl"
@@ -59,8 +59,8 @@ _HAVE_DEPS = bool(rdflib and pyshacl and vp and validate_graph and clashes_for)
 # two objects, one SpatialFact carrying :directional and a :viewer. Written out
 # by hand so the bad variant differs from the good one in exactly one triple.
 _SCENE_PREFIX = """
-@prefix vso: <https://vson.dev/v1/ontology#> .
-@prefix rcc: <https://vson.dev/v1/rcc8#> .
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
 @prefix :    <https://example.org/scenes/gate#> .
 
 :scene a vso:Composition ;
@@ -476,7 +476,7 @@ class RelaxedProfileDriftTests(unittest.TestCase):
         # Violation, so "relaxed" never degenerates into "accepts anything".
         conforms, _ = _validate_relaxed(
             _doc(
-                "@prefix vso: <https://vson.dev/v1/ontology#> .\n"
+                "@prefix vso: <https://w3id.org/vson/v1/ontology#> .\n"
                 "@prefix : <https://example.org/scenes/gate#> .\n"
                 ":scene a vso:Composition ; vso:framedBy :cam .\n"
                 ":cam a vso:CameraView .\n"

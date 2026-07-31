@@ -4,9 +4,9 @@
 # who swings a heavy enchanted sword to strike a charging boar.
 # Composition is triangular.
 
-@prefix vso:   <https://vson.dev/v1/ontology#> .
-@prefix allen: <https://vson.dev/v1/allen#> .
-@prefix rcc:   <https://vson.dev/v1/rcc8#> .
+@prefix vso:   <https://w3id.org/vson/v1/ontology#> .
+@prefix allen: <https://w3id.org/vson/v1/allen#> .
+@prefix rcc:   <https://w3id.org/vson/v1/rcc8#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .

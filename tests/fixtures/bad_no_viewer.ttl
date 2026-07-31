@@ -1,8 +1,8 @@
 # Negative SHACL fixture: directional spatial fact missing the required viewer.
 # MUST fail vss:DirectionalNeedsViewerShape.
 
-@prefix vso: <https://vson.dev/v1/ontology#> .
-@prefix rcc: <https://vson.dev/v1/rcc8#> .
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
 @prefix :    <https://example.org/scenes/bad1#> .
 
 :c a vso:Composition ;

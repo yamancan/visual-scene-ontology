@@ -163,19 +163,19 @@ mod tests {
     #[test]
     fn smallest_node_emits_class_triple() {
         let out = to_turtle("(s / Composition)").unwrap();
-        assert!(out.contains(":s a <https://vson.dev/v1/ontology#Composition> ."));
+        assert!(out.contains(":s a <https://w3id.org/vson/v1/ontology#Composition> ."));
     }
 
     #[test]
     fn rcc_routes_to_rcc_namespace() {
         let out = to_turtle("(f / SpatialFact :rcc EC)").unwrap();
-        assert!(out.contains("<https://vson.dev/v1/rcc8#EC>"));
+        assert!(out.contains("<https://w3id.org/vson/v1/rcc8#EC>"));
     }
 
     #[test]
     fn allen_role_uses_allen_namespace() {
         let out = to_turtle("(e / Event :before other)").unwrap();
-        assert!(out.contains("<https://vson.dev/v1/allen#before>"));
+        assert!(out.contains("<https://w3id.org/vson/v1/allen#before>"));
     }
 
     #[test]

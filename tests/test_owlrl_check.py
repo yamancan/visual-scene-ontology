@@ -29,7 +29,7 @@ except ImportError:
     clashes_for = None
 
 PFX = (
-    "@prefix vso: <https://vson.dev/v1/ontology#> .\n"
+    "@prefix vso: <https://w3id.org/vson/v1/ontology#> .\n"
     "@prefix : <https://example.org/scene#> .\n"
 )
 

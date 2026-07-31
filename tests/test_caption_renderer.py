@@ -132,7 +132,7 @@ class RenderApiTests(unittest.TestCase):
         g = rdflib.Graph()
         g.parse(
             data="""
-                @prefix vso: <https://vson.dev/v1/ontology#> .
+                @prefix vso: <https://w3id.org/vson/v1/ontology#> .
                 @prefix : <https://example.org/scenes/anonymous#> .
                 :apple a vso:PhysicalObject .
             """,
@@ -144,7 +144,7 @@ class RenderApiTests(unittest.TestCase):
 class DisambiguationTests(unittest.TestCase):
     """Generic same-class entities must get distinguishable noun phrases."""
 
-    HEADER = """@prefix vso: <https://vson.dev/v1/ontology#> .
+    HEADER = """@prefix vso: <https://w3id.org/vson/v1/ontology#> .
 @prefix : <https://example.org/scenes/test#> .
 """
 

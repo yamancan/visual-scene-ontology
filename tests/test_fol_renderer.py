@@ -83,7 +83,7 @@ class GalleryFolTests(unittest.TestCase):
 class CollapseTests(unittest.TestCase):
     """Reified n-ary nodes are emitted once (collapsed), never as binaries."""
 
-    HEADER = """@prefix vso: <https://vson.dev/v1/ontology#> .
+    HEADER = """@prefix vso: <https://w3id.org/vson/v1/ontology#> .
 @prefix : <https://example.org/scenes/test#> .
 """
 

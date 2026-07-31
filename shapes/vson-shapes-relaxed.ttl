@@ -1,7 +1,7 @@
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
-@prefix vso:   <https://vson.dev/v1/ontology#> .
-@prefix vss:   <https://vson.dev/v1/shapes#> .
-@prefix rcc:   <https://vson.dev/v1/rcc8#> .
+@prefix vso:   <https://w3id.org/vson/v1/ontology#> .
+@prefix vss:   <https://w3id.org/vson/v1/shapes#> .
+@prefix rcc:   <https://w3id.org/vson/v1/rcc8#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
@@ -14,7 +14,7 @@
 # sh:target* and no constraints selects nothing), but wrong as metadata: it told
 # every reader and every vocabulary tool that this file's identity is a shape.
 # owl:Ontology is what the declaration always meant.
-<https://vson.dev/v1/shapes-relaxed>
+<https://w3id.org/vson/v1/shapes-relaxed>
     a owl:Ontology ;
     dc:title "VSON-S shapes (relaxed profile)" ;
     dc:creator "yamancan" ;
@@ -22,7 +22,7 @@
     dc:modified "2026-07-30"^^xsd:date ;
     owl:versionInfo "1.1" ;
     vann:preferredNamespacePrefix "vss" ;
-    vann:preferredNamespaceUri "https://vson.dev/v1/shapes#" ;
+    vann:preferredNamespaceUri "https://w3id.org/vson/v1/shapes#" ;
     rdfs:label "VSON v1.1 SHACL shapes — relaxed profile" ;
     rdfs:comment "Relaxed validation profile for partial / authoring-time documents. Carries the same shapes as vson-shapes.ttl (strict), but downgrades to sh:Warning the dimension-completeness constraints: Talmy viewer, Event/Process/Stative lemma, Quality dimension/value, Quality modifier. Structural-integrity constraints (Composition.depicts, FrameNotDepicted, SpatialFact.figure/ground, RCC/directional/proximal value vocab, Negation/BeliefState/Quantification/Annotation slots, Persona.hasInvariant, trait enums) remain sh:Violation. No shipped command selects this profile yet; the test suite exercises it via tools/shacl_helper (tests/test_shapes_gate.py). Documents that conform under strict also conform under relaxed (no strict shape was made stricter)." .
 
@@ -300,7 +300,7 @@ vss:EmbodimentConsistencyShape a sh:NodeShape ;
     sh:severity sh:Warning ;
     sh:sparql [
         sh:select """
-            PREFIX vso: <https://vson.dev/v1/ontology#>
+            PREFIX vso: <https://w3id.org/vson/v1/ontology#>
             SELECT $this ?dim ?invariantValue ?embodiedValue WHERE {
                 $this vso:embodies ?persona .
                 ?persona vso:hasInvariant ?invQ .

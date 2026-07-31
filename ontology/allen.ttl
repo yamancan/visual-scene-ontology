@@ -1,14 +1,14 @@
-@prefix allen: <https://vson.dev/v1/allen#> .
+@prefix allen: <https://w3id.org/vson/v1/allen#> .
 @prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix vso:   <https://vson.dev/v1/ontology#> .
+@prefix vso:   <https://w3id.org/vson/v1/ontology#> .
 @prefix dc:    <http://purl.org/dc/terms/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix vann:  <http://purl.org/vocab/vann/> .
 @prefix time:  <http://www.w3.org/2006/time#> .
 
-<https://vson.dev/v1/allen>
+<https://w3id.org/vson/v1/allen>
     a owl:Ontology ;
     rdfs:label "Allen interval algebra" ;
     rdfs:comment "Allen's 13 base relations on time intervals, declared as object properties between vso:Perdurant nodes, with inverses and the transitive members of the algebra." ;
@@ -18,7 +18,7 @@
     dc:modified "2026-07-30"^^xsd:date ;
     owl:versionInfo "1.1" ;
     vann:preferredNamespacePrefix "allen" ;
-    vann:preferredNamespaceUri "https://vson.dev/v1/allen#" .
+    vann:preferredNamespaceUri "https://w3id.org/vson/v1/allen#" .
 
 # All Allen relations are object properties whose domain and range are vso:Perdurant
 # (events / processes / states all have temporal extent).

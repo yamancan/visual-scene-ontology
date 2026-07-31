@@ -1,9 +1,9 @@
 {
   "_doc": "Single source of truth for VSON-P -> Turtle role routing. Both the Rust CLI (cli/src/penman/routing.rs, include_str! at compile time) and the Python reference (tools/penman/vson_penman.py, read from the checkout at import time) consume this one file, so they cannot drift. It lives inside the crate so that include_str! stays within the crate root and `cargo package` can verify-build the crate. If you change a routing rule, re-run `make cli-check` — the graph-isomorphism parity gate is what proves both sides moved together.",
   "namespaces": {
-    "vso":    "https://vson.dev/v1/ontology#",
-    "allen":  "https://vson.dev/v1/allen#",
-    "rcc":    "https://vson.dev/v1/rcc8#",
+    "vso":    "https://w3id.org/vson/v1/ontology#",
+    "allen":  "https://w3id.org/vson/v1/allen#",
+    "rcc":    "https://w3id.org/vson/v1/rcc8#",
     "rdf":    "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
     "xsd":    "http://www.w3.org/2001/XMLSchema#",
     "default": "https://example.org/scenes/anonymous#"
