@@ -1,4 +1,4 @@
-//! `vson` — the VSON v1.2 reference CLI.
+//! `vson` — the VSON v1.3 reference CLI.
 //!
 //! Subcommands:
 //!
@@ -26,7 +26,7 @@ mod commands;
 mod penman;
 
 #[derive(Parser)]
-#[command(name = "vson", version, about = "VSON v1.2 CLI", long_about = None)]
+#[command(name = "vson", version, about = "VSON v1.3 CLI", long_about = None)]
 struct Cli {
     #[command(subcommand)]
     command: Cmd,
