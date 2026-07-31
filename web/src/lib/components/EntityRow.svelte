@@ -67,9 +67,9 @@
 		scene.setSelected(partId);
 	}
 
-	// INLINE EDIT — staged corrections accumulate in the scene store (flushed to
-	// /api/correct on submit), mirroring the fields EntityCard edits: class,
-	// per-dim qualities, a note, and a remove flag.
+	// INLINE EDIT — staged corrections accumulate in the scene store (flushed
+	// through the correction orchestrator on submit), mirroring the fields
+	// EntityCard edits: class, per-dim qualities, a note, and a remove flag.
 	let edit = $derived(scene.pendingEdits[entity.id]);
 	let hasEdit = $derived(!!edit);
 

@@ -11,10 +11,11 @@
 
 	const STATUS_LABEL: Record<string, string> = {
 		uploading: 'reading image',
-		calling: 'calling vision model'
+		calling: 'calling vision model',
+		validating: 'verifying scene graph'
 	};
 
-	let busy = $derived(['uploading', 'calling'].includes(scene.status));
+	let busy = $derived(['uploading', 'calling', 'validating'].includes(scene.status));
 </script>
 
 <div class="flex h-svh flex-col">
@@ -46,6 +47,15 @@
 								<img src={scene.imagePreview} alt="" class="busy-img" />
 							{/if}
 							<Spinner label={STATUS_LABEL[scene.status] ?? scene.status} />
+							{#if scene.status === 'validating' && scene.gate1}
+								<!-- Progressive verdict: Gate 1 (SHACL) lands ~0.2s in; this
+								     whisper holds until Gate 2 (OWL RL) finalizes the envelope. -->
+								<p class="gate-line font-mono">
+									{scene.gate1.conforms
+										? 'shacl passed · consistency check running…'
+										: 'shacl violations · repair round in flight…'}
+								</p>
+							{/if}
 						</div>
 					{:else}
 						<NotationToggle />
@@ -144,6 +154,11 @@
 		border-radius: var(--radius-sm);
 		box-shadow: var(--shadow-sm);
 		object-fit: contain;
+	}
+	.gate-line {
+		margin: 0;
+		font-size: var(--text-2xs);
+		color: var(--fg-4);
 	}
 	.err {
 		max-width: 480px;

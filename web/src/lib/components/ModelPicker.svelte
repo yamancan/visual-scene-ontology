@@ -1,30 +1,28 @@
 <script lang="ts">
-	import { onMount, tick } from 'svelte';
+	import { tick } from 'svelte';
 	import { scene } from '$lib/scene.svelte';
 	import { byok } from '$lib/byok.svelte';
-
-	interface PickerModel {
-		id: string;
-		name: string;
-		provider: string;
-		context_length: number;
-		prompt_per_mtok: number;
-		completion_per_mtok: number;
-		supports_cache: boolean;
-	}
+	import { models as fetchCatalog, type PickerModel } from '$lib/openrouter/client';
 
 	let open = $state(false);
 	let query = $state('');
-	let models = $state<PickerModel[]>([]);
-	let loading = $state(true);
-	// Distinct from "the catalog loaded and matched nothing": a dead or
-	// unauthorised /api/models used to render as `no match`, which reads as
-	// "your query is wrong" instead of "the list never arrived".
+	let catalog = $state<PickerModel[]>([]);
+	let loading = $state(false);
+	// Distinct from "the catalog loaded and matched nothing": an unreachable
+	// openrouter.ai catalog used to render as `no match`, which reads as "your
+	// query is wrong" instead of "the list never arrived".
 	let loadFailed = $state(false);
 	let buttonEl: HTMLButtonElement | undefined = $state();
 	let menuEl: HTMLDivElement | undefined = $state();
 	let searchEl: HTMLInputElement | undefined = $state();
+	let keyEl: HTMLInputElement | undefined = $state();
 	let activeIdx = $state(0);
+
+	// Set when the keyless-drop hint asks for the key field; consumed by the
+	// open effect so the focus lands there instead of on the search box. Plain
+	// variable on purpose — it must not re-trigger effects.
+	let pendingKeyFocus = false;
+	let seenFocusSignal = byok.keyFocusSignal;
 
 	// Per-instance id root so the option ids stay unique and stable across
 	// re-renders (aria-activedescendant has to resolve to a real element).
@@ -34,21 +32,41 @@
 		return `${uid}-opt-${modelId.replace(/[^A-Za-z0-9_-]+/g, '-')}`;
 	}
 
-	onMount(async () => {
-		try {
-			const r = await fetch('/api/models');
-			if (!r.ok) throw new Error(`models · ${r.status}`);
-			models = (await r.json()) as PickerModel[];
-		} catch {
-			loadFailed = true;
-		}
+	// Live catalog, straight from openrouter.ai, fetched lazily on the FIRST
+	// picker interaction (never onMount) and cached in-tab by the client
+	// module. A failed fetch shows the degraded line and retries on the next
+	// open; extraction never blocks on the catalog — scene.model has a default.
+	async function loadCatalog() {
+		if (catalog.length > 0 || loading) return;
+		loading = true;
+		loadFailed = false;
+		const rows = await fetchCatalog();
+		if (rows) catalog = rows;
+		else loadFailed = true;
 		loading = false;
+	}
+
+	// The keyless-drop hint bumps byok.keyFocusSignal to land the visitor on
+	// the one place a key already lives — this key field. No modal, no toast.
+	$effect(() => {
+		const sig = byok.keyFocusSignal;
+		if (sig === seenFocusSignal) return;
+		seenFocusSignal = sig;
+		pendingKeyFocus = true;
+		if (open) {
+			tick().then(() => {
+				keyEl?.focus();
+				pendingKeyFocus = false;
+			});
+		} else {
+			open = true; // the open effect finishes the focus
+		}
 	});
 
 	let filtered = $derived.by(() => {
 		const q = query.trim().toLowerCase();
-		if (!q) return models;
-		return models.filter(
+		if (!q) return catalog;
+		return catalog.filter(
 			(m) =>
 				m.id.toLowerCase().includes(q) ||
 				m.name.toLowerCase().includes(q) ||
@@ -61,7 +79,7 @@
 	let visible = $derived(filtered.slice(0, 200));
 	let activeId = $derived(visible[activeIdx] ? optionId(visible[activeIdx].id) : undefined);
 
-	let current = $derived(models.find((m) => m.id === scene.model));
+	let current = $derived(catalog.find((m) => m.id === scene.model));
 
 	function pick(m: PickerModel) {
 		scene.setModel(m.id);
@@ -102,7 +120,15 @@
 				0,
 				visible.findIndex((m) => m.id === scene.model)
 			);
-			tick().then(() => searchEl?.focus());
+			loadCatalog();
+			tick().then(() => {
+				if (pendingKeyFocus) {
+					keyEl?.focus();
+					pendingKeyFocus = false;
+				} else {
+					searchEl?.focus();
+				}
+			});
 		}
 	});
 
@@ -196,16 +222,18 @@
 			</div>
 			<div class="byok">
 				<input
+					bind:this={keyEl}
 					type="password"
-					placeholder="your OpenRouter key (optional)"
+					placeholder="your OpenRouter key"
 					value={byok.key}
 					oninput={(e) => byok.set(e.currentTarget.value)}
 					autocomplete="off"
 					spellcheck="false"
-					aria-label="Your OpenRouter key (optional)"
+					aria-label="Your OpenRouter key"
 				/>
 				<span class="byok-hint font-mono">
-					{byok.active ? 'used instead of the server key' : 'kept in memory, never stored'}
+					sent directly from your browser to OpenRouter; never stored, never touches this site's
+					host
 				</span>
 			</div>
 		</div>
@@ -371,8 +399,9 @@
 		color: var(--fg-4);
 	}
 	.byok-hint {
+		flex-shrink: 1;
 		font-size: var(--text-2xs);
 		color: var(--fg-4);
-		white-space: nowrap;
+		text-align: right;
 	}
 </style>

@@ -1,13 +1,18 @@
 // BYOK — bring your own OpenRouter key.
 //
 // The key lives in module memory for the lifetime of the tab and nowhere else:
-// no localStorage, no sessionStorage, no cookie, no URL. It is attached as an
-// `x-openrouter-key` header to /api/extract and /api/correct requests, where
-// the server uses it for that one upstream call instead of its own key and
-// then drops it (never stored, never logged — see lib/server/openrouter.ts).
-// A refresh or tab close forgets it, by design.
+// no localStorage, no sessionStorage, no cookie, no URL. The OpenRouter client
+// ($lib/openrouter/client) reads it to build its `Authorization: Bearer`
+// header, so the key travels browser → openrouter.ai directly and never
+// touches this site's host (never stored, never logged). A refresh or tab
+// close forgets it, by design.
 
 let key = $state('');
+
+// Monotonic signal: bumping it asks the model picker — the one place a key is
+// entered — to open and focus its key field. Plain state rather than a DOM
+// event so the picker can react with an ordinary $effect.
+let keyFocusSignal = $state(0);
 
 export const byok = {
 	get key(): string {
@@ -19,8 +24,11 @@ export const byok = {
 	get active(): boolean {
 		return key.length > 0;
 	},
-	/** Spread into a fetch `headers` object; empty when no key is set. */
-	headers(): Record<string, string> {
-		return key ? { 'x-openrouter-key': key } : {};
+	get keyFocusSignal(): number {
+		return keyFocusSignal;
+	},
+	/** Open the model picker on its key field — used by the keyless-drop hint. */
+	requestKeyFocus() {
+		keyFocusSignal += 1;
 	}
 };

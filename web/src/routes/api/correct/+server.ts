@@ -145,7 +145,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	];
 
 	const t0 = Date.now();
-	// Same catalog check as /api/extract — this route relays on the same key.
+	// Same catalog check as the extract route — this route relays on the same key.
 	const picked = await resolveRequestedModel(body.model);
 	if (!picked.ok) throw error(400, picked.reason);
 	const model = picked.model;

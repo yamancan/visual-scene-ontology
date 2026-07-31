@@ -2,23 +2,37 @@
 	import { scene } from '$lib/scene.svelte';
 	import { byok } from '$lib/byok.svelte';
 	import { formatBytes, prepareImageUpload } from '$lib/utils';
-	import type { VsonEnvelope } from '$lib/types';
+	import { extractScene } from '$lib/extract/orchestrator';
+	import { OpenRouterError } from '$lib/openrouter/client';
 
 	let dragOver = $state(false);
 	let inputEl: HTMLInputElement | undefined = $state();
 	let dropError = $state<string | null>(null);
+	// The keyless-drop hint: ONE quiet line under the drop surface, shown only
+	// after a non-demo drop with no key stored. Not an error — nothing failed;
+	// live extraction simply runs on the visitor's own OpenRouter key.
+	let needKey = $state(false);
 
 	const ACCEPT = ['image/jpeg', 'image/png'];
 
-	// The statuses a body-size proxy or a rate limiter in front of this app can
-	// return carry no useful body — echoing it would put a chunk of an error
-	// page where the user expects a scene. Everything else keeps the terse
-	// `status · detail` shape so an unexpected failure is still debuggable.
-	function extractFailure(status: number, text: string): string {
-		if (status === 413) return 'image too large for this server — try a smaller image';
-		if (status === 429) return 'rate limit reached — try again in a minute';
-		return `extract failed · ${status} · ${text.slice(0, 200)}`;
+	// Failure lines in OpenRouter's own taxonomy — key not accepted (401), out
+	// of credits (402), provider rate limit (429), network — plus the designed
+	// validation-unavailable state. The old 413/429 map described a body-size
+	// proxy and a rate limiter that no longer sit in front of this app.
+	function extractFailure(e: unknown): string {
+		if (e instanceof OpenRouterError) return e.message;
+		const err = e as Error & { help?: string };
+		// Matched by name: importing the class from $lib/validate/client would
+		// pull the worker chunk (and its inlined Python/ontology sources) into
+		// the page bundle the keyless path pays for.
+		if (err?.name === 'ValidationUnavailableError') return err.help ?? err.message;
+		return `extract failed · ${err?.message ?? String(e)}`;
 	}
+
+	// Once a key exists the hint has done its job.
+	$effect(() => {
+		if (byok.active) needKey = false;
+	});
 
 	async function handleFile(file: File) {
 		if (!ACCEPT.includes(file.type)) {
@@ -30,7 +44,9 @@
 			return;
 		}
 		dropError = null;
+		needKey = false;
 		scene.setError(null);
+		scene.setGate1(null);
 		scene.setStatus('uploading');
 		try {
 			// Decode (and, above 1 MB, downscale) inside the try: a FileReader or
@@ -41,25 +57,33 @@
 			const { b64, mime, preview } = await prepareImageUpload(file);
 			scene.setImagePreview(preview);
 			scene.setStatus('calling');
-			const res = await fetch('/api/extract', {
-				method: 'POST',
-				headers: { 'content-type': 'application/json', ...byok.headers() },
-				body: JSON.stringify({
-					image_b64: b64,
-					mime,
-					model: scene.model,
-					prompt: scene.notation === 'x' ? 'skill-x' : 'skill'
-				})
+			// Entirely in the browser: sha256 demo short-circuit (keyless, $0),
+			// else chat → worker transpile → two-gate validate → repair loop.
+			const env = await extractScene({
+				image_b64: b64,
+				mime: mime as 'image/jpeg' | 'image/png',
+				model: scene.model,
+				variant: scene.notation === 'x' ? 'skill-x' : 'skill',
+				onGate1: (gate1) => {
+					// Progressive verdict: the SHACL result lands ~0.2s into each
+					// validation round, well before the OWL RL gate finalizes.
+					scene.setGate1(gate1);
+					scene.setStatus('validating');
+				}
 			});
-			if (!res.ok) {
-				scene.setError(extractFailure(res.status, await res.text()));
-				return;
-			}
-			const env = (await res.json()) as VsonEnvelope;
 			scene.setEnvelope(env);
 			scene.setStatus('idle');
 		} catch (e) {
-			scene.setError(`network · ${(e as Error).message}`);
+			if (e instanceof OpenRouterError && e.kind === 'no-key') {
+				// Keyless non-demo drop: one quiet line + focus the existing key
+				// field in the model picker. No modal, no banner, no toast.
+				needKey = true;
+				scene.setGate1(null);
+				scene.setStatus('idle');
+				byok.requestKeyFocus();
+				return;
+			}
+			scene.setError(extractFailure(e));
 		}
 	}
 
@@ -124,6 +148,10 @@
 	/>
 	{#if dropError}
 		<p class="zone-err font-mono" role="alert">{dropError}</p>
+	{:else if needKey}
+		<button type="button" class="zone-hint font-mono" onclick={() => byok.requestKeyFocus()}>
+			Live extraction runs with your OpenRouter key — add it in the model picker
+		</button>
 	{/if}
 </div>
 
@@ -190,5 +218,19 @@
 		padding: 0 var(--s2);
 		font-size: var(--text-2xs);
 		color: var(--danger);
+	}
+	/* Quiet by design: plain text at rest, only the pointer gives it away. */
+	.zone-hint {
+		padding: 0 var(--s2);
+		font-size: var(--text-2xs);
+		color: var(--fg-3);
+		background: transparent;
+		border: 0;
+		text-align: left;
+		cursor: pointer;
+		transition: color var(--duration-fast) var(--ease-out);
+	}
+	.zone-hint:hover {
+		color: var(--fg-1);
 	}
 </style>

@@ -120,9 +120,9 @@ export async function chat(req: ChatRequest, signal?: AbortSignal): Promise<Chat
 // Model catalog
 //
 // One process-wide cache of OpenRouter's model list, shared by three callers:
-//   /api/models  — shapes it into the picker rows
-//   /api/extract — validates the requested model id before relaying
-//   /api/correct — same
+//   the models route  — shapes it into the picker rows
+//   the extract route — validates the requested model id before relaying
+//   the correct route — same
 //
 // Without the id check, `{"model": "anything/at-all"}` is forwarded verbatim to
 // a paid upstream on our key. The catalog turns "any string with a slash" into

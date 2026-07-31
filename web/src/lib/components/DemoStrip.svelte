@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { scene } from '$lib/scene.svelte';
-	import { byok } from '$lib/byok.svelte';
 	import type { VsonEnvelope } from '$lib/types';
 
 	interface DemoEntry {
@@ -38,46 +37,29 @@
 	}
 
 	async function runDemo(e: DemoEntry) {
+		// Baked envelopes are the ONLY demo path: every manifest entry carries
+		// one, and the corpus is genuine LLM provenance that is never
+		// regenerated. An entry without envelope_path is a maintainer error —
+		// skip it loudly rather than spend anyone's OpenRouter key on a demo
+		// click.
+		if (!e.envelope_path) {
+			console.error(`demo entry has no envelope_path — skipping: ${e.path}`);
+			return;
+		}
 		loading = e.path;
 		scene.setError(null);
 		try {
-			// Hot path: if a baked envelope exists, fetch it (~8 KB) and render
-			// without an LLM call. Costs nothing, works without an API key.
-			if (e.envelope_path) {
-				const [previewUrl, envRes] = await Promise.all([
-					imageDataUrl(e.path, e.mime),
-					fetch(e.envelope_path)
-				]);
-				if (!envRes.ok) {
-					throw new Error(`cached envelope missing · ${envRes.status}`);
-				}
-				scene.setImagePreview(previewUrl);
-				scene.setEnvelope((await envRes.json()) as VsonEnvelope);
-				scene.setStatus('idle');
-				return;
+			// Fetch the baked envelope (~8 KB) and render without an LLM call.
+			// Costs nothing, works without an API key.
+			const [previewUrl, envRes] = await Promise.all([
+				imageDataUrl(e.path, e.mime),
+				fetch(e.envelope_path)
+			]);
+			if (!envRes.ok) {
+				throw new Error(`cached envelope missing · ${envRes.status}`);
 			}
-
-			const img = await fetch(e.path);
-			if (!img.ok) throw new Error(`fetch ${e.path} → ${img.status}`);
-			const blob = await img.blob();
-			const mime = (e.mime ?? blob.type ?? 'image/jpeg') as 'image/jpeg' | 'image/png';
-			const buf = await blob.arrayBuffer();
-			let bin = '';
-			const u8 = new Uint8Array(buf);
-			for (let i = 0; i < u8.length; i++) bin += String.fromCharCode(u8[i]);
-			const b64 = btoa(bin);
-			scene.setImagePreview(`data:${mime};base64,${b64}`);
-			scene.setStatus('calling');
-			const res = await fetch('/api/extract', {
-				method: 'POST',
-				headers: { 'content-type': 'application/json', ...byok.headers() },
-				body: JSON.stringify({ image_b64: b64, mime, source_uri: e.path, model: scene.model })
-			});
-			if (!res.ok) {
-				scene.setError(`extract failed · ${res.status}`);
-				return;
-			}
-			scene.setEnvelope((await res.json()) as VsonEnvelope);
+			scene.setImagePreview(previewUrl);
+			scene.setEnvelope((await envRes.json()) as VsonEnvelope);
 			scene.setStatus('idle');
 		} catch (err) {
 			scene.setError(`demo failed · ${(err as Error).message}`);

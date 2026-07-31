@@ -2,15 +2,19 @@
 	import { tick } from 'svelte';
 	import { scene } from '$lib/scene.svelte';
 	import { copyText, download } from '$lib/utils';
+	import { toCypher, toDot, toGraphML, toMermaid } from '$lib/graph/exporters';
 
 	let env = $derived(scene.envelope);
 	let copied = $state<string | null>(null);
 	let copiedPrompt = $state(false);
 	// Transient failure twins of the `copied` flags. They replace the row's own
-	// label for the same ~1.1s beat, so a dead /api/export or a denied clipboard
+	// label for the same ~1.1s beat, so a failed render or a denied clipboard
 	// is visible without adding a permanent surface.
 	let failed = $state<string | null>(null);
 	let failedPrompt = $state(false);
+	// The caption/fol renders run in the Pyodide worker; on a cold tab the
+	// first one boots the runtime, so the row whispers `preparing…` meanwhile.
+	let preparing = $state<string | null>(null);
 
 	let open = $state(false);
 	let buttonEl: HTMLButtonElement | undefined = $state();
@@ -74,27 +78,31 @@
 		{ id: 'dot', label: 'dot', ext: 'gv', mime: 'text/vnd.graphviz', tooltip: 'Graphviz DOT' }
 	];
 
+	// The four graph projections are pure in-page functions over the envelope's
+	// JSON graph; caption/fol run the same tools/render Python the CLI runs,
+	// inside the Pyodide worker, over the envelope's Turtle. No network.
+	const GRAPH_EXPORTERS = {
+		cypher: toCypher,
+		mermaid: toMermaid,
+		graphml: toGraphML,
+		dot: toDot
+	} as const;
+
 	async function getContent(fmt: Fmt): Promise<string> {
 		if (!env) return '';
 		if (fmt === 'vson') return env.vson_p;
 		if (fmt === 'ttl') return env.vson_t;
 		if (fmt === 'json') return JSON.stringify(env, null, 2);
-		// caption/fol transpile from the Penman doc; the graph formats walk the
-		// JSON graph. Same endpoint, different input key.
-		const payload =
-			fmt === 'caption' || fmt === 'fol'
-				? { vson_p: env.vson_p, format: fmt }
-				: { graph: env.graph, format: fmt };
-		const res = await fetch('/api/export', {
-			method: 'POST',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify(payload)
-		});
-		// A non-2xx body is an error page, not an export. Without this guard the
-		// download lands as a "successful" .ttl full of failure text and the copy
-		// button reports "copied".
-		if (!res.ok) throw new Error(`export ${fmt} · ${res.status}`);
-		return await res.text();
+		if (fmt === 'caption' || fmt === 'fol') {
+			if (!env.vson_t) throw new Error(`export ${fmt} · no turtle document`);
+			// Lazy on purpose: this import is what pulls the worker chunk, so an
+			// export menu that never renders caption/fol costs zero Pyodide bytes.
+			const { validationClient } = await import('$lib/validate/client');
+			const worker = validationClient();
+			return fmt === 'caption' ? worker.caption(env.vson_t) : worker.fol(env.vson_t);
+		}
+		if (!env.graph) throw new Error(`export ${fmt} · no graph in envelope`);
+		return GRAPH_EXPORTERS[fmt](env.graph);
 	}
 
 	function signalFailure(fmt: Fmt) {
@@ -106,15 +114,19 @@
 
 	async function dl(fmt: Fmt, ext: string, mime: string) {
 		if (!env) return;
+		if (fmt === 'caption' || fmt === 'fol') preparing = fmt;
 		try {
 			const content = await getContent(fmt);
 			download(`${env.scene_id}.${ext}`, content, mime);
 		} catch {
 			signalFailure(fmt);
+		} finally {
+			preparing = null;
 		}
 	}
 
 	async function cp(fmt: Fmt) {
+		if (fmt === 'caption' || fmt === 'fol') preparing = fmt;
 		try {
 			const content = await getContent(fmt);
 			if (!(await copyText(content))) throw new Error('clipboard denied');
@@ -122,6 +134,8 @@
 			setTimeout(() => (copied = null), 1100);
 		} catch {
 			signalFailure(fmt);
+		} finally {
+			preparing = null;
 		}
 	}
 
@@ -208,7 +222,7 @@
 							title="{f.tooltip} · download .{f.ext}"
 						>
 							<span class="item-label font-mono" class:label-failed={failed === f.id}>
-								{failed === f.id ? 'export failed' : f.label}
+								{failed === f.id ? 'export failed' : preparing === f.id ? 'preparing…' : f.label}
 							</span>
 							<span class="item-hint">{f.tooltip}</span>
 						</button>

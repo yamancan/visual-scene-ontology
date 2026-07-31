@@ -1,14 +1,16 @@
 <script lang="ts">
 	import { scene, isMeaningfulEdit } from '$lib/scene.svelte';
-	import { byok } from '$lib/byok.svelte';
+	import { correctScene, type CorrectRequest } from '$lib/extract/orchestrator';
+	import { OpenRouterError } from '$lib/openrouter/client';
 	import type { VsonEnvelope } from '$lib/types';
 	import type { Notation } from '$lib/scene.svelte';
 
 	// The staged-corrections tray. Shown over the bottom of the scene editor
 	// whenever the user has queued at least one fix (entity edit or scene note)
 	// or while a correction round-trip is in flight / errored. Flushes the
-	// accumulated edits to /api/correct as a targeted correction (not a
-	// re-extraction) and swaps in the returned envelope.
+	// accumulated edits through the client correction orchestrator as a
+	// targeted correction (not a re-extraction) and swaps in the returned
+	// envelope.
 
 	let visible = $derived(scene.pendingCount > 0 || scene.correctionStatus !== 'idle');
 	let correcting = $derived(scene.correctionStatus === 'correcting');
@@ -26,9 +28,19 @@
 	}
 
 	// Only forward an inline image when the preview is a real jpeg/png data URL.
-	// Gallery scenes (or other sources) lack one — the endpoint treats image as
-	// optional, so we simply omit it.
+	// Gallery scenes (or other sources) lack one — the orchestrator treats the
+	// image as optional, so we simply omit it.
 	const DATA_URL_RE = /^data:(image\/(?:jpeg|png));base64,(.+)$/;
+
+	// Same taxonomy as the dropzone (401 key / 402 credits / 429 provider limit
+	// / network); the ValidationUnavailableError match is by name so the worker
+	// chunk stays out of the page bundle.
+	function correctFailure(e: unknown): string {
+		if (e instanceof OpenRouterError) return e.message;
+		const err = e as Error & { help?: string };
+		if (err?.name === 'ValidationUnavailableError') return err.help ?? err.message;
+		return `correct failed · ${err?.message ?? String(e)}`;
+	}
 
 	async function send() {
 		const env = scene.envelope;
@@ -46,49 +58,34 @@
 			.filter(([, e]) => isMeaningfulEdit(e))
 			.map(([id, e]) => ({ id, ...e }));
 
-		const body: {
-			image_b64?: string;
-			mime?: 'image/jpeg' | 'image/png';
-			notation: Notation;
-			source: string;
-			corrections: typeof corrections;
-			sceneNote: string;
-			model: string;
-		} = {
+		const req: CorrectRequest = {
 			notation: picked.notation,
 			source: picked.source,
 			corrections,
 			sceneNote: scene.sceneNote,
-			model: scene.model
+			model: scene.model,
+			// Progressive verdict: SHACL result ~0.2s into each round, ahead of
+			// the OWL RL gate — rendered as the quiet line under the actions.
+			onGate1: (gate1) => scene.setGate1(gate1)
 		};
 
 		const m = scene.imagePreview?.match(DATA_URL_RE);
 		if (m) {
-			body.mime = m[1] as 'image/jpeg' | 'image/png';
-			body.image_b64 = m[2];
+			req.mime = m[1] as 'image/jpeg' | 'image/png';
+			req.image_b64 = m[2];
 		}
 
 		scene.setCorrectionStatus('correcting');
+		scene.setGate1(null);
 		try {
-			const res = await fetch('/api/correct', {
-				method: 'POST',
-				headers: { 'content-type': 'application/json', ...byok.headers() },
-				body: JSON.stringify(body)
-			});
-			if (!res.ok) {
-				const text = await res.text();
-				scene.setCorrectionStatus(
-					'error',
-					`correct failed · ${res.status} · ${text.slice(0, 200)}`
-				);
-				return;
-			}
-			const corrected = (await res.json()) as VsonEnvelope;
-			// setEnvelope clears the staged corrections + selection for us.
+			const corrected = await correctScene(req);
+			// setEnvelope clears the staged corrections + selection (and the
+			// interim gate line) for us.
 			scene.setEnvelope(corrected);
 			scene.setCorrectionStatus('idle');
 		} catch (e) {
-			scene.setCorrectionStatus('error', `network · ${(e as Error).message}`);
+			scene.setGate1(null);
+			scene.setCorrectionStatus('error', correctFailure(e));
 		}
 	}
 </script>
@@ -132,6 +129,14 @@
 			disabled={correcting}
 			rows="2"
 		></textarea>
+
+		{#if correcting && scene.gate1}
+			<p class="gate font-mono">
+				{scene.gate1.conforms
+					? 'shacl passed · consistency check running…'
+					: 'shacl violations · repair round in flight…'}
+			</p>
+		{/if}
 
 		{#if scene.correctionError}
 			<p class="err font-mono" role="alert">{scene.correctionError}</p>
@@ -250,6 +255,12 @@
 		font-size: var(--text-2xs);
 		color: var(--danger);
 		word-break: break-word;
+	}
+	/* Progressive-verdict whisper; gone the moment the envelope lands. */
+	.gate {
+		margin: 0;
+		font-size: var(--text-2xs);
+		color: var(--fg-4);
 	}
 	.spinner {
 		width: 10px;

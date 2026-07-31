@@ -1,4 +1,6 @@
 import type { ExtractStatus, VsonEnvelope } from './types';
+// Type-only: erased at build, so the store costs zero Pyodide bytes.
+import type { GateResult } from './validate/pyodide-ops';
 
 // Rune-based reactive container for the current scene. Imported directly
 // where consumers need to read or mutate. Stateless across page reloads.
@@ -32,7 +34,8 @@ export type RailTab = 'source' | 'turtle' | 'conformance';
 export type Notation = 'p' | 'x';
 
 // A staged, not-yet-applied correction to a single entity. Accumulated in the
-// store while the user reviews a scene; flushed to /api/correct on submit.
+// store while the user reviews a scene; flushed through the client correction
+// orchestrator ($lib/extract/orchestrator) on submit.
 export interface EntityEdit {
 	klass?: string;
 	qualities?: { dim: string; value: string }[];
@@ -62,6 +65,10 @@ function createSceneStore() {
 	let hoveredNodeId = $state<string | null>(null);
 	let correctionStatus = $state<'idle' | 'correcting' | 'error'>('idle');
 	let correctionError = $state<string | null>(null);
+	// Progressive verdict: the current round's Gate 1 SHACL result, delivered by
+	// the orchestrator's onGate1 hook ~0.2s into each validation while Gate 2
+	// (OWL RL, ~2.8s) is still running. Null outside an in-flight validation.
+	let gate1 = $state<GateResult | null>(null);
 
 	// Drop any staged corrections — a new scene makes prior edits stale (their
 	// ids may not exist in the new graph). Shared by setEnvelope() and reset().
@@ -124,6 +131,9 @@ function createSceneStore() {
 		get correctionError() {
 			return correctionError;
 		},
+		get gate1() {
+			return gate1;
+		},
 		// How many distinct corrections are staged — one per *meaningful* entity
 		// edit (no-op edits the user opened then cleared don't count) plus one for
 		// a non-blank scene note. Drives the submit-button badge.
@@ -136,6 +146,9 @@ function createSceneStore() {
 			// Drop any selection from a previous scene — its var won't exist
 			// in the new graph and we'd silently render a non-match.
 			selectedNodeId = null;
+			// The envelope carries the final two-gate verdict; the interim Gate 1
+			// line must not outlive the validation it narrated.
+			gate1 = null;
 			// New scene => any staged edits reference a graph that's gone.
 			clearCorrections();
 		},
@@ -188,6 +201,9 @@ function createSceneStore() {
 			correctionStatus = s;
 			correctionError = err ?? null;
 		},
+		setGate1(g: GateResult | null) {
+			gate1 = g;
+		},
 		clearCorrections() {
 			clearCorrections();
 		},
@@ -199,6 +215,7 @@ function createSceneStore() {
 			imagePreview = null;
 			railTab = 'source';
 			hoveredNodeId = null;
+			gate1 = null;
 			clearCorrections();
 			// Don't clear `notation` — it's a sticky preference, like `model`.
 		}

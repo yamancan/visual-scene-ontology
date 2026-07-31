@@ -117,8 +117,8 @@
 		return cropStyle(b, scene.imagePreview);
 	}
 
-	// INLINE EDIT: staged corrections accumulate in the scene store (flushed to
-	// /api/correct on submit). All edit-mode controls carry nodrag/nopan/nowheel
+	// INLINE EDIT: staged corrections accumulate in the scene store (flushed
+	// through the correction orchestrator on submit). All edit-mode controls carry nodrag/nopan/nowheel
 	// and stop event propagation so xyflow never drags the node and the card's
 	// select-onclick never fires while the user is typing.
 	let editing = $state(false);

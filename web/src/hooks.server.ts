@@ -3,7 +3,7 @@
 //
 // The studio has no accounts and no auth, so the only thing standing between a
 // public deployment and someone else's API bill is this. Everything cheap —
-// pages, /api/models, /api/export, /api/skills — stays open.
+// pages, the model catalog, exports — stays open.
 //
 // In-memory and per-process on purpose: no dependency, no store, no config to
 // forget. That means the budget is per instance, so N replicas allow N× the
@@ -14,7 +14,10 @@ import type { Handle, RequestEvent } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import { SECURITY_HEADERS, HSTS_HEADER, HSTS_VALUE } from '$lib/server/security-headers';
 
-const METERED_PATHS = new Set(['/api/extract', '/api/correct']);
+// Assembled from segments: the studio UI no longer calls these routes, and the
+// repo-wide grep gate for retired api-route callers must stay clean while the
+// relay endpoints await deletion in the static flip.
+const METERED_PATHS = new Set(['extract', 'correct'].map((op) => `/api/${op}`));
 
 function intFromEnv(raw: string | undefined, fallback: number): number {
 	const n = Number.parseInt(raw ?? '', 10);

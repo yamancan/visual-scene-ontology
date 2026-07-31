@@ -12,9 +12,10 @@ export function fileToBase64(file: File): Promise<{ b64: string; mime: string; p
 	});
 }
 
-// Uploads at or under this size go to the API byte-for-byte, so the server's
-// sha256 → baked-envelope cache still matches the bundled demo images if a user
-// drags one in from disk (the largest is ~176 KB). Larger files are re-encoded.
+// Uploads at or under this size keep their exact bytes, so the client-side
+// crypto.subtle sha256 short-circuit still matches /demos/envelopes/index.json
+// when a user drags a bundled demo image in from disk (the largest is ~176 KB)
+// and the baked envelope renders keylessly at $0. Larger files are re-encoded.
 export const DOWNSCALE_ABOVE_BYTES = 1024 * 1024;
 // Longest edge the vision models actually consume; pixels beyond this are paid
 // for in tokens and thrown away upstream.
@@ -70,7 +71,7 @@ export async function downscaleDataUrl(
 }
 
 export interface PreparedUpload {
-	/** Base64 payload for /api/extract — re-encoded when the file was oversized. */
+	/** Base64 payload for the extraction pipeline — re-encoded when oversized. */
 	b64: string;
 	/** Mime that matches `b64` (image/jpeg after a downscale). */
 	mime: string;
