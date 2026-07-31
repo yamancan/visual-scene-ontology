@@ -31,7 +31,16 @@ import rdflib
 from rdflib import RDF, BNode, Graph, URIRef
 from rdflib.compare import isomorphic
 
-VSO = rdflib.Namespace("https://vson.dev/v1/ontology#")
+# The VSO namespace is minted once, in cli/src/penman/routing-tables.json, and
+# vson_penman resolves it from there at import time. Reading it from that module
+# rather than restating the IRI here matters most for this file: a stale
+# namespace would make every class test below fall through, so nothing would be
+# anonymized, no composition edge would be normalized — and graph_equivalent
+# would go on returning True for the cases it happens to agree on while
+# silently no longer checking what it was written to check.
+from tools.penman.vson_penman import VSO as VSO_IRI
+
+VSO = rdflib.Namespace(VSO_IRI)
 
 # Classes whose instances are typically reified anonymous nodes.
 # CameraView is intentionally excluded — it's frequently the target of
@@ -118,11 +127,11 @@ def anonymize(g: Graph) -> Graph:
 # §4.4); gallery scenes use a mix. Treat the three as equivalent when
 # comparing graphs across syntaxes.
 _INTERCHANGEABLE_COMPOSITION_EDGES = {
-    URIRef("https://vson.dev/v1/ontology#depicts"),
-    URIRef("https://vson.dev/v1/ontology#hasFact"),
-    URIRef("https://vson.dev/v1/ontology#occurs"),
+    VSO.depicts,
+    VSO.hasFact,
+    VSO.occurs,
 }
-_CANONICAL_COMPOSITION_EDGE = URIRef("https://vson.dev/v1/ontology#depicts")
+_CANONICAL_COMPOSITION_EDGE = VSO.depicts
 
 
 def _normalize_composition_edges(g: Graph) -> Graph:

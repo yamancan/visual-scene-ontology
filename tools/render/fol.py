@@ -31,7 +31,14 @@ from typing import Optional
 from rdflib import RDF, BNode, Graph, Literal, URIRef
 from rdflib.namespace import Namespace
 
-VSO = Namespace("https://vson.dev/v1/ontology#")
+# The VSO namespace is minted once, in cli/src/penman/routing-tables.json, and
+# vson_penman resolves it from there at import time. Reading it from that module
+# rather than restating the IRI here keeps the renderer from becoming a second
+# mint site: a renderer holding a stale namespace would not fail, it would match
+# no class and no role and emit an empty document.
+from tools.penman.vson_penman import VSO as VSO_IRI
+
+VSO = Namespace(VSO_IRI)
 
 # Reified n-ary classes — each instance bundles 2-N role triples that we
 # collapse into one functional-style fact.
@@ -225,7 +232,8 @@ def _main(argv: list[str]) -> int:
     g = Graph()
 
     if path.endswith(".vson"):
-        # Lazy import: Turtle input does not need the Penman transpiler.
+        # Scoped to the branch that needs the parser; the module is already
+        # imported at the top of this file for the VSO namespace.
         from tools.penman import vson_penman as vp
 
         with open(path, encoding="utf-8") as f:

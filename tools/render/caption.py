@@ -19,7 +19,14 @@ from typing import Optional
 from rdflib import RDF, Graph, Literal, URIRef
 from rdflib.namespace import Namespace
 
-VSO = Namespace("https://vson.dev/v1/ontology#")
+# The VSO namespace is minted once, in cli/src/penman/routing-tables.json, and
+# vson_penman resolves it from there at import time. Reading it from that module
+# rather than restating the IRI here keeps the renderer from becoming a second
+# mint site: a renderer holding a stale namespace would not fail, it would match
+# nothing and quietly caption every scene as empty.
+from tools.penman.vson_penman import VSO as VSO_IRI
+
+VSO = Namespace(VSO_IRI)
 
 _HERE = os.path.dirname(__file__)
 with open(os.path.join(_HERE, "verbs.json"), encoding="utf-8") as _vf:
@@ -766,8 +773,8 @@ def _main(argv: list[str]) -> int:
 
     # Auto-detect by extension; for .vson, use the Penman transpiler.
     if path.endswith(".vson"):
-        # Lazy import to avoid pulling penman tools into tests that only
-        # exercise the renderer with pre-parsed graphs.
+        # Scoped to the branch that needs the parser; the module is already
+        # imported at the top of this file for the VSO namespace.
         from tools.penman import vson_penman as vp
 
         with open(path, encoding="utf-8") as f:
