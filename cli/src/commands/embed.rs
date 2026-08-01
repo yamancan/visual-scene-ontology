@@ -198,7 +198,20 @@ fn env_dir(key: &str) -> Option<PathBuf> {
     as_dir(std::env::var_os(key))
 }
 
-/// Where the embedded copy is written, *before* the per-version segment.
+/// Where the embedded copy is written, and whether a tree already sitting there
+/// may be believed.
+struct Cache {
+    root: PathBuf,
+    /// False for the shared-temp-directory fallback alone. Every other location
+    /// is chosen by this user's own environment or home directory; the temp
+    /// directory is the one that may be shared with other accounts, and this
+    /// binary *executes* Python out of the tree it finds — so there, a stamp
+    /// left by someone else is not evidence and the payload is rewritten every
+    /// run. What gets run is then what this process just wrote.
+    trusted: bool,
+}
+
+/// Resolve the cache location, *before* the per-version segment.
 ///
 /// `$VSON_CACHE_DIR` first, so a read-only or non-existent home directory —
 /// containers, CI runners, `nobody` — has one documented escape hatch that
@@ -209,25 +222,32 @@ fn env_dir(key: &str) -> Option<PathBuf> {
 /// The lookup is a parameter so the precedence can be tested without writing to
 /// the process environment: `std::env::set_var` is global, and cargo runs tests
 /// in threads.
-fn cache_root_from(lookup: impl Fn(&str) -> Option<PathBuf>) -> PathBuf {
+fn cache_root_from(lookup: impl Fn(&str) -> Option<PathBuf>) -> Cache {
+    let owned = |root: PathBuf| Cache {
+        root,
+        trusted: true,
+    };
     if let Some(dir) = lookup("VSON_CACHE_DIR") {
-        return dir;
+        return owned(dir);
     }
     if let Some(dir) = lookup("XDG_CACHE_HOME") {
-        return dir.join("vson");
+        return owned(dir.join("vson"));
     }
     // Windows sets LOCALAPPDATA and usually no HOME; checking it before HOME
     // costs nothing anywhere else, since no other platform sets it.
     if let Some(dir) = lookup("LOCALAPPDATA") {
-        return dir.join("vson");
+        return owned(dir.join("vson"));
     }
     if let Some(dir) = lookup("HOME") {
-        return platform_cache(&dir);
+        return owned(platform_cache(&dir));
     }
-    std::env::temp_dir().join("vson-cache")
+    Cache {
+        root: std::env::temp_dir().join("vson-cache"),
+        trusted: false,
+    }
 }
 
-fn cache_root() -> PathBuf {
+fn cache_root() -> Cache {
     cache_root_from(env_dir)
 }
 
@@ -269,12 +289,14 @@ fn write_atomic(dest: &Path, body: &str) -> std::io::Result<()> {
 ///
 /// Per version *and* per payload: `<cache>/vson/<version>/`, refreshed whenever
 /// the stamp does not match this binary's payload. Already-materialized trees
-/// cost one small read.
+/// cost one small read — except under the shared temp directory, where nothing
+/// found there is believed and the payload is written again.
 pub fn materialize() -> Result<PathBuf> {
-    let root = cache_root().join(env!("CARGO_PKG_VERSION"));
+    let cache = cache_root();
+    let root = cache.root.join(env!("CARGO_PKG_VERSION"));
     let stamp = root.join(STAMP);
     let want = stamp_body();
-    if std::fs::read_to_string(&stamp).is_ok_and(|found| found == want) {
+    if cache.trusted && std::fs::read_to_string(&stamp).is_ok_and(|found| found == want) {
         return Ok(root);
     }
 
@@ -347,33 +369,46 @@ mod tests {
 
     #[test]
     fn the_explicit_cache_override_outranks_every_convention() {
-        assert_eq!(
-            cache_root_from(only(&[
-                ("VSON_CACHE_DIR", "/pinned"),
-                ("XDG_CACHE_HOME", "/xdg"),
-                ("HOME", "/home/u"),
-            ])),
-            PathBuf::from("/pinned"),
-        );
+        let cache = cache_root_from(only(&[
+            ("VSON_CACHE_DIR", "/pinned"),
+            ("XDG_CACHE_HOME", "/xdg"),
+            ("HOME", "/home/u"),
+        ]));
+        assert_eq!(cache.root, PathBuf::from("/pinned"));
+        assert!(cache.trusted);
     }
 
     #[test]
     fn the_conventions_are_tried_in_order() {
         assert_eq!(
-            cache_root_from(only(&[("XDG_CACHE_HOME", "/xdg"), ("HOME", "/home/u")])),
+            cache_root_from(only(&[("XDG_CACHE_HOME", "/xdg"), ("HOME", "/home/u")])).root,
             PathBuf::from("/xdg/vson"),
         );
         assert_eq!(
-            cache_root_from(only(&[("HOME", "/home/u")])),
+            cache_root_from(only(&[("HOME", "/home/u")])).root,
             platform_cache(Path::new("/home/u")),
         );
+    }
+
+    #[test]
+    fn a_tree_in_the_shared_temp_directory_is_never_believed() {
         // No home of any kind — a daemon, a container with no passwd entry.
-        // The temp directory is always writable, and the least durable place
-        // this could land, which is the right trade for a fallback.
-        assert_eq!(
-            cache_root_from(only(&[])),
-            std::env::temp_dir().join("vson-cache"),
-        );
+        // The temp directory is always writable, which is why it is the
+        // fallback, and shared with every other account on the machine, which
+        // is why a stamp found there proves nothing: this binary runs `python3
+        // -m tools.…` out of the tree, so it rewrites before running.
+        let cache = cache_root_from(only(&[]));
+        assert_eq!(cache.root, std::env::temp_dir().join("vson-cache"));
+        assert!(!cache.trusted);
+        // Every other leg is under this user's own environment or home.
+        for env in [
+            &[("VSON_CACHE_DIR", "/pinned")][..],
+            &[("XDG_CACHE_HOME", "/xdg")][..],
+            &[("LOCALAPPDATA", "/local")][..],
+            &[("HOME", "/home/u")][..],
+        ] {
+            assert!(cache_root_from(only(env)).trusted, "{env:?}");
+        }
     }
 
     #[test]
