@@ -7,7 +7,7 @@ TOOLS = -m tools.penman.vson_penman
 EXAMPLE_VSON = examples/throne_room.vson
 EXAMPLE_TTL = examples/throne_room.ttl
 
-.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check fragment-check registry-check geometry-check cq-check iri-check live-check x-check x-skill-check envelope-check web-check web-deploy web-smoke deploy-check site clean
+.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check fragment-check registry-check geometry-check cq-check iri-check live-check rdfc10-suite x-check x-skill-check envelope-check web-check web-deploy web-smoke deploy-check site clean
 
 all: check
 
@@ -159,6 +159,19 @@ iri-check:
 live-check:
 	@echo "==> Live claims: the canonical IRIs MUST dereference as documented"
 	@$(PY) scripts/check_live_claims.py
+
+# The second gate that leaves the checkout, and for the same reason: the W3C
+# RDFC-1.0 test suite is published, not vendored. docs/vson.md §4.6 cites an
+# algorithm rather than defining one, so every frozen hash under
+# tests/fixtures/canonical/ rests on tools/canon.py implementing that citation.
+# `make check` establishes that against the worked examples printed in the
+# Recommendation itself (tests/test_canon.py); this establishes it against the
+# 64 eval tests and the poison test the working group published. Exit 1 is a
+# contradicted claim; exit 2 is "could not reach the suite", which is not a
+# verdict. Run it when tools/canon.py changes and before a release.
+rdfc10-suite:
+	@echo "==> RDFC-1.0 conformance: tools/canon.py vs the published W3C test suite"
+	@$(PY) scripts/check_rdfc10_suite.py
 
 envelope-check:
 	@echo "==> Studio envelope corpus: every committed envelope MUST SHACL-conform"
