@@ -2,7 +2,7 @@
 #
 # SHA-256 of the RDFC-1.0 canonical N-Quads of each shipped document, after
 # the §4.6 normalizations (N1 anonymization, N2 composition edges). Two rows
-# with one hash are two documents that denote the same scene; the eleven
+# with one hash are two documents that denote the same scene; the twelve
 # VSON-P / VSON-X pairs below are the cross-syntax proof, and every one of
 # them is a pair of equal hashes.
 #

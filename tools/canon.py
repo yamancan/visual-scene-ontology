@@ -595,7 +595,7 @@ def hash_of_path(path: str) -> str:
 FIXTURES = os.path.join(REPO, "tests", "fixtures", "canonical")
 MANIFEST = os.path.join(FIXTURES, "hashes.txt")
 # The one canonical form frozen as bytes rather than as a hash. It is the
-# richest scene in the gallery and it is one of the eleven that exists in two
+# richest scene in the gallery and it is one of the twelve that exists in two
 # surfaces, so this single file is what the cross-syntax claim *is*: VSON-P
 # and VSON-X both canonicalize to these bytes.
 WITNESS_STEM = "11_throne_room"
@@ -606,7 +606,7 @@ MANIFEST_HEADER = """\
 #
 # SHA-256 of the RDFC-1.0 canonical N-Quads of each shipped document, after
 # the §4.6 normalizations (N1 anonymization, N2 composition edges). Two rows
-# with one hash are two documents that denote the same scene; the eleven
+# with one hash are two documents that denote the same scene; the twelve
 # VSON-P / VSON-X pairs below are the cross-syntax proof, and every one of
 # them is a pair of equal hashes.
 #
