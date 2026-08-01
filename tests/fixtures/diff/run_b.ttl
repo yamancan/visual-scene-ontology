@@ -1,0 +1,47 @@
+# The known-delta pair, side B — docs/vson.md §5.15.
+#
+# The same imagined picture as run_a.ttl, described by a second run. Four
+# deltas, one per layer the report separates:
+#
+#   1. every variable is renamed, and the document base differs — which the
+#      metric must not notice at all (§5.15.1);
+#   2. the spatial fact swaps figure and ground, so the run says the mat is
+#      above the cat;
+#   3. the mat's `vso:class` reads Textile rather than Furniture;
+#   4. the direction is anchored to a second camera this run declares, which is
+#      what the viewer-blind row of the report exists to separate out.
+#
+# 26 triples: 8 frames, 4 objects, 8 attributes, 6 spatial.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix :    <https://example.org/scenes/run_b#> .
+
+:s a vso:Composition ;
+    vso:framedBy :k, :k2 ;
+    vso:viewedBy :k ;
+    vso:depicts  :c, :m ;
+    vso:hasFact  :f .
+
+:k a vso:CameraView ;
+    vso:angle "eye_level" .
+
+:k2 a vso:CameraView ;
+    vso:angle "low" .
+
+:c a vso:PhysicalObject ;
+    vso:individuation vso:Generic ;
+    vso:animacy       vso:Agentive ;
+    vso:countability  vso:Count ;
+    vso:class         :Animal .
+
+:m a vso:PhysicalObject ;
+    vso:individuation vso:Generic ;
+    vso:animacy       vso:Inert ;
+    vso:countability  vso:Count ;
+    vso:class         :Textile .
+
+:f a vso:SpatialFact ;
+    vso:figure      :m ;
+    vso:ground      :c ;
+    vso:directional vso:above ;
+    vso:viewer      :k2 .

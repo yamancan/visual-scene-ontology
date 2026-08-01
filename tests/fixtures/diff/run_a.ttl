@@ -1,0 +1,44 @@
+# The known-delta pair, side A — docs/vson.md §5.15.
+#
+# Two "extraction runs" over one imagined picture: a cat above a mat, seen from
+# one eye-level camera. Side A is the reference. Side B (run_b.ttl) renames every
+# variable, swaps the fact's figure and ground, gives the mat a different class,
+# anchors the direction to a second camera, and declares that camera as a frame.
+#
+# Both files are conformant VSON — `vson validate` reports OK on all three gates
+# — because a diff fixture that could not survive validation would be testing
+# two things at once. The exact expected counts are derived by hand in
+# tests/test_smatch.py; keep the two in step, or the derivation stops being a
+# derivation.
+#
+# 23 triples: 5 frames, 4 objects, 8 attributes, 6 spatial.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix :    <https://example.org/scenes/run_a#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :cat, :mat ;
+    vso:hasFact  :sf1 .
+
+:cam a vso:CameraView ;
+    vso:angle "eye_level" .
+
+:cat a vso:PhysicalObject ;
+    vso:individuation vso:Generic ;
+    vso:animacy       vso:Agentive ;
+    vso:countability  vso:Count ;
+    vso:class         :Animal .
+
+:mat a vso:PhysicalObject ;
+    vso:individuation vso:Generic ;
+    vso:animacy       vso:Inert ;
+    vso:countability  vso:Count ;
+    vso:class         :Furniture .
+
+:sf1 a vso:SpatialFact ;
+    vso:figure      :cat ;
+    vso:ground      :mat ;
+    vso:directional vso:above ;
+    vso:viewer      :cam .
