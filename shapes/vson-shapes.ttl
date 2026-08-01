@@ -32,6 +32,24 @@
     vann:preferredNamespaceUri "https://w3id.org/vson/v1/shapes#" .
 
 #################################################################
+# NB — what authorizes a shape in this file
+#
+# docs/vson.md §8.2 governs when enforcement may be tightened inside v1.x: a
+# check may be added only when every document it rejects was already
+# non-conformant under the specification as published — a numbered clause
+# (C1-C9, §2) or a value space §5/§6 already defines — and it MUST NOT reject,
+# or warn on, a document the specification permits. Every constraint added
+# after v1.2 therefore names its authorizing clause in its sh:message or in the
+# comment beside it, so a reader can check the authorization without leaving
+# this file. A shape that fires on a shipped document is a wrong shape, not a
+# newly-discovered bug in the document.
+#
+# Three constraints §5 documents are deliberately NOT shaped here; see the
+# "Documented but deliberately unshaped" section at the foot of this file for
+# the measurements that disqualified them.
+#################################################################
+
+#################################################################
 # NB — why the sh:class checks below carry sh:not guards
 #
 # Validation runs with inference="rdfs" (docs/vson.md §2, clause C3). Six of the
@@ -68,6 +86,21 @@ vss:CompositionShape a sh:NodeShape ;
         # Frame owl:disjointWith Entity, so an Entity-typed frame fires here.
         sh:not [ sh:class vso:Entity ] ;
         sh:message "vso:framedBy must reference a Frame (SceneContext / VisualStyle / CameraView / Persona), never an Entity."
+    ] ;
+    # The integrity half of two documented cardinalities. docs/vson.md §5.2
+    # types vso:viewedBy "exactly 1 when present" and vso:rendersAs "0..1", and
+    # §5.2 records that no shape constrained either. The cap rejects only what
+    # §5.2 already forbids; the *presence* half stays unshaped, because §5.2
+    # states viewedBy as SHOULD and no numbered clause requires it (§8.2).
+    sh:property [
+        sh:path vso:viewedBy ;
+        sh:maxCount 1 ;
+        sh:message "A Composition carries at most one vso:viewedBy — exactly one when present (docs/vson.md §5.2)."
+    ] ;
+    sh:property [
+        sh:path vso:rendersAs ;
+        sh:maxCount 1 ;
+        sh:message "A Composition designates at most one dominant vso:rendersAs VisualStyle (docs/vson.md §5.2, 0..1)."
     ] .
 
 #################################################################
@@ -81,7 +114,7 @@ vss:EventShape a sh:NodeShape ;
         sh:datatype xsd:string ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
-        sh:message "Event must have exactly one vso:lemma."
+        sh:message "Event must have exactly one vso:lemma (C6)."
     ] ;
     sh:property [
         sh:path vso:agent ;
@@ -97,18 +130,41 @@ vss:EventShape a sh:NodeShape ;
         sh:message "vso:agent must reference an Endurant, not a Perdurant or a Frame."
     ] .
 
+# sh:maxCount 1 on Process / Stative closes one of the two gaps docs/vson.md
+# §2.1 named: C6 requires *exactly* one vso:lemma on every Event, Process and
+# Stative, and only vss:EventShape capped it, so a second lemma violated the
+# clause and passed SHACL. A document with two lemmas was already non-conformant
+# by C6, which is what §8.2 requires of a tightening.
 vss:ProcessShape a sh:NodeShape ;
     sh:targetClass vso:Process ;
-    sh:property [ sh:path vso:lemma ; sh:datatype xsd:string ; sh:minCount 1 ] .
+    sh:property [ sh:path vso:lemma ; sh:datatype xsd:string ; sh:minCount 1 ;
+                  sh:maxCount 1 ;
+                  sh:message "Process must have exactly one vso:lemma (C6)." ] .
 
 vss:StativeShape a sh:NodeShape ;
     sh:targetClass vso:Stative ;
-    sh:property [ sh:path vso:lemma ; sh:datatype xsd:string ; sh:minCount 1 ] ;
+    sh:property [ sh:path vso:lemma ; sh:datatype xsd:string ; sh:minCount 1 ;
+                  sh:maxCount 1 ;
+                  sh:message "Stative must have exactly one vso:lemma (C6)." ] ;
     # Same entailed-range guard as EventShape/agent above.
     sh:property [ sh:path vso:experiencer ; sh:maxCount 1 ; sh:class vso:Endurant ;
                   sh:not [ sh:class vso:Perdurant ] ;
                   sh:not [ sh:class vso:Frame ] ;
                   sh:message "vso:experiencer must reference an Endurant, not a Perdurant or a Frame." ] .
+
+# The lemma value space, stated by docs/vson.md §5.6 ("Snake_case verb naming
+# the perdurant", pattern ^[a-z][a-z0-9_]*$) and enforced nowhere until now —
+# scripts/check_spec_fragments.py classified it as "a producer obligation stated
+# here only". One shape on sh:targetSubjectsOf rather than three copies on the
+# three perdurant classes: the constraint is on the literal, not on the bearer,
+# and this way it also reaches a lemma on an untyped node.
+vss:LemmaShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:lemma ;
+    sh:property [
+        sh:path vso:lemma ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:message "vso:lemma must be a snake_case verb matching ^[a-z][a-z0-9_]*$ (docs/vson.md §5.6)."
+    ] .
 
 #################################################################
 # Quality — must have dimension and value, exactly once each
@@ -177,20 +233,45 @@ vss:SpatialFactShape a sh:NodeShape ;
         [ sh:property [ sh:path vso:directional ; sh:minCount 1 ] ]
         [ sh:property [ sh:path vso:proximal ;    sh:minCount 1 ] ]
     ) ;
+    # docs/vson.md §5.7 types all three relation slots 0..1, and its JSON
+    # fragment types each as a single enum value rather than an array. Two RCC-8
+    # relations on one fact are mutually exclusive readings of the same
+    # figure/ground pair, so the cap rejects only documents §5.7 already
+    # forbade (§8.2). The sh:or above is untouched: at least one, at most one
+    # each.
+    sh:property [
+        sh:path vso:rcc ; sh:maxCount 1 ;
+        sh:message "A SpatialFact carries at most one vso:rcc (docs/vson.md §5.7, 0..1)."
+    ] ;
+    sh:property [
+        sh:path vso:directional ; sh:maxCount 1 ;
+        sh:message "A SpatialFact carries at most one vso:directional (docs/vson.md §5.7, 0..1)."
+    ] ;
+    sh:property [
+        sh:path vso:proximal ; sh:maxCount 1 ;
+        sh:message "A SpatialFact carries at most one vso:proximal (docs/vson.md §5.7, 0..1)."
+    ] ;
     sh:message "SpatialFact must specify at least one of vso:rcc, vso:directional, or vso:proximal." .
 
 # Talmy resolution: directional ⇒ viewer required.
+#
+# sh:maxCount 1 closes the second gap docs/vson.md §2.1 named: C5 requires
+# *exactly* one vso:viewer on a directional fact, the shape checked presence
+# only, and a fact with two viewers violated the clause while passing SHACL.
+# Two viewers is two construal anchors for one direction — the ambiguity C5
+# exists to remove — so the cap rejects only what C5 already forbade (§8.2).
 vss:DirectionalNeedsViewerShape a sh:NodeShape ;
     sh:targetSubjectsOf vso:directional ;
     sh:property [
         sh:path vso:viewer ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
         sh:class vso:CameraView ;
         # sh:class vso:CameraView is entailed (vso:viewer rdfs:range
         # vso:CameraView). CameraView is a Frame, and Frame owl:disjointWith
         # Entity, so a viewer pointed at a depicted object fires here.
         sh:not [ sh:class vso:Entity ] ;
-        sh:message "Directional spatial facts require a vso:viewer for construal disambiguation, and that viewer must be a CameraView, never an Entity."
+        sh:message "Directional spatial facts require exactly one vso:viewer for construal disambiguation (C5), and that viewer must be a CameraView, never an Entity."
     ] .
 
 # rcc value must be one of the eight RCC-8 base relations.
@@ -258,6 +339,21 @@ vss:AffordanceShape a sh:NodeShape ;
         sh:path vso:affordance ;
         sh:in ( vso:Holdable vso:Wearable vso:Mountable vso:Container vso:Edible ) ;
         sh:message "vso:affordance value must be one of the five published affordances (Holdable|Wearable|Mountable|Container|Edible)."
+    ] .
+
+# vso:class — docs/vson.md §5.4 types it "required, exactly 1", and §5.4's own
+# Enforcement paragraph recorded that nothing constrained it at all. The cap is
+# the half §8.2 authorizes: two domain classes on one Entity contradict "exactly
+# 1", so no document §5.4 permits is rejected. The presence half stays a
+# producer obligation — no numbered clause requires the property, and 6 shipped
+# documents (examples/throne_room.ttl and four baked envelopes) omit it, which
+# under §8.2 makes minCount the wrong shape, not those documents wrong.
+vss:EntityClassShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:class ;
+    sh:property [
+        sh:path vso:class ;
+        sh:maxCount 1 ;
+        sh:message "An Entity carries at most one vso:class — exactly one when present (docs/vson.md §5.4)."
     ] .
 
 #################################################################
@@ -383,6 +479,102 @@ vss:AnnotationShape a sh:NodeShape ;
     ] .
 
 #################################################################
+# Geometry value spaces (docs/vson.md §5.4, §5.10)
+#
+# Until v1.3 the geometry properties carried an rdfs:range and nothing else, so
+# `vso:bbox2d "banana"` parsed, satisfied every shape and was reported
+# conformant — a value space the specification defines twice over and no gate
+# read. These four patterns are that value space, transcribed.
+#
+# bbox2d is the one with a published regular expression: docs/vson.md §5.4
+# quotes it, tools/schema/vson-output.schema.json carries it at
+# /$defs/GraphNode/properties/bbox2d, and the string below is byte-identical to
+# the schema's — tests/test_documented_constraints.py fails if the two ever
+# drift. Normalized, not pixels: §5.4 and §5.10 both say "[0,1]", and
+# ontology/vso.ttl's comment (which also offered pixels) was the lower-ranked
+# artifact under §2 and has been corrected to match.
+#
+# position3d / scale3d / rotation have a documented shape but no published
+# regex, so the grammar below is the conservative reading of §5.10's "x,y,z" /
+# "sx,sy,sz" / "quaternion or Euler": comma-separated signed decimal numbers,
+# exponent notation admitted (world coordinates are unbounded, unlike a
+# normalized box), no whitespace — three components, or three-or-four for
+# rotation, which §5.10 types as a quaternion 'qx,qy,qz,qw' or an Euler triple.
+# No component range: §5.10 bounds none of the three.
+#
+# All four are Violation. Every value they reject contradicts a value space
+# §5.4/§5.10 already defines, and no shipped document carries a value they
+# reject (measured across examples/, the 16-scene gallery and all 21 baked
+# envelopes: 44 bbox2d values, all normalized; zero position3d/scale3d/rotation).
+#################################################################
+
+vss:GeometryShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:bbox2d , vso:position3d , vso:scale3d , vso:rotation ;
+    sh:property [
+        sh:path vso:bbox2d ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:pattern "^(0|0\\.\\d+|1|1\\.0+),(0|0\\.\\d+|1|1\\.0+),(0|0\\.\\d+|1|1\\.0+),(0|0\\.\\d+|1|1\\.0+)$" ;
+        sh:message "vso:bbox2d must be one normalized 'x,y,w,h' string with every component in [0,1] (docs/vson.md §5.4, §5.10)."
+    ] ;
+    sh:property [
+        sh:path vso:position3d ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[+-]?(\\d+(\\.\\d+)?|\\.\\d+)([eE][+-]?\\d+)?(,[+-]?(\\d+(\\.\\d+)?|\\.\\d+)([eE][+-]?\\d+)?){2}$" ;
+        sh:message "vso:position3d must be a 'x,y,z' string of three decimal numbers (docs/vson.md §5.10)."
+    ] ;
+    sh:property [
+        sh:path vso:scale3d ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[+-]?(\\d+(\\.\\d+)?|\\.\\d+)([eE][+-]?\\d+)?(,[+-]?(\\d+(\\.\\d+)?|\\.\\d+)([eE][+-]?\\d+)?){2}$" ;
+        sh:message "vso:scale3d must be a 'sx,sy,sz' string of three decimal numbers (docs/vson.md §5.10)."
+    ] ;
+    sh:property [
+        sh:path vso:rotation ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[+-]?(\\d+(\\.\\d+)?|\\.\\d+)([eE][+-]?\\d+)?(,[+-]?(\\d+(\\.\\d+)?|\\.\\d+)([eE][+-]?\\d+)?){2,3}$" ;
+        sh:message "vso:rotation must be a quaternion 'qx,qy,qz,qw' or an Euler 'rx,ry,rz' string of decimal numbers (docs/vson.md §5.10)."
+    ] .
+
+#################################################################
+# Probability / confidence / visible fraction — the [0,1] value space
+# (docs/vson.md §5.10, §5.11; ontology/vso.ttl §14 and §18)
+#
+# `vso:confidence "7.3"` was conformant until v1.3 for the same reason
+# `vso:bbox2d "banana"` was: the bound is stated in the term's own declaration
+# ("Producer's confidence in [0,1]") and in §5.10's type column, and no shape
+# read it.
+#
+# No sh:datatype here, deliberately, and this is the one place the file departs
+# from the declared rdfs:range. The reference transpilers type a Penman number
+# by its lexical form — tools/penman/vson_penman.py render_number() emits
+# xsd:decimal for "0.95" and xsd:integer for "1" — so an sh:datatype xsd:decimal
+# would reject `:confidence 1`, a document VSON's own emitters produce. §8.2
+# forbids exactly that. sh:minInclusive / sh:maxInclusive constrain the *value*,
+# which is what §5.10 and §5.11 bound, and they reject a non-numeric literal
+# too: SHACL reports a violation when the value cannot be compared with the
+# bound, so "banana" fails here just as it does on a pattern.
+#################################################################
+
+vss:ConfidenceRangeShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:probability , vso:confidence , vso:visibleFraction ;
+    sh:property [
+        sh:path vso:probability ;
+        sh:minInclusive 0 ; sh:maxInclusive 1 ;
+        sh:message "vso:probability must be a number in [0,1] (docs/vson.md §5.11; ontology/vso.ttl declares the same range)."
+    ] ;
+    sh:property [
+        sh:path vso:confidence ;
+        sh:minInclusive 0 ; sh:maxInclusive 1 ;
+        sh:message "vso:confidence must be a number in [0,1] (docs/vson.md §5.11; ontology/vso.ttl declares the same range)."
+    ] ;
+    sh:property [
+        sh:path vso:visibleFraction ;
+        sh:minInclusive 0 ; sh:maxInclusive 1 ;
+        sh:message "vso:visibleFraction must be a number in [0,1] (docs/vson.md §5.10)."
+    ] .
+
+#################################################################
 # Persona (v1.1) — must declare at least one hasInvariant Quality
 #################################################################
 
@@ -427,3 +619,39 @@ vss:EmbodimentConsistencyShape a sh:NodeShape ;
         """ ;
         sh:message "Entity hasQuality value contradicts embodied Persona's hasInvariant on the same dimension."
     ] .
+
+#################################################################
+# Documented but deliberately unshaped
+#
+# Three constraints docs/vson.md states and this file does not enforce. Each was
+# measured against the shipped corpus (examples/, the 16-scene gallery, all 21
+# baked envelopes) and each fires on documents this specification permits, which
+# under §8.2 disqualifies it at *every* severity — a warning on a conformant
+# document is still the shapes contradicting the contract. They are recorded
+# here so the next reader does not re-derive them.
+#
+#  1. Entity trait completeness. §5.4 types individuation / animacy /
+#     countability / class "required, exactly 1" on every Entity, and its own
+#     Enforcement paragraph records that no shape and no numbered clause
+#     requires them. A minCount shape would fire on 51 entity/trait pairs in 6
+#     shipped documents — examples/throne_room.ttl, examples/throne_room.vson
+#     and the kitchen / lamp / street / books envelopes. The integrity halves
+#     are shaped (vss:EntityClassShape and the three trait shapes cap at one);
+#     the presence half stays a producer obligation until v2.0.
+#
+#  2. SceneContext and CameraView enums. §5.3.1 tables vso:atmosphere,
+#     vso:timeOfDay and vso:weather as enums with an "enum check" validation
+#     column, and §5.3.3 lists values for vso:angle and vso:framing. §5.12 —
+#     "Reserved + closed enumerations (full list)" — carries none of the five,
+#     so no clause closes them, and the shipped corpus already steps outside
+#     the §5.3.1 lists: timeOfDay "day" (forest, books envelopes), atmosphere
+#     "cold" (books) and "clear" (forest). An sh:in would flag three shipped
+#     demos over a closure the contract does not declare. v2.0 is where an
+#     enum narrows; §8.2 says so.
+#
+#  3. C2 orphan-term closure. No SHACL shape can decide "every VSO-namespace
+#     IRI this document asserts is declared in the ontology" without the
+#     ontology in the data graph, and `vson validate` does not guarantee one.
+#     §2 already states that validate-time SHACL does not establish C2;
+#     tests/test_shapes_gate.py carries the corpus-wide check instead.
+#################################################################

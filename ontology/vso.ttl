@@ -505,9 +505,16 @@ vso:partOf       a owl:ObjectProperty , owl:TransitiveProperty ;
 vso:hasPart      a owl:ObjectProperty , owl:TransitiveProperty ; owl:inverseOf vso:partOf ;
                  rdfs:label "hasPart" ;
                  rdfs:comment "The object is a part of the subject; transitive, inverse of vso:partOf." .
-vso:properPartOf a owl:ObjectProperty , owl:TransitiveProperty ; rdfs:subPropertyOf vso:partOf ;
+# owl:IrreflexiveProperty is the "and not identical to it" half of the comment
+# below, and of the OWL-characteristics column docs/vson.md §5.8 has published
+# since v1.0 — asserted here for the first time in v1.3. It is OWL 2 RL-legal
+# (rule prp-irp), so the vso:properPartOf loop that the table already forbade is
+# now a clash the owl-consistency gate can name instead of a sentence in a
+# table. tests/test_ontology_docs.py pins the whole §5.8 column to this file.
+vso:properPartOf a owl:ObjectProperty , owl:TransitiveProperty , owl:IrreflexiveProperty ;
+                 rdfs:subPropertyOf vso:partOf ;
                  rdfs:label "properPartOf" ;
-                 rdfs:comment "The subject is a part of the object and not identical to it; a sub-property of vso:partOf." .
+                 rdfs:comment "The subject is a part of the object and not identical to it; a sub-property of vso:partOf, and irreflexive." .
 vso:overlaps     a owl:ObjectProperty , owl:SymmetricProperty ;
                  rdfs:label "overlaps" ;
                  rdfs:comment "The two entities share at least one part; symmetric." .
@@ -642,9 +649,15 @@ vso:scope      a rdf:Property ; rdfs:domain vso:Quantification ;
 # 14. Geometry
 #################################################################
 
+# Normalized, not pixels. This comment offered both until v1.3, while
+# docs/vson.md §5.4 and §5.10 have said "normalized, all components in [0,1]"
+# since v1.0 and the envelope schema has carried a normalized-only pattern for
+# as long. §2 ranks docs/vson.md above the ontology, so the disagreement was
+# resolved in the lower-ranked artifact — this line. Every bbox2d in the shipped
+# corpus was already normalized; vss:GeometryShape now rejects the pixel form.
 vso:bbox2d        a owl:DatatypeProperty ; rdfs:range xsd:string ;
                   rdfs:label "bbox2d" ;
-                  rdfs:comment "Bounding box in image coords as 'x,y,w,h' (pixels) or normalized 'nx,ny,nw,nh'." .
+                  rdfs:comment "Bounding box in normalized image coordinates as 'x,y,w,h', every component in [0,1]." .
 vso:position3d    a owl:DatatypeProperty ; rdfs:range xsd:string ;
                   rdfs:label "position3d" ;
                   rdfs:comment "World position 'x,y,z'." .

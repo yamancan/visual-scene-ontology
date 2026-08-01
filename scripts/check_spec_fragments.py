@@ -132,7 +132,12 @@ RULES = {
         "any of the three (grep sh:in). The table above the fragment says "
         "'enum check', and no enum is checked — a documented-but-unshaped "
         "constraint, out of scope for this gate, which reports copies that "
-        "disagree and cannot invent a copy that does not exist."
+        "disagree and cannot invent a copy that does not exist. The v1.3 "
+        "value-space sweep left it that way on purpose: §5.12 lists the closed "
+        "enumerations and carries none of these three, and the shipped corpus "
+        "already steps outside the lists above (timeOfDay 'day', atmosphere "
+        "'cold' / 'clear'). shapes/vson-shapes.ttl records the measurement "
+        "under 'Documented but deliberately unshaped'."
     ),
     ("#### `vso:individuation` *(IRI, required, exactly 1)*", 0): schema(
         "/$defs/GraphNode/properties/traits/properties/individuation"
@@ -146,9 +151,11 @@ RULES = {
         "this object."
     ),
     ("#### `vso:lemma` *(xsd:string, required, exactly 1)*", 0): illustrative(
-        "the lemma pattern ^[a-z][a-z0-9_]*$ is a producer obligation stated "
-        "here only: shapes/vson-shapes.ttl carries no sh:pattern at all, and "
-        "the envelope schema does not type lemma."
+        "the lemma pattern ^[a-z][a-z0-9_]*$ is stated here and enforced by "
+        "vss:LemmaShape, which v1.3 added — but the envelope schema does not "
+        "type lemma at all, so there is no JSON artifact for this fragment to "
+        "be compared against. The shape-side copy is pinned by "
+        "tests/test_documented_constraints.py instead."
     ),
     ("#### `vso:lemma` *(xsd:string, required, exactly 1)*", 1): illustrative(
         "a JSON sketch of a perdurant with its thematic roles. The roles are "

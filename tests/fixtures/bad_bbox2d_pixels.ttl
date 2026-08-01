@@ -1,0 +1,30 @@
+# Negative SHACL fixture: vso:bbox2d in pixel coordinates. MUST fail
+# vss:GeometryShape (sh:pattern).
+#
+# The executable half of the units decision. docs/vson.md §5.4 and §5.10 say
+# normalized [0,1]; ontology/vso.ttl's comment also offered "(pixels)" until
+# v1.3, and §2 ranks the document above the ontology, so normalized won and the
+# ontology comment was corrected. A pixel box is now a violation, not a second
+# reading.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/bbox_pixels#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :lamp , :chair .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "wide_shot" .
+
+:lamp a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Lamp .
+
+:chair a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Furniture .
+
+:lamp vso:bbox2d "120,44,300,220" .   # <- pixels; MUST fail.

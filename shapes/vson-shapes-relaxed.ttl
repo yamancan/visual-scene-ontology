@@ -29,7 +29,7 @@
     vann:preferredNamespacePrefix "vss" ;
     vann:preferredNamespaceUri "https://w3id.org/vson/v1/shapes#" ;
     rdfs:label "VSON v1.2 SHACL shapes — relaxed profile" ;
-    rdfs:comment "Relaxed validation profile for partial / authoring-time documents. Carries the same shapes as vson-shapes.ttl (strict), but downgrades to sh:Warning the dimension-completeness constraints: Talmy viewer, Event/Process/Stative lemma, Quality dimension/value, Quality modifier. Structural-integrity constraints (Composition.depicts, FrameNotDepicted, SpatialFact.figure/ground, RCC/directional/proximal value vocab, Negation/BeliefState/Quantification/Annotation slots, Persona.hasInvariant, trait enums) remain sh:Violation. No shipped command selects this profile yet; the test suite exercises it via tools/shacl_helper (tests/test_shapes_gate.py). Documents that conform under strict also conform under relaxed (no strict shape was made stricter)." .
+    rdfs:comment "Relaxed validation profile for partial / authoring-time documents. Carries the same shapes as vson-shapes.ttl (strict), but downgrades to sh:Warning the dimension-completeness constraints: Talmy viewer presence, Event/Process/Stative lemma presence, Quality dimension/value, Quality modifier. Structural-integrity constraints (Composition.depicts, FrameNotDepicted, SpatialFact.figure/ground, RCC/directional/proximal value vocab, Negation/BeliefState/Quantification/Annotation slots, Persona.hasInvariant, trait enums) remain sh:Violation. The split rule, applied when v1.3 closed the documented value spaces: a constraint on a *value space* (sh:datatype, sh:pattern, sh:minInclusive/sh:maxInclusive — geometry grammars, the [0,1] ranges, the lemma pattern) and a constraint on *cardinality integrity* (sh:maxCount) carry the same severity in both profiles, because a partial document is one that is missing content, never one that is malformed or self-contradictory; only *cardinality completeness* (sh:minCount) is downgraded here. No shipped command selects this profile yet; the test suite exercises it via tools/shacl_helper (tests/test_shapes_gate.py). Documents that conform under strict also conform under relaxed (no strict shape was made stricter)." .
 
 #################################################################
 # NB — why the sh:class checks below carry sh:not guards
@@ -59,6 +59,17 @@ vss:CompositionShape a sh:NodeShape ;
         sh:class vso:Frame ;
         sh:not [ sh:class vso:Entity ] ;
         sh:message "vso:framedBy must reference a Frame (SceneContext / VisualStyle / CameraView / Persona), never an Entity."
+    ] ;
+    # Cardinality integrity — same severity as strict (docs/vson.md §5.2).
+    sh:property [
+        sh:path vso:viewedBy ;
+        sh:maxCount 1 ;
+        sh:message "A Composition carries at most one vso:viewedBy — exactly one when present (docs/vson.md §5.2)."
+    ] ;
+    sh:property [
+        sh:path vso:rendersAs ;
+        sh:maxCount 1 ;
+        sh:message "A Composition designates at most one dominant vso:rendersAs VisualStyle (docs/vson.md §5.2, 0..1)."
     ] .
 
 vss:SpatialFactShape a sh:NodeShape ;
@@ -76,6 +87,19 @@ vss:SpatialFactShape a sh:NodeShape ;
         [ sh:property [ sh:path vso:directional ; sh:minCount 1 ] ]
         [ sh:property [ sh:path vso:proximal ;    sh:minCount 1 ] ]
     ) ;
+    # Cardinality integrity — same severity as strict (docs/vson.md §5.7, 0..1).
+    sh:property [
+        sh:path vso:rcc ; sh:maxCount 1 ;
+        sh:message "A SpatialFact carries at most one vso:rcc (docs/vson.md §5.7, 0..1)."
+    ] ;
+    sh:property [
+        sh:path vso:directional ; sh:maxCount 1 ;
+        sh:message "A SpatialFact carries at most one vso:directional (docs/vson.md §5.7, 0..1)."
+    ] ;
+    sh:property [
+        sh:path vso:proximal ; sh:maxCount 1 ;
+        sh:message "A SpatialFact carries at most one vso:proximal (docs/vson.md §5.7, 0..1)."
+    ] ;
     sh:message "SpatialFact must specify at least one of vso:rcc, vso:directional, or vso:proximal." .
 
 vss:RccValueShape a sh:NodeShape ;
@@ -215,11 +239,18 @@ vss:PersonaShape a sh:NodeShape ;
 # RELAXED — sh:Warning in this profile; sh:Violation under strict
 #################################################################
 
-# Talmy viewer — relaxed in this profile (severity on property shape, not
-# NodeShape). The sh:not guard that de-vacuates sh:class rides the same property
-# shape, so it too reports at sh:Warning here: this profile downgrades the whole
-# Talmy-viewer constraint, and splitting it would silently make one half of an
-# existing shape stricter than the strict-to-relaxed contract in the header.
+# Talmy viewer — the *presence* half is relaxed in this profile (severity on the
+# property shape, not the NodeShape). The sh:not guard that de-vacuates sh:class
+# rides the same property shape, so it too reports at sh:Warning here: this
+# profile downgrades the whole presence constraint, and splitting the guard off
+# would silently make one half of an existing shape stricter than the
+# strict-to-relaxed contract in the header.
+#
+# The C5 cap is a second property shape at Violation. That is not a shape made
+# stricter than strict — strict caps it too — and it is the integrity/
+# completeness split this profile now states: a document being authored may not
+# have chosen its viewer yet, but two viewers on one directional fact is the
+# construal ambiguity C5 exists to forbid, at any stage of authoring.
 vss:DirectionalNeedsViewerShape a sh:NodeShape ;
     sh:targetSubjectsOf vso:directional ;
     sh:property [
@@ -229,18 +260,27 @@ vss:DirectionalNeedsViewerShape a sh:NodeShape ;
         sh:not [ sh:class vso:Entity ] ;
         sh:severity sh:Warning ;
         sh:message "Directional spatial facts SHOULD have a vso:viewer, and that viewer SHOULD be a CameraView, never an Entity. (Relaxed-profile warning.)"
+    ] ;
+    sh:property [
+        sh:path vso:viewer ;
+        sh:maxCount 1 ;
+        sh:message "A directional SpatialFact carries at most one vso:viewer — exactly one (C5)."
     ] .
 
-# Event / Process / Stative lemma — relaxed
+# Event / Process / Stative lemma — presence relaxed, C6's cap kept
 vss:EventShape a sh:NodeShape ;
     sh:targetClass vso:Event ;
     sh:property [
         sh:path vso:lemma ;
         sh:datatype xsd:string ;
         sh:minCount 1 ;
-        sh:maxCount 1 ;
         sh:severity sh:Warning ;
         sh:message "Event SHOULD have exactly one vso:lemma. (Relaxed-profile warning.)"
+    ] ;
+    sh:property [
+        sh:path vso:lemma ;
+        sh:maxCount 1 ;
+        sh:message "Event must have at most one vso:lemma — exactly one (C6)."
     ] ;
     sh:property [
         sh:path vso:agent ;
@@ -255,12 +295,16 @@ vss:EventShape a sh:NodeShape ;
 vss:ProcessShape a sh:NodeShape ;
     sh:targetClass vso:Process ;
     sh:property [ sh:path vso:lemma ; sh:datatype xsd:string ; sh:minCount 1 ;
-                  sh:severity sh:Warning ] .
+                  sh:severity sh:Warning ] ;
+    sh:property [ sh:path vso:lemma ; sh:maxCount 1 ;
+                  sh:message "Process must have at most one vso:lemma — exactly one (C6)." ] .
 
 vss:StativeShape a sh:NodeShape ;
     sh:targetClass vso:Stative ;
     sh:property [ sh:path vso:lemma ; sh:datatype xsd:string ; sh:minCount 1 ;
                   sh:severity sh:Warning ] ;
+    sh:property [ sh:path vso:lemma ; sh:maxCount 1 ;
+                  sh:message "Stative must have at most one vso:lemma — exactly one (C6)." ] ;
     sh:property [ sh:path vso:experiencer ; sh:maxCount 1 ; sh:class vso:Endurant ;
                   sh:not [ sh:class vso:Perdurant ] ;
                   sh:not [ sh:class vso:Frame ] ;
@@ -356,4 +400,79 @@ vss:AffordanceShape a sh:NodeShape ;
         sh:path vso:affordance ;
         sh:in ( vso:Holdable vso:Wearable vso:Mountable vso:Container vso:Edible ) ;
         sh:message "vso:affordance value must be one of the five published affordances (Holdable|Wearable|Mountable|Container|Edible)."
+    ] .
+
+# vso:class — the cap only, exactly as in strict. §5.4's "required" half stays
+# unshaped in both profiles; 6 shipped documents omit it.
+vss:EntityClassShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:class ;
+    sh:property [
+        sh:path vso:class ;
+        sh:maxCount 1 ;
+        sh:message "An Entity carries at most one vso:class — exactly one when present (docs/vson.md §5.4)."
+    ] .
+
+#################################################################
+# VALUE SPACES — sh:Violation in both profiles
+#
+# A partial document is one that is missing content, never one whose values are
+# malformed: an authoring-time bbox2d of "banana" is as wrong as a published
+# one. These three shapes are therefore byte-for-byte the strict versions, and
+# tests/test_documented_constraints.py fails if they ever diverge. See the
+# comments in shapes/vson-shapes.ttl for what authorizes each pattern and why
+# the [0,1] ranges carry no sh:datatype.
+#################################################################
+
+vss:GeometryShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:bbox2d , vso:position3d , vso:scale3d , vso:rotation ;
+    sh:property [
+        sh:path vso:bbox2d ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:pattern "^(0|0\\.\\d+|1|1\\.0+),(0|0\\.\\d+|1|1\\.0+),(0|0\\.\\d+|1|1\\.0+),(0|0\\.\\d+|1|1\\.0+)$" ;
+        sh:message "vso:bbox2d must be one normalized 'x,y,w,h' string with every component in [0,1] (docs/vson.md §5.4, §5.10)."
+    ] ;
+    sh:property [
+        sh:path vso:position3d ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[+-]?(\\d+(\\.\\d+)?|\\.\\d+)([eE][+-]?\\d+)?(,[+-]?(\\d+(\\.\\d+)?|\\.\\d+)([eE][+-]?\\d+)?){2}$" ;
+        sh:message "vso:position3d must be a 'x,y,z' string of three decimal numbers (docs/vson.md §5.10)."
+    ] ;
+    sh:property [
+        sh:path vso:scale3d ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[+-]?(\\d+(\\.\\d+)?|\\.\\d+)([eE][+-]?\\d+)?(,[+-]?(\\d+(\\.\\d+)?|\\.\\d+)([eE][+-]?\\d+)?){2}$" ;
+        sh:message "vso:scale3d must be a 'sx,sy,sz' string of three decimal numbers (docs/vson.md §5.10)."
+    ] ;
+    sh:property [
+        sh:path vso:rotation ;
+        sh:datatype xsd:string ;
+        sh:pattern "^[+-]?(\\d+(\\.\\d+)?|\\.\\d+)([eE][+-]?\\d+)?(,[+-]?(\\d+(\\.\\d+)?|\\.\\d+)([eE][+-]?\\d+)?){2,3}$" ;
+        sh:message "vso:rotation must be a quaternion 'qx,qy,qz,qw' or an Euler 'rx,ry,rz' string of decimal numbers (docs/vson.md §5.10)."
+    ] .
+
+vss:ConfidenceRangeShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:probability , vso:confidence , vso:visibleFraction ;
+    sh:property [
+        sh:path vso:probability ;
+        sh:minInclusive 0 ; sh:maxInclusive 1 ;
+        sh:message "vso:probability must be a number in [0,1] (docs/vson.md §5.11; ontology/vso.ttl declares the same range)."
+    ] ;
+    sh:property [
+        sh:path vso:confidence ;
+        sh:minInclusive 0 ; sh:maxInclusive 1 ;
+        sh:message "vso:confidence must be a number in [0,1] (docs/vson.md §5.11; ontology/vso.ttl declares the same range)."
+    ] ;
+    sh:property [
+        sh:path vso:visibleFraction ;
+        sh:minInclusive 0 ; sh:maxInclusive 1 ;
+        sh:message "vso:visibleFraction must be a number in [0,1] (docs/vson.md §5.10)."
+    ] .
+
+vss:LemmaShape a sh:NodeShape ;
+    sh:targetSubjectsOf vso:lemma ;
+    sh:property [
+        sh:path vso:lemma ;
+        sh:pattern "^[a-z][a-z0-9_]*$" ;
+        sh:message "vso:lemma must be a snake_case verb matching ^[a-z][a-z0-9_]*$ (docs/vson.md §5.6)."
     ] .

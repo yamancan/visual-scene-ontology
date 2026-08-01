@@ -100,6 +100,20 @@ def _distinct_sets(g: rdflib.Graph):
     return sets
 
 
+def _irreflexive_properties(g: rdflib.Graph):
+    """Every property declared owl:IrreflexiveProperty.
+
+    owlrl 7.1.4 materializes no consequence from the declaration — OWL 2 RL's
+    prp-irp rule derives `false`, and a rule whose head is a contradiction has
+    nowhere to write itself in an RDF closure. Same situation as owl:AllDifferent
+    above: the axiom is in the TBox, the closure cannot report its violation, so
+    the gate checks it directly. docs/vson.md §5.8 has published `vso:properPartOf`
+    as irreflexive since v1.0; without this check the declaration would be a
+    sentence no tool reads.
+    """
+    return sorted(g.subjects(RDF.type, OWL.IrreflexiveProperty))
+
+
 def clashes_for(doc: rdflib.Graph):
     """Return a list of (individual, classA, classB) disjointness violations."""
     g = _ontology_closed() + doc
@@ -112,6 +126,14 @@ def clashes_for(doc: rdflib.Graph):
     # owl:Nothing membership is an explicit inconsistency marker.
     for x in g.subjects(RDF.type, OWL.Nothing):
         found.append((x, OWL.Nothing, OWL.Nothing))
+    # Irreflexivity violations (prp-irp, hand-rolled — see _irreflexive_properties).
+    # Checked against the closure, not the asserted triples, so a cycle that only
+    # becomes reflexive under transitivity is caught too: properPartOf(a,b) with
+    # properPartOf(b,a) entails properPartOf(a,a).
+    for p in _irreflexive_properties(g):
+        for x in set(g.subjects(p, None)):
+            if (x, p, x) in g:
+                found.append((x, p, x))
     # Distinctness violations (eq-diff1, hand-rolled — see _distinct_sets): any
     # two members of a distinct set inferred owl:sameAs is an inconsistency.
     for members in _distinct_sets(g):
@@ -156,12 +178,17 @@ def main(argv) -> int:
                     print(
                         f"      <{x}> and <{b}> are asserted distinct yet inferred owl:sameAs"
                     )
+                elif x == b:
+                    # Only the irreflexivity rows repeat the focus node in the
+                    # third slot: every other row's b is a class or owl:Nothing,
+                    # never the individual itself.
+                    print(f"      <{x}> stands in irreflexive <{a}> to itself")
                 else:
                     print(f"      <{x}> is inferred into both <{a}> and <{b}>")
         else:
             print(f"  OK {rel}")
     if bad:
-        print("owl-consistency: OWL 2 RL disjointness clash detected.")
+        print("owl-consistency: OWL 2 RL clash detected.")
         return 1
     print("owl-consistency: all documents are OWL 2 RL consistent.")
     return 0

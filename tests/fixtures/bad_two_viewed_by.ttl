@@ -1,0 +1,29 @@
+# Negative SHACL fixture: a Composition with two vso:viewedBy edges. MUST fail
+# vss:CompositionShape (sh:maxCount).
+#
+# docs/vson.md §5.2 types vso:viewedBy "exactly 1 when present" and recorded that
+# no shape constrained it. A scene has one primary viewer; additional cameras
+# attach with vso:framedBy, which is 0..n and untouched here.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/two_viewedby#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :lamp , :chair .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "wide_shot" .
+
+:lamp a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Lamp .
+
+:chair a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Furniture .
+
+:cam2 a vso:CameraView ; vso:angle "high" .
+:scene vso:framedBy :cam2 ; vso:viewedBy :cam2 .   # <- second viewedBy; MUST fail.

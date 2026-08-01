@@ -1,0 +1,35 @@
+# Negative SHACL fixture: vso:confidence outside [0,1]. MUST fail
+# vss:ConfidenceRangeShape.
+#
+# The second constraint the v1.3 sweep closed: ontology/vso.ttl has declared
+# "Producer's confidence in [0,1]" since v1.0 and no gate read the bound, so a
+# confidence of 7.3 was conformant. The Annotation itself is well-formed — the
+# only violation here is the number.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/confidence#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :lamp , :chair .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "wide_shot" .
+
+:lamp a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Lamp .
+
+:chair a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Furniture .
+
+:ann a vso:Annotation ;
+    vso:annotatedSubject   :lamp ;
+    vso:annotatedPredicate vso:bbox2d ;
+    vso:annotatedObject    :chair ;
+    vso:confidence         "7.3"^^xsd:decimal .   # <- outside [0,1]; MUST fail.
+
+:scene vso:hasFact :ann .

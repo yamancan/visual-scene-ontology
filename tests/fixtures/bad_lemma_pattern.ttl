@@ -1,0 +1,33 @@
+# Negative SHACL fixture: a lemma that is not a snake_case verb. MUST fail
+# vss:LemmaShape (sh:pattern).
+#
+# docs/vson.md §5.6 defines the lemma value space as ^[a-z][a-z0-9_]*$ and, until
+# v1.3, no shape carried a sh:pattern at all — scripts/check_spec_fragments.py
+# classified the pattern as "a producer obligation stated here only". The Event
+# is otherwise complete: exactly one lemma, of type xsd:string.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/lemma_pattern#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :lamp , :chair .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "wide_shot" .
+
+:lamp a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Lamp .
+
+:chair a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Furniture .
+
+:strike a vso:Event ;
+    vso:lemma "Strike Hard" ;     # <- capitals and a space; MUST fail.
+    vso:agent :chair .
+
+:scene vso:occurs :strike .

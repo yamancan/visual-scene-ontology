@@ -1,0 +1,28 @@
+# Negative SHACL fixture: vso:visibleFraction outside [0,1]. MUST fail
+# vss:ConfidenceRangeShape.
+#
+# docs/vson.md §5.10 types it "xsd:decimal in [0,1]" — a fraction of 1.5 claims
+# an entity is more than entirely visible after being occluded.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/visfrac#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :lamp , :chair .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "wide_shot" .
+
+:lamp a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Lamp .
+
+:chair a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Furniture .
+
+:lamp vso:occludes :chair .
+:chair vso:visibleFraction "1.5"^^xsd:decimal .   # <- above 1; MUST fail.

@@ -1,0 +1,29 @@
+# Negative SHACL fixture: an Entity with two vso:class values. MUST fail
+# vss:EntityClassShape (sh:maxCount).
+#
+# docs/vson.md §5.4 types vso:class "required, exactly 1" and its Enforcement
+# paragraph recorded that nothing constrained it at all. Only the cap is shaped:
+# an Entity with *no* class still conforms, because six shipped documents omit
+# it and §8.2 forbids a check that rejects what the specification permits.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/two_class#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :lamp , :chair .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "wide_shot" .
+
+:lamp a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Lamp .
+
+:chair a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Furniture .
+
+:lamp vso:class :Furniture .   # <- :lamp already has vso:class :Lamp; MUST fail.

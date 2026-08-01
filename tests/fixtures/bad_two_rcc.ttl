@@ -1,0 +1,33 @@
+# Negative SHACL fixture: a SpatialFact asserting two RCC-8 relations between the
+# same figure and ground. MUST fail vss:SpatialFactShape (sh:maxCount).
+#
+# docs/vson.md §5.7 types vso:rcc 0..1 and its JSON fragment types it as one enum
+# value, not an array. DC and EC are mutually exclusive readings of one
+# figure/ground pair: both values are in the closed vocabulary C8 fixes, so
+# vss:RccValueShape passes and only the count is wrong.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/two_rcc#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :lamp , :chair .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "wide_shot" .
+
+:lamp a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Lamp .
+
+:chair a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Furniture .
+
+:scene vso:hasFact :sf .
+
+:sf a vso:SpatialFact ;
+    vso:figure :lamp ; vso:ground :chair ;
+    vso:rcc rcc:DC , rcc:EC .   # <- two relations; MUST fail.

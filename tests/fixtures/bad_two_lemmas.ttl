@@ -1,0 +1,32 @@
+# Negative SHACL fixture: a Process carrying two lemmas. MUST fail
+# vss:ProcessShape (sh:maxCount).
+#
+# One of the two clause/shape gaps docs/vson.md §2.1 named before v1.3: C6
+# requires *exactly* one vso:lemma on every Event, Process and Stative, and only
+# vss:EventShape capped it — so this document violated the clause and passed
+# SHACL. Both lemmas are individually well-formed; the count is the violation.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/two_lemmas#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :lamp , :chair .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "wide_shot" .
+
+:lamp a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Lamp .
+
+:chair a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Furniture .
+
+:burn a vso:Process ;
+    vso:lemma "burn" , "smoulder" .   # <- two lemmas; MUST fail C6.
+
+:scene vso:occurs :burn .

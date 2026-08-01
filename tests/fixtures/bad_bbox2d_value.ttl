@@ -1,0 +1,30 @@
+# Negative SHACL fixture: vso:bbox2d carrying a value that is not a bounding box
+# at all. MUST fail vss:GeometryShape (sh:pattern).
+#
+# This is the constraint's origin story. Until v1.3 the geometry properties
+# carried an rdfs:range and nothing else, so this document parsed, satisfied
+# every shape, produced no OWL clash, and `vson validate` called it conformant —
+# while docs/vson.md §5.4 and §5.10 have defined bbox2d as a normalized
+# "x,y,w,h" string since v1.0. The value space was published and unread.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/bbox_value#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :lamp , :chair .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "wide_shot" .
+
+:lamp a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Lamp .
+
+:chair a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Furniture .
+
+:lamp vso:bbox2d "banana" .   # <- not "x,y,w,h"; MUST fail.
