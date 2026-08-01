@@ -7,19 +7,24 @@ TOOLS = -m tools.penman.vson_penman
 EXAMPLE_VSON = examples/throne_room.vson
 EXAMPLE_TTL = examples/throne_room.ttl
 
-.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check fragment-check registry-check geometry-check cq-check iri-check live-check rdfc10-suite x-check x-skill-check envelope-check web-check web-deploy web-smoke deploy-check site clean
+.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check fragment-check registry-check geometry-check cq-check grammar-check grammar-gbnf iri-check live-check rdfc10-suite x-check x-skill-check envelope-check web-check web-deploy web-smoke deploy-check site clean
 
 all: check
 
-check: parse-ontology penman-roundtrip shacl owl-consistency test spec-check fragment-check registry-check geometry-check cq-check lint-py iri-check
+check: parse-ontology penman-roundtrip shacl owl-consistency test spec-check fragment-check registry-check geometry-check cq-check grammar-check lint-py iri-check
 
 # Everything the CI runs, minus the web app (which needs pnpm/node).
 check-all: check cli-check x-check x-skill-check envelope-check
 
 # Installs the pinned dependency ranges declared in pyproject.toml and puts
 # the `tools` package on sys.path (editable, so edits take effect immediately).
+# The `dev` extra carries lark, which `make grammar-check` generates its parsers
+# with. It is deliberately not a runtime dependency: the transpilers under
+# tools/penman and tools/vson_x are pure stdlib and stay that way, so installing
+# vson-tools to *use* VSON never pulls in a parser generator. Installing it to
+# *verify* VSON does.
 deps:
-	$(PY) -m pip install --user --quiet -e .
+	$(PY) -m pip install --user --quiet -e ".[dev]"
 
 parse-ontology:
 	@echo "==> Parsing ontology, shapes, and example with rdflib"
@@ -142,6 +147,28 @@ geometry-check:
 cq-check:
 	@echo "==> Competency questions: every query MUST return its frozen answer"
 	@$(PY) -m tools.cq_check
+
+# The fifth copy-drift gate, and the one that runs the spec instead of reading
+# it. docs/vson.md Appendix B and Appendix D are the normative grammars for the
+# two syntaxes people write by hand; this target extracts those EBNF blocks,
+# translates them mechanically into a parser generator's input, and runs the
+# result over the corpus and over a negative fixture per §D.7 error row. Nothing
+# under tools/grammar/ carries a copy of a production — the spec is read at run
+# time, so a grammar that changes in docs/vson.md changes here in the same
+# commit or this goes red. Offline, and it belongs in `check` for the same
+# reason the other drift gates do: the highest-precedence artifact in the
+# repository should not describe a language its own parsers do not accept.
+grammar-check:
+	@echo "==> Executable grammars: Appendix B and Appendix D, extracted and run"
+	@$(PY) -m tools.grammar.check
+
+# Regenerates tools/grammar/vson-x.gbnf, the llama.cpp constrained-decoding
+# translation of Appendix D. `grammar-check` compares the committed file byte
+# for byte against what the spec generates, so this is the authoring step for a
+# grammar change — never a fix for a red build. Establish what moved first.
+grammar-gbnf:
+	@echo "==> Constrained decoding: regenerate the GBNF from docs/vson.md Appendix D"
+	@$(PY) -m tools.grammar.check --write-gbnf
 
 iri-check:
 	@echo "==> Legacy IRI gate: the withdrawn namespace host MUST NOT reappear"

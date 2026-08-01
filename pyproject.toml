@@ -33,6 +33,17 @@ dependencies = [
     "jsonschema>=4.0,<5",
 ]
 
+[project.optional-dependencies]
+# Verification-only. `make grammar-check` extracts the EBNF blocks of
+# docs/vson.md Appendix B and Appendix D and generates a parser from them; lark
+# is the generator. It is a pure-Python wheel (py3-none-any, ~110 KB, no
+# required dependencies of its own, Python >= 3.8), which is why a verification
+# gate can depend on it without the runtime doing so: tools/penman and
+# tools/vson_x remain pure stdlib, so `pip install vson-tools` to read or write
+# VSON still pulls in no parser generator. `make deps` and CI both install this
+# extra; the gate exits 2 rather than skipping itself when it is absent.
+dev = ["lark>=1.1,<2"]
+
 [tool.setuptools.packages.find]
 include = ["tools*"]
 namespaces = false

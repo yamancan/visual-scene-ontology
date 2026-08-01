@@ -31,7 +31,7 @@ jobs:
       # package, so no sys.path juggling is needed. ruff powers `make lint-py`,
       # which runs as part of `make check`.
       - name: Install Python deps
-        run: pip install -e . ruff
+        run: pip install -e ".[dev]" ruff
 
       # rustfmt + clippy are explicit: this action installs the minimal profile,
       # and `make cli-check` gates on `cargo fmt --check` and `cargo clippy`.
@@ -47,7 +47,8 @@ jobs:
 
       # make check = parse-ontology + penman-roundtrip + shacl + owl-consistency
       #            + python tests + spec-check + fragment-check + registry-check
-      #            + geometry-check + cq-check + lint-py (ruff) + iri-check
+      #            + geometry-check + cq-check + grammar-check + lint-py (ruff)
+      #            + iri-check
       - name: make check
         run: make check
 
