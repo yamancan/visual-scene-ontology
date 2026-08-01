@@ -227,7 +227,7 @@
 					placeholder="your OpenRouter key"
 					value={byok.key}
 					oninput={(e) => byok.set(e.currentTarget.value)}
-					autocomplete="off"
+					autocomplete="new-password"
 					spellcheck="false"
 					aria-label="Your OpenRouter key"
 				/>

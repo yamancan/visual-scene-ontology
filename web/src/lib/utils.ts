@@ -142,3 +142,14 @@ export function shortId(): string {
 	for (let i = 0; i < 12; i++) s += alpha[Math.floor(Math.random() * alpha.length)];
 	return s;
 }
+
+/**
+ * Prebuilt-envelope sentinels: the demo corpus stamps `fixture-bake`
+ * (bake-fixtures.ts), the gallery corpus stamps `gallery-bake`
+ * (bake-gallery.ts). Both mean the same thing to the UI — no LLM ran, no
+ * latency was measured, provenance is the committed file — so both must light
+ * the "prebuilt · $0" treatment instead of a fake-looking model row.
+ */
+export function isPrebuilt(model: string | undefined): boolean {
+	return model === 'fixture-bake' || model === 'gallery-bake';
+}

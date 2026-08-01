@@ -1,10 +1,10 @@
 import type { ExtractStatus, VsonEnvelope } from './types';
 // Type-only: erased at build, so the store costs zero Pyodide bytes.
 import type { GateResult } from './validate/pyodide-ops';
+import { DEFAULT_MODEL } from './openrouter/client';
 
 // Rune-based reactive container for the current scene. Imported directly
 // where consumers need to read or mutate. Stateless across page reloads.
-const DEFAULT_MODEL = 'google/gemini-2.5-flash';
 const MODEL_KEY = 'vson:model';
 const NOTATION_KEY = 'vson:notation';
 

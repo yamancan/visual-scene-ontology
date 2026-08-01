@@ -30,7 +30,7 @@
 			<p>
 				You uploaded an image. Your browser sent it straight to a vision-language model through
 				OpenRouter, on your own key — the request never touches the studio host — with a
-				<a href="/prompts" rel="self">4 KB system prompt</a> that lists the closed vocabulary, the
+				<a href="/prompts" rel="self">5 KB system prompt</a> that lists the closed vocabulary, the
 				five hard rules, and a worked example. The model emitted a Penman tree — text that looks
 				like nested S-expressions. A Pyodide worker, also in your browser, rewrote that tree into
 				Turtle 1.2 with the reference emitter CI byte-compares against the <code>vson</code> CLI, then

@@ -28,13 +28,14 @@ const SKILL_X_MODULES = import.meta.glob('../../../../skills/vson-extractor-x/SK
 	eager: true
 }) as Record<string, string>;
 
-// Original 18 KB orchestrator prompt — strongest first-try conformance, opt-in via ?prompt=full.
+// Original 18 KB orchestrator prompt. No UI surface selects it today; it ships
+// for the /prompts page and for API-level callers of systemPromptFor('full').
 export const ORCHESTRATOR_SYSTEM_PROMPT: string = orchestratorSystem;
 
-// 4 KB distilled VSON-P skill — default for studio. Same five hard rules, smaller token footprint.
+// ~5 KB distilled VSON-P skill — default for studio. Same five hard rules, smaller token footprint.
 export const SKILL_PROMPT: string = skillPrompt;
 
-// 7 KB VSON-X skill — opt-in via ?prompt=skill-x. Soft-imported.
+// ~7 KB VSON-X skill — selected by the notation toggle. Soft-imported.
 export const SKILL_X_PROMPT: string = Object.values(SKILL_X_MODULES)[0] ?? SKILL_X_FALLBACK;
 
 export const REPAIR_PROMPT_TEMPLATE: string = repairTemplate;

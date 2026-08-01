@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { scene } from '$lib/scene.svelte';
+	import { isPrebuilt } from '$lib/utils';
 	import { buildSceneView } from '$lib/render/sceneView';
 	import LayoutSwitcher from './LayoutSwitcher.svelte';
 
@@ -12,7 +13,7 @@
 	let latency = $derived(env?.extraction?.latency_ms ?? 0);
 	let retries = $derived(env?.extraction?.shacl_retries ?? 0);
 	let model = $derived(env?.extraction?.model ?? scene.model);
-	let prebuilt = $derived(model === 'fixture-bake');
+	let prebuilt = $derived(isPrebuilt(model));
 
 	// The resting "N entities" count mirrors the canvas: top-level entities only,
 	// i.e. those not nested inside another entity's Has chip-row. This is the one
@@ -27,7 +28,7 @@
 	});
 
 	function shortModel(id: string): string {
-		if (id === 'fixture-bake') return 'prebuilt';
+		if (isPrebuilt(id)) return 'prebuilt';
 		const i = id.indexOf('/');
 		return i >= 0 ? id.slice(i + 1) : id;
 	}

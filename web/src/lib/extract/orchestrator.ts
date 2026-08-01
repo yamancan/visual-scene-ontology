@@ -66,6 +66,13 @@ export interface OrchestratorDeps {
 	chat(req: ChatRequest, signal?: AbortSignal): Promise<ChatResponse>;
 	ops: TranspileValidateOps;
 	fetchFn: typeof fetch;
+	/**
+	 * Fire-and-forget Pyodide prefetch. Called the moment a live model call is
+	 * certain, so the ~16 MB runtime download overlaps the model's latency
+	 * instead of serializing after it. Failures stay silent here — the designed
+	 * validation-unavailable state surfaces at validate time.
+	 */
+	warmup?(): void;
 }
 
 /** Real wiring, loaded lazily: OpenRouter client + the Pyodide worker singleton. */
@@ -82,7 +89,10 @@ async function defaultDeps(): Promise<OrchestratorDeps> {
 			x2t: (vsonX) => worker.x2t(vsonX),
 			validate: (turtle, onGate1) => worker.validate(turtle, onGate1)
 		},
-		fetchFn: (input, init) => fetch(input, init)
+		fetchFn: (input, init) => fetch(input, init),
+		warmup: () => {
+			worker.warmup().catch(() => {});
+		}
 	};
 }
 
@@ -371,8 +381,9 @@ export async function extractScene(
 		throw new OrchestratorError('x-unavailable', 'VSON-X skill not shipped in this build');
 	}
 
-	// Prompt bodies live in a lazily-imported chunk; pull them only now that a
-	// live model call is certain.
+	// A live model call is now certain: pull the prompt bodies (lazily-imported
+	// chunk) and start the Pyodide download under the model's latency.
+	d.warmup?.();
 	const bodies = await import('../prompts/bodies');
 	const systemPrompt = bodies.systemPromptFor(variant);
 	const userText = variant === 'skill-x' ? BARE_EXTRACT_USER_X : BARE_EXTRACT_USER;
@@ -470,6 +481,9 @@ export async function correctScene(
 		throw new OrchestratorError('x-unavailable', 'VSON-X skill not shipped in this build');
 	}
 
+	// Same overlap as extraction — though in practice the worker is usually
+	// already warm here, since a correction follows a validated extraction.
+	d.warmup?.();
 	const bodies = await import('../prompts/bodies');
 	const systemPrompt = bodies.systemPromptFor(variant);
 	const userText =

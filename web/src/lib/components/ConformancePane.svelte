@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { scene } from '$lib/scene.svelte';
+	import { isPrebuilt } from '$lib/utils';
 
 	let env = $derived(scene.envelope);
 	let conforms = $derived(env?.conformance.conforms ?? false);
 	let violations = $derived(env?.conformance.violations ?? []);
 	let extraction = $derived(env?.extraction);
-	let prebuilt = $derived(extraction?.model === 'fixture-bake');
+	let prebuilt = $derived(isPrebuilt(extraction?.model));
 
 	function shortShape(s: string): string {
 		const i = s.indexOf(':');

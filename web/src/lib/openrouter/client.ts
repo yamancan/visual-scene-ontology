@@ -16,8 +16,13 @@
 
 import { byok } from '../byok.svelte';
 
-/** Default extraction model; was env.OPENROUTER_MODEL on the server. */
-export const DEFAULT_MODEL = 'google/gemini-2.5-flash';
+/**
+ * Default extraction model; was env.OPENROUTER_MODEL on the server. The single
+ * declaration — the scene store imports it rather than redeclaring, so a bump
+ * cannot leave the chat() fallback and the UI's initial pick disagreeing.
+ * Chosen 2026-07-31: image-capable, same price as its 2.5 predecessor.
+ */
+export const DEFAULT_MODEL = 'google/gemini-3.5-flash-lite';
 
 // Literal, build-time referer (retires PUBLIC_BASE_URL): OpenRouter uses it to
 // attribute traffic to the app, nothing more.
@@ -260,7 +265,8 @@ export async function models(): Promise<PickerModel[] | null> {
 // ── advisory model-id check ────────────────────────────────────────────────
 // The catalog gate died with the operator key (a bad id now only wastes the
 // visitor's own request, and OpenRouter answers with its own 400). This cheap
-// structural check survives for UI hints only. OpenRouter ids look like
+// structural check survives for callers that want a pre-flight sanity hint;
+// no shipped UI consumes it today. OpenRouter ids look like
 // `vendor/model[:variant]`.
 
 export const MODEL_ID_RE = /^[A-Za-z0-9][A-Za-z0-9._-]*\/[A-Za-z0-9][A-Za-z0-9._:-]*$/;
