@@ -35,8 +35,6 @@ pub const REPORT_VERSION: &str = "vson-validate/1";
 /// `--home` case — must say so instead of silently mis-shaping them.
 pub const RECORDS_VERSION: &str = "vson-validate-records/1";
 
-const SARIF_SCHEMA: &str =
-    "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json";
 const INFORMATION_URI: &str = "https://github.com/yamancan/visual-scene-ontology";
 
 /// One violation, as the Python reporter emits it plus the position this side
@@ -192,8 +190,13 @@ impl Report {
             }
         }
 
+        // No `$schema`. It is optional, no consumer requires it, and the one
+        // thing it would add is a URL this project has not checked resolves —
+        // against the grain of a repository with a gate for exactly that
+        // (scripts/check_live_claims.py). The schema URL has moved once
+        // already, from `master/Schemata/` to `main/sarif-2.1/schema/`, so
+        // guessing which spelling is live today is guessing.
         let log = json!({
-            "$schema": SARIF_SCHEMA,
             "version": "2.1.0",
             "runs": [{
                 "tool": {
