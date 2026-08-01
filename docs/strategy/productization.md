@@ -41,10 +41,16 @@ VSON's pitch in one sentence: **"Author, validate, and render scene-graph descri
 A single statically-linked binary (Rust). No Python, no JVM. The unix-y interface engineers reach for first.
 
 > **Target surface, not shipped state.** Today the binary ships `validate`,
-> `convert p2t/x2t`, and `export cypher/caption/fol` (with `convert x2t` and
-> the caption/FOL exporters shelling out to Python). `t2p` is a stub, and
-> `init`, `query`, `render`, `generate`, `diff`, `lint`, and `serve` are
-> planned, not yet implemented.
+> `verify --geometry`, `diff`, `convert p2t/x2t`, and `export
+> cypher/caption/fol` (with `convert x2t`, `verify`, `diff` and the
+> caption/FOL exporters shelling out to Python). `t2p` is a stub, and `init`,
+> `query`, `render`, `generate`, `lint`, and `serve` are planned, not yet
+> implemented. `diff` shipped in v1.3 as something other than the line below
+> sketches: triple-level agreement — precision, recall and F1 over the best
+> variable alignment, per layer ([`docs/vson.md`](../vson.md) §5.15) — rather
+> than an isomorphism verdict, because two independent runs are almost never
+> isomorphic and a yes/no answer would say nothing about how far apart they
+> are.
 
 ```
 vson init <project>        scaffold .vson workspace + GH action + VS Code recs

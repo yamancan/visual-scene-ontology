@@ -3,7 +3,7 @@
 [![CI](https://github.com/yamancan/visual-scene-ontology/actions/workflows/ci.yml/badge.svg)](https://github.com/yamancan/visual-scene-ontology/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-A vision-language model's description of an image is unvalidated prose: there is no schema it can violate, so nothing can reject one and no build can fail on it. VSON is a compact scene-graph notation in which every claim about an image — an object, a property, a spatial relation, an action — is instead a checkable graph assertion, gated by SHACL shapes (the W3C standard for validating graph structure). What ships today is that gate: `vson validate` exits non-zero on a scene graph that breaks the schema, and the web studio runs the same two checks in the browser. It checks the graph, not the picture — [§2.1](docs/vson.md#21-what-conformance-establishes) states exactly what a green result does and does not establish. Querying ships too: [`queries/`](queries/) holds 29 competency questions as SPARQL — 28 of them run by CI on every commit against the 17-document corpus and compared byte-for-byte with a frozen answer — and [§5.14.1](docs/vson.md#5141-what-the-questions-cover) maps each structural claim below to the questions that reach it, so "it is queryable" is a thing you can run rather than a thing this page asserts. Diffing two extraction runs is still where this is headed, not a thing it ships. VSON is built for image-generation pipelines, scene-graph and knowledge-representation researchers, and people evaluating VLM output, and it ships as a single-file spec, a Rust CLI, and a drop-an-image web studio.
+A vision-language model's description of an image is unvalidated prose: there is no schema it can violate, so nothing can reject one and no build can fail on it. VSON is a compact scene-graph notation in which every claim about an image — an object, a property, a spatial relation, an action — is instead a checkable graph assertion, gated by SHACL shapes (the W3C standard for validating graph structure). What ships today is that gate: `vson validate` exits non-zero on a scene graph that breaks the schema, and the web studio runs the same two checks in the browser. It checks the graph, not the picture — [§2.1](docs/vson.md#21-what-conformance-establishes) states exactly what a green result does and does not establish. Querying ships too: [`queries/`](queries/) holds 29 competency questions as SPARQL — 28 of them run by CI on every commit against the 17-document corpus and compared byte-for-byte with a frozen answer — and [§5.14.1](docs/vson.md#5141-what-the-questions-cover) maps each structural claim below to the questions that reach it, so "it is queryable" is a thing you can run rather than a thing this page asserts. Diffing two extraction runs ships too: `vson diff a b` aligns away the arbitrary names each run gave its nodes and reports triple-level precision, recall and F1 — overall and per layer, so a regression lands on *spatial* or *objects* instead of on one number ([§5.15](docs/vson.md#515-graph-agreement-vson-diff)). Agreement is not correctness — two runs that agree on the same hallucination score 1.0, and no image is read. VSON is built for image-generation pipelines, scene-graph and knowledge-representation researchers, and people evaluating VLM output, and it ships as a single-file spec, a Rust CLI, and a drop-an-image web studio.
 
 Canonical namespace: **`https://w3id.org/vson/v1/`**. The canonical IRIs dereference: the [w3id redirect](https://github.com/perma-id/w3id.org/pull/6471) merged on 2026-07-31, so `https://w3id.org/vson/v1/ontology` resolves to the ontology, and shapes, JSON-LD context, and schemas resolve alongside it — served from [vson.pages.dev/v1/](https://vson.pages.dev/v1/ontology.ttl). `make live-check` re-verifies all eight names against the live services.
 
@@ -70,13 +70,15 @@ shapes/           SHACL shapes for well-formedness
 queries/          29 competency questions (SPARQL 1.1) + byte-frozen answers — make cq-check
 examples/         Throne-room scene + gallery/ (16 scenes, minimal → complex)
                   + gallery-x/ (scenes 01–11 plus 12_persona in VSON-X compact syntax)
-cli/              `vson` Rust CLI (validate / convert {p2t, x2t} / export {cypher, caption, fol})
+cli/              `vson` Rust CLI (validate / verify --geometry / diff /
+                  convert {p2t, x2t} / export {cypher, caption, fol})
                   + src/penman/routing-tables.json (single source of truth for both impls)
 web/              Static SvelteKit studio — drop image, get scene graph; extraction
                   and two-gate verification run in the browser (BYOK OpenRouter + Pyodide)
 tools/penman/     Reference Penman ↔ Turtle-star transpiler (Python)
 tools/vson_x/     VSON-X compact-syntax parser + emitter + cross-syntax graph-equivalence
 tools/render/     Deterministic graph → English caption renderer
+tools/metrics/    Smatch graph agreement behind `vson diff` — per-layer precision/recall/F1
 tools/schema/     JSON Schema files (extractor envelope + JSON-LD form)
 tools/extractor/  Image-to-graph extractor — orchestrator prompts + bare-VLM baseline
 skills/           Portable extractor skills (SKILL.md + conformance fixtures) — exercised by make x-skill-check
@@ -105,6 +107,9 @@ cli/target/release/vson export cypher examples/throne_room.vson > scene.cypher
 
 # Render an English caption for image-generation models
 cli/target/release/vson export caption examples/throne_room.vson
+
+# Compare two documents of "the same" scene — agreement per layer, no image read
+cli/target/release/vson diff examples/throne_room.ttl examples/gallery/11_throne_room.vson
 
 # Run all tests (Python + Rust)
 make check        # 70 Python tests + 16-scene gallery + 2 schema parses
