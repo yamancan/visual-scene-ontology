@@ -5,11 +5,20 @@
 // canonical files the CLI reads, installs the committed wheels, and exposes
 // the five operations the studio needs: p2t, x2t, validate, caption, fol.
 //
-// The two-gate validate() mirrors `vson validate` (cli/src/commands/
-// validate.rs): Gate 1 is pyshacl over shapes + the vso/rcc8/allen ontology
-// trio with inference=rdfs and allow_warnings (tools/shacl_helper.py
-// semantics); Gate 2 is the owlrl OWL 2 RL disjointness/distinctness check
-// (tools/owlrl_check.py). Like the CLI, Gate 2 runs only when Gate 1 passes.
+// The two-gate validate() mirrors the first two gates of `vson validate`
+// (cli/src/commands/validate.rs): Gate 1 is pyshacl over shapes + the
+// vso/rcc8/allen ontology trio with inference=rdfs and allow_warnings
+// (tools/shacl_helper.py semantics); Gate 2 is the owlrl OWL 2 RL
+// disjointness/distinctness check (tools/owlrl_check.py). Like the CLI, Gate 2
+// runs only when Gate 1 passes.
+//
+// The CLI's third gate — C2 vocabulary closure, tools/c2_check.py, added in
+// v1.3 — is deliberately NOT here yet. It is one more Python module and one
+// more result to render, and the studio's verification panel is shaped around
+// two verdicts. Until that lands, this pipeline is a strict subset of the CLI's:
+// everything it rejects, the CLI rejects, and a document it passes may still
+// fail C2. Nothing in the studio may describe this as running "the same gates
+// as vson validate".
 //
 // Install path: pyodide.loadPackage with EXPLICIT wheel URLs — single path,
 // no micropip, no resolver, no index lookup. The wheel list is single-sourced

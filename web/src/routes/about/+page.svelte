@@ -34,8 +34,8 @@
 				five hard rules, and a worked example. The model emitted a Penman tree — text that looks
 				like nested S-expressions. A Pyodide worker, also in your browser, rewrote that tree into
 				Turtle 1.2 with the reference emitter CI byte-compares against the <code>vson</code> CLI, then
-				checked it with the same two gates the CLI runs. If it conformed, you saw the graph. If it didn't,
-				the studio fed the violations back to the model and asked for a fix, up to twice.
+				checked it with two of the three gates the CLI runs. If it conformed, you saw the graph. If it
+				didn't, the studio fed the violations back to the model and asked for a fix, up to twice.
 			</p>
 			<p class="aside">
 				The image goes from your browser to OpenRouter and nowhere else. There is no studio backend
@@ -122,9 +122,12 @@
 			</ul>
 			<p>
 				All of it runs in your browser: a Pyodide worker executes pyshacl over the shapes (Gate 1),
-				then an owlrl OWL 2 RL consistency check (Gate 2) — the same two gates, in the same order,
-				as <code>vson validate</code>. The first live validation downloads ~16 MB of runtime (less
-				over the wire with compression); after that it is cached.
+				then an owlrl OWL 2 RL consistency check (Gate 2) — the same two gates, in the same order
+				and from the same source files, as <code>vson validate</code>. The CLI has a third gate the
+				browser does not: a vocabulary-closure check that rejects VSON terms the ontology never
+				declared. So a document that passes here passes the CLI's first two gates too, and may still
+				fail its third. The first live validation downloads ~16 MB of runtime (less over the wire
+				with compression); after that it is cached.
 			</p>
 			<p>
 				If the model emits a non-conformant document, the studio feeds the SHACL report back to the
