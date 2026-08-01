@@ -7,11 +7,11 @@ TOOLS = -m tools.penman.vson_penman
 EXAMPLE_VSON = examples/throne_room.vson
 EXAMPLE_TTL = examples/throne_room.ttl
 
-.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check iri-check live-check x-check x-skill-check envelope-check web-check web-deploy web-smoke deploy-check site clean
+.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check fragment-check registry-check iri-check live-check x-check x-skill-check envelope-check web-check web-deploy web-smoke deploy-check site clean
 
 all: check
 
-check: parse-ontology penman-roundtrip shacl owl-consistency test spec-check lint-py iri-check
+check: parse-ontology penman-roundtrip shacl owl-consistency test spec-check fragment-check registry-check lint-py iri-check
 
 # Everything the CI runs, minus the web app (which needs pnpm/node).
 check-all: check cli-check x-check x-skill-check envelope-check
@@ -98,6 +98,18 @@ x-skill-check:
 	@$(PY) -m tools.vson_x.skill_check \
 		--corpus examples/gallery-x \
 		--config skills/vson-extractor-x/conformance.json
+
+# The two copy-drift gates. docs/vson.md outranks the shapes, the ontology and
+# the JSON Schemas (§2), which means a stale copy inside it is the highest-
+# precedence artifact asserting something false — not a formatting lag. Both
+# run offline off the checkout, so both belong in `check`.
+fragment-check:
+	@echo "==> Quoted schema fragments: docs/vson.md §5-§6 MUST match the artifacts"
+	@$(PY) scripts/check_spec_fragments.py
+
+registry-check:
+	@echo "==> Dimension registry: every copy MUST match ontology/vso.ttl"
+	@$(PY) scripts/check_registry_drift.py
 
 iri-check:
 	@echo "==> Legacy IRI gate: the withdrawn namespace host MUST NOT reappear"
