@@ -15,8 +15,8 @@
     },
     "version": {
       "type": "string",
-      "enum": ["1.0", "1.0.5", "1.1", "1.2"],
-      "description": "VSON spec version. \"1.0\" for v1.0 strict. \"1.0.5\" for v1.0 + caption renderer + Phase 0 ontology additions (vso:class, vso:modifier, Persona). \"1.1\" adds VSON-X surface form and partial validation profile. \"1.2\" re-mints the VSO/RCC-8/Allen/shape namespaces under https://w3id.org/vson/, replacing the host v1.0-v1.1 published under (withdrawn, not aliased — see spec/CHANGELOG.md v1.2.0); envelope structure is unchanged from 1.1. Backwards-compatible: every v1.0 envelope remains valid under newer spec versions."
+      "enum": ["1.0", "1.0.5", "1.1", "1.2", "1.3"],
+      "description": "VSON spec version — which spec *document* the producer emitted under, not which vocabulary it used (the three version axes are defined in docs/vson.md §8.1). \"1.0\" for v1.0 strict. \"1.0.5\" for v1.0 + caption renderer + Phase 0 ontology additions (vso:class, vso:modifier, Persona). \"1.1\" adds VSON-X surface form and partial validation profile. \"1.2\" re-mints the VSO/RCC-8/Allen/shape namespaces under https://w3id.org/vson/, replacing the host v1.0-v1.1 published under (withdrawn, not aliased — see spec/CHANGELOG.md v1.2.0); envelope structure is unchanged from 1.1. \"1.3\" is the v1.3 spec document: envelope structure, every IRI, and the vocabulary (owl:versionInfo 1.2) are unchanged from 1.2. Backwards-compatible: every v1.0 envelope remains valid under newer spec versions, so this enum only ever grows."
     },
     "source": {
       "type": "object",
@@ -102,12 +102,12 @@
       "then": { "properties": { "vson_p": { "minLength": 3 } } }
     },
     {
-      "$comment": "v1.1 and v1.2: at least one authoring surface (vson_p or vson_x) MUST be non-empty. Either Penman extraction (vson_p non-empty, vson_x absent) or VSON-X extraction (vson_p='', vson_x non-empty). Every version admitted by the enum above that allows an empty vson_p MUST be listed here, or the rule silently stops applying to it.",
-      "if": { "properties": { "version": { "enum": ["1.1", "1.2"] } } },
+      "$comment": "v1.1 and later: at least one authoring surface (vson_p or vson_x) MUST be non-empty. Either Penman extraction (vson_p non-empty, vson_x absent) or VSON-X extraction (vson_p='', vson_x non-empty). Every version admitted by the enum above that allows an empty vson_p MUST be listed here, or the rule silently stops applying to it — which is why this list grows with the enum and is checked against docs/vson.md §6.1 by scripts/check_spec_fragments.py. Each anyOf branch carries its own `required`: `properties` alone is vacuously satisfied by an absent key, so without it an envelope with vson_p='' and no vson_x passed the branch that was supposed to demand vson_x.",
+      "if": { "properties": { "version": { "enum": ["1.1", "1.2", "1.3"] } } },
       "then": {
         "anyOf": [
-          { "properties": { "vson_p": { "minLength": 3 } } },
-          { "properties": { "vson_x": { "minLength": 3 } } }
+          { "required": ["vson_p"], "properties": { "vson_p": { "minLength": 3 } } },
+          { "required": ["vson_x"], "properties": { "vson_x": { "minLength": 3 } } }
         ]
       }
     }

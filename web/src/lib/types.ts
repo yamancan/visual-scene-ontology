@@ -82,7 +82,10 @@ export interface SceneSource {
 
 export interface VsonEnvelope {
 	scene_id: string;
-	version: '1.0' | '1.0.5' | '1.1' | '1.2';
+	// Mirrors the `version` enum of tools/schema/vson-output.schema.json, which
+	// scripts/check_spec_fragments.py pins: a consumer that omits a value the
+	// schema admits type-rejects an envelope the spec says it MUST accept.
+	version: '1.0' | '1.0.5' | '1.1' | '1.2' | '1.3';
 	source?: SceneSource;
 	/** Penman authoring form. Empty string in VSON-X mode (back-conversion deferred until t2p ships). */
 	vson_p: string;

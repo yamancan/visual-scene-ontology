@@ -16,6 +16,13 @@
     dc:license <https://www.apache.org/licenses/LICENSE-2.0> ;
     dc:modified "2026-07-31"^^xsd:date ;
     owl:versionInfo "1.2" ;
+    # The versionIRI NAMES the 1.2 state of this vocabulary. It is not promised
+    # to dereference, and does not: verified 2026-07-31, a GET returns 302 to
+    # the landing page, because the w3id rule for /vson/ routes the five v1
+    # namespace documents explicitly and sends every other path there. Making
+    # it resolve would take a rule this project cannot merge alone plus a
+    # second, frozen copy of this file — a new drift surface. docs/vson.md §8.1
+    # records the choice; only the v1/ names carry a dereference promise.
     owl:versionIRI <https://w3id.org/vson/v1.2/ontology> ;
     # LEGACY IRI — deliberately NOT migrated to w3id.org. The v1.1.1 release
     # declared exactly this versionIRI, under the project's earlier,
