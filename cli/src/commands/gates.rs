@@ -14,6 +14,7 @@
 //! finished, and that line — [`PyGate::tell`] — is what separates exit 1 from
 //! exit 2 here.
 
+use super::home::Home;
 use super::{Error, Result};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
@@ -53,17 +54,18 @@ impl Drop for TempFile {
     }
 }
 
-/// Where the ontology, shapes and `tools/` package are found: the explicit
-/// `--home`, else `$VSON_HOME`, else the working directory — invoking from the
-/// repo root is the documented contract.
-pub fn vson_home(explicit: Option<&Path>) -> PathBuf {
-    if let Some(p) = explicit {
-        return p.to_path_buf();
-    }
-    if let Ok(p) = std::env::var("VSON_HOME") {
-        return PathBuf::from(p);
-    }
-    PathBuf::from(".")
+/// Where the ontology, shapes and `tools/` package are found, for the three
+/// subcommands that take a `--home` flag and a *list* of inputs.
+///
+/// The list is why `near` is `None`: with several inputs there is no single
+/// file whose directory could be walked up from, so resolution goes explicit
+/// home, then the working directory and its parents, then the copy embedded in
+/// the binary. [`super::home`] carries the full order and the reasoning.
+///
+/// `probe` is the home-relative file the caller is about to read, so the walk
+/// passes over a checkout too old to carry it.
+pub fn vson_home(explicit: Option<&Path>, probe: &str) -> Result<Home> {
+    super::home::resolve(explicit, None, probe)
 }
 
 /// A filename-safe stem for a temp file. The input's own stem is user-supplied
@@ -179,8 +181,8 @@ pub struct PyGate {
 /// One invocation of one gate over one document.
 pub struct GateRun<'a> {
     pub gate: &'a PyGate,
-    /// The repo root the checker runs from.
-    pub home: &'a Path,
+    /// The home the checker runs from — a checkout, or the embedded copy.
+    pub home: &'a Home,
     /// The Turtle the checker reads — a temp copy, for a `.vson` input.
     pub data: &'a Path,
     /// The path the *user* named, for messages. Not always `data`.
@@ -208,7 +210,7 @@ pub fn python_gate(run: GateRun) -> Result<bool> {
             .arg(run.gate.module)
             .args(run.args)
             .arg(absolutize(run.data))
-            .current_dir(run.home),
+            .current_dir(run.home.path()),
         &program,
     )?;
     let report = String::from_utf8_lossy(&out.stdout);
@@ -237,14 +239,9 @@ pub fn python_gate(run: GateRun) -> Result<bool> {
 }
 
 /// Fail early when the module a gate runs is not under `home`.
-pub fn require_script(gate: &PyGate, home: &Path) -> Result<()> {
+pub fn require_script(gate: &PyGate, home: &Home) -> Result<()> {
     if home.join(gate.script).exists() {
         return Ok(());
     }
-    Err(Error::Usage(format!(
-        "{} not found under VSON_HOME={}; {} needs it",
-        gate.script,
-        home.display(),
-        gate.what
-    )))
+    Err(super::home::missing(home, gate.script, gate.what))
 }

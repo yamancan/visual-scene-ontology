@@ -1,0 +1,82 @@
+{
+  "_doc": "Lemma -> conjugation table for the closed VSV vocabulary. Used by tools/render/caption.py to build natural-language sentences from reified Event/Process/Stative nodes. Each entry: third-person singular present (for Stative), present participle (for Process), and simple past (for punctual Event). The renderer picks the form based on node kind.",
+
+  "stative": {
+    "hold":     { "present": "holds",     "participle": "holding" },
+    "wear":     { "present": "wears",     "participle": "wearing" },
+    "carry":    { "present": "carries",   "participle": "carrying" },
+    "own":      { "present": "owns",      "participle": "owning" },
+    "sit":      { "present": "sits",      "participle": "sitting" },
+    "stand":    { "present": "stands",    "participle": "standing" },
+    "lie":      { "present": "lies",      "participle": "lying" },
+    "lean":     { "present": "leans",     "participle": "leaning" },
+    "look_at":  { "present": "looks at",  "participle": "looking at" },
+    "gaze_at":  { "present": "gazes at",  "participle": "gazing at" },
+    "see":      { "present": "sees",      "participle": "seeing" },
+    "hear":     { "present": "hears",     "participle": "hearing" },
+    "know":     { "present": "knows",     "participle": "knowing" },
+    "believe":  { "present": "believes",  "participle": "believing" },
+    "intend":   { "present": "intends",   "participle": "intending" },
+    "face":     { "present": "faces",     "participle": "facing" }
+  },
+
+  "process": {
+    "run":      { "present": "runs",      "participle": "running" },
+    "walk":     { "present": "walks",     "participle": "walking" },
+    "swim":     { "present": "swims",     "participle": "swimming" },
+    "fly":      { "present": "flies",     "participle": "flying" },
+    "dance":    { "present": "dances",    "participle": "dancing" },
+    "burn":     { "present": "burns",     "participle": "burning" },
+    "bleed":    { "present": "bleeds",    "participle": "bleeding" },
+    "pour":     { "present": "pours",     "participle": "pouring" },
+    "flow":     { "present": "flows",     "participle": "flowing" },
+    "charge":   { "present": "charges",   "participle": "charging" }
+  },
+
+  "event": {
+    "strike":   { "past": "struck",     "present": "strikes" },
+    "throw":    { "past": "threw",      "present": "throws" },
+    "fall":     { "past": "fell",       "present": "falls" },
+    "give":     { "past": "gave",       "present": "gives" },
+    "send":     { "past": "sent",       "present": "sends" },
+    "arrive":   { "past": "arrived",    "present": "arrives" },
+    "depart":   { "past": "departed",   "present": "departs" },
+    "break":    { "past": "broke",      "present": "breaks" },
+    "catch":    { "past": "caught",     "present": "catches" },
+    "drop":     { "past": "dropped",    "present": "drops" },
+    "pass":     { "past": "passed",     "present": "passes" },
+    "hand":     { "past": "handed",     "present": "hands" },
+    "charge":   { "past": "charged",    "present": "charges" }
+  },
+
+  "directional_phrase": {
+    "above":       "above",
+    "below":       "below",
+    "left_of":     "to the left of",
+    "leftOf":      "to the left of",
+    "right_of":    "to the right of",
+    "rightOf":     "to the right of",
+    "in_front_of": "in front of",
+    "inFrontOf":   "in front of",
+    "behind":      "behind"
+  },
+
+  "proximal_phrase": {
+    "near":     "near",
+    "far":      "far from",
+    "adjacent": "next to",
+    "next_to":  "next to",
+    "facing":   "facing"
+  },
+
+  "rcc_phrase": {
+    "DC":    "is disconnected from",
+    "EC":    "touches",
+    "PO":    "partially overlaps",
+    "EQ":    "equals",
+    "TPP":   "is a tangential part of",
+    "NTPP":  "is contained inside",
+    "TPPi":  "tangentially contains",
+    "NTPPi": "fully contains"
+  }
+}

@@ -1,10 +1,12 @@
 pub mod convert;
 pub mod convert_x2t;
 pub mod diff;
+pub mod embed;
 pub mod export_caption;
 pub mod export_cypher;
 pub mod export_fol;
 pub mod gates;
+pub mod home;
 pub mod python_bridge;
 pub mod validate;
 pub mod verify;

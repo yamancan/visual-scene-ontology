@@ -86,6 +86,10 @@ cli-check:
 	@echo "==> Rust CLI: build + test"
 	@cd cli && cargo build --release --quiet
 	@cd cli && cargo test --quiet 2>&1 | tail -8
+	@echo "==> Rust CLI: the embedded payload is still a mirror of the checkout"
+	@$(PY) scripts/check_embedded_assets.py
+	@echo "==> Rust CLI: the RELEASE binary alone in an empty directory, no checkout present"
+	@cd cli && cargo test --release --quiet --test standalone_home 2>&1 | tail -5
 	@echo "==> Rust CLI: golden parity with Python reference (byte + graph-iso, throne_room + 16-scene gallery)"
 	@$(PY) -m tools.parity_check --bytes cli/target/release/vson
 

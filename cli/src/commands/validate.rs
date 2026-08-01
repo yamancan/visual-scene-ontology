@@ -94,29 +94,28 @@ fn shacl_gate(shapes: &Path, ontology: &Path, data: &Path, label: &Path) -> Resu
 }
 
 pub fn run(files: &[PathBuf], home: Option<&Path>) -> Result<()> {
-    let home = vson_home(home);
-    let shapes = home.join("shapes/vson-shapes.ttl");
-    let gates = [OWL_GATE, C2_GATE];
     let ont_files = [
         "ontology/vso.ttl",
         "ontology/rcc8.ttl",
         "ontology/allen.ttl",
     ];
+    // `ontology/vso.ttl` is the probe: a directory that has it is a home, and a
+    // binary run outside every checkout materializes its own copy of one.
+    let home = vson_home(home, super::home::MARKER)?;
+    let shapes = home.join("shapes/vson-shapes.ttl");
+    let gates = [OWL_GATE, C2_GATE];
 
     for path in &ont_files {
         if !home.join(path).exists() {
-            return Err(Error::Usage(format!(
-                "{} not found under VSON_HOME={}; pass --home or set VSON_HOME",
-                path,
-                home.display()
-            )));
+            return Err(super::home::missing(&home, path, "the SHACL gate"));
         }
     }
     if !shapes.exists() {
-        return Err(Error::Usage(format!(
-            "shapes/vson-shapes.ttl not found under VSON_HOME={}",
-            home.display()
-        )));
+        return Err(super::home::missing(
+            &home,
+            "shapes/vson-shapes.ttl",
+            "the SHACL gate",
+        ));
     }
     for gate in &gates {
         require_script(gate, &home)?;

@@ -60,6 +60,14 @@ ALLOW: "dict[str, tuple[int | None, str]]" = {
         "IRI immutability. v1.2 moved it forward to the versionIRI the v1.1.1 "
         "tag actually declared; the count stays 1.",
     ),
+    "cli/assets/ontology/vso.ttl": (
+        1,
+        "the copy of ontology/vso.ttl the `vson` binary embeds, so it works "
+        "outside a checkout (cli/src/commands/embed.rs). It carries the same "
+        "owl:priorVersion record as the original and the same count, because "
+        "scripts/check_embedded_assets.py fails the build unless the two files "
+        "are byte-identical. Fix the original; the mirror follows.",
+    ),
     "docs/vson.md": (
         4,
         "the migration prose itself: §5.1 names the withdrawn host twice "

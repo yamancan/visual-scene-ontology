@@ -50,7 +50,9 @@ pub fn run(files: &[PathBuf], home: Option<&Path>, geometry: bool, verbose: bool
             AVAILABLE.join("\n  ")
         )));
     }
-    let home = vson_home(home);
+    // The gate's own module is the probe, so a checkout too old to carry it is
+    // passed over rather than picked and then blamed.
+    let home = vson_home(home, GEOMETRY_GATE.script)?;
     require_script(&GEOMETRY_GATE, &home)?;
 
     let mut any_failed = false;

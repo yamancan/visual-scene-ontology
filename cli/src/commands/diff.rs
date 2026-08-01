@@ -53,7 +53,7 @@ pub fn run(a: &Path, b: &Path, format: &str, home: Option<&Path>) -> Result<()> 
             FORMATS.join(", ")
         )));
     }
-    let home = vson_home(home);
+    let home = vson_home(home, SMATCH.script)?;
     require_script(&SMATCH, &home)?;
 
     // The child runs from the repo root, so the inputs go over absolute; the
@@ -73,7 +73,7 @@ pub fn run(a: &Path, b: &Path, format: &str, home: Option<&Path>) -> Result<()> 
             .arg(&shown_b)
             .arg(&abs_a)
             .arg(&abs_b)
-            .current_dir(&home),
+            .current_dir(home.path()),
         &program,
     )?;
 

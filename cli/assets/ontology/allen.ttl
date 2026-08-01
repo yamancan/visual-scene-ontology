@@ -1,0 +1,112 @@
+@prefix allen: <https://w3id.org/vson/v1/allen#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix vso:   <https://w3id.org/vson/v1/ontology#> .
+@prefix dc:    <http://purl.org/dc/terms/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix vann:  <http://purl.org/vocab/vann/> .
+@prefix time:  <http://www.w3.org/2006/time#> .
+
+<https://w3id.org/vson/v1/allen>
+    a owl:Ontology ;
+    rdfs:label "Allen interval algebra" ;
+    rdfs:comment "Allen's 13 base relations on time intervals, declared as object properties between vso:Perdurant nodes, with inverses and the transitive members of the algebra." ;
+    dc:title "VSON Allen interval relations" ;
+    dc:creator "yamancan" ;
+    dc:license <https://www.apache.org/licenses/LICENSE-2.0> ;
+    dc:modified "2026-07-31"^^xsd:date ;
+    owl:versionInfo "1.2" ;
+    # Unchanged. The core vocabulary's preferred prefix moved "vso" -> "vson"
+    # because "vso" is already published by another vocabulary (ontology/vso.ttl,
+    # docs/vson.md §5.1). This document was not part of that collision, and its
+    # prefix has not been checked against a prefix registry — check before
+    # submitting it anywhere.
+    vann:preferredNamespacePrefix "allen" ;
+    vann:preferredNamespaceUri "https://w3id.org/vson/v1/allen#" .
+
+# All Allen relations are object properties whose domain and range are vso:Perdurant
+# (events / processes / states all have temporal extent).
+#
+# Definitions are the standard readings of Allen 1983 ("Maintaining Knowledge
+# about Temporal Intervals", CACM 26(11)), stated for a subject interval X and
+# an object interval Y.
+#
+# owl:TransitiveProperty is asserted exactly on the members that compose with
+# themselves in Allen's composition table (before/after, during/contains,
+# starts/startedBy, finishes/finishedBy, equals). meets/metBy and
+# overlaps/overlappedBy are NOT transitive (meets;meets = before,
+# overlaps;overlaps = {before, meets, overlaps}), so they carry no transitivity
+# axiom. Composition-table reasoning beyond these self-compositions is out of
+# scope for this file.
+#
+# Each SKOS close-match triple points at the OWL-Time property with the same
+# reading. OWL-Time types its relations on time:ProperInterval whereas VSON
+# types them on vso:Perdurant, so the match is advisory: it records the shared
+# reading and imports no OWL entailment.
+
+allen:before        a owl:ObjectProperty , owl:TransitiveProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant ;
+                    rdfs:label "before" ;
+                    rdfs:comment "X ends before Y begins, with a gap between them." ;
+                    skos:closeMatch time:intervalBefore .
+allen:after         a owl:ObjectProperty , owl:TransitiveProperty ; owl:inverseOf allen:before ;
+                    rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant ;
+                    rdfs:label "after" ;
+                    rdfs:comment "X begins after Y ends, with a gap between them (inverse of allen:before)." ;
+                    skos:closeMatch time:intervalAfter .
+
+allen:meets         a owl:ObjectProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant ;
+                    rdfs:label "meets" ;
+                    rdfs:comment "X ends exactly where Y begins, with no gap and no overlap." ;
+                    skos:closeMatch time:intervalMeets .
+allen:metBy         a owl:ObjectProperty ; owl:inverseOf allen:meets ;
+                    rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant ;
+                    rdfs:label "metBy" ;
+                    rdfs:comment "X begins exactly where Y ends, with no gap and no overlap (inverse of allen:meets)." ;
+                    skos:closeMatch time:intervalMetBy .
+
+allen:overlaps      a owl:ObjectProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant ;
+                    rdfs:label "overlaps" ;
+                    rdfs:comment "X begins before Y, the two share a stretch of time, and X ends before Y ends." ;
+                    skos:closeMatch time:intervalOverlaps .
+allen:overlappedBy  a owl:ObjectProperty ; owl:inverseOf allen:overlaps ;
+                    rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant ;
+                    rdfs:label "overlappedBy" ;
+                    rdfs:comment "Y begins before X, the two share a stretch of time, and Y ends before X ends (inverse of allen:overlaps)." ;
+                    skos:closeMatch time:intervalOverlappedBy .
+
+allen:starts        a owl:ObjectProperty , owl:TransitiveProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant ;
+                    rdfs:label "starts" ;
+                    rdfs:comment "X and Y begin at the same instant and X ends before Y ends." ;
+                    skos:closeMatch time:intervalStarts .
+allen:startedBy     a owl:ObjectProperty , owl:TransitiveProperty ; owl:inverseOf allen:starts ;
+                    rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant ;
+                    rdfs:label "startedBy" ;
+                    rdfs:comment "X and Y begin at the same instant and Y ends before X ends (inverse of allen:starts)." ;
+                    skos:closeMatch time:intervalStartedBy .
+
+allen:during        a owl:ObjectProperty , owl:TransitiveProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant ;
+                    rdfs:label "during" ;
+                    rdfs:comment "X begins after Y begins and ends before Y ends, so X falls strictly inside Y." ;
+                    skos:closeMatch time:intervalDuring .
+allen:contains      a owl:ObjectProperty , owl:TransitiveProperty ; owl:inverseOf allen:during ;
+                    rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant ;
+                    rdfs:label "contains" ;
+                    rdfs:comment "Y falls strictly inside X: X begins before Y begins and ends after Y ends (inverse of allen:during)." ;
+                    skos:closeMatch time:intervalContains .
+
+allen:finishes      a owl:ObjectProperty , owl:TransitiveProperty ; rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant ;
+                    rdfs:label "finishes" ;
+                    rdfs:comment "X and Y end at the same instant and X begins after Y begins." ;
+                    skos:closeMatch time:intervalFinishes .
+allen:finishedBy    a owl:ObjectProperty , owl:TransitiveProperty ; owl:inverseOf allen:finishes ;
+                    rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant ;
+                    rdfs:label "finishedBy" ;
+                    rdfs:comment "X and Y end at the same instant and Y begins after X begins (inverse of allen:finishes)." ;
+                    skos:closeMatch time:intervalFinishedBy .
+
+allen:equals        a owl:ObjectProperty , owl:SymmetricProperty , owl:TransitiveProperty ;
+                    rdfs:domain vso:Perdurant ; rdfs:range vso:Perdurant ;
+                    rdfs:label "equals" ;
+                    rdfs:comment "X and Y begin at the same instant and end at the same instant." ;
+                    skos:closeMatch time:intervalEquals .
