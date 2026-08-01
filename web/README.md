@@ -39,7 +39,9 @@ DemoStrip      GET /demos/…json  ───────► same-origin baked en
 
 Dropzone       sha256 (crypto.subtle) of the dropped bytes, checked against
                /demos/envelopes/index.json:
-                 demo hit → baked envelope, $0, byte-exact re-upload included
+                 demo hit → baked envelope, $0 (Penman mode; demos are baked
+                            with the Penman skill, so in VSON-X mode the same
+                            bytes take the live path on the visitor's key)
                  miss     → chat completion ──► openrouter.ai (visitor's key)
                             → worker p2t (x2t in X mode)      [Pyodide]
                             → Gate 1 pyshacl + Gate 2 owlrl   [Pyodide]
@@ -107,7 +109,7 @@ Two facts worth stating plainly: a dedicated worker's CSP comes from its own scr
 
 ## Demo strip
 
-`static/demos/manifest.json` controls the curated thumbnails below the dropzone. Every entry carries an `envelope_path` to a baked envelope with genuine extraction provenance — clicking a thumbnail fetches static JSON, never a model. The sha256 index (`static/demos/envelopes/index.json`) is consumed client-side: re-uploading the exact demo bytes short-circuits to the baked envelope before any key is consulted. The baked corpus is byte-frozen; nothing in the studio can re-extract a demo or spend a visitor's key on a demo click — an entry without an `envelope_path` is skipped with a `console.error`, by design.
+`static/demos/manifest.json` controls the curated thumbnails below the dropzone. Every entry carries an `envelope_path` to a baked envelope with genuine extraction provenance — clicking a thumbnail fetches static JSON, never a model. The sha256 index (`static/demos/envelopes/index.json`) is consumed client-side: re-uploading the exact demo bytes short-circuits to the baked envelope before any key is consulted — in Penman mode, the notation the demos were baked with; a VSON-X re-upload has no baked counterpart and runs live on the visitor's key. The baked corpus is byte-frozen; nothing in the studio can re-extract a demo or spend a visitor's key on a demo click — an entry without an `envelope_path` is skipped with a `console.error`, by design.
 
 ## Verify
 
