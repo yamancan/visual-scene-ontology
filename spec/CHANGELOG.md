@@ -233,6 +233,64 @@ reports that no spatial fact in the corpus has both endpoints carrying a
 with a query engine. Appendix E.7 adds the two methodology citations behind the
 form.
 
+*Annotation, 2026-08-01 — graph agreement between two documents.* Every
+annotation above is about one document: is it conformant, does it contradict
+its own rectangles, does the corpus answer the questions §3–§5 imply. This one
+is the first measurement over **two**. New §5.15 defines triple-level
+agreement — precision, recall and F1 over the variable alignment that maximizes
+matched triples — on the materialized VSON-T graph, so `.ttl`, `.vson` and
+`.x.vson` compare in any combination and the surface an input was written in
+cannot move the score. That is Smatch (Cai & Knight 2013, for AMR; new citation
+in Appendix E.4): borrowing AMR's Penman surface means inheriting its
+evaluation problem, and the published answer to it comes with the method whole.
+Reference implementation `tools/metrics/smatch.py`, run by `vson diff <a> <b>`
+(`--format json`; exit 0 identical, 1 differing, 2 no verdict) and importable as
+`compare_paths`.
+
+It is **not** a fifth construct and not a clause. C1–C9 do not mention
+agreement, `vson validate` still runs exactly its three gates, no shape, term,
+schema field or IRI changes, and a document that scores 0.0 against another may
+be perfectly conformant. §2.1 is unchanged over every number it produces: no
+image is read, agreement is not correctness, and two runs of one model agreeing
+on the same hallucination score 1.0. What §2.1's second missing ingredient
+gains is the **instrument** and not the measurement — the corpus, the protocol
+and the annotators an inter-annotator agreement figure would need are still
+absent.
+
+Two things §5.15 adds to the published method. **Per-layer sub-scores**, because
+a scheme whose thesis is layered structure cannot report one number that hides
+which layer moved: every triple falls in exactly one of `objects`,
+`attributes`, `spatial`, `frames`, `events`, `other` by the closed tables of
+§5.15.3, computed under the single global alignment rather than re-optimized
+per layer, and `spatial` is reported a second time **viewer-blind** so a
+disagreement about the relation separates from a disagreement about which
+camera anchors it. And a **written-down seed policy** (§5.15.4), because the
+maximization is NP-hard and the search is therefore a lower bound that has to be
+repeatable: restart 0 is a 1-WL colour-refinement alignment, restart 1 the
+greedy constant-anchored one, the rest are driven by a 64-bit LCG spelled out in
+the specification rather than borrowed from a language's standard library, and
+no ordering decision consults a name — blank-node labels are minted per parse.
+Default seed 0, 5 restarts, both reported beside every number.
+
+It is deliberately **not** a `make check` gate: there is no corpus of run pairs
+to freeze a score over, and a gate over an empty set asserts nothing. CI runs
+`tests/test_smatch.py` (31 tests — identity, symmetry, determinism, invariance
+to renaming and to surface syntax, and every count on the known-delta fixture
+pair `tests/fixtures/diff/run_{a,b}.ttl`, which are conformant VSON on all three
+gates) and `cli/tests/diff_gate.rs` (9), which pins the same table through the
+binary. Measured before landing: each of the twelve `examples/gallery-x/`
+scenes scores exactly **1.0** against its Penman twin, including the 131-triple
+throne room where one side names its Quality and SpatialFact nodes and the other
+leaves them blank; and `examples/throne_room.ttl` against
+`examples/gallery/11_throne_room.vson` — the hand-authored canonical scene
+against the gallery's rendering of "the same" scene — scores **F1 0.767** (107
+matched, of 148 and 131), `frames` 1.0 down to `other` 0.0, because the
+canonical file carries an annotation node and four local class declarations the
+gallery has no counterpart for and spells the domain class as `rdf:type` where
+the gallery writes `vso:class`. Both are conformant, both stay byte-untouched,
+and neither is wrong. Through v1.3.0 the README filed diffing two runs under
+"where this is headed, not a thing it ships".
+
 ## v1.2.0 — 2026-07-31
 
 Namespace release. Every canonical VSON IRI moves off `https://vson.dev/` and

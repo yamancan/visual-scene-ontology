@@ -21,6 +21,7 @@ pip install pyshacl rdflib owlrl   # required for `vson validate` (or: make deps
 ```bash
 vson validate <files...>         # exit 0 pass, 1 gate failure, 2 could not run
 vson verify --geometry <files...># non-conformance checks; same three exit codes
+vson diff <a> <b>                # graph agreement: 0 identical, 1 differing, 2 no verdict
 vson convert p2t <file.vson>     # Penman -> Turtle on stdout
 vson convert t2p <file.ttl>      # not implemented (stub; use Python ref)
 vson convert x2t <file.x.vson>   # VSON-X -> Turtle on stdout
@@ -143,6 +144,50 @@ file. Exit codes match `validate` — 0 clean, 1 a document that contradicts its
 own geometry, 2 no verdict — and stdout carries only the `OK` / `FAIL` lines,
 with the report on stderr.
 
+## `diff`
+
+`validate` and `verify` each ask about one document. `diff` asks about two: how
+much of the graph they share, once the arbitrary names each one gave its nodes
+are aligned away.
+
+```bash
+vson diff [--format text|json] <a> <b>
+```
+
+Two extraction runs over one image name their nodes independently — `:cat` in
+one, `_:e3` in the other — so no string comparison can tell whether they agree.
+This searches for the variable alignment that maximizes matched triples and
+reports precision, recall and F1 over triples under it, overall and per layer:
+objects, attributes, spatial (a second time viewer-blind), frames, events,
+other. That is Smatch, the metric AMR uses, defined over VSON's graph;
+[`../docs/vson.md`](../docs/vson.md) §5.15 is the full definition, down to the
+seed policy, and `python3 -m tools.metrics.smatch` is the implementation.
+
+Inputs may be `.ttl`, `.vson` or `.x.vson`, **in any combination**: the metric
+runs on the materialized graph, so the surface an input was written in cannot
+move the score.
+
+```bash
+$ vson diff examples/gallery/04_directional_with_viewer.vson \
+            examples/gallery-x/04_directional_with_viewer.x.vson
+...
+  overall               26     26     26     1.0000   1.0000   1.0000
+smatch: the two documents assert the same graph up to variable renaming (F1 1.0000). No image was read.
+$ echo $?
+0
+```
+
+Exit 0 means the two documents are identical at triple level, 1 that they
+differ, 2 that no verdict was reached (unreadable input, unknown syntax, no
+`python3`). **Agreement is not correctness**: F1 = 1.0 says the two documents
+assert the same graph, not that either describes the picture — two runs
+agreeing on the same hallucination score 1.0. No image is read.
+
+Output discipline differs from `validate` here, because the report *is* the
+product rather than a diagnostic: the table goes to **stdout**. Under
+`--format json` stdout is a single parseable document — counts as integers,
+ratios rounded — and the summary line moves to stderr so `| jq` keeps working.
+
 ## `export cypher`
 
 The exporter emits **one** Cypher statement for the whole scene — every node
@@ -190,19 +235,19 @@ same `CREATE`. It is not checked against a live Neo4j server.
 Two families of subcommand need to find a VSON checkout — the repo root, not
 the data file's directory:
 
-- `validate` reads `ontology/vso.ttl`, `ontology/rcc8.ttl`, `ontology/allen.ttl`, `shapes/vson-shapes.ttl`, `tools/owlrl_check.py` and `tools/c2_check.py` from it; `verify --geometry` reads `tools/geometry_check.py` and resolves the home the same way (it takes the same `--home` flag);
+- `validate` reads `ontology/vso.ttl`, `ontology/rcc8.ttl`, `ontology/allen.ttl`, `shapes/vson-shapes.ttl`, `tools/owlrl_check.py` and `tools/c2_check.py` from it; `verify --geometry` reads `tools/geometry_check.py` and `diff` reads `tools/metrics/smatch.py`, both resolving the home the same way (all three take the same `--home` flag);
 - `convert x2t`, `export caption` and `export fol` run their Python module from it (`tools/vson_x/vson_x.py`, `tools/render/caption.py`, `tools/render/fol.py` respectively) — `python3 -m` puts the child's working directory on `sys.path`, so the root *is* the import path.
 
-They resolve it differently, because only `validate` and `verify` have a flag:
+They resolve it differently, because only `validate`, `verify` and `diff` have a flag:
 
-| Step | `validate`, `verify` | `convert x2t`, `export caption`, `export fol` |
+| Step | `validate`, `verify`, `diff` | `convert x2t`, `export caption`, `export fol` |
 | --- | --- | --- |
 | 1 | `--home <dir>` | — (no flag) |
 | 2 | `$VSON_HOME` | `$VSON_HOME`, if it holds the module |
 | 3 | — (no walk-up) | the input file's directory, then each parent, up to `/` |
 | 4 | the working directory | the working directory, if it holds the module |
 
-`validate` and `verify` take the first of their steps that is set and then
+The three flag-taking subcommands take the first of their steps that is set and then
 report whichever file is missing under it. The three export/convert commands
 take the first step
 that actually holds the module they are about to run, so passing a stale
@@ -220,17 +265,18 @@ VSON_HOME=/path/to/visual-scene-ontology vson export fol /tmp/scene.vson
 ## Verification
 
 ```bash
-cd cli && cargo test               # 43 tests: 25 unit, 18 integration
+cd cli && cargo test               # 63 tests: 25 unit, 38 integration
 make cli-check                     # fmt + clippy + build + test + graph-isomorphic check vs Python ref
 ```
 
-The 18 integration tests split three ways: 9 golden-fixture tests
-(`tests/golden_throne_room.rs`), 3 negative SHACL fixtures
-(`tests/golden_validate.rs`), and 6 error-contract tests
-(`tests/error_contract.rs`) pinning the exit-2 "never reached a verdict" half
-of the interface. Only the first two groups need `python3`/`pyshacl`; the
-error-contract tests fail in Rust before anything is spawned and pass on a
-machine with no Python at all.
+The 38 integration tests split five ways: 9 golden-fixture tests
+(`tests/golden_throne_room.rs`), 5 validate-fixture tests
+(`tests/golden_validate.rs`), 9 geometry-gate tests
+(`tests/geometry_gate.rs`), 9 diff tests (`tests/diff_gate.rs`), and 6
+error-contract tests (`tests/error_contract.rs`) pinning the exit-2 "never
+reached a verdict" half of the interface. Only the first four groups need
+`python3`/`pyshacl`; the error-contract tests fail in Rust before anything is
+spawned and pass on a machine with no Python at all.
 
 `cli-check` asserts that the Rust transpiler produces graph-isomorphic Turtle to the Python reference on the canonical throne-room scene (134 triples).
 
@@ -249,4 +295,4 @@ The table sits in the crate rather than next to the Python reference because `in
 - `export cypher` accepts Penman input only; Turtle import follows once `t2p` ships.
 - Input is read from a file path; stdin (`-`) is not supported.
 
-Deferred subcommands (planned, not yet shipped): `query`, `render`, `generate`, `serve`, `init`, `lint`, `diff`.
+Deferred subcommands (planned, not yet shipped): `query`, `render`, `generate`, `serve`, `init`, `lint`.

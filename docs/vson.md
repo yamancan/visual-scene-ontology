@@ -163,7 +163,7 @@ C2 belongs to none of the three. It is a **vocabulary-closure** property — no 
 **The absent construct is groundedness** — the property that each assertion in a document corresponds to what the image depicts. VSON v1.x defines no groundedness check, ships no groundedness evidence, and makes no groundedness claim. Establishing it would take at least two things this repository does not have:
 
 1. **A geometry consistency decision.** Where a document already carries the geometry of §5.10, agreement between that geometry and the relations asserted over it is decidable *inside the document*: a `vso:bbox2d` rectangle bounds the region it is asserted of, which is enough to refute a claim of containment or contact that the two rectangles cannot support, and their centroids under the viewer's `vso:CameraView` decide the directional values §3.3 anchors. A document whose `vso:rcc` contradicts its own boxes is ungrounded in a way that needs no image to detect. **Since v1.3 this one is checked** — §5.13 defines the decision procedures and `vson verify --geometry` runs them. It is a separate command and not a `validate` gate, because it decides no numbered clause: a document that fails it is still conformant.
-2. **Ground truth for what geometry cannot decide.** Class, dimension values, lemmas, thematic roles, and frame attributions do not follow from boxes. Evidence for those means comparison against human annotation over a fixed image set, with a published protocol and a reported inter-annotator agreement figure. No such corpus, protocol, or figure exists in this repository.
+2. **Ground truth for what geometry cannot decide.** Class, dimension values, lemmas, thematic roles, and frame attributions do not follow from boxes. Evidence for those means comparison against human annotation over a fixed image set, with a published protocol and a reported inter-annotator agreement figure. No such corpus, protocol, or figure exists in this repository. What v1.3 adds is the **instrument** and not the measurement: §5.15 defines the triple-level agreement metric such a figure would be computed *with*, and `vson diff` runs it. A metric is not evidence — the corpus, the protocol and the annotators are still absent, and an agreement number between two model runs says nothing about either one's correspondence to the image.
 
 The second does not exist, so groundedness does not. **Verified** in VSON means *verified against the schema* — and, where §5.13 can reach, that a document does not contradict its own geometry. Neither is a reading of the picture, and any stronger claim is unsupported by anything this project ships.
 
@@ -901,6 +901,119 @@ Exactly what it says: that this query, over these seventeen documents, returns t
 
 What it does establish is the thing an expressiveness claim otherwise cannot have: a stranger can run `make cq-check` and watch the claim resolve, or read `queries/expected/` and see the answer without running anything. [`tests/test_competency_questions.py`](../tests/test_competency_questions.py) pins the rest — that every header is complete, that every § a header cites is a heading this document carries, that all three personas are exercised, that the coverage table above names every query in the directory and no query it does not, and that the counts spelled in this section are the directory's.
 
+### 5.15 Graph agreement (`vson diff`)
+
+Two extractions of one image produce two documents. Nothing so far in this specification says how far apart they are, and no string comparison can say it either: one run writes `:cat` where the other writes `_:e3`, one bases its IRIs on `.../anonymous#` and the other on `.../scene-42#`, and both may be describing the same animal. The node names are arbitrary. What is not arbitrary is the structure they carry, and this section defines the measurement over it — precision, recall and F1 over triples, under the variable alignment that maximizes matches.
+
+That is **Smatch** (Cai & Knight 2013, for AMR — [Appendix E](#appendix-e)), which is the point: VSON-P borrows AMR's Penman surface (§4.2), so it inherits AMR's evaluation problem — variables whose names carry no information — and there is an answer already in the literature for it. This section states what the metric is over *VSON's* graph, adds the per-layer sub-scores a layered scheme owes its readers, and pins the determinism that lets two people compare two numbers.
+
+**It is not a fifth construct.** §2.1's table and §5.13's fourth row are properties of *one* document — is it well-formed, does it agree with itself. Agreement is a relation between **two**, and no verdict about either one follows from it. F1 = 1.0 says the two documents assert the same graph up to variable renaming; it does not say either describes the picture. Two runs of one model agreeing on the same hallucination score 1.0, and a run that scores 0.4 against a hand-annotated reference may be the one that is right. No image is read here either, and §2.1's prohibition stands unchanged over every number this section produces.
+
+Reference implementation: [`tools/metrics/smatch.py`](../tools/metrics/smatch.py), run by `vson diff <a> <b>` (`--format json`; exit 0 identical, 1 differing, 2 no verdict) and importable as `compare_paths(a, b)` for an evaluation loop. Inputs may be `.ttl` (VSON-T), `.vson` (VSON-P) or `.x.vson` (VSON-X), in any combination: the metric is defined over the **materialized VSON-T graph**, so the surface an input was written in cannot move the score.
+
+#### 5.15.1 Variables and constants
+
+Every term of a document is exactly one of two things:
+
+| Kind | Which terms | Matched by |
+|---|---|---|
+| **variable** | a blank node; or an IRI outside the VSON and W3C vocabulary namespaces that the document asserts at least one triple **about** (it appears in subject position) | the alignment — nothing else |
+| **constant** | a literal; a vocabulary IRI (`vso:`, `rcc:`, `allen:`, `rdf:`, `rdfs:`, `owl:`, `xsd:`, `sh:`, `skos:`); or a document-local IRI that appears only in object position | a literal by lexical form **and** datatype/language; a vocabulary IRI by its full IRI; a document-local IRI by its **local name** — the substring after the last `#` or `/` |
+
+The subject-position rule is the load-bearing one. `:alice a :Human` names a class the document says nothing else about, so `:Human` is a **constant** and its local name is all the identity it has: two runs that write `:Human` and `:Person` must not be credited with agreeing merely because an alignment could pair them. A node the document *describes* is an entity whose name is a naming choice, and comparing those names across runs would measure nothing. The local-name rule for constants is what makes the score independent of the document base, which every run picks for itself.
+
+A node one document describes and the other only names is a variable on one side and a constant on the other. The triples reaching it then cannot match, and that is the intended reading: the two documents disagree about whether it is an entity.
+
+Predicates are always compared as constants. A document-local predicate would violate C2, and `vson validate` is where that is reported.
+
+**One normalization, before anything else.** §5.2 declares `vso:depicts`, `vso:hasFact` and `vso:occurs` interchangeable for the same target, and the VSON-X parser emits only the first. All three are rewritten to `vso:depicts` before scoring, so a scene written with `:hasFact` in one syntax and `:depicts` in another is not reported as a disagreement this specification says does not exist. Nothing else is normalized: RDF-star quoted triples, `owl:sameAs`, and every other equivalence a reasoner could derive are out of scope, and the metric runs on **asserted triples only**, like the query pack of §5.14.
+
+#### 5.15.2 The alignment, and the score
+
+An **alignment** `M` is a partial injection from the variables of document A to the variables of document B. A triple `(s, p, o)` of A **matches** a triple of B under `M` when the predicates are equal and, in each of the two endpoint positions, either both sides are the same constant, or both sides are variables and `M` maps A's to B's. A variable never matches a constant, and an unmapped variable matches nothing.
+
+Write `m(M)` for the number of matched triples. The reported score uses `M* = argmax m(M)`:
+
+```text
+precision = m / |A|          recall = m / |B|          F1 = 2·m / (|A| + |B|)
+```
+
+Matching is a bijection between the two matched subsets, so `m` counts the same pairs from either side and **F1 is symmetric**: `diff a b` and `diff b a` report the same F1 with precision and recall exchanged. Two conventions close the degenerate cases: two documents that assert nothing are identical (F1 = 1.0), and a layer with no triples on either side reports no number at all rather than a zero — there was no agreement to reach.
+
+**Finding `M*` is NP-hard** (Cai & Knight prove it by reduction from a maximum-matching problem), so this is a search and not a computation. The reference implementation is the standard one: steepest-ascent hill climbing over two move kinds — re-point one variable, or swap two variables' targets — from several initializations, keeping the best result. A reported number is therefore a **lower bound** on the true maximum, and §5.15.4 is what makes it a repeatable one. An implementation **MUST** report the restart count and seed it used, and **SHOULD** report `m`, `|A|` and `|B|` as integers beside the ratios: the counts are exact, and the ratios are derived.
+
+#### 5.15.3 The layers
+
+A scheme whose thesis is that scene structure comes in layers has to report per layer. One F1 says how far apart two runs are; it never says *which* layer moved, and "the objects agree and the spatial relations do not" is the finding worth having.
+
+Every triple lands in exactly one layer, by these rules **in order**. `family(n)` is the layer of the first VSO class the document asserts as `n`'s type, by the class table below; the tables are closed lists, and anything unlisted falls through to `other`, so the partition is total by construction.
+
+| # | Rule | Layer |
+|---|---|---|
+| 1 | `p` is `rdf:type` and the object is a VSO class | the class table's row |
+| 1a | `p` is `rdf:type` and the object is another vocabulary IRI | `other` |
+| 1b | `p` is `rdf:type` and the object is a document-local class (`:alice a :Human`) | `family(s)`, else `objects` |
+| 2 | `family(s)` is `other` — the subject is an `Annotation`, `Negation`, `BeliefState` or `Quantification` | `other` |
+| 3 | `p` is the normalized Composition edge `vso:depicts` | `family(o)`, else `objects` |
+| 4 | `p` ∈ frame properties | `frames` |
+| 5 | `p` ∈ spatial properties | `spatial` |
+| 6 | `p` ∈ event properties, or `p` is in the `allen:` namespace | `events` |
+| 7 | `p` ∈ attribute properties | `attributes` |
+| 8 | anything else | `other` |
+
+| Layer | Classes (rule 1) | Properties (rules 4–7) |
+|---|---|---|
+| `objects` | `Entity`, `Endurant`, `PhysicalObject`, `Aggregate`, `Substance`, `Region` | — (reached through rules 1b and 3) |
+| `attributes` | `Quality` | `individuation`, `animacy`, `countability`, `affordance`, `class`, `hasQuality`, `dimension`, `value`, `modifier`, `bbox2d`, `position3d`, `scale3d`, `rotation` |
+| `spatial` | `SpatialFact` | `figure`, `ground`, `rcc`, `directional`, `proximal`, `viewer`, `occludes`, `visibleFraction` |
+| `frames` | `Frame`, `SceneContext`, `VisualStyle`, `CameraView`, `Composition`, `Persona` | `framedBy`, `viewedBy`, `rendersAs`, `angle`, `focalLength`, `framing`, `lookAt`, `cameraPosition`, `aesthetic`, `palette`, `medium`, `venue`, `atmosphere`, `timeOfDay`, `weather`, `embodies`, `hasInvariant` |
+| `events` | `Perdurant`, `Event`, `Process`, `Stative` | `lemma`, the thematic roles of §5.6, `causes`, `enables`, `prevents`, `triggers`, `holds`, `wears`, `owns`, `carries`, and every `allen:` relation |
+| `other` | `Annotation`, `Negation`, `BeliefState`, `Quantification` | mereology (§5.8), the propositional layer (§5.9), annotation reification (§5.11), and anything unlisted |
+
+Two rules earn their place. **Rule 3** files a Composition membership edge under the layer of *what it points at* — a `vso:depicts` reaching a `vso:SpatialFact` is a spatial disagreement, not a frame one — which also makes the layer independent of which of the three interchangeable edges the author wrote. **Rule 2** routes by subject rather than by predicate because `vso:source` is a thematic role on a Perdurant and a provenance string on an `vso:Annotation`; the subject decides which.
+
+**Sub-scores are computed under the single global alignment**, never by re-optimizing per layer. A per-layer optimum would report a number no single reading of the two documents achieves, and the rows would no longer sum to the whole. Precision counts matched triples on A's side of a layer and recall on B's, which lets the two differ inside a layer when a matched pair falls in different layers on the two sides — one document types a node and the other does not. F1 is then the harmonic mean of the two, and reduces to `2m/(|A|+|B|)` whenever they agree.
+
+**`spatial` is reported twice.** The second reading, `viewer-blind`, is the same layer with `vso:viewer` triples dropped from both sides. Directional facts are viewer-anchored by C5 (§3.3), so two runs can agree completely about *what is where* and disagree about which camera anchors it — a disagreement worth seeing separately from a disagreement about the relation. The alignment is unchanged; only the counted set is.
+
+#### 5.15.4 Determinism, and the seed policy
+
+A metric whose number moves between runs is not a metric. Three commitments pin this one, and an implementation that wants comparable numbers **MUST** state its position on all three:
+
+1. **The restarts are enumerated, not sampled.** Restart 0 is the **colour-refinement alignment**: a 1-WL refinement of both graphs — a variable's initial colour is the multiset of its constant-anchored edges, and each round folds in its variable neighbours' colours — with variables ordered by colour and paired at equal rank. Restart 1 is the **greedy constant-anchored alignment**: the pair sharing the most constant-anchored triples first, then the next, skipping any variable or target already taken. Restarts 2…R−1 are pseudo-random. The default R is **5**.
+2. **The pseudo-random source is specified, not imported.** A language's standard shuffle is not reproducible across versions and is reproducible across languages by accident at best. The generator is a 64-bit LCG, seeded `seed + restart_index`, driving a Fisher-Yates shuffle:
+
+   ```text
+   state ← (state · 6364136223846793005 + 1442695040888963407) mod 2⁶⁴
+   output ← (state >> 32) mod 2³²
+   ```
+
+   The default seed is **0**, and CI runs the default. A published VSON agreement number **MUST** state its seed and restart count, exactly as an AMR Smatch number states its restart count.
+3. **No ordering decision consults a name.** Variables are ordered by refinement colour, and ties — variables the refinement cannot tell apart — by first appearance. Blank-node labels are minted per parse and differ between runs of one file, so an implementation that sorted on them would make its score depend on its parser.
+
+Together these make `vson diff a b` byte-identical on repeated runs, which [`tests/test_smatch.py`](../tests/test_smatch.py) checks on a blank-node-heavy pair rather than assuming.
+
+#### 5.15.5 What a score establishes
+
+Exactly this: that under the best alignment this search found, these two documents share this many triples. Four things follow, and no others.
+
+- **It is not conformance.** C1–C9 do not mention agreement, no producer or consumer obligation follows from a score, and a document that scores 0.0 against another may be perfectly conformant. `vson validate` and `vson diff` answer different questions.
+- **It is not correctness.** Neither document is a reference unless something outside this specification made it one. Calling the left-hand document "gold" is a decision about provenance, not a property the metric can see.
+- **It is not a reading of the picture.** §2.1 governs: no image is read, and a tool reporting a score **MUST NOT** present it as evidence that either document is accurate, faithful, or verified against the image.
+- **It is a lower bound.** The search is hill climbing over an NP-hard objective; a different restart budget may find a better alignment, and it will never find a worse score than the one reported, because the reported score is achieved by an alignment the implementation holds.
+
+What it is *for* is the two things a scheme cannot otherwise have: a regression signal (this pipeline change moved the spatial layer by 0.1) and, given a corpus and a protocol this repository does not have, the statistic an inter-annotator agreement study would report. AMR states its annotator agreement as a Smatch figure, which is the comparison a future VSON number would be read against; no such VSON figure exists, and §2.1's second missing ingredient — the corpus, the protocol, the annotators — is unchanged by this section. What v1.3 adds is the instrument, not the measurement.
+
+#### 5.15.6 Where it runs, and what it found
+
+`vson diff` is not a `make check` gate: there is no corpus of run pairs to freeze a score over, and a gate over an empty set asserts nothing. What CI runs is [`tests/test_smatch.py`](../tests/test_smatch.py), which pins the metric's properties — identity, symmetry, determinism, invariance to renaming and to surface syntax — and the exact counts on the known-delta pair, and [`cli/tests/diff_gate.rs`](../cli/tests/diff_gate.rs), which pins the same table through the binary.
+
+**Measured on the shipped corpus, 2026-08-01.**
+
+- Every gallery scene and `examples/throne_room.ttl` score **1.0** against themselves, in every populated layer. That is the floor, and it is worth stating that it is reached with blank nodes on both sides.
+- Each of the **twelve** `examples/gallery-x/*.x.vson` scenes scores exactly **1.0** against its VSON-P twin — including the 131-triple throne room, where one side names its Quality and SpatialFact nodes and the other leaves them blank. Surface syntax does not move the score, and this is what makes that claim checkable rather than asserted.
+- `examples/throne_room.ttl` against `examples/gallery/11_throne_room.vson` — the hand-authored canonical scene against the gallery's Penman rendering of "the same" scene — scores **F1 0.767** (107 matched, of 148 and 131). The layers say where: `frames` 1.0, `spatial` 0.857, `events` 0.844, `objects` 0.800, `attributes` 0.733, `other` 0.0. The canonical file carries fourteen triples the gallery has no counterpart for at all — a `vso:Annotation` node with its three `annotated*` edges, its confidence and its source, and four local `rdfs:Class` declarations with their `rdfs:subClassOf` — and it spells the domain class as `rdf:type :Human` where the gallery writes `vso:class`. Both are conformant, both are shipped, and neither is wrong. The number is what "the same scene, written twice" actually costs, and it is a better calibration for a reader than any pair constructed to agree.
+
 ---
 
 ## 6. JSON Schema and validation rules
@@ -1301,7 +1414,8 @@ Gallery scenes 01–11 plus `12_persona` have a graph-equivalent VSON-X form und
 | Python Penman transpiler | [`tools/penman/vson_penman.py`](../tools/penman/vson_penman.py) | Penman → Turtle | 18 round-trip tests (18/18 ✓) |
 | Python VSON-X parser (v1.1) | [`tools/vson_x/vson_x.py`](../tools/vson_x/vson_x.py) | VSON-X → Turtle, nine sigils, bearer-class dispatch | 16 lexer/parser/emitter + 11 gallery round-trip (27/27 ✓) |
 | Caption renderer (v1.0.5) | [`tools/render/caption.py`](../tools/render/caption.py) | graph → English (deterministic, no LLM) | 11 fixture + determinism (11/11 ✓) |
-| Rust CLI (`vson`) | [`cli/`](../cli) | `validate`, `convert p2t/x2t`, `export cypher/caption/fol` | 43 tests (25 lib unit + 6 error-contract + 9 integration + 3 golden ✓) |
+| Rust CLI (`vson`) | [`cli/`](../cli) | `validate`, `verify --geometry`, `diff`, `convert p2t/x2t`, `export cypher/caption/fol` | 63 tests (25 lib unit + 6 error-contract + 9 golden throne room + 5 golden validate + 9 geometry gate + 9 diff gate ✓) |
+| Graph agreement metric (v1.3) | [`tools/metrics/smatch.py`](../tools/metrics/smatch.py) | two documents → triple-level precision/recall/F1 with per-layer sub-scores (§5.15); reads `.ttl`, `.vson` and `.x.vson` | 31 property + fixture tests (31/31 ✓) |
 | SHACL validator | `pyshacl` (shelled out by `vson validate`) | semantic well-formedness, strict profile (the relaxed profile ships as a shapes file; no command selects it yet) | 5 SHACL tests + 16 gallery passes |
 | Bare-VLM extractor | [`tools/extractor/baseline/extract.py`](../tools/extractor/baseline/extract.py) | image → VSON-P | offline cassette test |
 | Browser studio (v1.3) | [`web/`](../web) | runs the Python references above in a Pyodide worker, in the visitor's browser: transpile, two-gate validation (the CLI's SHACL and OWL gates; not its C2 gate), caption/FOL — no backend | offline worker-parity vitest byte-pins p2t, both gate verdicts, and caption/FOL against the CLI fixtures |
@@ -1692,6 +1806,9 @@ The other alternative VSON avoids: FrameNet's frame-specific role names (`Donor`
 
 **Banarescu, L., Bonial, C., Cai, S., Georgescu, M., Griffitt, K., Hermjakob, U., Knight, K., Koehn, P., Palmer, M., & Schneider, N. (2013). Abstract Meaning Representation for Sembanking. *Proceedings of the 7th Linguistic Annotation Workshop and Interoperability with Discourse (LAW VII), ACL*.**
 AMR is where the Penman authoring pattern of VSON-P comes from — nested `(var / Concept :role target)` with reentrancy (§4.2) — and AMR is also an export target (§7); VSON's concepts and roles are its own.
+
+**Cai, S., & Knight, K. (2013). Smatch: an Evaluation Metric for Semantic Feature Structures. *Proceedings of the 51st Annual Meeting of the Association for Computational Linguistics (ACL), Short Papers*.**
+Borrowing AMR's surface (§4.2) means inheriting its evaluation problem: variable names carry no information, so two correct annotations of one input share no node identifiers. Smatch is the published answer — search for the variable alignment maximizing matched triples, then report precision, recall and F1 over triples, with hill climbing and restarts because the maximization is NP-hard. §5.15 takes the method whole, including the restart discipline, and adds two things it does not have: a partition of the triples into VSON's own layers so a single F1 cannot hide which layer moved, and a written-down pseudo-random generator so the restarts are reproducible across implementations rather than only across runs of one. What VSON does not take is the surrounding practice — Smatch is reported in AMR as an inter-annotator agreement figure over an annotated corpus, and this repository has no annotated corpus, so it reports no such figure (§2.1, §5.15.5).
 
 ### E.5 Scene graphs in vision
 
