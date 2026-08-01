@@ -1,4 +1,4 @@
-# `vson` — VSON v1.1 CLI
+# `vson` — VSON v1.3 CLI
 
 Single static Rust binary for the most-used VSON operations.
 
@@ -21,7 +21,8 @@ See [What the binary carries](#what-the-binary-carries) for the exact list, and 
 ## Subcommands
 
 ```bash
-vson validate <files...>         # exit 0 pass, 1 gate failure, 2 could not run
+vson validate <files...|->       # exit 0 pass, 1 gate failure, 2 could not run
+                                 # --format text|json|sarif, `-` reads stdin
 vson verify --geometry <files...># non-conformance checks; same three exit codes
 vson diff <a> <b>                # graph agreement: 0 identical, 1 differing, 2 no verdict
 vson convert p2t <file.vson>     # Penman -> Turtle on stdout
@@ -36,7 +37,11 @@ vson --help
 
 ## `validate`
 
-`validate` accepts both `.ttl` and `.vson` files. For `.vson`, the binary transpiles to a temp `.ttl` first; all three gates then read that temp file, which is deleted on every exit path.
+```bash
+vson validate [--format text|json|sarif] [--profile strict] <files...|->
+```
+
+`validate` accepts both `.ttl` and `.vson` files, and `-` for standard input. For `.vson` — and for a `-` stream whose first real token is `(` — the binary transpiles to a temp `.ttl` first; all three gates then read that temp file, which is deleted on every exit path.
 
 It runs **three gates** against every file you name, in order, stopping at the
 first one that fails:
@@ -71,9 +76,70 @@ The `OK` / `FAIL` lines are the only thing on **stdout**, so `vson validate` is
 scriptable. Every human-readable report — the pyshacl violation report, the
 OWL clash listing, error messages — goes to **stderr**.
 
+### `--format json` / `--format sarif` — one record per violation
+
+The text output is for a person. A build needs the parts: which shape fired, on
+which node, under which path, at which severity, and on which line. Those are
+fields, and the two structured formats carry them
+([`../docs/vson.md`](../docs/vson.md) §5.16 is the normative description).
+
+```bash
+$ vson validate --format json tests/fixtures/bad_no_viewer.vson | jq '.files[0].findings[0] | {rule, focus_node, location}'
+{
+  "rule": "vson/shacl/DirectionalNeedsViewerShape",
+  "focus_node": "https://example.org/scenes/anonymous#sf",
+  "location": {
+    "line": 26,
+    "column": 14,
+    "anchor": "sf",
+    "resolved_from": "penman-variable"
+  }
+}
+```
+
+`--format sarif` emits a SARIF 2.1.0 log — the format GitHub, GitLab and every
+code scanner already read — with one `result` per violation, `ruleId`, `level`,
+and a `region` pointing at the same line. Both frozen outputs for that fixture
+live at [`../tests/fixtures/validate_report/`](../tests/fixtures/validate_report/).
+
+Four things worth knowing before you parse either:
+
+- **Exit codes do not move with the format.** 0, 1 and 2 mean what they mean below, whichever shape you asked for.
+- **A clean run still prints a report** — with an empty finding set, so a caller can tell "nothing was wrong" from "the tool never ran".
+- **Positions are resolved, not guessed.** Penman is exact: the transpiler mints each IRI from the variable that declares the node, and the position comes off the lexer's tokens, so a variable named in a comment is not mistaken for its declaration. Turtle is a line scan for the term in subject position, and anything it cannot place gets `"location": null` rather than a plausible-looking line 1.
+- **The structured run may report more violations than the text run.** The text gate passes `--abort` to pyshacl and stops at the first; a report of the first violation is not a report. The conformance verdict is identical either way.
+
+Under both structured formats stdout carries exactly one parseable document and
+nothing else, so `| jq` works; the failure summary moves to stderr.
+
+### Standard input
+
+```bash
+$ cat scene.vson | vson validate -
+$ some-generator | vson validate --format sarif - > vson.sarif
+```
+
+`-` may be named once — there is one stream, and a second `-` would validate an
+empty document and call it conformant. A stream has no extension to read a
+syntax off, so the first token that is neither whitespace nor a comment decides:
+`(` is Penman, anything else is Turtle.
+
+### `--profile`
+
+`--profile strict` (the default) validates against `shapes/vson-shapes.ttl` and
+is what decides C3. `--profile relaxed` **exits 2**: the relaxed shapes ship,
+and are embedded in this binary, but no command selects them
+([`../docs/vson.md`](../docs/vson.md) §6.1) — and running the strict shapes
+under a relaxed name would report a conformance verdict about a profile nobody
+validated against. The flag exists so that asking for the profile fails loudly
+instead of silently getting you the other one.
+
+### Python on the host
+
 `convert x2t`, `export caption`, and `export fol` shell out to the Python references (`tools/vson_x/`, `tools/render/`), so they require `python3` on `PATH`. No native Rust VSON-X parser or caption/FOL renderer ships: the Python modules are the single source of truth for the fixtures CI checks, and the Rust side is one shared bridge (`src/commands/python_bridge.rs`) that resolves a home and runs `python3 -m <module>` from it. When there is no checkout to be a home, the binary writes its own from the copy it carries.
 
-Files are read from disk by path; stdin (`-`) input is not yet supported.
+Those three read from a file path only; `-` is a `validate` input, not a
+universal one.
 
 ## Cold-start example
 
@@ -122,6 +188,61 @@ Eye level close up. An apple.
 The ontology, the shapes and the Python modules those two commands ran came out
 of the binary; `python3`, `rdflib`, `pyshacl` and `owlrl` came from the host.
 [What the binary carries](#what-the-binary-carries) draws that line exactly.
+
+## Failing a build on it
+
+Two wrappers ship, and both are the same three gates.
+
+**GitHub Actions** — [`../.github/actions/validate/action.yml`](../.github/actions/validate/action.yml), a composite action:
+
+```yaml
+- uses: yamancan/visual-scene-ontology/.github/actions/validate@main
+  with:
+    files: 'scenes/**/*.vson'    # spaces or newlines separate patterns
+    format: sarif                # or json (the default)
+    annotate: 'true'             # one ::error per violation, on its line
+```
+
+Inputs `files`, `profile`, `format`, `report`, `annotate` and
+`working-directory`; outputs `report`, `conformant` and `findings`. A glob that
+matches nothing **fails**, because a gate that checks nothing is a gate that
+always passes. The action's own header documents the rest.
+
+The cost today is a build: no release binaries exist yet — this repository is
+private and publishing is a later release — so the action compiles the CLI with
+cargo, about twenty seconds on a warm registry, removed on later runs by
+`Swatinem/rust-cache@v2` with `workspaces: cli`. That step goes away when
+binaries ship, and nothing else about the action changes when it does. The
+Python gates go into a venv under `$RUNNER_TEMP` rather than into the runner's
+system interpreter, which recent distributions refuse anyway (PEP 668).
+
+It emits **annotations**, not code-scanning uploads.
+`github/codeql-action/upload-sarif` needs a public repository or GitHub
+Advanced Security and quietly does nothing without either; workflow commands
+work everywhere. `format: sarif` still writes the log, for a caller who knows
+their platform accepts it.
+
+The action is CI-tested here on both sides — the 17-document gallery must pass,
+`tests/fixtures/bad_no_viewer.vson` must fail with its finding on line 26, and
+an empty glob must fail — in the `action` job of
+[`../.github/workflows/ci.yml`](../.github/workflows/ci.yml).
+
+**pre-commit** — [`../.pre-commit-hooks.yaml`](../.pre-commit-hooks.yaml):
+
+```yaml
+repos:
+  - repo: https://github.com/yamancan/visual-scene-ontology
+    rev: main   # the hooks postdate the v1.3.0 tag
+    hooks:
+      - id: vson-validate           # builds the CLI once if nothing is on PATH
+      # - id: vson-validate-system  # requires `vson` on PATH; never builds
+```
+
+`.vson` files, `.x.vson` excluded — `validate` reads a `.vson` extension as
+Penman, and a VSON-X document handed to the Penman parser is a parse error
+rather than a verdict. Neither hook installs Python packages: they name what is
+missing and stop, because a commit hook that edits your interpreter is not a
+commit hook. `$VSON_BIN` overrides the binary search.
 
 ## `verify`
 
@@ -370,16 +491,19 @@ Edit the original, run `--sync`, commit both.
 ## Verification
 
 ```bash
-cd cli && cargo test               # 85 tests: 37 unit, 48 integration
+cd cli && cargo test               # 108 tests: 49 unit, 59 integration
 make cli-check                     # fmt + clippy + build + test + embedded-payload gate + standalone-binary test + graph-isomorphic check vs Python ref
 ```
 
-The 48 integration tests split six ways: 9 golden-fixture tests
+The 59 integration tests split seven ways: 9 golden-fixture tests
 (`tests/golden_throne_room.rs`), 5 validate-fixture tests
 (`tests/golden_validate.rs`), 9 geometry-gate tests
-(`tests/geometry_gate.rs`), 9 diff tests (`tests/diff_gate.rs`), 6
-error-contract tests (`tests/error_contract.rs`) pinning the exit-2 "never
-reached a verdict" half of the interface, and 10 standalone tests
+(`tests/geometry_gate.rs`), 9 diff tests (`tests/diff_gate.rs`), 11
+report-format tests (`tests/report_format.rs`) holding the JSON and SARIF
+output to a byte-frozen golden and the exit codes to the same three values in
+every format, 6 error-contract tests (`tests/error_contract.rs`) pinning the
+exit-2 "never reached a verdict" half of the interface, and 10 standalone
+tests
 (`tests/standalone_home.rs`) that copy the binary **alone** into an empty
 directory outside any checkout, write their fixture there, unset `VSON_HOME`,
 and assert exit 0 — the proof that a downloaded binary works. `make cli-check`
@@ -404,10 +528,11 @@ That same constraint is why the ontology, the shapes and the Python package the 
 ## Known limitations
 
 - `convert t2p` not implemented — needs a native Rust Turtle parser.
-- There is no `--partial` flag, in this CLI or in the Python reference: no argument parser defines it and no code branches on it. The relaxed profile it would select does ship, as [`../shapes/vson-shapes-relaxed.ttl`](../shapes/vson-shapes-relaxed.ttl) and inside the binary, and is exercised by the test suite (`tests/test_shapes_gate.py`) — but no command-line entry point selects it yet.
+- No command validates against the relaxed profile. `validate --profile` takes the value space §6.1 defines, and `relaxed` exits 2 rather than quietly running the strict shapes under that name; the file itself ships, as [`../shapes/vson-shapes-relaxed.ttl`](../shapes/vson-shapes-relaxed.ttl) and inside the binary, and is exercised only by the test suite (`tests/test_shapes_gate.py`). There is likewise no `--partial` flag anywhere: no argument parser defines it and no code branches on it.
 - The binary carries every repository **file** it reads, but not the Python **runtime** that reads them: `validate` shells out to `pyshacl`, `python3 -m tools.owlrl_check` and `python3 -m tools.c2_check`, so all three gates still need `python3` with `rdflib`, `pyshacl` and `owlrl` (`make deps`). Removing that dependency is a different piece of work — vendoring `oxigraph` plus a SHACL interpreter, or waiting for `shacl-rs` to mature — and is recorded for a later release. See [What the binary carries](#what-the-binary-carries) for the exact boundary.
 - The CLI's SHACL gate does not pass pyshacl's `allow_warnings`, while `make check`'s `shacl` target and `tools/shacl_helper.py` do. Nothing in the shipped corpus is affected — all 17 gallery + canonical documents pass either way — but a document that trips only an `sh:Warning` shape would be rejected here and accepted there. No CLI flag exposes the choice yet.
 - `export cypher` accepts Penman input only; Turtle import follows once `t2p` ships.
-- Input is read from a file path; stdin (`-`) is not supported.
+- Only `validate` reads `-`. `verify`, `diff`, `convert` and the exporters take file paths.
+- A source position is exact for Penman and best-effort for Turtle (`docs/vson.md` §5.16.3): a Turtle subject the line scan cannot place is reported with a null location rather than a guessed line. Reading it exactly would take a Turtle parser that records positions, which the Python side does not expose.
 
 Deferred subcommands (planned, not yet shipped): `query`, `render`, `generate`, `serve`, `init`, `lint`.

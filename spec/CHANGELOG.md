@@ -342,6 +342,65 @@ The gate is not vacuous in the other direction either — `examples/throne_room.
 and `examples/gallery/11_throne_room.vson` carry **different** canonical hashes,
 which is the same finding §5.15.6 reports as F1 0.767.
 
+*Annotation, 2026-08-01 — the gate becomes something a build can mount.* The
+first sentence of README.md has said since v1.0 that a VLM's prose cannot fail
+a build and that VSON's can. Through v1.3.0 what shipped behind that was an
+exit code and a page of prose on stderr: enough to fail a job, never enough to
+say *where*, so the promise stopped one step short of the thing a reader was
+being sold. Three additions close it, and none of them touches a clause, a
+shape, a term, a schema field or an IRI.
+
+**`vson validate --format text|json|sarif`** (new §5.16). One record per
+violation — `gate`, `rule`, `severity`, `message`, `shape`, `constraint`,
+`focus_node`, `result_path`, `value`, `location` — from the same three gates in
+the same order, produced by `tools/validate_report.py`, which calls the very
+`clashes_for` and `orphans_in` the text path calls rather than re-implementing
+either. Two settings differ from the text gate and only two: `--abort` is not
+passed, because a report of the first violation is not a report, and the SHACL
+report *graph* is kept instead of its text rendering, because the fields are in
+the graph. Neither moves a verdict, and `cli/tests/report_format.rs` pins that
+the two paths attribute the C2 fixture to the C2 gate alike. `sarif` is SARIF
+2.1.0 (OASIS, 27 March 2020; new citation in Appendix E.6), which is what makes
+a violation an annotation in tools nobody here had to write.
+
+**Source positions, with their footing stated.** A finding carries the line and
+column where it can be *established* and `null` where it cannot, never a
+plausible guess. Penman is exact — §4.2 mints each IRI from the variable that
+declares the node, and the position comes off the lexer's token offsets, so a
+variable named in a comment is not mistaken for its declaration. Turtle is a
+line scan for the term in subject position and §5.16.3 says so in those words;
+VSON-T is read by a parser that reports no positions, and closing that gap
+would take a Turtle parser this project does not have. `--format` also brought
+`-` for standard input, with the syntax sniffed from the first real token, and
+`--profile`, which takes §6.1's value space and **refuses** `relaxed` with exit
+2 rather than running the strict shapes under a name nobody validated against.
+
+**The wrappers.** A composite action at `.github/actions/validate/action.yml`,
+usable today as `uses: ./.github/actions/validate` and, for a reader allowed to
+fetch this repository, at `owner/repo/.github/actions/validate@ref` — no
+Marketplace listing, no token, nothing to install. It annotates through
+workflow commands rather than uploading SARIF, because code-scanning ingestion
+needs a public repository or Advanced Security and silently does nothing
+without either. Its cold-start cost is stated rather than hidden: with no
+release binaries yet, it compiles the CLI with cargo, and the header names the
+cache that removes that on later runs. `.pre-commit-hooks.yaml` carries the
+same three gates locally as two hooks, one that will build the CLI once and one
+that refuses to build anything; neither installs a Python package behind the
+user's back. CI exercises the action from both ends — the 17-document gallery
+must pass and produce a valid SARIF log with no results, the bad fixture must
+fail with its finding on line 26, an empty glob must fail — because a gate
+nobody has watched go red is a gate nobody should trust.
+
+New fixture `tests/fixtures/bad_no_viewer.vson`, the Penman twin of the Turtle
+fixture beside it, with its JSON and SARIF reports byte-frozen at
+`tests/fixtures/validate_report/`; 39 new tests (11 in
+`cli/tests/report_format.rs`, 12 in `tests/test_validate_report.py`, 16 in
+`tests/test_gha_annotate.py`) and 12 new unit tests in the crate. Nothing in
+the shipped corpus moves, and §2.1 governs every line of every report: a green
+build is a statement about the graph and never about the picture — which is
+easiest to forget exactly where a SARIF log renders beside findings from tools
+that do read the artifact they check.
+
 ## v1.2.0 — 2026-07-31
 
 Namespace release. Every canonical VSON IRI moves off `https://vson.dev/` and

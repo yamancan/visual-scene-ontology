@@ -128,7 +128,7 @@ A document is a **conformant VSON v1.3 document** iff all of the following hold.
 
 **Consumer conformance.** A consumer is conformant iff it accepts every document satisfying C1–C9 without modification, and rejects (or flags) documents that do not.
 
-**Verification.** The reference verifier is `cli/target/release/vson validate <file>`. Exit code 0 establishes C1–C9: it parses the document, runs SHACL, and — since v1.3 — runs the C2 vocabulary-closure sweep as a third gate ([`tools/c2_check.py`](../tools/c2_check.py)), which rejects any VSON-namespace IRI the three ontology files do not declare. Exit code 1 means at least one of those failed; the `FAIL` line names which gate. Through v1.2 exit 0 established C1 and C3–C9 only, and C2 was covered by a test that swept this repository's own corpus — a document from anywhere else could mint `vso:Ambience`, pass `vson validate` clean, and be non-conformant. Two things exit 0 still does not establish, neither of them a numbered clause: another verifier's "conformant" verdict says nothing about the OWL 2 RL closure, which no clause requires and which this verifier happens to compute as its second gate (§2.1); and no verdict from any tool says the document corresponds to the image. A third is deliberately not among `validate`'s gates at all — whether a document's spatial relations agree with the `vso:bbox2d` rectangles it asserts beside them. That is `vson verify --geometry` (§5.13), and a document that fails it is still conformant.
+**Verification.** The reference verifier is `cli/target/release/vson validate <file>`. Exit code 0 establishes C1–C9: it parses the document, runs SHACL, and — since v1.3 — runs the C2 vocabulary-closure sweep as a third gate ([`tools/c2_check.py`](../tools/c2_check.py)), which rejects any VSON-namespace IRI the three ontology files do not declare. Exit code 1 means at least one of those failed; the `FAIL` line names which gate. Through v1.2 exit 0 established C1 and C3–C9 only, and C2 was covered by a test that swept this repository's own corpus — a document from anywhere else could mint `vso:Ambience`, pass `vson validate` clean, and be non-conformant. Two things exit 0 still does not establish, neither of them a numbered clause: another verifier's "conformant" verdict says nothing about the OWL 2 RL closure, which no clause requires and which this verifier happens to compute as its second gate (§2.1); and no verdict from any tool says the document corresponds to the image. A third is deliberately not among `validate`'s gates at all — whether a document's spatial relations agree with the `vso:bbox2d` rectangles it asserts beside them. That is `vson verify --geometry` (§5.13), and a document that fails it is still conformant. The same verdict is available in a form a program can act on — one record per violation, with the shape, the focus node and, where it can be established, the line — under `--format json` and `--format sarif` (§5.16); the format changes what a run says and never what it decides.
 
 **Normative precedence.** VSON's normative content is spread across five artifacts. When two of them disagree, the higher entry wins:
 
@@ -1061,6 +1061,106 @@ What it is *for* is the two things a scheme cannot otherwise have: a regression 
 
 ---
 
+### 5.16 Machine-readable validation reports (`vson validate --format`)
+
+§2 says what a verifier decides. This says how it tells a reader that is a **program**, because the two things a verifier has said until now are an exit code — one bit, about a whole run, with no location in it — and a human report beside it. Neither can put a mark on the line that caused the failure, and a build that can only say "something in here is wrong" is a build people learn to ignore.
+
+**Three shapes, one verdict.**
+
+| `--format` | What lands on stdout | For |
+|---|---|---|
+| `text` (default) | `OK` / `FAIL <file> (<gate>)`; each checker's own report goes to stderr | a person at a terminal |
+| `json` | one document carrying the records of §5.16.1 | a script, a dashboard, a repair loop |
+| `sarif` | a SARIF 2.1.0 log (OASIS, March 2020 — [Appendix E.6](#appendix-e)) | code scanners: GitHub, GitLab, and everything that reads them |
+
+The verdict does not move with the format. An implementation **MUST** reach the same conformance decision and return the same exit code whichever format it was asked for: the formats differ in what a run *says*, never in what it decides. A structured run **MAY** report more violations than the text run prints — the reference text gate passes `--abort` to `pyshacl` and stops at the first, while a report of the first violation is not a report — and the set of documents each calls conformant is nonetheless identical.
+
+**A clean run still produces a report.** A conformant input **MUST** produce a report whose finding set is empty, not an empty file and not no file at all. A caller that cannot tell "nothing was wrong" from "the tool never ran" has learned nothing from a green build.
+
+#### 5.16.1 The record
+
+One record per violation, with the parts of it that a program would otherwise have to recover from prose kept as fields.
+
+| Field | Type | What it carries |
+|---|---|---|
+| `gate` | `"shacl"` \| `"owl-consistency"` \| `"c2"` | which of §2's three gates reported it |
+| `rule` | string | a stable identifier to group and suppress by: `vson/shacl/<shape local name>`, `vson/owl-consistency/<clash kind>`, `vson/c2/orphan-term` |
+| `severity` | `"violation"` \| `"warning"` \| `"info"` | the local name of `sh:resultSeverity`, lower-cased. The two gates that are not SHACL emit `violation`: neither computes a severity, and inventing one would be a claim |
+| `message` | string | `sh:resultMessage`, or the gate's own wording |
+| `shape` | IRI \| null | the **named** shape the violation belongs to — see below |
+| `constraint` | IRI \| null | `sh:sourceConstraintComponent`, or the OWL construct that clashed |
+| `focus_node` | IRI \| null | `sh:focusNode`. Null where the finding is about a *term* rather than a node: a C2 orphan is a name the document uses, and no node in the graph is at fault for it |
+| `result_path` | IRI \| null | `sh:resultPath` |
+| `value` | string \| null | `sh:value`, the second term of an OWL clash, or the orphan term itself |
+| `location` | object \| null | §5.16.3 |
+
+**`shape` names a shape a reader can look up.** A SHACL violation reports its source shape, and in these shapes that is almost always a blank node nested inside a named node shape (`vss:DirectionalNeedsViewerShape sh:property [ sh:path vso:viewer ; … ]`). A blank node identifies nothing across runs, so an implementation **SHOULD** report the nearest named ancestor in the shapes graph and **MUST NOT** report a blank node identifier as if it were a name. Where no named ancestor can be established, `shape` is null and `rule` falls back to the constraint component — the honest form of "this fired, and I cannot tell you what to call it".
+
+**Order is part of the format.** A SHACL validation report is a graph, and a graph has no order; two runs over one document would otherwise emit the same findings in different sequences, and no output could be frozen or diffed. Findings **MUST** be emitted in an order that is a function of their content alone. The reference implementation sorts by `focus_node`, then `result_path`, then `constraint`, then `message`.
+
+**At most one gate speaks.** The three gates run in §2's order — SHACL, then OWL 2 RL, then C2 — and stop at the first that fails, so every finding in a report comes from the same gate, and the report's `gate` field names it. A document that would fail two gates is reported against the first; that is what `vson validate` has always done, and the structured formats do not change it.
+
+#### 5.16.2 Exit codes
+
+| Code | Meaning |
+|---|---|
+| 0 | every input cleared all three gates |
+| 1 | an input genuinely failed one |
+| 2 | no verdict was reached: a missing dependency, an unparseable input, an unknown flag |
+
+The 1-versus-2 distinction is the load-bearing one, and it is not free: the checkers behind the gates exit 1 both for "the document is bad" and for "I crashed", so a missing library and a malformed document arrive on the same code. A verifier **MUST NOT** report a broken toolchain as a failing document. The reference implementation separates the two by what the checker *produced* — a summary line for the text gates, a parseable report document for the structured ones — and treats anything else at exit 1 as exit 2 with the child's stderr attached.
+
+#### 5.16.3 Source positions, and where there are none
+
+`location` carries `line` and `column` (both 1-based, the column counted in Unicode scalar values), the `anchor` text that was matched, and `resolved_from` — the strategy that found it. It is present only when the position was **established**:
+
+| `resolved_from` | How | Exact? |
+|---|---|---|
+| `penman-variable` | the focus node's local name is the Penman variable that declares the node (§4.2 mints the IRI from it); the position is the declaring token's, from the lexer | yes |
+| `turtle-subject` | the first line whose leading term denotes the focus node | no — a textual scan |
+| `mention` | the first place the term appears at all, for a finding with no focus node | no — a textual scan |
+
+An implementation **MUST NOT** report a position it did not establish. Where the mapping fails — a Turtle subject written on a continuation line, a blank node with no name to look for, a prefixed name the scan cannot resolve — `location` is null and the finding names its file alone. A guessed line is worse than no line: it sends a reader to a place where nothing is wrong, and it does so with the same confidence as a correct one.
+
+This is the one part of a report that is about the **surface** rather than the graph, and it is exact for exactly one surface. VSON-T (§4.1) is read by an RDF parser that reports no positions, and VSON-X (§4.3) is not an input to `vson validate` at all.
+
+#### 5.16.4 The SARIF mapping
+
+SARIF is what a scanner already reads, which is the whole reason to emit it. Each record becomes one `result`:
+
+| Record | SARIF |
+|---|---|
+| `rule` | `result.ruleId`, and a `reportingDescriptor` in `tool.driver.rules` at `result.ruleIndex` |
+| `severity` | `result.level` — `violation` → `error`, `warning` → `warning`, `info` → `note` |
+| `message` | `result.message.text` |
+| the input's path | `result.locations[0].physicalLocation.artifactLocation.uri`, as given, so a run from the repository root yields repository-relative URIs |
+| `location` | `…physicalLocation.region.startLine` / `.startColumn`, omitted entirely when null |
+| everything else | `result.properties` — `focusNode`, `resultPath`, `shape`, `constraint`, `value`, `gate`, `resolvedFrom` |
+
+The log declares `runs[0].columnKind` as `unicodeCodePoints`. SARIF's default is UTF-16 code units, and leaving it unstated would put every column past a multi-byte character silently out by a few. A `reportingDescriptor` carries `helpUri` only where there is a real one to carry — a `vss:` shape IRI dereferences (§5.1) — and none is invented for the gates that have none. No `$schema` is emitted: it is optional, nothing consumes it here, and the only thing it would add to every report is a third-party URL this project has not checked resolves.
+
+Emitting SARIF is not uploading it. Code scanning ingestion is a platform feature with its own preconditions, and a tool that quietly assumed them would report success for an upload that did nothing; the reference composite action therefore writes the log and annotates through ordinary workflow commands, leaving the upload to a caller who knows their platform admits it.
+
+#### 5.16.5 Standard input
+
+An input named `-` is read from standard input. It **MUST** be named at most once — there is one stream, and a second `-` would validate an empty document and call it conformant.
+
+A stream has no extension to read a syntax off, so the syntax is decided by the first token that is neither whitespace nor a comment: `(` is VSON-P (§4.2), anything else is VSON-T (§4.1). Empty input is VSON-T, which parses to a graph of no triples rather than to a parse error nobody asked for.
+
+#### 5.16.6 Versioning, profiles, and what is frozen
+
+Every report names its own format in a `report` field — `vson-validate/1` for the JSON document, `vson-validate-records/1` for the record stream between the reference implementation's two halves. Adding a field is **not** a breaking change and does not bump the number; removing one, or changing what one means, does. A consumer **MUST** ignore fields it does not know.
+
+A report also names the `profile` that produced it. Only `strict` decides C3 and therefore conformance (§6.1); `relaxed` names a shapes file that ships and that no shipped command selects, and a verifier asked for it **MUST** either validate against that file or refuse — never validate against the strict shapes and label the result relaxed.
+
+The reference output is frozen, byte for byte, at [`tests/fixtures/validate_report/`](../tests/fixtures/validate_report/): the JSON and SARIF reports for [`tests/fixtures/bad_no_viewer.vson`](../tests/fixtures/bad_no_viewer.vson), compared against the binary's output by [`cli/tests/report_format.rs`](../cli/tests/report_format.rs) and checked for still being *valid* SARIF — not merely stable — by [`tests/test_validate_report.py`](../tests/test_validate_report.py). They are referenced here rather than reproduced here for the reason §6.1's fragments exist to guard: a quoted copy of a shipped artifact is a copy that drifts, and this document outranks the artifact it would be misquoting.
+
+#### 5.16.7 What a report establishes
+
+Exactly what §2 and §2.1 say a verdict establishes, and nothing further. A report is the same verdict with its parts named: a finding is a place where the document breaks a shape, a clause or the vocabulary, and an empty report is a document that breaks none of them. No image is read at any point, so a producer, a consumer or a build **MUST NOT** present a green report as evidence that the document describes the picture — and a passing SARIF log, which a scanner will render beside findings from tools that do read the artifact they check, is the easiest place in this specification to forget that.
+
+---
+
 ## 6. JSON Schema and validation rules
 
 VSON has **two layers of validation**:
@@ -1459,7 +1559,7 @@ Gallery scenes 01–12 have a VSON-X form under [`examples/gallery-x/`](../examp
 | Python Penman transpiler | [`tools/penman/vson_penman.py`](../tools/penman/vson_penman.py) | Penman → Turtle | 18 round-trip tests (18/18 ✓) |
 | Python VSON-X parser (v1.1) | [`tools/vson_x/vson_x.py`](../tools/vson_x/vson_x.py) | VSON-X → Turtle, nine sigils, bearer-class dispatch | 16 lexer/parser/emitter + 11 gallery round-trip (27/27 ✓) |
 | Caption renderer (v1.0.5) | [`tools/render/caption.py`](../tools/render/caption.py) | graph → English (deterministic, no LLM) | 11 fixture + determinism (11/11 ✓) |
-| Rust CLI (`vson`) | [`cli/`](../cli) | `validate`, `verify --geometry`, `diff`, `convert p2t/x2t`, `export cypher/caption/fol` | 63 tests (25 lib unit + 6 error-contract + 9 golden throne room + 5 golden validate + 9 geometry gate + 9 diff gate ✓) |
+| Rust CLI (`vson`) | [`cli/`](../cli) | `validate` (`--format text/json/sarif`, `-` for stdin — §5.16), `verify --geometry`, `diff`, `convert p2t/x2t`, `export cypher/caption/fol` | 108 tests (49 lib unit + 6 error-contract + 9 golden throne room + 5 golden validate + 9 geometry gate + 9 diff gate + 11 report format + 10 standalone binary ✓) |
 | Graph agreement metric (v1.3) | [`tools/metrics/smatch.py`](../tools/metrics/smatch.py) | two documents → triple-level precision/recall/F1 with per-layer sub-scores (§5.15); reads `.ttl`, `.vson` and `.x.vson` | 31 property + fixture tests (31/31 ✓) |
 | Canonical form (v1.3) | [`tools/canon.py`](../tools/canon.py) | RDFC-1.0 canonical N-Quads + the §4.6 denotation test; reads `.ttl`, `.vson` and `.x.vson`; `--freeze` rewrites the frozen table | 34 tests — the Recommendation's own vectors, the two normalizations, the 29 frozen hashes, the 12 cross-syntax pairs (34/34 ✓) |
 | SHACL validator | `pyshacl` (shelled out by `vson validate`) | semantic well-formedness, strict profile (the relaxed profile ships as a shapes file; no command selects it yet) | 5 SHACL tests + 16 gallery passes |
@@ -1877,6 +1977,9 @@ The natural target for extractor provenance; VSON v1.1 records only a free-text 
 
 **Longley, D., Kellogg, G., & Yamamoto, D. (eds.). *RDF Dataset Canonicalization*. W3C Recommendation, 21 May 2024. <https://www.w3.org/TR/2024/REC-rdf-canon-20240521/>** — the RDFC-1.0 algorithm.
 The standard §4.6 borrows whole: label every blank node from the graph's own shape, serialize to canonical N-Quads (Appendix A of that Recommendation), and two isomorphic datasets are two identical byte strings. VSON adds only the two normalizations that come before it, and takes the hard half — the gossip-path search that separates blank nodes tied at first degree — from the Recommendation rather than inventing a hash of its own. Appendix B of the same document records that **URDNA2015** is the same algorithm up to the canonical N-Quads escaping clarification, which is why a JSON-LD toolchain's canonicalizer should agree with `tools/canon.py` on any VSON document. rdflib is not such a toolchain: its `rdflib.compare` implements **RGDA1** (McCusker, J. P. (2015). *WebSig: A Digital Signature Framework for the Web*. Rensselaer Polytechnic Institute), a correct isomorphism digest that issues different labels and emits no canonical document — the reason §4.6's reference implementation carries RDFC-1.0 itself instead of calling one.
+
+**OASIS. *Static Analysis Results Interchange Format (SARIF) Version 2.1.0*. OASIS Standard, 27 March 2020.**
+The report format §5.16.4 emits, and the reason `vson validate` emits one at all: a violation only becomes a mark on the offending line if something already reads the file, and every code scanner already reads this. VSON adds nothing to it — one `run`, one `result` per violation, the VSON-specific fields parked in `result.properties` where the format says extensions belong. No URL is cited here for the same reason the emitted log carries no `$schema`: this document does not name a location it has not checked.
 
 ### E.7 Ontology engineering methodology
 

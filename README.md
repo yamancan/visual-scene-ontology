@@ -114,7 +114,7 @@ cli/target/release/vson export caption examples/throne_room.vson
 cli/target/release/vson diff examples/throne_room.ttl examples/gallery/11_throne_room.vson
 
 # Run all tests (Python + Rust)
-make check        # 305 Python tests + 16-scene gallery + 2 schema parses
+make check        # 333 Python tests + 16-scene gallery + 2 schema parses
                   # includes the 29 frozen canonical hashes of §4.6
 make cq-check     # the 28 executable competency questions vs their frozen answers
 make cli-check    # Rust tests + byte-strict & graph-iso parity vs Python ref
@@ -122,6 +122,43 @@ make x-check      # VSON-X gallery round-trip parity (12 pairs)
 ```
 
 See [`docs/vson.md`](docs/vson.md) for the full spec, [`cli/README.md`](cli/README.md) for the CLI, and [`web/README.md`](web/README.md) for the studio.
+
+## Fail a build on it
+
+The first sentence of this page says a VLM's prose cannot fail a build. Here is the build failing:
+
+```yaml
+# .github/workflows/scenes.yml
+- uses: yamancan/visual-scene-ontology/.github/actions/validate@main
+  with:
+    files: 'scenes/**/*.vson'
+```
+
+Every violation becomes an annotation on the line that caused it — the SHACL shape that fired, on the Penman variable that declared the node — plus a table in the job summary. Nothing to install, no Marketplace listing, no token. [`.github/actions/validate/action.yml`](.github/actions/validate/action.yml) documents every input, and [CI runs the action against this repository's own gallery and its own bad fixture](.github/workflows/ci.yml) on every commit, because a gate nobody has seen go red is a gate nobody should trust.
+
+While this repository is private, that `uses:` line resolves only for workflows allowed to read it; inside this repository the same action is `uses: ./.github/actions/validate`, which is the form CI exercises.
+
+**The cost, stated up front:** there are no release binaries yet, so the action builds the CLI with `cargo` — about twenty seconds of compile time on a warm registry, removed on later runs by `Swatinem/rust-cache@v2` with `workspaces: cli`. That step disappears when binaries ship.
+
+Locally, the same three gates run as a [pre-commit](https://pre-commit.com) hook:
+
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/yamancan/visual-scene-ontology
+    rev: main   # the hooks postdate the v1.3.0 tag — pin the first tag that carries them
+    hooks:
+      - id: vson-validate
+```
+
+And in any other pipeline, straight from the binary — exit 0 conformant, 1 a document that failed a gate, 2 no verdict:
+
+```bash
+vson validate --format sarif scenes/*.vson > vson.sarif   # SARIF 2.1.0, for any code scanner
+cat scene.vson | vson validate --format json -            # stdin, one record per violation
+```
+
+[§5.16](docs/vson.md#516-machine-readable-validation-reports-vson-validate---format) is the report format: one record per violation carrying the shape, the focus node, the result path, the severity and — where it can be established rather than guessed — the source line. It checks the graph, not the picture ([§2.1](docs/vson.md#21-what-conformance-establishes)); a green build is not a claim about the image.
 
 Run the studio locally:
 
