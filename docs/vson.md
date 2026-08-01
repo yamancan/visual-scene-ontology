@@ -102,7 +102,7 @@ python tools/extractor/baseline/extract.py --live --images path/to/image.jpg
 #   image, shacl_first_try, shacl_after_retries, retries, latency_ms, ...
 ```
 
-The studio at [`web/`](../web/) is a static site with no backend: extraction goes from the visitor's browser straight to OpenRouter on the visitor's own key, and validation runs in the browser too — a Pyodide worker executes the same two gates as `vson validate` (pyshacl SHACL, then owlrl OWL 2 RL), byte-pinned to the CLI in CI. This baseline eval runner calls the Anthropic API directly.
+The studio at [`web/`](../web/) is a static site with no backend: extraction goes from the visitor's browser straight to OpenRouter on the visitor's own key, and validation runs in the browser too — a Pyodide worker executes two of the three gates `vson validate` runs (pyshacl SHACL, then owlrl OWL 2 RL), from the same source files, byte-pinned to the CLI in CI. The third, C2 vocabulary closure (§2), is CLI-only for now, so the studio's verdict is a strict subset of the CLI's. This baseline eval runner calls the Anthropic API directly.
 
 The runner returns a SHACL-conformant `vson_p` string per image. To produce the full envelope from §1.1, wrap that string with the metadata fields described in §6. A reference wrapper (`vson generate <image>`) is planned for a future CLI release; the `cli/` crate versions independently of this spec.
 
@@ -128,7 +128,7 @@ A document is a **conformant VSON v1.3 document** iff all of the following hold.
 
 **Consumer conformance.** A consumer is conformant iff it accepts every document satisfying C1–C9 without modification, and rejects (or flags) documents that do not.
 
-**Verification.** The reference verifier is `cli/target/release/vson validate <file>`. Exit code 0 establishes C1 and C3–C9 — it parses the document and runs SHACL. Exit code 1 means at least one of those failed. **It does not establish C2**: no tool inspects a document for orphan VSO terms at validate time. C2 is covered instead by the C2 coverage test in `tests/`, which `make check` runs against the ontology.
+**Verification.** The reference verifier is `cli/target/release/vson validate <file>`. Exit code 0 establishes C1–C9: it parses the document, runs SHACL, and — since v1.3 — runs the C2 vocabulary-closure sweep as a third gate ([`tools/c2_check.py`](../tools/c2_check.py)), which rejects any VSON-namespace IRI the three ontology files do not declare. Exit code 1 means at least one of those failed; the `FAIL` line names which gate. Through v1.2 exit 0 established C1 and C3–C9 only, and C2 was covered by a test that swept this repository's own corpus — a document from anywhere else could mint `vso:Ambience`, pass `vson validate` clean, and be non-conformant. Two things exit 0 still does not establish, neither of them a numbered clause: another verifier's "conformant" verdict says nothing about the OWL 2 RL closure, which no clause requires and which this verifier happens to compute as its second gate (§2.1); and no verdict from any tool says the document corresponds to the image.
 
 **Normative precedence.** VSON's normative content is spread across five artifacts. When two of them disagree, the higher entry wins:
 
@@ -152,11 +152,11 @@ Conformance is not one property. C1–C9 name three separable ones, checked by t
 
 **Syntactic well-formedness.** The bytes parse into one RDF graph under the surface the document declares. A conformant document **MUST** parse (C1). Parsing establishes nothing about what the resulting graph says: a document asserting `vso:rcc "banana"` is syntactically well-formed, and so is one that describes the same object twice under two names.
 
-**Structural well-formedness.** The parsed graph satisfies the shapes — the required edges are present, the cardinalities hold, the closed vocabularies of §5.12 are respected, and a directional fact carries its viewer (§3.3). A conformant document **MUST** satisfy C3–C9 with no violation. This is a statement about graph shape and nothing else: every value a shape does not constrain — a bounding box, a confidence, a lemma, a `vso:value` literal — is unexamined, and a structurally well-formed document **MAY** carry any of them. Where a clause is stated more tightly than the shape that enforces it, the clause is the requirement and the shape is incomplete; two such gaps are open — C5's *exactly one* `vso:viewer` and C6's *exactly one* `vso:lemma` on `vso:Process` and `vso:Stative` are enforced as *at least one*, so a document carrying two of either violates the clause and passes SHACL.
+**Structural well-formedness.** The parsed graph satisfies the shapes — the required edges are present, the cardinalities hold, the closed vocabularies of §5.12 are respected, and a directional fact carries its viewer (§3.3). A conformant document **MUST** satisfy C3–C9 with no violation. This is a statement about graph shape and about the value spaces §5 defines, and about nothing else: a value no shape constrains is unexamined, and a structurally well-formed document **MAY** carry any of them. Where a clause is stated more tightly than the shape that enforces it, the clause is the requirement and the shape is incomplete. Through v1.2 that gap was wide — a bounding box, a confidence and a lemma were all unexamined, so `vso:bbox2d "banana"` and `vso:confidence "7.3"` passed, and two clause gaps were open on top: C5's *exactly one* `vso:viewer` and C6's *exactly one* `vso:lemma` on `vso:Process` and `vso:Stative` were enforced as *at least one*. v1.3 closed all of them under §8.2 without changing a clause. What remains unexamined is listed there too: the §5.3.1 / §5.3.3 value lists, Entity trait completeness (§5.4), and the free-form `vso:value` literal.
 
-**Internal consistency.** The OWL 2 RL closure of the document together with the ontology contains no individual inferred into two classes VSO declares disjoint. This is the document's agreement with itself and with the TBox, and it is the one construct **no numbered clause requires**: C1–C9 do not mention it, while `vson validate` runs it as its second gate — the SHACL gate runs at `inference="rdfs"`, which does not process `owl:disjointWith` and therefore cannot see those clashes. A document **MAY** satisfy C1–C9 and still be OWL 2 RL inconsistent. A verifier **SHOULD** run both gates, and a consumer **MUST NOT** read "conformant" as meaning the closure was computed.
+**Internal consistency.** The OWL 2 RL closure of the document together with the ontology contains no individual inferred into two classes VSO declares disjoint. This is the document's agreement with itself and with the TBox, and it is the one construct **no numbered clause requires**: C1–C9 do not mention it, while `vson validate` runs it as its second gate — the SHACL gate runs at `inference="rdfs"`, which does not process `owl:disjointWith` and therefore cannot see those clashes. A document **MAY** satisfy C1–C9 and still be OWL 2 RL inconsistent. A verifier **SHOULD** run this gate too, and a consumer **MUST NOT** read "conformant" as meaning the closure was computed.
 
-C2 belongs to none of the three. It is a vocabulary-closure property — no orphan VSO terms — and, as stated above, no tool checks it at validate time.
+C2 belongs to none of the three. It is a **vocabulary-closure** property — no orphan VSO terms — and it is a question about the *ontology*, not about the document's graph: deciding it needs the set of terms VSO declares, which is neither in the shapes nor derivable from the document. That is why no shape carries it and no OWL rule reports it (an undeclared IRI is perfectly consistent; it is merely not VSON's). Since v1.3 `vson validate` decides it directly, as a third gate ([`tools/c2_check.py`](../tools/c2_check.py)) sweeping every triple position for a VSON-namespace IRI the three ontology files never declare. The gate reads *declared* in the weakest sense the clause admits — the ontology states anything at all about the term — which makes it, if anything, more permissive than C2 as written ("a class or property"): individuals such as `vso:above` and `rcc:DC` are declared terms here. That direction is the safe one; §8.2 forbids the other. A verifier that runs only SHACL establishes C1 and C3–C9 and **MUST NOT** report C2.
 
 **None of the three establishes correspondence to the image.** Nothing in this specification reads pixels. A document asserting a red cube left of a blue sphere, describing a photograph that contains neither, parses, satisfies every shape, and has a clash-free closure: fully conformant, entirely false. Producers, consumers, exporters, and user interfaces **MUST NOT** describe a conformant document as accurate, correct, faithful, or verified against the image, and **MUST NOT** present a passing result as evidence that a claim about the depicted scene is true. A tool reporting one pass/fail verdict **SHOULD** name the constructs it checked.
 
@@ -360,7 +360,7 @@ Lists the entities the composition depicts. **MUST NOT** target a `vso:Frame`.
 #### `vso:viewedBy` *(IRI ref → CameraView, exactly 1 when present)*
 The composition's primary viewer. It **SHOULD** always be present, and it **MUST** be present whenever the document asserts any directional `SpatialFact` — that case is what C5 enforces, via `vss:DirectionalNeedsViewerShape` on the fact itself.
 
-No shape constrains `vso:viewedBy` on a `vso:Composition` directly: a composition with zero directional facts and no `vso:viewedBy` passes SHACL today. The reference VSON-X parser does not close that gap either — it rejects `! ... *dir X` with no `^viewer` anchor, but accepts a composition with no top-level `^` anchor. `docs/vson-x-semantics.md` §4.10.1 specifies a stricter parser rule that is **not yet implemented**.
+**SHACL.** `vss:CompositionShape` caps `vso:viewedBy` at one (v1.3, §8.2 — "exactly 1 when present" is what the cap enforces). The *presence* half is unshaped: a composition with zero directional facts and no `vso:viewedBy` passes SHACL, because no numbered clause requires the edge and this section states it as SHOULD. The reference VSON-X parser does not close that gap either — it rejects `! ... *dir X` with no `^viewer` anchor, but accepts a composition with no top-level `^` anchor. `docs/vson-x-semantics.md` §4.10.1 specifies a stricter parser rule that is **not yet implemented**.
 ```json
 { "type": "string" }
 ```
@@ -373,7 +373,7 @@ Attaches scene-context, style, and additional camera frames.
 *Example.* `:scene vso:framedBy :ctx, :style, :cam .`
 
 #### `vso:rendersAs` *(IRI ref → VisualStyle, optional, 0..1)*
-Designates which framedBy VisualStyle is the dominant aesthetic.
+Designates which framedBy VisualStyle is the dominant aesthetic. **SHACL.** `vss:CompositionShape` caps it at one (v1.3).
 
 #### `vso:hasQuality` *(IRI ref → Quality, optional, 0..n)*
 Composition-level qualities (e.g. `Layout=triangular`, `Focal=center`).
@@ -452,7 +452,7 @@ Concrete entities in the scene. Subtypes share trait axes; differ only in counta
 
 **Required traits (every Entity)**
 
-**Enforcement.** These four are required by this specification, but the shapes constrain them only *where the property appears*: `vss:IndividuationShape`, `vss:AnimacyShape`, and `vss:CountabilityShape` each use `sh:targetSubjectsOf` on their own property, and nothing constrains `vso:class` at all. No shape and no clause in §2 requires an Entity to carry any of them, so an Entity that omits all four still passes SHACL. Completeness here is a producer obligation.
+**Enforcement.** These four are required by this specification, but the shapes constrain them only *where the property appears*: `vss:IndividuationShape`, `vss:AnimacyShape`, `vss:CountabilityShape` and — since v1.3 — `vss:EntityClassShape` each use `sh:targetSubjectsOf` on their own property, and each caps its value at one. No shape and no clause in §2 requires an Entity to *carry* any of them, so an Entity that omits all four still passes SHACL. Completeness here is a producer obligation, and it stays one inside v1.x: §8.2 forbids a check that fires on a document this specification permits, and six shipped documents — `examples/throne_room.ttl`, `examples/throne_room.vson`, and four studio envelopes — omit a trait across 51 entity/trait pairs.
 
 #### `vso:individuation` *(IRI, required, exactly 1)*
 One of `vso:Generic`, `vso:Named`, `vso:Kind`, `vso:Skolem`.
@@ -483,6 +483,7 @@ Normalized 2D bounding box in `"x,y,w,h"` form, all components in `[0, 1]`.
 ```json
 { "type": "string", "pattern": "^(0|0\\.\\d+|1|1\\.0+),(0|0\\.\\d+|1|1\\.0+),(0|0\\.\\d+|1|1\\.0+),(0|0\\.\\d+|1|1\\.0+)$" }
 ```
+**SHACL.** `vss:GeometryShape` (v1.3) enforces this pattern, `sh:datatype xsd:string`, and the `0..1` cap. The shape's `sh:pattern` is byte-identical to the pattern above; [`tests/test_documented_constraints.py`](../tests/test_documented_constraints.py) fails if the two copies drift. Negative fixtures: [`bad_bbox2d_value.ttl`](../tests/fixtures/bad_bbox2d_value.ttl) (`"banana"` — conformant through v1.2) and [`bad_bbox2d_pixels.ttl`](../tests/fixtures/bad_bbox2d_pixels.ttl).
 
 ### 5.5 `vso:Quality`
 
@@ -541,7 +542,7 @@ The **Bearer** column is guidance for producers, not a constraint: no shape ties
 
 **Reaching them from the other syntaxes.** VSON-P names the dimension directly (`:dimension Layout`). VSON-X derives it from the `*key` by PascalCasing (`*action_state` → `ActionState`), and that derivation is mechanical — a key outside this table produces a `vso:` IRI outside the registry, which is the C2 failure above, not a warning. [`docs/vson-x-semantics.md`](./vson-x-semantics.md) §3.2.1 and [`skills/vson-extractor-x/SKILL.md`](../skills/vson-extractor-x/SKILL.md) restate the same twenty-one keys for the VSON-X surface; they are copies of this table, not second registries.
 
-**Where this list is enforced, and where it is copied.** `ontology/vso.ttl` is the single source: it declares all twenty-one as `vso:Dimension` individuals and names all twenty-one in one `owl:AllDifferent` — necessary because `vso:dimension` is an `owl:FunctionalProperty`, so a Quality asserting two dimensions collapses them to `owl:sameAs` under `prp-fp`, and only pairwise distinctness turns that collapse into a reported clash (§5.9). A member missing from the `owl:AllDifferent` list is a member that can silently collapse. Membership itself is checked by the C2 coverage test in `tests/`, not by SHACL: `vss:QualityShape` deliberately carries no `sh:in` on `vso:dimension`, because such an enum would reject the document-namespace dimensions that §8 keeps conformant. `shapes/vson-shapes.ttl` records that reasoning beside the shape.
+**Where this list is enforced, and where it is copied.** `ontology/vso.ttl` is the single source: it declares all twenty-one as `vso:Dimension` individuals and names all twenty-one in one `owl:AllDifferent` — necessary because `vso:dimension` is an `owl:FunctionalProperty`, so a Quality asserting two dimensions collapses them to `owl:sameAs` under `prp-fp`, and only pairwise distinctness turns that collapse into a reported clash (§5.9). A member missing from the `owl:AllDifferent` list is a member that can silently collapse. Membership itself is checked by the C2 gate, not by SHACL: `vss:QualityShape` deliberately carries no `sh:in` on `vso:dimension`, because such an enum would reject the document-namespace dimensions that §8 keeps conformant. `shapes/vson-shapes.ttl` records that reasoning beside the shape. Since v1.3 the guard is at validate time — [`tools/c2_check.py`](../tools/c2_check.py) sweeps object positions as well as predicates, so `vso:dimension vso:Ambience` is reported as the C2 violation it is, while `vso:dimension :Ambience` in the document's own namespace stays conformant. Negative fixture: [`bad_orphan_term.ttl`](../tests/fixtures/bad_orphan_term.ttl), which satisfies every shape and fails C2 alone.
 
 The registry is written out five times — the individuals, the `owl:AllDifferent` list, the table above, `docs/vson-x-semantics.md` §3.2.1, and the VSON-X skill — and copies drift: through v1.3.0 the two VSON-X copies carried one name fewer than the ontology, omitting `vso:Eye` — the second Persona invariant of §5.3.4's own worked example. [`scripts/check_registry_drift.py`](../scripts/check_registry_drift.py) now compares all five in `make check`, including the spelled count in this paragraph. A new dimension is added to `ontology/vso.ttl` first; the copies follow.
 
@@ -560,11 +561,11 @@ Snake_case verb naming the perdurant.
 ```json
 { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" }
 ```
-**SHACL.** `vss:EventShape` requires `sh:datatype xsd:string; sh:minCount 1; sh:maxCount 1` on `vso:lemma`. `vss:ProcessShape` and `vss:StativeShape` require `sh:datatype xsd:string; sh:minCount 1` but set no cap, so C6's "exactly one" is fully shape-enforced only for `vso:Event`; on Process and Stative a second lemma is a spec violation that `vson validate` does not report.
+**SHACL.** `vss:EventShape`, `vss:ProcessShape` and `vss:StativeShape` each require `sh:datatype xsd:string; sh:minCount 1; sh:maxCount 1` on `vso:lemma`, so C6's "exactly one" is shape-enforced on all three. Through v1.2 only `vss:EventShape` carried the cap and a second lemma on a Process or Stative was a clause violation `vson validate` did not report; v1.3 closed that under §8.2 — negative fixture [`bad_two_lemmas.ttl`](../tests/fixtures/bad_two_lemmas.ttl). The pattern above is enforced by `vss:LemmaShape` (v1.3), which targets every subject of `vso:lemma` rather than the three classes, so a lemma on an untyped node is checked too — negative fixture [`bad_lemma_pattern.ttl`](../tests/fixtures/bad_lemma_pattern.ttl).
 
 **Thematic roles (zero or more, depending on class)**
 
-The role inventory below is closed and deliberately coarse — VerbNet-style thematic roles (Kipper Schuler 2005) rather than predicate-specific argument slots. PropBank (Palmer, Gildea & Kingsbury 2005) numbers arguments per verb sense (`ARG0` of *give* is not `ARG0` of *melt*), and FrameNet (Baker, Fillmore & Lowe 1998) names them per semantic frame (`Donor`, `Recipient`, `Theme`); both give a finer analysis than a vision-language model can reliably produce from a still image, and both require a per-predicate lexicon that VSON does not ship. VSON therefore takes the third option: one small, frame-independent role set a producer can memorize. It is closed by C2 (§2) — an invented `vso:` role is an orphan VSO term — and not by any SHACL shape, so `vson validate` will not flag it; Appendix D §D.8 note 6 records the same gap in the VSON-X parser. Citations in [Appendix E](#appendix-e); the AMR exporter mapping in §7 is where PropBank's per-sense numbering resurfaces.
+The role inventory below is closed and deliberately coarse — VerbNet-style thematic roles (Kipper Schuler 2005) rather than predicate-specific argument slots. PropBank (Palmer, Gildea & Kingsbury 2005) numbers arguments per verb sense (`ARG0` of *give* is not `ARG0` of *melt*), and FrameNet (Baker, Fillmore & Lowe 1998) names them per semantic frame (`Donor`, `Recipient`, `Theme`); both give a finer analysis than a vision-language model can reliably produce from a still image, and both require a per-predicate lexicon that VSON does not ship. VSON therefore takes the third option: one small, frame-independent role set a producer can memorize. It is closed by C2 (§2) — an invented `vso:` role is an orphan VSO term — and not by any SHACL shape; since v1.3 `vson validate`'s third gate reports it anyway, because C2 closure is what that gate decides. The VSON-X parser still emits an unlisted role verbatim without complaint, which Appendix D §D.8 note 6 records. Citations in [Appendix E](#appendix-e); the AMR exporter mapping in §7 is where PropBank's per-sense numbering resurfaces.
 
 | Predicate | Used on | Description |
 |---|---|---|
@@ -636,7 +637,7 @@ Reified spatial relation. Carries figure, ground, optional viewer, and one or mo
 }
 ```
 
-**SHACL.** `vss:DirectionalNeedsViewerShape` raises a violation when `vso:directional` is present without `vso:viewer`. Negative fixture: [`tests/fixtures/bad_no_viewer.ttl`](../tests/fixtures/bad_no_viewer.ttl). The shape checks presence (`sh:minCount 1`) and that the viewer is a `vso:CameraView`; it does not cap the count, so C5's "exactly one" is a spec-level requirement that no validator checks today. A viewer on a purely topological fact is permitted — the implication runs directional ⇒ viewer, not the converse.
+**SHACL.** `vss:DirectionalNeedsViewerShape` raises a violation when `vso:directional` is present without `vso:viewer`. Negative fixture: [`tests/fixtures/bad_no_viewer.ttl`](../tests/fixtures/bad_no_viewer.ttl). The shape checks presence (`sh:minCount 1`), that the viewer is a `vso:CameraView`, and — since v1.3 — that there is exactly one of them (`sh:maxCount 1`), which is what C5 says: two cameras is two construals of one direction, the ambiguity viewer anchoring exists to remove. Negative fixture: [`tests/fixtures/bad_two_viewers.ttl`](../tests/fixtures/bad_two_viewers.ttl). A viewer on a purely topological fact is permitted — the implication runs directional ⇒ viewer, not the converse. `vss:SpatialFactShape` caps each of `vso:rcc`, `vso:directional` and `vso:proximal` at one, matching the `0..1` this table has always stated (v1.3, fixture [`tests/fixtures/bad_two_rcc.ttl`](../tests/fixtures/bad_two_rcc.ttl)); the `sh:or` requiring at least one of the three is unchanged.
 
 ### 5.8 Mereology
 
@@ -647,6 +648,8 @@ Reified spatial relation. Carries figure, ground, optional viewer, and one or mo
 | `vso:properPartOf` | x is a proper part of y | sub-property of `partOf`, irreflexive |
 | `vso:overlaps` | x and y share a part | symmetric |
 | `vso:disjoint` | x and y share no part | symmetric |
+
+Every characteristic in the third column is an axiom [`ontology/vso.ttl`](../ontology/vso.ttl) asserts, and [`tests/test_documented_constraints.py`](../tests/test_documented_constraints.py) reads this table out of this document and fails if one of them is missing. The irreflexivity of `vso:properPartOf` was published in this table from v1.1, the first release that carried this document, and asserted in the TBox from v1.3 — `owl:IrreflexiveProperty`, which is OWL 2 RL-legal (rule `prp-irp`). `owlrl` materializes nothing from it (the rule's head is a contradiction, which has nowhere to go in an RDF closure), so [`tools/owlrl_check.py`](../tools/owlrl_check.py) checks it directly, against the closure rather than the asserted triples: a two-step `properPartOf` cycle only becomes reflexive once transitivity is materialized, and it is reported.
 
 ### 5.9 Causal and Allen interval
 
@@ -677,18 +680,24 @@ So the bridge is advisory rather than substitutive: each VSON relation individua
 - **Disjointness clashes.** `vso:Frame owl:disjointWith vso:Entity`, the `Endurant/Perdurant/Quality/Region` disjointness set, and the pairwise-disjoint Frame and Perdurant subtypes. A node dragged into two disjoint classes — typically by a property's `rdfs:domain` or `rdfs:range` — is reported as a clash.
 - **Functional-property clashes.** `vso:individuation`, `vso:animacy`, `vso:countability`, `vso:dimension`, `vso:figure`, and `vso:ground` are `owl:FunctionalProperty`, so two values on one node collapse to `owl:sameAs` under OWL 2 RL's `prp-fp` rule. For the four trait/dimension properties that collapse is *detectable*, because their value sets are declared `owl:AllDifferent` — an entity with two `vso:individuation` values is reported. `owlrl_check.py` raises that contradiction itself, since `owlrl` 7.1.4 (the pinned floor) does not expand `owl:AllDifferent` into `owl:differentFrom`. `vso:figure` and `vso:ground` have no such distinctness declaration to violate, so two figures on one fact are quietly equated rather than reported.
 
-What it does **not** buy: no spatial or temporal composition tables, no cardinality reasoning beyond the functional properties above, and nothing at all from the SHACL gate — that runs with `inference="rdfs"`, which never processes `owl:disjointWith`. The two gates are complementary, which is why `vson validate` runs both. Eight bridge properties are also left as untyped `rdf:Property` to admit mixed literal / IRI / quoted-triple objects, which places the full graph outside OWL 2 DL; the RL rule set still applies, since OWL 2 RL is specified as rules over arbitrary RDF graphs.
+What it does **not** buy: no spatial or temporal composition tables, no cardinality reasoning beyond the functional properties above, and nothing at all from the SHACL gate — that runs with `inference="rdfs"`, which never processes `owl:disjointWith`. The SHACL and OWL gates are complementary, which is why `vson validate` runs both (and, since v1.3, the C2 gate beside them — §2). Eight bridge properties are also left as untyped `rdf:Property` to admit mixed literal / IRI / quoted-triple objects, which places the full graph outside OWL 2 DL; the RL rule set still applies, since OWL 2 RL is specified as rules over arbitrary RDF graphs.
 
 ### 5.10 Geometry
 
-| Predicate | Type | Description |
-|---|---|---|
-| `vso:bbox2d` | `xsd:string` `"x,y,w,h"`, normalized [0,1] | 2D bounding box |
-| `vso:position3d` | `xsd:string` `"x,y,z"` | 3D position (if known) |
-| `vso:scale3d` | `xsd:string` `"sx,sy,sz"` | 3D scale |
-| `vso:rotation` | `xsd:string` quaternion or Euler | 3D orientation |
-| `vso:occludes` | IRI ref → Entity | Foreground occluder |
-| `vso:visibleFraction` | `xsd:decimal` in `[0,1]` | Visible fraction post-occlusion |
+| Predicate | Type | Description | Validation |
+|---|---|---|---|
+| `vso:bbox2d` | `xsd:string` `"x,y,w,h"`, normalized [0,1] | 2D bounding box | `vss:GeometryShape` — pattern of §5.4, `0..1` |
+| `vso:position3d` | `xsd:string` `"x,y,z"` | 3D position (if known) | `vss:GeometryShape` — three decimal numbers |
+| `vso:scale3d` | `xsd:string` `"sx,sy,sz"` | 3D scale | `vss:GeometryShape` — three decimal numbers |
+| `vso:rotation` | `xsd:string` quaternion or Euler | 3D orientation | `vss:GeometryShape` — four numbers, or three |
+| `vso:occludes` | IRI ref → Entity | Foreground occluder | `rdfs:range vso:PhysicalObject` only |
+| `vso:visibleFraction` | `xsd:decimal` in `[0,1]` | Visible fraction post-occlusion | `vss:ConfidenceRangeShape` — `[0,1]` |
+
+**Normalized, not pixels.** Every component of `vso:bbox2d` is a fraction of the image's width or height. `ontology/vso.ttl`'s comment also offered a pixel reading until v1.3, which §2 resolves in favour of this document; the ontology comment now says normalized, `vss:GeometryShape` rejects the pixel form ([`bad_bbox2d_pixels.ttl`](../tests/fixtures/bad_bbox2d_pixels.ttl)), and every `vso:bbox2d` in the shipped corpus was already normalized.
+
+**What the geometry shapes do not check.** They read the value space, not the picture, and not the scene's agreement with itself: nothing here checks that `x + w ≤ 1`, that an occluder's `vso:visibleFraction` is consistent with the two boxes' overlap, or that a `vso:rcc` value agrees with the rectangles it is asserted over. §2.1 names that last one as the checkable-and-unchecked half of groundedness.
+
+The three 3D grammars admit exponent notation (`1.5,-2,3e-4`) and no whitespace, and bound no component: world coordinates are unbounded, unlike a normalized box. Negative fixture: [`bad_geometry_grammar.ttl`](../tests/fixtures/bad_geometry_grammar.ttl).
 
 ### 5.11 Annotation reification
 
@@ -705,6 +714,13 @@ Used for probability, source, confidence, or any meta-claim about a triple.
 
 The RDF-star canonical form `<<:sf1 vso:directional vso:above>> vso:probability "0.85"` is equivalent and **SHOULD** be used when a Turtle-star parser is available. Both forms are conformant per §2.
 
+| Predicate | Type | Description | Validation |
+|---|---|---|---|
+| `vso:probability` | number in `[0,1]` | Probability that the annotated triple holds | `vss:ConfidenceRangeShape` |
+| `vso:confidence` | number in `[0,1]` | Producer's confidence in the annotated triple | `vss:ConfidenceRangeShape` |
+
+The `[0,1]` bound is what [`ontology/vso.ttl`](../ontology/vso.ttl) has declared in both terms' `rdfs:comment` since v1.1.1; stating it here adds no restriction and closes the gap that let `vso:confidence "7.3"` pass through v1.2 ([`bad_confidence_range.ttl`](../tests/fixtures/bad_confidence_range.ttl)). The shape bounds the **value** and does not pin a datatype: `"0.95"^^xsd:decimal`, `"1"^^xsd:integer` and `"0.5"^^xsd:double` are all in range, which matters because the reference transpilers type a Penman number by its lexical form. A non-numeric literal cannot be compared with the bound and is a violation, so `vso:confidence "banana"` fails here too.
+
 ### 5.12 Reserved + closed enumerations (full list)
 
 Producers **MUST NOT** invent values for closed enumerations. Open dimensions (`venue`, `class`, free-form quality values) MAY take novel values; if uncertain, use `Unknown`.
@@ -718,7 +734,7 @@ Producers **MUST NOT** invent values for closed enumerations. Open dimensions (`
 | `vso:rcc` | `rcc:DC, rcc:EC, rcc:PO, rcc:EQ, rcc:TPP, rcc:NTPP, rcc:TPPi, rcc:NTPPi` |
 | `vso:directional` | `above, below, left_of, right_of, in_front_of, behind` |
 | `vso:proximal` | `near, far, adjacent, next_to, facing` (five values — `vss:ProximalValueShape`; VSON-X's `&` form admits only the first three) |
-| `vso:dimension` | The twenty-one registered dimensions of §5.5.1 — closed *within the VSO namespace* only. Unlike the rows above, no shape enumerates them: a document-namespace dimension IRI stays conformant, and a `vso:`-namespace one outside the registry fails C2 rather than C3. |
+| `vso:dimension` | The twenty-one registered dimensions of §5.5.1 — closed *within the VSO namespace* only. Unlike the rows above, no shape enumerates them: a document-namespace dimension IRI stays conformant, and a `vso:`-namespace one outside the registry fails C2 rather than C3 — reported by `vson validate`'s third gate since v1.3, not by SHACL. |
 
 ---
 
@@ -925,15 +941,23 @@ The SHACL shapes file is [`shapes/vson-shapes.ttl`](../shapes/vson-shapes.ttl) �
 
 | Shape | Targets | Constraint | Negative fixture |
 |---|---|---|---|
-| `vss:CompositionShape` | `vso:Composition` | `sh:minCount 1` on `vso:depicts` | none (would target an empty Composition) |
-| `vss:DirectionalNeedsViewerShape` | `vso:SpatialFact` with `vso:directional` | requires `vso:viewer` | [`bad_no_viewer.ttl`](../tests/fixtures/bad_no_viewer.ttl) |
+| `vss:CompositionShape` | `vso:Composition` | `sh:minCount 1` on `vso:depicts`; at most one `vso:viewedBy`, at most one `vso:rendersAs` (§5.2) | [`bad_two_viewed_by.ttl`](../tests/fixtures/bad_two_viewed_by.ttl) |
+| `vss:DirectionalNeedsViewerShape` | `vso:SpatialFact` with `vso:directional` | requires exactly one `vso:viewer` | [`bad_no_viewer.ttl`](../tests/fixtures/bad_no_viewer.ttl), [`bad_two_viewers.ttl`](../tests/fixtures/bad_two_viewers.ttl) |
 | `vss:RccValueShape` | `vso:SpatialFact / vso:rcc` | `sh:in (rcc:DC rcc:EC ...)` — eight values | none |
 | `vss:DirectionalValueShape` | `vso:SpatialFact / vso:directional` | `sh:in (vso:above ...)` — six values | none |
 | `vss:ProximalValueShape` | `vso:SpatialFact / vso:proximal` | `sh:in (vso:near vso:far vso:adjacent vso:next_to vso:facing)` — five values | none |
-| `vss:EventShape` | `vso:Event`, `vso:Process`, `vso:Stative` | exactly one `vso:lemma` (`xsd:string`) | [`bad_event_no_lemma.ttl`](../tests/fixtures/bad_event_no_lemma.ttl) |
+| `vss:EventShape` | `vso:Event`, `vso:Process`, `vso:Stative` | exactly one `vso:lemma` (`xsd:string`) | [`bad_event_no_lemma.ttl`](../tests/fixtures/bad_event_no_lemma.ttl), [`bad_two_lemmas.ttl`](../tests/fixtures/bad_two_lemmas.ttl) |
 | `vss:QualityShape` | `vso:Quality` | exactly one `vso:dimension` and one `vso:value` | none |
 | `vss:FrameNotDepictedShape` | `vso:depicts` | object MUST NOT be `vso:Frame` | [`bad_frame_depicted.ttl`](../tests/fixtures/bad_frame_depicted.ttl) |
-| `vss:SpatialFactShape` | `vso:SpatialFact` | requires `vso:figure` and `vso:ground` | none |
+| `vss:SpatialFactShape` | `vso:SpatialFact` | requires `vso:figure` and `vso:ground`; caps `rcc` / `directional` / `proximal` at one | [`bad_two_rcc.ttl`](../tests/fixtures/bad_two_rcc.ttl) |
+| `vss:GeometryShape` | subjects of `vso:bbox2d`, `vso:position3d`, `vso:scale3d`, `vso:rotation` | the value grammars of §5.4 and §5.10 | [`bad_bbox2d_value.ttl`](../tests/fixtures/bad_bbox2d_value.ttl), [`bad_bbox2d_pixels.ttl`](../tests/fixtures/bad_bbox2d_pixels.ttl), [`bad_geometry_grammar.ttl`](../tests/fixtures/bad_geometry_grammar.ttl) |
+| `vss:ConfidenceRangeShape` | subjects of `vso:probability`, `vso:confidence`, `vso:visibleFraction` | value in `[0,1]` (§5.10, §5.11) | [`bad_confidence_range.ttl`](../tests/fixtures/bad_confidence_range.ttl), [`bad_visible_fraction.ttl`](../tests/fixtures/bad_visible_fraction.ttl) |
+| `vss:LemmaShape` | subjects of `vso:lemma` | `sh:pattern ^[a-z][a-z0-9_]*$` (§5.6) | [`bad_lemma_pattern.ttl`](../tests/fixtures/bad_lemma_pattern.ttl) |
+| `vss:EntityClassShape` | subjects of `vso:class` | at most one `vso:class` (§5.4) | [`bad_two_class.ttl`](../tests/fixtures/bad_two_class.ttl) |
+
+The last four shapes, and the caps on the four rows above them, were added in v1.3 under §8.2 — every negative fixture named in this table for one of them conformed under the v1.2 shapes.
+
+**Not in this table, and not a shape.** Clause C2's vocabulary closure is checked by [`tools/c2_check.py`](../tools/c2_check.py), the third gate `vson validate` runs (§2, §2.1). It belongs to no shapes file because no shape can decide it, and it is listed here so a reader working from this table does not conclude that SHACL is the whole of validation. Negative fixture: [`bad_orphan_term.ttl`](../tests/fixtures/bad_orphan_term.ttl) — the one `bad_*.ttl` in the repository that satisfies every shape.
 
 ---
 
@@ -971,7 +995,7 @@ Three numbers in this project look like one number and are not. They move indepe
 | **Vocabulary version** | `owl:versionInfo` in each of [`ontology/vso.ttl`](../ontology/vso.ttl), [`ontology/rcc8.ttl`](../ontology/rcc8.ttl), [`ontology/allen.ttl`](../ontology/allen.ttl), and both shape files | the terms in the namespace | that these classes, properties, characteristics, and registry members are what the namespace declares |
 | **Software release tag** | the git tag; `CITATION.cff`, `pyproject.toml`, the Rust crate, the web package | a build of the reference implementations | that this build exists and passed its gates — nothing about the document or the namespace |
 
-The three currently read **v1.3**, **1.2**, and **1.3.0**. That is not drift; it is the model working. v1.3 moved where verification runs (into the visitor's browser) and what this document says; it moved no term, no IRI, no cardinality, and no shape severity, so `owl:versionInfo` stays at `1.2`. `make site` fails if the published landing page and `owl:versionInfo` ever disagree.
+The three currently read **v1.3**, **1.2**, and **1.3.0**. That is not drift; it is the model working. v1.3 moved where verification runs (into the visitor's browser), what this document says, and — under §8.2 — how much of what it says the shapes and gates execute. It moved no term, no IRI, no clause, and no shape severity, so `owl:versionInfo` stays at `1.2`. The `sh:maxCount` caps v1.3 added are the one place a reader might expect otherwise: a cap is a cardinality this document already stated (§5.2, §5.4, §5.7, C5, C6) and the shapes had failed to transcribe, so it changes what the validator executes and not what the namespace declares — which is the axis `owl:versionInfo` names. `make site` fails if the published landing page and `owl:versionInfo` ever disagree.
 
 **What an implementer claims.**
 
@@ -983,6 +1007,24 @@ The three currently read **v1.3**, **1.2**, and **1.3.0**. That is not drift; it
 **`owl:versionIRI` names a version; it is not promised to dereference.** [`ontology/vso.ttl`](../ontology/vso.ttl) declares `owl:versionIRI <https://w3id.org/vson/v1.2/ontology>`. That IRI identifies the 1.2 state of the vocabulary. It is **not** one of the dereferenceable names of §5.1: verified 2026-07-31, a GET returns `302` to the landing page, because the w3id rule for `/vson/` routes the five v1 namespace documents explicitly and sends every other path there. Only `https://w3id.org/vson/v1/…` carries a dereference promise, and `make live-check` is what verifies it.
 
 Making the versionIRI resolve to a frozen snapshot would take two changes, and neither is worth its cost yet: a new rewrite rule in a repository this project does not own, and a second, byte-frozen copy of the ontology published at `v1.2/ontology.ttl` — a copy that no canonical name reaches today and one more surface to drift, which is precisely what §5.5.1's single-source rule exists to avoid. Recorded here rather than papered over: a name that identifies is doing its job even when nothing serves it, and claiming otherwise would be the kind of untrue sentence §2.1 is about.
+
+### 8.2 Tightening enforcement within v1.x
+
+The backwards-compatibility bullet above forbids changing a shape "in a way that invalidates previously-conformant documents". That is a rule about **documents**, not about shapes, and the two come apart wherever this document states a requirement that nothing checks — which, until v1.3, was most of the value spaces in §5 and one whole numbered clause (C2). Enforcement can be incomplete in two directions. Stricter than its clause is a bug, and §2's precedence order resolves it. **Looser** than its clause is the case this section governs: the requirement is stated here, nothing enforces it, and a document that breaks it passes `vson validate`. §2.1 already gives the reading — *where a clause is stated more tightly than the shape that enforces it, the clause is the requirement and the shape is incomplete*. Completing the enforcement does not invalidate a conformant document, because the documents it starts rejecting were never conformant. They were unchecked.
+
+This section says **check**, not **shape**, throughout. A shape is the usual instrument and not the only one: C2 is a statement about which names belong to the vocabulary, which no SHACL shape can decide (§2.1), and v1.3 closed it with a third `vson validate` gate instead. The test below is about what a check rejects, so it applies wherever the check lives.
+
+**The rule.**
+
+- Within v1.x, a check MAY be added, and an existing check MAY be tightened, **only if** every document the tightened check newly rejects was **already non-conformant** under this specification as published — because it violates a numbered clause C1–C9 (§2), or because it violates a value space this document defines in §5 or §6. A document that satisfies both and was merely unchecked is a document this specification **permits**.
+- A tightening **MUST NOT** reject a document this specification permits. If a shipped document, or any other clause-permitted document, fails a new check, **the check is wrong**: narrow the check. Do not edit the document to fit the check, and do not narrow the clause to justify the check.
+- The same test applies at `sh:Warning`. An advisory that fires on a permitted document is the shapes contradicting this document one severity more quietly, and a reader cannot tell the two apart from a validation report. A constraint this document states but does not close — §5.12 is the **complete** list of closed enumerations, and §5.4's Enforcement note is explicit that no clause requires an Entity to carry its traits — therefore does not become a check inside v1.x **at any severity**. Narrowing it is a v2.0 change, where a new namespace makes the break visible.
+- Every tightening **MUST** land with three things: a negative fixture under `tests/fixtures/` that the new check rejects and the previous enforcement accepted; an entry in [`spec/CHANGELOG.md`](../spec/CHANGELOG.md) naming what was closed; and the authorizing clause cited where a reader of a failure report will see it — the shape's `sh:message`, or the comment beside it, or the gate's own module docstring. [`tests/test_documented_constraints.py`](../tests/test_documented_constraints.py) holds the inventory of the shaped constraints and fails when a citation goes missing.
+- **Loosening** — removing a check, or widening a value space or an enumeration — can never invalidate a conformant document, so it is permitted within v1.x without this test. It still changes what a producer may rely on the validator to catch, so it is recorded in the CHANGELOG on the same terms.
+
+**What this section does not license.** It is not a route to changing what a clause requires. C1–C9 and the §5 value spaces are the contract; this section only governs how much of that contract the tooling executes. A tightening that needs a clause reworded first is a v2.0 change wearing a shape's clothing.
+
+**Applied in v1.3.** Constraints this document already stated, made executable — the `vso:bbox2d` grammar (§5.4, §5.10), the three 3D geometry grammars and the `[0,1]` bounds on `vso:visibleFraction` (§5.10), the `[0,1]` bounds on `vso:probability` and `vso:confidence` (§5.11), the snake_case `vso:lemma` pattern (§5.6), the `vso:class`, `vso:viewedBy` and `vso:rendersAs` caps (§5.2, §5.4), the `0..1` caps on the three `SpatialFact` relation slots (§5.7), and the two clause gaps §2.1 named: C5's *exactly one* `vso:viewer` and C6's *exactly one* `vso:lemma` on `vso:Process` and `vso:Stative`. Off the shapes, one whole clause: **C2**, which `vson validate` had never checked, is now its third gate (§2, [`tools/c2_check.py`](../tools/c2_check.py)) — the most tightly authorized tightening this section can license, since the documents it rejects are the ones C2 itself names. Each landed with a `tests/fixtures/bad_*.ttl` that the v1.2 tooling accepted. Two candidates were declined under the third bullet and the measurements are recorded beside the shapes: the §5.3.1 / §5.3.3 value lists (three shipped envelopes carry `timeOfDay "day"`, `atmosphere "cold"`, `atmosphere "clear"`), and Entity trait completeness (51 entity/trait pairs across 6 shipped documents).
 
 ---
 
@@ -1095,7 +1137,7 @@ Gallery scenes 01–11 plus `12_persona` have a graph-equivalent VSON-X form und
 | Rust CLI (`vson`) | [`cli/`](../cli) | `validate`, `convert p2t/x2t`, `export cypher/caption/fol` | 43 tests (25 lib unit + 6 error-contract + 9 integration + 3 golden ✓) |
 | SHACL validator | `pyshacl` (shelled out by `vson validate`) | semantic well-formedness, strict profile (the relaxed profile ships as a shapes file; no command selects it yet) | 5 SHACL tests + 16 gallery passes |
 | Bare-VLM extractor | [`tools/extractor/baseline/extract.py`](../tools/extractor/baseline/extract.py) | image → VSON-P | offline cassette test |
-| Browser studio (v1.3) | [`web/`](../web) | runs the Python references above in a Pyodide worker, in the visitor's browser: transpile, two-gate validation, caption/FOL — no backend | offline worker-parity vitest byte-pins p2t, both gate verdicts, and caption/FOL against the CLI fixtures |
+| Browser studio (v1.3) | [`web/`](../web) | runs the Python references above in a Pyodide worker, in the visitor's browser: transpile, two-gate validation (the CLI's SHACL and OWL gates; not its C2 gate), caption/FOL — no backend | offline worker-parity vitest byte-pins p2t, both gate verdicts, and caption/FOL against the CLI fixtures |
 | Routing tables (single source of truth) | [`cli/src/penman/routing-tables.json`](../cli/src/penman/routing-tables.json) | shared by Python + Rust — inside the crate so `include_str!` stays within the crate root and `cargo package` can verify-build it | Rust embeds it at compile time, the Python reference reads the same file at import time; `make cli-check` proves the two agree |
 
 A consumer is "VSON v1.3 reference-conformant" iff it accepts every document accepted by the Python references (`vson_penman.py` + `vson_x.py`) plus `pyshacl`, and rejects every document the references reject.
@@ -1413,16 +1455,16 @@ Two conditions are **warnings**, not errors: a `>` lemma absent from all three t
 
 ### D.8 Accepted by the grammar, checked elsewhere
 
-The grammar is deliberately thin. These are well-formed VSON-X and are caught — if at all — by SHACL (§2 C1–C9) rather than by the parser. Listing them is not an endorsement; a producer **MUST NOT** rely on any of them.
+The grammar is deliberately thin. These are well-formed VSON-X and are caught — if at all — by a later gate (§2 C1–C9) rather than by the parser. "A later gate" was SHACL alone through v1.2; v1.3 added the C2 vocabulary-closure gate, which is what now catches 6. Listing them is not an endorsement; a producer **MUST NOT** rely on any of them.
 
 1. **Duplicate handle declarations.** Declaring `a /PhysicalObject` twice parses; both declarations emit onto the same IRI.
 2. **Undeclared handles.** A ref to a handle that is never declared parses and emits a dangling IRI.
 3. **Out-of-enum `*dir` / `*prox` values.** The parser checks only that the value is a bareword; `*dir sideways` parses and then fails `vss:DirectionalValueShape`. The same holds for the three camelCase `DIR_TOKEN` aliases of §D.3.
 4. **Non-Frame concepts after a leading `/`.** `/PhysicalObject @x` parses and attaches via `vso:framedBy`, producing a `framedBy` edge to something that is not a `vso:Frame`.
 5. **Viewer anchors.** Nothing checks that a `^` target is a declared `CameraView`, and a composition with zero or with several top-level `^` anchors parses. [`docs/vson-x-semantics.md`](./vson-x-semantics.md) §4.10.1 specifies stricter rules and marks each as unimplemented.
-6. **Arglist key names.** Any `IDENT` is accepted as a thematic-role key; `*frobnicate zzz` emits `vso:frobnicate :zzz`.
+6. **Arglist key names.** Any `IDENT` is accepted as a thematic-role key; `*frobnicate zzz` emits `vso:frobnicate :zzz`, an undeclared VSO term the C2 gate rejects (§5.6).
 7. **`~MOD` on a SpatialFact `kv` other than `*dir` / `*prox`.** Accepted and then discarded — the modifier reaches no triple.
-8. **Geometry value ranges.** `*bbox2d` is not range-checked at parse time.
+8. **Geometry value ranges.** `*bbox2d` is not range-checked at parse time; `vss:GeometryShape` checks it at validate time (§5.4, v1.3).
 
 ### D.9 Reconciliation notes
 

@@ -121,7 +121,7 @@ pnpm install
 pnpm dev --open
 ```
 
-The studio is a **fully static site — no backend, no `.env`, no server key**. Demos and the 16-scene gallery run keyless at $0 from baked envelopes; live extraction of your own images runs on your own OpenRouter key, entered in the model picker, and the key goes browser → OpenRouter without ever touching a studio host. Verification runs in the browser too: a Pyodide worker executes the same two gates as `vson validate` (pyshacl SHACL, then owlrl OWL 2 RL), byte-pinned to the CLI in CI. `make web-deploy` publishes `web/build` to Cloudflare Pages (`vson-studio.pages.dev`); the namespace host `vson.pages.dev` is a separate project.
+The studio is a **fully static site — no backend, no `.env`, no server key**. Demos and the 16-scene gallery run keyless at $0 from baked envelopes; live extraction of your own images runs on your own OpenRouter key, entered in the model picker, and the key goes browser → OpenRouter without ever touching a studio host. Verification runs in the browser too: a Pyodide worker executes two of the three gates `vson validate` runs (pyshacl SHACL, then owlrl OWL 2 RL), from the same source files, byte-pinned to the CLI in CI — the third, C2 vocabulary closure, is CLI-only. `make web-deploy` publishes `web/build` to Cloudflare Pages (`vson-studio.pages.dev`); the namespace host `vson.pages.dev` is a separate project.
 
 ## Contribution boundary
 

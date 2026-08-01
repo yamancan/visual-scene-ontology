@@ -32,33 +32,34 @@ vson --help
 
 ## `validate`
 
-`validate` accepts both `.ttl` and `.vson` files. For `.vson`, the binary transpiles to a temp `.ttl` first; both gates then read that temp file, which is deleted on every exit path.
+`validate` accepts both `.ttl` and `.vson` files. For `.vson`, the binary transpiles to a temp `.ttl` first; all three gates then read that temp file, which is deleted on every exit path.
 
-It runs **both of the gates `make check` runs** — the `shacl` and
-`owl-consistency` targets — against every file you name, in order:
+It runs **three gates** against every file you name, in order, stopping at the
+first one that fails:
 
 1. **SHACL** — `pyshacl --abort` over `shapes/vson-shapes.ttl` plus the three ontology files, with `rdfs` inference.
-2. **OWL 2 RL consistency** — `python3 -m tools.owlrl_check <file>`, run from the resolved `VSON_HOME`. This catches `owl:disjointWith` / `owl:AllDifferent` clashes that gate 1 is structurally blind to, because `rdfs` inference never processes disjointness. Gate 2 runs only for files that clear gate 1.
+2. **OWL 2 RL consistency** — `python3 -m tools.owlrl_check <file>`, run from the resolved `VSON_HOME`. This catches `owl:disjointWith` / `owl:AllDifferent` clashes that gate 1 is structurally blind to, because `rdfs` inference never processes disjointness.
+3. **C2 vocabulary closure** — `python3 -m tools.c2_check <file>`, same home. Clause C2 of [`../docs/vson.md`](../docs/vson.md) §2: every VSON-namespace IRI the document asserts is declared in `ontology/vso.ttl`, `rcc8.ttl` or `allen.ttl`. Neither gate above can decide it — a shape would have to assume the ontology sits in the data graph, and an undeclared IRI entails no OWL clash — so through v1.2 `vson validate` did not establish C2 and §2 said so. Added in v1.3.
 
-A file is reported `OK` only once it clears both. Two gates cost two Python
-process spawns per file, so validating the whole gallery in one invocation is
-noticeably slower than validating one scene.
+A file is reported `OK` only once it clears all three. Each gate costs a Python
+process spawn, so validating the whole gallery in one invocation is noticeably
+slower than validating one scene.
 
 ### Exit codes
 
 | Code | Meaning |
 | --- | --- |
-| 0 | every input cleared both gates |
-| 1 | an input genuinely failed a gate — `FAIL <file> (shacl)` or `FAIL <file> (owl-consistency)` |
+| 0 | every input cleared all three gates |
+| 1 | an input genuinely failed a gate — `FAIL <file> (shacl)`, `FAIL <file> (owl-consistency)`, or `FAIL <file> (c2)` |
 | 2 | a gate never reached a verdict: missing `pyshacl`/`python3`/`owlrl`, an unparseable input, a wrong `--home` |
 
-The 1-vs-2 split takes more than the child's exit status. Both `pyshacl` and
-`python3 -m tools.owlrl_check` exit 1 for "did not conform" *and* for "crashed
-with an uncaught exception" — an unparseable `.ttl` and a missing `owlrl`
-module both land on 1. The CLI therefore captures each child's stdout and looks
-for the report that tool writes only when it truly ran; anything else at exit 1
-is reported as a broken toolchain (exit 2) with the child's stderr attached,
-not as a failed document.
+The 1-vs-2 split takes more than the child's exit status. `pyshacl` and both
+Python gates exit 1 for "did not conform" *and* for "crashed with an uncaught
+exception" — an unparseable `.ttl` and a missing `owlrl` module both land on
+the same code. The CLI therefore captures each child's stdout and looks for the
+report that tool writes only when it truly ran; anything else at exit 1 is
+reported as a broken toolchain (exit 2) with the child's stderr attached, not as
+a failed document.
 
 ### Output discipline
 
@@ -142,7 +143,7 @@ same `CREATE`. It is not checked against a live Neo4j server.
 Two families of subcommand need to find a VSON checkout — the repo root, not
 the data file's directory:
 
-- `validate` reads `ontology/vso.ttl`, `ontology/rcc8.ttl`, `ontology/allen.ttl`, `shapes/vson-shapes.ttl` and `tools/owlrl_check.py` from it;
+- `validate` reads `ontology/vso.ttl`, `ontology/rcc8.ttl`, `ontology/allen.ttl`, `shapes/vson-shapes.ttl`, `tools/owlrl_check.py` and `tools/c2_check.py` from it;
 - `convert x2t`, `export caption` and `export fol` run their Python module from it (`tools/vson_x/vson_x.py`, `tools/render/caption.py`, `tools/render/fol.py` respectively) — `python3 -m` puts the child's working directory on `sys.path`, so the root *is* the import path.
 
 They resolve it differently, because only `validate` has a flag:
@@ -195,7 +196,7 @@ The table sits in the crate rather than next to the Python reference because `in
 
 - `convert t2p` not implemented — needs a native Rust Turtle parser.
 - There is no `--partial` flag, in this CLI or in the Python reference: no argument parser defines it and no code branches on it. The relaxed profile it would select does ship, as [`../shapes/vson-shapes-relaxed.ttl`](../shapes/vson-shapes-relaxed.ttl), and is exercised by the test suite (`tests/test_shapes_gate.py`) — but no command-line entry point selects it yet.
-- `validate` shells out to `pyshacl` and to `python3 -m tools.owlrl_check`, so the two gates need the Python toolchain (`make deps`) even though the binary itself is static. A self-contained binary would require either vendoring `oxigraph` + a SHACL interpreter or waiting for `shacl-rs` to mature. Decision recorded for a later release.
+- `validate` shells out to `pyshacl`, `python3 -m tools.owlrl_check` and `python3 -m tools.c2_check`, so all three gates need the Python toolchain (`make deps`) even though the binary itself is static. A self-contained binary would require either vendoring `oxigraph` + a SHACL interpreter or waiting for `shacl-rs` to mature. Decision recorded for a later release.
 - The CLI's SHACL gate does not pass pyshacl's `allow_warnings`, while `make check`'s `shacl` target and `tools/shacl_helper.py` do. Nothing in the shipped corpus is affected — all 17 gallery + canonical documents pass either way — but a document that trips only an `sh:Warning` shape would be rejected here and accepted there. No CLI flag exposes the choice yet.
 - `export cypher` accepts Penman input only; Turtle import follows once `t2p` ships.
 - Input is read from a file path; stdin (`-`) is not supported.

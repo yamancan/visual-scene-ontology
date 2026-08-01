@@ -22,7 +22,7 @@ The Rust CLI and Python toolchain are **not** required to run the studio; the br
 - `@xyflow/svelte` canvas for the relationship graph; the bounding-box overlay on the source image is percentage-positioned DOM, and the only SVG is inline icons
 - Custom primitives, no shadcn / bits-ui
 - Native fetch from the browser straight to OpenRouter (no SDK, no relay)
-- A Pyodide web worker runs the reference Python toolchain in the browser: Penman/VSON-X → Turtle transpile, two-gate validation, caption/FOL render
+- A Pyodide web worker runs the reference Python toolchain in the browser: Penman/VSON-X → Turtle transpile, two-gate validation (two of the CLI's three gates — see below), caption/FOL render
 
 ## Architecture
 
@@ -62,7 +62,9 @@ VSON-X is the line-oriented notation. Its availability is a compile-time fact of
 
 ## In-browser verification
 
-The validation worker (`src/lib/validate/`) mounts the repo's reference Python implementation into a Pyodide filesystem: `tools/penman/vson_penman.py` with `cli/src/penman/routing-tables.json` (the same single-source routing tables the Rust CLI compiles in), the VSON-X parser, `shacl_helper` + `owlrl_check`, the caption/FOL renderers, `shapes/vson-shapes.ttl`, and the vso/rcc8/allen ontology trio — exactly the merge set `vson validate` uses. `validate()` runs the same two gates in the same order as the CLI: Gate 1 is pyshacl over the shapes with `inference=rdfs`; Gate 2 is the owlrl OWL 2 RL consistency check, run only when Gate 1 passes.
+The validation worker (`src/lib/validate/`) mounts the repo's reference Python implementation into a Pyodide filesystem: `tools/penman/vson_penman.py` with `cli/src/penman/routing-tables.json` (the same single-source routing tables the Rust CLI compiles in), the VSON-X parser, `shacl_helper` + `owlrl_check`, the caption/FOL renderers, `shapes/vson-shapes.ttl`, and the vso/rcc8/allen ontology trio — exactly the merge set `vson validate` uses. `validate()` runs the CLI's first two gates, in the same order: Gate 1 is pyshacl over the shapes with `inference=rdfs`; Gate 2 is the owlrl OWL 2 RL consistency check, run only when Gate 1 passes.
+
+The CLI's **third** gate is not here: `tools/c2_check.py`, the C2 vocabulary-closure sweep added in v1.3 (`docs/vson.md` §2). That makes this pipeline a strict subset of the CLI's — everything it rejects the CLI rejects, and a document it passes may still fail C2. Nothing in the studio may describe it as running "the same gates as `vson validate`"; `src/lib/validate/pyodide-ops.ts` carries the same note.
 
 Parity with the CLI is pinned from both sides in CI:
 

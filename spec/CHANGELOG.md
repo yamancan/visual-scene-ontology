@@ -102,6 +102,59 @@ computation runs, not what a document or an envelope asserts.
   document against the schema from now on. The paragraph above stands as the
   record of what was decided at release.*
 
+*Annotation, 2026-07-31 — the value-space sweep, and the clause that authorizes
+it.* The entry above opens with "no class, property, shape, schema field, or
+IRI moves". Shapes moved after it was written, and this records what and why.
+`vso:bbox2d "banana"` and `vso:confidence "7.3"` were conformant VSON through
+v1.2 — not because the specification permitted them, but because value spaces
+`docs/vson.md` §5.4, §5.6, §5.10 and §5.11 define had never been transcribed
+into a shape. New §8.2 states the rule for closing a gap like that inside v1.x:
+a check may be added only when every document it newly rejects was already
+non-conformant under a numbered clause or a §5/§6 value space, it must not
+reject — or warn on — a document the specification permits, and every tightening
+lands with a negative fixture, this entry, and the authorizing clause cited
+where a reader of the failure will see it — the shape's own `sh:message`, or the
+gate's module docstring. It says *check*, not *shape*, because one of the gaps
+it closed is not shapeable. Closed under it: the `vso:bbox2d` grammar and the
+three 3D geometry grammars (`vss:GeometryShape`), the `[0,1]` bounds on
+`vso:probability` / `vso:confidence` / `vso:visibleFraction`
+(`vss:ConfidenceRangeShape`), the snake_case `vso:lemma` pattern
+(`vss:LemmaShape`), the `vso:class` / `vso:viewedBy` / `vso:rendersAs` caps, the
+`0..1` caps on the three `SpatialFact` relation slots, and the two clause gaps
+§2.1 named — C5's *exactly one* `vso:viewer` and C6's *exactly one* `vso:lemma`
+on `vso:Process` and `vso:Stative`. Eleven `tests/fixtures/bad_*.ttl`, one per
+constraint, each of which the v1.2 shapes accepted.
+
+Closed under the same rule but off the shapes: **clause C2**. `docs/vson.md` §2
+said, from v1.1 to v1.2, that `vson validate` "does not establish C2 — no tool
+inspects a document for orphan VSO terms at validate time"; the only sweep was a
+test over this repository's own corpus, so a third-party document could mint
+`vso:Ambience`, pass clean and be non-conformant. `tools/c2_check.py` is now the
+third gate, after SHACL and OWL 2 RL. It is not a shape and cannot be one:
+deciding C2 needs the ontology's declared subjects, which a shapes file would
+have to assume are in the data graph, and an undeclared IRI raises no OWL clash.
+Nothing it rejects was ever conformant — C2 is what it enforces, verbatim — and
+zero orphan terms were measured across `examples/`, the 16-scene gallery,
+`examples/gallery-x` and all 21 baked envelopes before it landed. Fixture:
+`tests/fixtures/bad_orphan_term.ttl`, the only `bad_*.ttl` that satisfies every
+shape. The studio's Pyodide pipeline runs the first two gates and not this one;
+`web/` now says so instead of claiming parity.
+
+Declined under the same rule,
+with the measurements recorded beside the shapes: the §5.3.1 / §5.3.3 value
+lists (§5.12 carries none of them, and three shipped envelopes use
+`timeOfDay "day"`, `atmosphere "cold"`, `atmosphere "clear"`) and Entity trait
+completeness (51 entity/trait pairs across 6 shipped documents). Two ontology
+edits ride along: `vso:properPartOf` is now `owl:IrreflexiveProperty`, which
+§5.8's table has published since v1.0 and `tools/owlrl_check.py` now checks
+(`owlrl` derives nothing from `prp-irp`), and `vso:bbox2d`'s comment, which
+offered a pixel reading §5.4 and §5.10 never did, now says normalized — the §2
+precedence order resolving a disagreement in the lower-ranked artifact.
+`owl:versionInfo` moves to 1.3 in neither shapes file nor the ontology under
+§8.1's model: no term, no IRI and no clause changed, only how much of the
+existing contract the tooling executes. All 21 baked envelopes, the 16-scene
+gallery and `examples/` still conform, byte-untouched.
+
 ## v1.2.0 — 2026-07-31
 
 Namespace release. Every canonical VSON IRI moves off `https://vson.dev/` and
