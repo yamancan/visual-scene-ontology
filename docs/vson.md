@@ -1662,33 +1662,55 @@ Lives at [`shapes/vson-shapes.ttl`](../shapes/vson-shapes.ttl). Normative.
 
 ## Appendix B — Penman EBNF {#appendix-b}
 
+The notation is the one [§D.1](#appendix-d) defines, and the two blocks below are the ones `make grammar-check` extracts, translates and runs against the corpus (§D.10). The reference implementation is [`tools/penman/vson_penman.py`](../tools/penman/vson_penman.py).
+
+The lexer is a single scan over the source text. **Whitespace, including newlines, only separates tokens** — it carries no syntax. Comments are discarded with it. At each position the scanner tries the alternatives below in order; that ordering is what makes `35mm` one `UNIT` rather than a `NUM` followed by an `ID`.
+
+| # | Token | Value carried | Note |
+|---|---|---|---|
+| 1 | `COMMENT` | — | `#` to end of line; discarded, never reaches the parser |
+| 2 | `(` `)` `/` | — | single-character sigils |
+| 3 | `STRING` | the text between the quotes | the lexer decodes the Turtle `ECHAR` escapes; the emitter re-encodes them |
+| 4 | `ROLE` | the name after the `:` | the `:` and the name are **one** token: `:agent` is a `ROLE`, `: agent` is a lexical error |
+| 5 | `UNIT` | the whole token | tried before `NUM`; always emitted as a plain string literal (`35mm` → `"35mm"`) |
+| 6 | `NUM` | the whole token | one token kind for both shapes below |
+| 7 | `ID` | the whole token | |
+| 8 | any other non-whitespace character | — | lexical error |
+
 ```ebnf
-document    = node ;
-node        = "(" var [ "/" Concept ] role* ")" ;
-role        = ":" name term ;
-term        = node | var | literal ;
-literal     = quoted-string | number | unit | bareword ;
-quoted-string = '"' ( escape | ~['"' '\\'] )* '"' ;
-escape      = '\\' . ;
-number      = '-'? digit+ ( '.' digit+ )? ;
-unit        = number letter+ ;          (* "35mm", "1.5x" *)
-bareword    = letter ( letter | digit | '_' | '-' )* ;
-var         = ID ;
-Concept     = ID ;
-name        = ID ;
-ID          = letter ( letter | digit | '_' | '-' )* ;
-letter      = 'A'..'Z' | 'a'..'z' | '_' ;
-digit       = '0'..'9' ;
-comment     = '#' ~[\n]* ;
+(* Lexical grammar. *)
+
+COMMENT   = "#" { CHAR - NEWLINE } ;
+STRING    = '"' { ( CHAR - ( '"' | "\" ) ) | ( "\" ( CHAR - NEWLINE ) ) } '"' ;
+ROLE      = ":" ID ;
+UNIT      = NUM ALPHA_ { ALPHA_ | DIGIT | "-" } ;   (* "35mm", "1.5x" *)
+NUM       = FLOAT | INT ;
+INT       = [ "-" ] DIGIT { DIGIT } ;
+FLOAT     = INT "." DIGIT { DIGIT } ;
+ID        = ALPHA_ { ALPHA_ | DIGIT | "-" } ;
+ALPHA_    = "A".."Z" | "a".."z" | "_" ;
+DIGIT     = "0".."9" ;
+CHAR      = ? any Unicode code point ? ;
+NEWLINE   = ? U+000A ? ;
 ```
 
-Tokenization rules (informative):
+```ebnf
+(* Syntactic grammar. *)
 
-1. Comments (`# ...` to EOL) are stripped.
-2. Whitespace is insignificant.
-3. UNIT (number+letters with no space) is recognized before bare NUM and bare ID.
-4. Forward references are allowed; the emitter does a pre-pass to register declared variables.
-5. Routing of bare IDs in object position depends on the parent role; see [`cli/src/penman/routing-tables.json`](../cli/src/penman/routing-tables.json).
+document  = node ;
+node      = "(" ID [ "/" ID ] { role } ")" ;
+role      = ROLE term ;
+term      = node | ID | STRING | NUM | UNIT ;
+```
+
+Reading the productions:
+
+1. A `node`'s first `ID` is its variable; the `ID` after `/` is its concept. Both are the same terminal, so the grammar does not tell a variable from a concept name — the position does.
+2. An `ID` in `term` position is either a reentrant reference to a declared variable or a bareword literal, and **the grammar does not decide which**. The routing tables do, by role name, exactly as §D.6 describes for VSON-X: [`cli/src/penman/routing-tables.json`](../cli/src/penman/routing-tables.json). This is why `term` names one `ID` alternative and not the two — `var` and `bareword` — an earlier draft of this appendix listed.
+3. Forward references are allowed; the emitter does a pre-pass to register declared variables.
+4. Exactly one `node` may appear at top level; a trailing token is a parse error.
+
+**Annotation (v1.3).** This appendix previously wrote the same grammar in an ad-hoc notation and left to the prose three things the productions now carry: that a `ROLE` is one token (`: agent`, with a space, has never parsed), that a `UNIT`'s suffix admits digits and hyphens after its first letter (`1.5x2` is one token, not `1.5x` followed by `2`), and that a backslash escape inside a `STRING` cannot span a line. All three restate what [`tools/penman/vson_penman.py`](../tools/penman/vson_penman.py) has accepted since v1.0; none of them changes the language of any document this repository ships. §D.10 records how the block is checked, and how the three were found.
 
 ---
 
@@ -1718,11 +1740,11 @@ Open registry. `vso:class` is an open dimension (§5.12): any bareword is confor
 
 This appendix is the single normative grammar for VSON-X. §4.3 is the overview; the per-key routing rationale — which bearer turns `*K V` into a Quality node and which into a direct property — is [`docs/vson-x-semantics.md`](./vson-x-semantics.md) §3.
 
-The grammar is reconciled against the reference parser [`tools/vson_x/vson_x.py`](../tools/vson_x/vson_x.py). Where an earlier draft of the grammar and the shipping parser disagreed, **the parser wins**; each such case is recorded in §D.9. The Rust port planned for v1.2 (§4.3) MUST accept exactly the language below.
+The grammar is reconciled against the reference parser [`tools/vson_x/vson_x.py`](../tools/vson_x/vson_x.py). That reconciliation used to be a reading; since v1.3 it is a gate — `make grammar-check` extracts the productions below, generates a parser from them, and runs the generated parser and the reference parser over the same corpora on every commit (§D.10). Where an earlier draft of the grammar and the shipping parser disagreed, **the parser wins**; each such case is recorded in §D.9. The Rust port planned for v1.2 (§4.3) MUST accept exactly the language below.
 
 ### D.1 Notation
 
-`{ x }` is zero or more `x`; `[ x ]` is an optional `x`; `|` is alternation; `A - B` is set difference; `"…"` is a literal; `(* … *)` is a comment. UPPERCASE names are terminals produced by the lexer (§D.2–D.3); lowercase names are syntactic productions (§D.5).
+`{ x }` is zero or more `x`; `[ x ]` is an optional `x`; `|` is alternation; `A - B` is set difference; `"…"` is a literal, in either quote style; `"a".."z"` is a character range; `? … ?` is a character set named in prose; `(* … *)` is a comment. UPPERCASE names are terminals produced by the lexer (§D.2–D.3); lowercase names are syntactic productions (§D.5). Appendix B states the VSON-P grammar in the same notation.
 
 ### D.2 Lexical productions
 
@@ -1740,11 +1762,11 @@ The lexer is a single scan over the source text. **Whitespace, including newline
 | 8 | any other non-whitespace character | — | lexical error (§D.7) |
 
 ```ebnf
-(* Lexical grammar. NEWLINE appears once, and only to terminate a comment;
-   it is not a terminal in any syntactic production of §D.5. *)
+(* Lexical grammar. NEWLINE bounds a comment and a string escape; it is not a
+   terminal in any syntactic production of §D.5. *)
 
 COMMENT   = "#" { CHAR - NEWLINE } ;
-STRING    = '"' { ( CHAR - ( '"' | "\" ) ) | ( "\" CHAR ) } '"' ;
+STRING    = '"' { ( CHAR - ( '"' | "\" ) ) | ( "\" ( CHAR - NEWLINE ) ) } '"' ;
 UNIT      = NUM ALPHA_ { ALPHA_ | DIGIT | "-" } ;   (* "35mm", "1.5x" *)
 NUM       = FLOAT | INT ;
 INT       = [ "-" ] DIGIT { DIGIT } ;
@@ -1753,9 +1775,13 @@ IDENT     = ALPHA_ { ALPHA_ | DIGIT | "-" } ;
 MOD       = IDENT - TRAIT_KEYWORD ;
 ALPHA_    = "A".."Z" | "a".."z" | "_" ;
 DIGIT     = "0".."9" ;
+CHAR      = ? any Unicode code point ? ;
+NEWLINE   = ? U+000A ? ;
 ```
 
 `INT` and `FLOAT` are the two shapes a `NUM` can take, not two token kinds: the lexer emits a single `NUM`, and the split is re-derived at emission time, where a `FLOAT` becomes `xsd:decimal` and an `INT` becomes `xsd:integer` (unless the role forces a string — §D.6).
+
+An escape inside a `STRING` cannot span a line: the shipped lexer's `\\.` matches every code point except the newline, so `"a\` followed by a line break is an unterminated string, not an escaped newline. Earlier revisions of this block wrote `( "\" CHAR )`, which said otherwise; Appendix B carried the same over-broad production for VSON-P and is corrected with it (§D.10).
 
 `MOD` is the token after `~` in a `*K V ~M` tail. A `~` is read as a modifier prefix only when the very next token is an `IDENT` that is not a `TRAIT_KEYWORD`; otherwise the `~` is left where it is, and anywhere but the first token of the document that is a parse error.
 
@@ -1779,6 +1805,28 @@ These terminals are closed. They restate, as token sets, the VSV enumerations of
 **`DIR_TOKEN`** — 9 tokens accepted, 6 conformant. The six §5.12 `vso:directional` values `above`, `below`, `left_of`, `right_of`, `in_front_of`, `behind`, plus three camelCase aliases the shipping parser also accepts: `leftOf`, `rightOf`, `inFrontOf`. The aliases are passed through verbatim and emit `vso:leftOf` / `vso:rightOf` / `vso:inFrontOf`, which are **not** in `vss:DirectionalValueShape`'s `sh:in` list — a document using one parses and then fails SHACL. Producers **MUST** use the six snake_case spellings; the aliases are recorded here because they are in the shipped token set, not because they are permitted output.
 
 **`SYM_LEMMA`** — 3 tokens: `near`, `far`, `adjacent`, the three symmetric members of the five-value `vso:proximal` enum of §5.12. An unlisted `&` lemma is a parse error.
+
+```ebnf
+(* Closed token vocabularies. The tables and paragraphs above give each
+   member's axis, the property it emits and its conformance status; this
+   block is the same five sets as productions. Every member is IDENT-shaped,
+   so a member only matches a whole IDENT — `Namedly` is an IDENT, not a
+   TRAIT_KEYWORD followed by `ly`. *)
+
+TRAIT_KEYWORD = "Generic" | "Named" | "Kind" | "Skolem"
+              | "Agentive" | "Inert"
+              | "Count" | "Mass" | "Collective"
+              | "Holdable" | "Wearable" | "Mountable" | "Container" | "Edible" ;
+CONCEPT       = "PhysicalObject" | "Aggregate" | "Substance"
+              | "CameraView" | "VisualStyle" | "SceneContext" | "Persona"
+              | "Quality" | "Event" | "Process" | "Stative" | "SpatialFact" ;
+RCC_TOKEN     = "DC" | "EC" | "PO" | "EQ" | "TPP" | "NTPP" | "TPPi" | "NTPPi" ;
+DIR_TOKEN     = "above" | "below" | "left_of" | "right_of" | "in_front_of" | "behind"
+              | "leftOf" | "rightOf" | "inFrontOf" ;
+SYM_LEMMA     = "near" | "far" | "adjacent" ;
+```
+
+`make grammar-check` fails unless these five sets, the five counts stated above them, the reference lexer's own token sets in [`tools/vson_x/vson_x.py`](../tools/vson_x/vson_x.py), and — for `RCC_TOKEN` — the `rcc_values` list in [`cli/src/penman/routing-tables.json`](../cli/src/penman/routing-tables.json) all agree (§D.10).
 
 The perdurant lemma tables (`>` / `>>`) are routing tables, not closed vocabularies: they are listed in §4.3, with their role signatures in [`docs/vson-x-semantics.md`](./vson-x-semantics.md) §5.
 
@@ -1822,7 +1870,8 @@ entity_tail    = "/" CONCEPT { TRAIT_KEYWORD | kv } ;   (* order-independent *)
 
 stative        = ">"  IDENT arglist ;
 event          = ">>" IDENT arglist ;
-arglist        = { ref | kv } ;
+arglist        = { ref | arg_kv } ;
+arg_kv         = "*" IDENT value ;                      (* kv without the ~MOD tail *)
 
 spatial_asym   = "!" REL ref [ viewer_anchor ] { kv } ;
 REL            = RCC_TOKEN | DIR_TOKEN ;
@@ -1838,6 +1887,7 @@ ref            = [ "@" ] IDENT ;
 3. **`/CameraView @cam` and `@cam /CameraView` are different items.** The first is a `frame_decl` and attaches via `vso:framedBy`. The second is a `handle_item` whose `entity_tail` happens to name a Frame concept: it attaches via `vso:depicts` and acquires a default `vso:individuation`. Only the first form is correct for a Frame.
 4. **In `spatial_asym` the viewer anchor MUST precede the `{ kv }` tail.** `a ! EC b ^cam *dir above` is well-formed; `a ! EC b *dir above ^cam` is not — the `^cam` falls outside the item and becomes a composition-level `vso:viewedBy`, leaving the directional fact with no viewer, which is the parse error of §D.7. Only a `^` anchor satisfies that requirement; a literal `*viewer @cam` emits the triple but does not satisfy it.
 5. **The only nesting is composition → items.** Quality, Stative, Event, Process and SpatialFact nodes are synthesised by the parser; they are never written with brackets, and their identity is a blank node (see [`tools/vson_x/equiv.py`](../tools/vson_x/equiv.py) for how round-trip equivalence treats them).
+6. **A thematic-role `*K V` takes no modifier.** `arg_kv` is `kv` without its `[ "~" MOD ]` tail. v1.1 has no encoding for a modifier on a thematic role and the reference parser rejects one whatever the key is, so the restriction belongs in the production rather than only in the error table — writing it here is what lets the grammar alone decide §D.7 E10 (§D.10).
 
 ### D.6 Bare identifiers — literal or IRI
 
@@ -1857,26 +1907,28 @@ VSON-X carries no literal/IRI distinction on its surface: `value`'s `ref` altern
 
 Every condition below aborts the parse. This is the complete set raised by the reference parser; nothing else is a parse error.
 
-| Error | Raised when |
-|---|---|
-| `unexpected character: <c>` | lexer meets a non-whitespace character outside §D.2 |
-| `expected <KIND>, got <tok>` | a required terminal is missing (e.g. `*` not followed by `IDENT`, or a `&` lemma with no closing `&`) |
-| `unknown concept after /: <X>` | the token after `/` is not one of the 12 `CONCEPT`s |
-| `unexpected lead token: <tok>` | a token at item position that is not `/`, `^`, `@`, or `IDENT` |
-| `unexpected EOF after handle '<h>'` | input ends immediately after a handle |
-| `after handle '<h>': expected '/', '>', '>>', '!', or '&', got <tok>` | a handle is followed by anything else |
-| `modifier ~<M> not valid on direct property *<K>` | `~MOD` on the Composition's `*rendersAs` |
-| `modifier ~<M> not valid on Frame direct property *<K>` | `~MOD` on a metadata-Frame `kv` (Persona `kv` does admit one) |
-| `modifier ~<M> not valid on Entity direct property *<K>` | `~MOD` on one of the seven Entity direct keys |
-| `modifier ~<M> not valid on thematic role *<K>` | `~MOD` on a perdurant arglist `kv` — v1.1 has no encoding for it |
-| `lemma '<L>' is Event/Process; use '>>' instead of '>'` | `>` with a lemma in the Event or Process table |
-| `lemma '<L>' is Stative; use '>' instead of '>>'` | `>>` with a lemma in the Stative table only |
-| `too many positional arguments: lemma expects <n>, got <m>` | more positional refs than the lemma's signature has slots |
-| `unknown spatial relation '<R>'` | the token after `!` is neither an `RCC_TOKEN` nor a `DIR_TOKEN` |
-| `*dir value must be a directional bareword` / `*prox value must be a proximal bareword` | `*dir` / `*prox` given a `STRING`, `NUM` or `UNIT` value |
-| `directional spatial fact requires a viewer anchor (^cam)` | a `!` fact carries a direction (as `REL` or as `*dir`) with no `^` anchor. The message's "§4.10.2" is [`docs/vson-x-semantics.md`](./vson-x-semantics.md) §4.10.2 |
-| `'<L>' is not a symmetric proximal lemma` | a `&` lemma outside `SYM_LEMMA` |
-| `unexpected value token: <tok>` / `unexpected EOF in value` | a `kv` with no parsable value |
+| # | Error | Raised when | Decided by |
+|---|---|---|---|
+| E1 | `unexpected character: <c>` | lexer meets a non-whitespace character outside §D.2 | grammar |
+| E2 | `expected <KIND>, got <tok>` | a required terminal is missing (e.g. `*` not followed by `IDENT`, or a `&` lemma with no closing `&`) | grammar |
+| E3 | `unknown concept after /: <X>` | the token after `/` is not one of the 12 `CONCEPT`s | grammar |
+| E4 | `unexpected lead token: <tok>` | a token at item position that is not `/`, `^`, `@`, or `IDENT` | grammar |
+| E5 | `unexpected EOF after handle '<h>'` | input ends immediately after a handle | grammar |
+| E6 | `after handle '<h>': expected '/', '>', '>>', '!', or '&', got <tok>` | a handle is followed by anything else | grammar |
+| E7 | `modifier ~<M> not valid on direct property *<K>` | `~MOD` on the Composition's `*rendersAs` | parser |
+| E8 | `modifier ~<M> not valid on Frame direct property *<K>` | `~MOD` on a metadata-Frame `kv` (Persona `kv` does admit one) | parser |
+| E9 | `modifier ~<M> not valid on Entity direct property *<K>` | `~MOD` on one of the seven Entity direct keys | parser |
+| E10 | `modifier ~<M> not valid on thematic role *<K>` | `~MOD` on a perdurant arglist `kv` — v1.1 has no encoding for it | grammar |
+| E11 | `lemma '<L>' is Event/Process; use '>>' instead of '>'` | `>` with a lemma in the Event or Process table | parser |
+| E12 | `lemma '<L>' is Stative; use '>' instead of '>>'` | `>>` with a lemma in the Stative table only | parser |
+| E13 | `too many positional arguments: lemma expects <n>, got <m>` | more positional refs than the lemma's signature has slots | parser |
+| E14 | `unknown spatial relation '<R>'` | the token after `!` is neither an `RCC_TOKEN` nor a `DIR_TOKEN` | grammar |
+| E15 | `*dir value must be a directional bareword` / `*prox value must be a proximal bareword` | `*dir` / `*prox` given a `STRING`, `NUM` or `UNIT` value | parser |
+| E16 | `directional spatial fact requires a viewer anchor (^cam)` | a `!` fact carries a direction (as `REL` or as `*dir`) with no `^` anchor. The message's "§4.10.2" is [`docs/vson-x-semantics.md`](./vson-x-semantics.md) §4.10.2 | parser |
+| E17 | `'<L>' is not a symmetric proximal lemma` | a `&` lemma outside `SYM_LEMMA` | grammar |
+| E18 | `unexpected value token: <tok>` / `unexpected EOF in value` | a `kv` with no parsable value | grammar |
+
+**Decided by** names the layer that does the rejecting. `grammar` means §D.2–§D.5 alone reject the document: any parser generated from those productions, in any host language, refuses the input before the reference parser's tables are consulted. `parser` means the productions accept it and the reference parser rejects it afterwards, from a table the grammar does not carry — the direct-property key sets of §4.3, the lemma signatures of [`docs/vson-x-semantics.md`](./vson-x-semantics.md) §5, or the Talmy rule of §4.10.2. Ten rows are `grammar` and eight are `parser`. `make grammar-check` holds one negative fixture per row and asserts exactly that split, so the column is a checked claim rather than a reading (§D.10): a row moving from `parser` to `grammar` is a grammar that got stronger, and a row moving the other way is a regression.
 
 Two conditions are **warnings**, not errors: a `>` lemma absent from all three tables falls back to `holder` + `theme`, and a `>>` lemma absent from all three falls back to an Event with `agent` + `patient`. Both are written to stderr and neither changes the emitted graph.
 
@@ -1897,6 +1949,8 @@ The grammar is deliberately thin. These are well-formed VSON-X and are caught �
 
 Six differences between the pre-implementation grammar draft and the shipped parser. In each, the parser is authoritative and this appendix follows it.
 
+**Annotation (v1.3).** The reconciliation this table records was done once, by hand, against the shipped parser. It is now also done by machine, on every commit: §D.10 describes the gate, and records the five further mismatches it found. The six rows below are the historical record of the pre-implementation draft and are left as written.
+
 | # | Draft said | Shipped parser does | Resolution |
 |---|---|---|---|
 | 1 | `composition = "~" IDENT { quality_kv } NEWLINE block` | newlines are stripped by the lexer; items are found by lead token | `NEWLINE` and `block` dropped; §D.4 is the item-boundary rule |
@@ -1905,6 +1959,34 @@ Six differences between the pre-implementation grammar draft and the shipped par
 | 4 | `item = … \| comment` | comments never reach the parser | `COMMENT` moved to §D.2, removed from `item` |
 | 5 | `trait = TRAIT_KEYWORD (* §5.x; order-independent *)` | traits are recognized inline in the entity declaration loop | inlined into `entity_tail`; the dangling `§5.x` is now §5.12, enumerated in §D.3 |
 | 6 | Frames accept `@id` or bare `id` | `frame_decl` accepts an `@` handle only | `frame_decl = "/" CONCEPT [ "@" IDENT ] { kv }`; see §D.5 note 2 |
+
+### D.10 Executable grammar and constrained decoding
+
+Appendix B and this appendix are the normative grammars for the two syntaxes a person writes by hand. Through v1.2 nothing executed them, so the only way to know whether a production described the shipped parser was to read both and believe the answer — which is what §D.9 records having done once. Since v1.3 `make grammar-check` runs them, on every commit.
+
+**The spec is the source.** [`tools/grammar/extract_grammar.py`](../tools/grammar/extract_grammar.py) reads the `ebnf` blocks of Appendix B and of §D.2, §D.3 and §D.5 out of this document by heading, together with the scanner-order tables, §D.4's lead-pattern table, §D.3's spelled counts and §D.7's rows. Nothing under [`tools/grammar/`](../tools/grammar/) carries a transcription of a production, a terminal or a token vocabulary: a grammar that changes here changes there in the same commit, or the gate goes red. [`tests/test_grammar_gate.py`](../tests/test_grammar_gate.py) establishes that by doctoring this file and watching the generated parser change with it.
+
+**The translation is mechanical, and its rules are written down.** [`tools/grammar/ebnf.py`](../tools/grammar/ebnf.py) parses §D.1's notation; [`tools/grammar/lark_backend.py`](../tools/grammar/lark_backend.py) rewrites it into an LALR(1) grammar with a contextual lexer under twelve numbered rules (T1–T12) stated in its module docstring, and refuses — loudly — to translate a construct it has no rule for. Two of those rules exist because EBNF cannot say what this appendix says in prose: T11 realises §D.4's item-boundary rule, which needs a lookahead the notation has no spelling for, and T12 is what leaves a `TRAIT_KEYWORD` spelling an ordinary `IDENT` outside `entity_tail` (§D.3). The generated parser is never written to disk; it is regenerated on each run, because a generated parser in the checkout is a copy and a copy can be stale.
+
+**What the gate asserts.** The generated parsers accept `examples/throne_room.vson`, all sixteen `examples/gallery/*.vson` and all twelve `examples/gallery-x/*.x.vson`, and so do the two reference implementations. `tests/fixtures/grammar/negative/` holds one document per §D.7 row, named for the row: the reference parser must reject all eighteen, and the generated parser must reject exactly the ten the `Decided by` column calls `grammar`. `tests/fixtures/grammar/vocabulary/` holds one out-of-vocabulary token per closed terminal of §D.3, and both parsers must reject each. The five §D.3 sets are compared against the five counts stated in the prose, against the reference lexer's own constants, and — for `RCC_TOKEN` — against `rcc_values` in [`cli/src/penman/routing-tables.json`](../cli/src/penman/routing-tables.json).
+
+**What it found.** Writing the grammars down in a form a program had to accept produced five mismatches between what the appendices said and what has always shipped. Each was resolved the way §D.9 resolved its six — the parser is authoritative — and each is annotated where it was fixed.
+
+| # | Appendix said | Shipped parser does | Resolution |
+|---|---|---|---|
+| 1 | `role = ":" name term` — the `:` and the name are two symbols, and whitespace is insignificant | `:agent` is one token; `: agent` has never lexed | Appendix B declares `ROLE = ":" ID` and its scanner-order table says so |
+| 2 | `unit = number letter+` — the suffix is letters only | `1.5x2` is one `UNIT`; the suffix admits digits and hyphens after its first letter | Appendix B declares `UNIT = NUM ALPHA_ { ALPHA_ \| DIGIT \| "-" }`, the same production §D.2 already carried |
+| 3 | `term = node \| var \| literal` with `var` and `bareword` both `ID` | one `ID` branch, routed at emission time by role name | `term = node \| ID \| STRING \| NUM \| UNIT`, with the routing stated as note 2. The old form was ambiguous, so no parser generator would accept it at all |
+| 4 | `( "\" CHAR )` — a string escape may span a line | the lexer's `\\.` does not match a newline, so `"a\` + newline is an unterminated string | Both Appendix B and §D.2 now write `( "\" ( CHAR - NEWLINE ) )` |
+| 5 | `arglist = { ref \| kv }` — a thematic-role `kv` may carry `~MOD` | rejected unconditionally, whatever the key is | §D.5 declares `arg_kv` without the tail, which moves §D.7 E10 from `parser` to `grammar` |
+
+**The constrained-decoding artifact.** [`tools/grammar/vson-x.gbnf`](../tools/grammar/vson-x.gbnf) is a translation of this appendix into [GBNF](https://github.com/ggml-org/llama.cpp/blob/master/grammars/README.md), the grammar format llama.cpp accepts for constrained sampling. It is generated by [`tools/grammar/gbnf_backend.py`](../tools/grammar/gbnf_backend.py) under ten numbered rules (G1–G10) in its module docstring, regenerated by `make grammar-gbnf`, and compared byte for byte by `make grammar-check` — so it cannot drift from the productions above. GBNF is the target because it is an open format with a public parser, tied to no vendor and no model, usable by anyone running an open model locally with no account and no request; the other constrained-decoding grammars in circulation read the same kind of input, so this file is what they can be derived from.
+
+**What the GBNF does not guarantee.** It constrains characters, and nothing else.
+
+* **It is not conformance.** A document sampled under it is syntactically VSON-X; whether it is *conformant* VSON-X is decided by SHACL and the OWL RL check afterwards (§2 C1–C9). A constrained decoder can emit `*dir sideways`, a `vso:` term the vocabulary does not declare, or a scene whose asserted relations contradict its own rectangles — all three parse, and all three fail a later gate. Token-level constraint moves errors from the syntax layer to the semantic layer; it does not remove them.
+* **It is wider than this appendix.** GBNF has no lookahead, so §D.4's item-boundary rule (rule G9) and the closed vocabularies' whole-identifier guard (G8) are not expressible, and `MOD = IDENT - TRAIT_KEYWORD` is emitted as `IDENT` (G10, listed in the generated file's header). Whitespace is inserted by an analysis that requires a separator only where it can prove both sides are identifier-shaped (G7), so `! ECb` — which the reference lexer reads as one unknown relation and rejects — is admitted here. Every relaxation is in the widening direction on purpose: the grammar never blocks a document the reference parser accepts.
+* **It is verified in this repository, not against llama.cpp.** The gate re-reads the committed file as GBNF and checks that the language it defines still contains every shipped VSON-X scene. It does not run llama.cpp, and no sampling result is claimed here.
 
 ---
 
