@@ -7,7 +7,7 @@ TOOLS = -m tools.penman.vson_penman
 EXAMPLE_VSON = examples/throne_room.vson
 EXAMPLE_TTL = examples/throne_room.ttl
 
-.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check iri-check x-check x-skill-check envelope-check web-check web-deploy web-smoke deploy-check site clean
+.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check iri-check live-check x-check x-skill-check envelope-check web-check web-deploy web-smoke deploy-check site clean
 
 all: check
 
@@ -102,6 +102,23 @@ x-skill-check:
 iri-check:
 	@echo "==> Legacy IRI gate: the withdrawn namespace host MUST NOT reappear"
 	@$(PY) scripts/check_legacy_iri.py
+
+# Deliberately absent from `check` and from `check-all`, and deliberately not a
+# CI job: this is the one gate that leaves the checkout. It resolves the
+# canonical w3id.org names against the live redirect service and the live Pages
+# host, so it can go red for a DNS blip, a third-party outage, or a repository
+# this project does not own — none of which the commit under test caused, and a
+# red build nobody caused is a build people stop reading. `make check` stays
+# answerable from the tree alone. Run this when a dereference claim in
+# README.md / docs/vson.md §5.1 / publish/index.html changes, before a release,
+# and after any edit to the w3id rule. Exit 1 is a contradicted claim; exit 2 is
+# "could not reach the network", which is not a verdict.
+# The offline half — that the comparator can go red at all, and that every
+# claimed redirect target is a path `make site` publishes — runs inside
+# `make check` as tests/test_live_claims.py.
+live-check:
+	@echo "==> Live claims: the canonical IRIs MUST dereference as documented"
+	@$(PY) scripts/check_live_claims.py
 
 envelope-check:
 	@echo "==> Studio envelope corpus: every committed envelope MUST SHACL-conform"

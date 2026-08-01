@@ -174,10 +174,12 @@
     <p class="note">
       <strong>Canonical names.</strong> The canonical IRIs are
       <code>https://w3id.org/vson/v1/…</code> — permanent identifiers under the
-      W3C Permanent Identifier Community Group. The redirect from those names to
-      the documents on this host is still under review; until it merges, resolve
-      the paths on this host directly. The names above are what a document
-      should cite either way: they are the identifiers, this host is only where
+      W3C Permanent Identifier Community Group. They dereference: since
+      2026-07-31 each one redirects to the matching document on this host, so
+      <code>https://w3id.org/vson/v1/ontology</code> resolves to
+      <a href="/v1/ontology.ttl">/v1/ontology.ttl</a> and a reasoner can follow
+      the name without being told where the bytes live. Cite the canonical
+      names, not these paths: they are the identifiers, this host is only where
       the bytes currently sit.
     </p>
 
