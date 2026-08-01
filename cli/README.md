@@ -302,7 +302,7 @@ no Python, `convert p2t` and `export cypher` work and nothing else does.
 | 2 | `$XDG_CACHE_HOME/vson` |
 | 3 | `%LOCALAPPDATA%\vson` |
 | 4 | `~/Library/Caches/vson` on macOS, `~/.cache/vson` elsewhere |
-| 5 | the system temp directory — always writable, and the least durable of the five |
+| 5 | the system temp directory — always writable, the least durable of the five, and the only one shared with other accounts, so a payload already sitting there is never reused: it is rewritten every run before anything is executed out of it |
 
 Nothing is written while a checkout is in play: materialization happens only on
 the last leg of home resolution, so a contributor's runs touch no cache at all.
@@ -370,7 +370,7 @@ Edit the original, run `--sync`, commit both.
 ## Verification
 
 ```bash
-cd cli && cargo test               # 84 tests: 36 unit, 48 integration
+cd cli && cargo test               # 85 tests: 37 unit, 48 integration
 make cli-check                     # fmt + clippy + build + test + embedded-payload gate + standalone-binary test + graph-isomorphic check vs Python ref
 ```
 
