@@ -1,5 +1,6 @@
 pub mod convert;
 pub mod convert_x2t;
+pub mod diff;
 pub mod export_caption;
 pub mod export_cypher;
 pub mod export_fol;

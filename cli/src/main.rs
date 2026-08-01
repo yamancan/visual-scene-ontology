@@ -10,6 +10,10 @@
 //!   `vso:bbox2d` rectangles it asserts beside them (docs/vson.md §5.13). It
 //!   reads no image, and a document that fails it is still conformant — which
 //!   is exactly why it is not a `validate` gate.
+//! - `diff <a> <b>` — Smatch graph agreement between two documents: the
+//!   variable alignment that maximizes matched triples, then precision, recall
+//!   and F1 overall and per layer (docs/vson.md §5.15). Exit 0 identical, 1
+//!   differing. It reads no image, and agreement is not correctness.
 //! - `convert p2t|t2p|x2t <file>` — Penman/VSON-X <-> Turtle transpilation.
 //! - `export cypher <file>` — emit Cypher CREATE statements from Turtle.
 //! - `export caption <file>` — render a deterministic English caption for
@@ -64,6 +68,19 @@ enum Cmd {
         #[arg(long, env = "VSON_HOME")]
         home: Option<PathBuf>,
     },
+    /// Compare two documents: Smatch graph agreement, overall and per layer.
+    Diff {
+        /// First document (.ttl, .vson or .x.vson).
+        a: PathBuf,
+        /// Second document (.ttl, .vson or .x.vson).
+        b: PathBuf,
+        /// Report shape: `text` (default) or `json`.
+        #[arg(long, default_value = "text")]
+        format: String,
+        /// Path to the repo root containing tools/.
+        #[arg(long, env = "VSON_HOME")]
+        home: Option<PathBuf>,
+    },
     /// Convert between concrete syntaxes.
     Convert {
         #[command(subcommand)]
@@ -106,6 +123,7 @@ fn main() -> ExitCode {
             verbose,
             home,
         } => commands::verify::run(&files, home.as_deref(), geometry, verbose),
+        Cmd::Diff { a, b, format, home } => commands::diff::run(&a, &b, &format, home.as_deref()),
         Cmd::Convert {
             direction: ConvertDirection::P2t { file },
         } => commands::convert::p2t(&file),
