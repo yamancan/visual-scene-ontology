@@ -221,7 +221,7 @@ If you might want to negate it, modify it, quantify it, refer to it, or attach a
 
 ## 4. Concrete syntaxes
 
-VSON has three surface syntaxes that share one abstract graph: VSON-T (canonical, machine), VSON-P (Penman, human authoring), and VSON-X (compact sigil-based, LLM-optimized — added in v1.1). VSON-T and VSON-P are graph-equivalent across all 16 gallery scenes. VSON-X counterparts exist for scenes 01–11 plus `12_persona` (12 files), and the tested round-trip covers 01–11 — see §4.3 and §9.17. Scenes 13–16 are Penman/Turtle only.
+VSON has three surface syntaxes that share one abstract graph: VSON-T (canonical, machine), VSON-P (Penman, human authoring), and VSON-X (compact sigil-based, LLM-optimized — added in v1.1). "Share one abstract graph" is not a figure of speech: **§4.6 defines when two documents denote the same scene**, and every claim of interchangeability below is a pair of equal canonical hashes in [`tests/fixtures/canonical/hashes.txt`](../tests/fixtures/canonical/hashes.txt). VSON-T and VSON-P are graph-equivalent across all 16 gallery scenes. VSON-X counterparts exist for 12 of them — scenes 01–12 — and all twelve canonicalize to the same bytes as their Penman twins (§4.3, §4.6, §9.17). Scenes 13–16 are Penman/Turtle only.
 
 ### 4.1 VSON-T (Turtle-star canonical, machine)
 
@@ -295,7 +295,7 @@ The three perdurant lists are routing tables, not a closed vocabulary: a lemma a
 
 **Reference implementation:** [`tools/vson_x/vson_x.py`](../tools/vson_x/vson_x.py). Native Rust parser planned for v1.2; until then `vson convert x2t` shells out to Python.
 
-**Round-trip parity.** Gallery scenes 01–11 (plus a `12_persona` X file) have an [`examples/gallery-x/N.x.vson`](../examples/gallery-x/) form (12 files); the test suite asserts each tested pair is graph-equivalent (modulo blank-node identity for auto-anonymous reified nodes; see [`tools/vson_x/equiv.py`](../tools/vson_x/equiv.py)) via `make x-check`. Round-trip coverage currently runs over scenes 01–11; `12_persona` is pending, and scenes 13–16 are Penman/Turtle only.
+**Round-trip parity.** Gallery scenes 01–12 have an [`examples/gallery-x/N.x.vson`](../examples/gallery-x/) form (12 files), and every one of them **denotes the same scene as its Penman twin under §4.6** — identical RDFC-1.0 canonical N-Quads, frozen in [`tests/fixtures/canonical/hashes.txt`](../tests/fixtures/canonical/hashes.txt) and checked by [`tests/test_canon.py`](../tests/test_canon.py) inside `make check`. `make x-check` decides the same twelve pairs the fast way, by isomorphism after the same two normalizations ([`tools/vson_x/equiv.py`](../tools/vson_x/equiv.py), which imports them from [`tools/canon.py`](../tools/canon.py)). Scenes 13–16 are Penman/Turtle only: VSON-X v1.1 has no notation for the propositional layer (§5.9) or for annotation reification (§5.11).
 
 ### 4.4 JSON-LD form
 
@@ -304,6 +304,49 @@ A VSON document MAY be exchanged as JSON-LD bound to context `https://w3id.org/v
 ### 4.5 Image-extractor envelope (the Quick Start payload)
 
 The wire format between an image-to-VSON extractor and its consumer is the JSON envelope in [`tools/schema/vson-output.schema.json`](../tools/schema/vson-output.schema.json). See §6.1 for the per-field reference. Every field is also annotated with its JSON Schema fragment in §6.
+
+### 4.6 Denotation — when two documents describe the same scene
+
+Three surfaces for one graph is the premise of this whole section, and "the same graph" is the claim it rests on. Through v1.2 the only thing standing behind that claim was a test helper whose own docstring called itself a test-only utility. A helper can decide a case; it cannot say what the case *is*, it cannot be cited, and it leaves a second implementer with nothing to reproduce. This section says what the case is, in terms a second implementer can check without reading any of this repository's code.
+
+**The canonical form of a document** is computed in four steps, in order.
+
+1. **Materialize.** Parse the document under the surface it is written in (§4.1–§4.3) into one RDF graph. Everything below is defined over that graph, so the surface cannot affect the answer — which is the property the section exists to establish. **Asserted triples only**: no entailment regime, no reasoner, no TBox, as in §5.14 and §5.15.
+2. **N1 — anonymize.** Replace every IRI that begins with the **document namespace** and that the document types as one of the classes in the table below with a **fresh blank node**, one per IRI. The map is injective by construction: N1 loses names and can never merge two nodes the document kept apart.
+3. **N2 — normalize the Composition edges.** Rewrite `vso:hasFact` and `vso:occurs` to `vso:depicts`. §5.2 declares the three interchangeable for the same target, and the VSON-X parser emits only the first; a scene written with `:hasFact` in one surface and `:depicts` in another is not a disagreement this specification recognizes. §5.15.1 normalizes the same three the same way for the same reason.
+4. **Canonicalize.** Serialize the result under **RDFC-1.0** — *RDF Dataset Canonicalization*, W3C Recommendation 2024-05-21 ([Appendix E.6](#appendix-e)) — with its default hash algorithm SHA-256, in the canonical N-Quads form of Appendix A of that Recommendation. A VSON document is one RDF graph, which is the dataset whose default graph it is and which has no named graphs, so the graph-name position is empty in every quad.
+
+The **document namespace** is what `:` resolves to — the namespace bound to the empty prefix — falling back to the document's base IRI. A document with neither has no document namespace, and N1 rewrites nothing in it.
+
+> Two VSON documents **denote the same scene** if and only if their canonical forms are byte-identical.
+
+A document's **canonical hash** is the lowercase-hex SHA-256 of its canonical form. The hash is a convenience for reporting and for freezing; the definition is the bytes.
+
+**The anonymized classes (closed list).**
+
+| Anonymized by N1 | Why |
+|---|---|
+| `vso:Quality`, `vso:SpatialFact`, `vso:Event`, `vso:Process`, `vso:Stative`, `vso:Annotation`, `vso:Negation`, `vso:BeliefState`, `vso:Quantification` | The reification nodes of §3.4. No surface asks the author to name one: VSON-P's `(q1 / Quality …)` needs a variable because Penman syntax needs a variable, and the VSON-X parser mints `_q1` and emits a blank node. A name no author chose cannot be evidence that two documents disagree. |
+| `vso:SceneContext`, `vso:VisualStyle` | Frames a document attaches only by `vso:framedBy`. Their scene properties carry the meaning; the IRI is a Penman authoring convention. |
+
+Three exclusions are load-bearing. **`vso:CameraView` is not anonymized**: a camera is a referent — `vso:viewedBy` and `vso:viewer` point at it (C5, §3.3) — and every surface makes the author name it (`^cam`). **`vso:Persona` is not anonymized**: it is the cross-document identity carrier of §9.12, and erasing its name would erase what it is for. **Entities and `vso:Composition` are not anonymized**: they are what the document is about. A producer that needs a node of an anonymized class to be referenceable from *outside* the document **MUST** mint it outside the document namespace — N1 does not reach IRIs in another namespace.
+
+**What this rule deliberately does not normalize.**
+
+- **Names.** Two documents that name the same queen `:alice` under two different bases denote **different** scenes here, and that is the intended reading: an IRI is a name, and this is the exact test. §5.15 is the graded instrument for the question this one cannot answer — it compares document-local IRIs by local name and reports how far apart two documents are. The implication runs one way only: equal canonical forms ⇒ F1 = 1.0, and F1 = 1.0 does **not** imply equal canonical forms. [`tests/test_canon.py`](../tests/test_canon.py) pins both directions.
+- **Entailment.** `owl:sameAs`, subclass closure, and everything else a reasoner could derive are out of scope, exactly as in §5.15.1.
+- **Literal lexical forms.** RDF 1.1 literal term equality is lexical, so `"01"^^xsd:integer` and `"1"^^xsd:integer` are distinct terms and therefore distinct scenes. This is inherited from RDF, not chosen here, and it has an implementation consequence worth knowing: a parser that normalizes lexical forms (rdflib rewrites `"…Z"^^xsd:dateTime` to `"…+00:00"`) canonicalizes the normalized form, so two implementations agree on a document only to the extent their parsers preserve what it wrote.
+- **RDF-star.** RDFC-1.0 is defined over RDF 1.1 datasets and does not cover quoted triples. A document using the Turtle 1.2 `<< s p o >>` form **MUST** be reduced to its RDF 1.1 portable form — the `vso:Annotation` reification of §5.11 — before canonicalization. No gallery scene uses quoted triples, so no hash frozen below depends on this clause.
+
+**Which algorithm is actually running.** rdflib 7.6 ships **no** RDFC-1.0. What `rdflib.compare` implements is **RGDA1** (McCusker 2015): a different digest algorithm that decides isomorphism correctly but issues different blank-node labels and produces no canonical N-Quads document, so nothing frozen against it would be reproducible from the Recommendation. **URDNA2015**, the algorithm most JSON-LD toolchains ship, *is* RDFC-1.0 up to the canonical N-Quads escaping clarification recorded in Appendix B of the Recommendation, and agrees with it on every document that avoids the control characters where the two escaping rules differ — which is every VSON document in this repository. The reference implementation therefore carries its own RDFC-1.0, in [`tools/canon.py`](../tools/canon.py), which uses rdflib only to parse. Its RDFC-1.0 core is vocabulary-blind and is checked against the worked examples published *in* the Recommendation — the canonical labels, the first-degree hashes and the N-degree hash of §4.4.2, §4.6.2 and §4.8.2 — because a canonicalizer that agrees with itself has established nothing.
+
+**What equality establishes.** That the two documents assert the same graph after N1 and N2. Three things do not follow. It is **not conformance** — C1–C9 do not mention denotation, and two documents can denote the same scene and both fail every shape. It is **not correctness**: §2.1 governs, no image is read, and two runs of one model agreeing on the same hallucination are equal here. And it is **not a licence to discard either document** — the surfaces differ in what they are good for (§4.1–§4.3), not only in their bytes.
+
+**Where it runs, and what is frozen.** [`tests/fixtures/canonical/hashes.txt`](../tests/fixtures/canonical/hashes.txt) carries the canonical hash of all 29 shipped documents — the 16 gallery scenes in VSON-P, the hand-authored VSON-T throne room, and the 12 VSON-X counterparts — and [`tests/test_canon.py`](../tests/test_canon.py) recomputes every one of them inside `make check`. A change to a transpiler, an emitter or a scene that alters what a document denotes turns the gate red; one that only alters how a document is written does not, which is the distinction a frozen hash exists to draw.
+
+The cross-syntax claim is read straight off that table: **each of the twelve VSON-P scenes that has a VSON-X counterpart carries the identical hash in both surfaces** — twelve of twelve pairs, over twelve of the sixteen gallery scenes. Scenes 13–16 have no VSON-X form because VSON-X v1.1 has no notation for the propositional layer (§5.9) or for annotation reification (§5.11), so nothing is claimed for them. [`tests/fixtures/canonical/11_throne_room.nq`](../tests/fixtures/canonical/11_throne_room.nq) freezes one canonical form as bytes rather than as a hash: it is the 131-triple throne room, and the test requires *both* surfaces to produce exactly those bytes, so the cross-syntax claim is a file a reader can open. `tools/vson_x/equiv.py` — the fast isomorphism heuristic `make x-check` runs over the same pairs — applies N1 and N2 by importing them from `tools/canon.py` and is checked against this section's answer on every pair.
+
+The gate is not vacuous in the other direction either: `examples/throne_room.ttl` and `examples/gallery/11_throne_room.vson`, the two documents in this repository that both claim to be the throne room, have **different** canonical hashes. §5.15.6 reports how different (F1 0.767) and why.
 
 ---
 
@@ -907,7 +950,7 @@ Two extractions of one image produce two documents. Nothing so far in this speci
 
 That is **Smatch** (Cai & Knight 2013, for AMR — [Appendix E](#appendix-e)), which is the point: VSON-P borrows AMR's Penman surface (§4.2), so it inherits AMR's evaluation problem — variables whose names carry no information — and there is an answer already in the literature for it. This section states what the metric is over *VSON's* graph, adds the per-layer sub-scores a layered scheme owes its readers, and pins the determinism that lets two people compare two numbers.
 
-**It is not a fifth construct.** §2.1's table and §5.13's fourth row are properties of *one* document — is it well-formed, does it agree with itself. Agreement is a relation between **two**, and no verdict about either one follows from it. F1 = 1.0 says the two documents assert the same graph up to variable renaming; it does not say either describes the picture. Two runs of one model agreeing on the same hallucination score 1.0, and a run that scores 0.4 against a hand-annotated reference may be the one that is right. No image is read here either, and §2.1's prohibition stands unchanged over every number this section produces.
+**It is not a fifth construct.** §2.1's table and §5.13's fourth row are properties of *one* document — is it well-formed, does it agree with itself. Agreement is a relation between **two**, and no verdict about either one follows from it. F1 = 1.0 says the two documents assert the same graph up to variable renaming; it does not say either describes the picture. Two runs of one model agreeing on the same hallucination score 1.0, and a run that scores 0.4 against a hand-annotated reference may be the one that is right. No image is read here either, and §2.1's prohibition stands unchanged over every number this section produces. Nor is it §4.6's denotation test: equal canonical forms imply F1 = 1.0 and F1 = 1.0 does not imply equal canonical forms, because this section compares document-local IRIs by local name and §4.6 compares them as written.
 
 Reference implementation: [`tools/metrics/smatch.py`](../tools/metrics/smatch.py), run by `vson diff <a> <b>` (`--format json`; exit 0 identical, 1 differing, 2 no verdict) and importable as `compare_paths(a, b)` for an evaluation loop. Inputs may be `.ttl` (VSON-T), `.vson` (VSON-P) or `.x.vson` (VSON-X), in any combination: the metric is defined over the **materialized VSON-T graph**, so the surface an input was written in cannot move the score.
 
@@ -1403,7 +1446,7 @@ Sixteen scenes, ascending in complexity. Every example SHACL-conforms (verified 
 
 ### 9.17 VSON-X compact-syntax mirror — v1.1
 
-Gallery scenes 01–11 plus `12_persona` have a graph-equivalent VSON-X form under [`examples/gallery-x/`](../examples/gallery-x/) (12 files). For example, `examples/gallery-x/11_throne_room.x.vson` produces an RDF graph isomorphic to `examples/gallery/11_throne_room.vson` (modulo blank-node identity for auto-anonymous reified nodes; see [`tools/vson_x/equiv.py`](../tools/vson_x/equiv.py)). `make x-check` runs the round-trip suite over the 11 pairs for scenes 01–11; `12_persona` has an X file but is not yet in the tested PAIRS list, and scenes 13–16 are Penman/Turtle only.
+Gallery scenes 01–12 have a VSON-X form under [`examples/gallery-x/`](../examples/gallery-x/) (12 files), and each denotes the same scene as its Penman twin under §4.6. For example, `examples/gallery-x/11_throne_room.x.vson` and `examples/gallery/11_throne_room.vson` canonicalize to the same 131 quads — the bytes are [`tests/fixtures/canonical/11_throne_room.nq`](../tests/fixtures/canonical/11_throne_room.nq), and both surfaces are required to produce exactly them. `make x-check` runs the isomorphism round-trip over the same twelve pairs. Scenes 13–16 are Penman/Turtle only: VSON-X v1.1 has no notation for the propositional layer (§5.9) or for annotation reification (§5.11).
 
 ---
 
@@ -1416,6 +1459,7 @@ Gallery scenes 01–11 plus `12_persona` have a graph-equivalent VSON-X form und
 | Caption renderer (v1.0.5) | [`tools/render/caption.py`](../tools/render/caption.py) | graph → English (deterministic, no LLM) | 11 fixture + determinism (11/11 ✓) |
 | Rust CLI (`vson`) | [`cli/`](../cli) | `validate`, `verify --geometry`, `diff`, `convert p2t/x2t`, `export cypher/caption/fol` | 63 tests (25 lib unit + 6 error-contract + 9 golden throne room + 5 golden validate + 9 geometry gate + 9 diff gate ✓) |
 | Graph agreement metric (v1.3) | [`tools/metrics/smatch.py`](../tools/metrics/smatch.py) | two documents → triple-level precision/recall/F1 with per-layer sub-scores (§5.15); reads `.ttl`, `.vson` and `.x.vson` | 31 property + fixture tests (31/31 ✓) |
+| Canonical form (v1.3) | [`tools/canon.py`](../tools/canon.py) | RDFC-1.0 canonical N-Quads + the §4.6 denotation test; reads `.ttl`, `.vson` and `.x.vson`; `--freeze` rewrites the frozen table | 34 tests — the Recommendation's own vectors, the two normalizations, the 29 frozen hashes, the 12 cross-syntax pairs (34/34 ✓) |
 | SHACL validator | `pyshacl` (shelled out by `vson validate`) | semantic well-formedness, strict profile (the relaxed profile ships as a shapes file; no command selects it yet) | 5 SHACL tests + 16 gallery passes |
 | Bare-VLM extractor | [`tools/extractor/baseline/extract.py`](../tools/extractor/baseline/extract.py) | image → VSON-P | offline cassette test |
 | Browser studio (v1.3) | [`web/`](../web) | runs the Python references above in a Pyodide worker, in the visitor's browser: transpile, two-gate validation (the CLI's SHACL and OWL gates; not its C2 gate), caption/FOL — no backend | offline worker-parity vitest byte-pins p2t, both gate verdicts, and caption/FOL against the CLI fixtures |
@@ -1828,6 +1872,9 @@ The body/target separation is the same shape as `vso:Annotation` (§5.11); VSON 
 
 **Lebo, T., Sahoo, S., & McGuinness, D. (eds.). *PROV-O: The PROV Ontology*. W3C Recommendation, 2013.**
 The natural target for extractor provenance; VSON v1.1 records only a free-text `vso:source` on annotations and envelope-level `extraction` metadata (§6.1), so PROV-O alignment is future work, not a shipped feature.
+
+**Longley, D., Kellogg, G., & Yamamoto, D. (eds.). *RDF Dataset Canonicalization*. W3C Recommendation, 21 May 2024. <https://www.w3.org/TR/2024/REC-rdf-canon-20240521/>** — the RDFC-1.0 algorithm.
+The standard §4.6 borrows whole: label every blank node from the graph's own shape, serialize to canonical N-Quads (Appendix A of that Recommendation), and two isomorphic datasets are two identical byte strings. VSON adds only the two normalizations that come before it, and takes the hard half — the gossip-path search that separates blank nodes tied at first degree — from the Recommendation rather than inventing a hash of its own. Appendix B of the same document records that **URDNA2015** is the same algorithm up to the canonical N-Quads escaping clarification, which is why a JSON-LD toolchain's canonicalizer should agree with `tools/canon.py` on any VSON document. rdflib is not such a toolchain: its `rdflib.compare` implements **RGDA1** (McCusker, J. P. (2015). *WebSig: A Digital Signature Framework for the Web*. Rensselaer Polytechnic Institute), a correct isomorphism digest that issues different labels and emits no canonical document — the reason §4.6's reference implementation carries RDFC-1.0 itself instead of calling one.
 
 ### E.7 Ontology engineering methodology
 

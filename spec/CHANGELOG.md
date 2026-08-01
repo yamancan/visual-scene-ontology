@@ -291,6 +291,57 @@ the gallery writes `vso:class`. Both are conformant, both stay byte-untouched,
 and neither is wrong. Through v1.3.0 the README filed diffing two runs under
 "where this is headed, not a thing it ships".
 
+*Annotation, 2026-08-01 — what "the same scene" means, and 29 frozen hashes.*
+"Three surfaces, one graph" is the most-repeated claim in this specification,
+and through v1.3.0 the only thing standing behind it was `tools/vson_x/equiv.py`,
+a helper whose own docstring called itself "a test-only utility". New §4.6
+states the rule instead: two documents **denote the same scene** iff, after N1
+(anonymize the reification nodes and the `framedBy`-only frames, by a closed
+class list) and N2 (rewrite `vso:hasFact` / `vso:occurs` to `vso:depicts`, as
+§5.15.1 already did), their **RDFC-1.0 canonical N-Quads are byte-identical**
+— *RDF Dataset Canonicalization*, W3C Recommendation 2024-05-21, new citation
+in Appendix E.6. The exclusions are stated and reasoned: `vso:CameraView` is a
+referent (C5), `vso:Persona` is the cross-document identity carrier of §9.12,
+and entities are what a document is about, so none of the three is anonymized.
+
+Reference implementation `tools/canon.py`, which carries RDFC-1.0 itself
+because **rdflib ships no RDFC-1.0**: `rdflib.compare` implements RGDA1
+(McCusker 2015), a correct isomorphism digest that issues different labels and
+emits no canonical document, so nothing frozen against it would be reproducible
+by a second implementer. URDNA2015 *is* RDFC-1.0 up to the canonical N-Quads
+escaping clarification (Appendix B of the Recommendation), so a JSON-LD
+toolchain's canonicalizer agrees with this one on every VSON document. The
+implementation is checked against the worked examples published *in* the
+Recommendation — the canonical labels of §4.4.2, the first-degree hashes of
+§4.6.2, the N-degree hash and issuer state of §4.8.2 — because a canonicalizer
+that agrees only with itself has established nothing.
+
+What CI now gates: `tests/fixtures/canonical/hashes.txt` freezes the canonical
+hash of all **29** shipped documents (16 gallery scenes in VSON-P, the
+hand-authored VSON-T throne room, 12 VSON-X counterparts), and
+`tests/test_canon.py` (34 tests) recomputes every one inside `make check`. The
+cross-syntax claim is read off that table as **twelve pairs of equal hashes** —
+`12_persona` joins the tested set, so `make x-check` and the frozen table both
+cover scenes 01–12, and §4 and §9.17 now say twelve rather than eleven. Scenes
+13–16 stay Penman/Turtle only, for a reason now stated: VSON-X v1.1 has no
+notation for the propositional layer or annotation reification.
+`tests/fixtures/canonical/11_throne_room.nq` freezes one canonical form as
+bytes rather than as a hash, and both surfaces are required to produce exactly
+those 131 quads. `tools/vson_x/equiv.py` survives as the fast heuristic
+`make x-check` runs, re-commented and rewritten to import N1 and N2 from
+`tools/canon.py`, so the heuristic and the oracle cannot state two rules.
+
+It is **not** a clause and not a construct: C1–C9 do not mention denotation,
+`vson validate` still runs exactly its three gates, and no shape, term, schema
+field or IRI changes. Two documents can denote the same scene and both fail
+every shape, and §2.1 is unchanged — equality is not correctness, and no image
+is read. Nor does it replace §5.15: equal canonical forms imply F1 = 1.0, the
+converse does not hold (the metric compares document-local IRIs by local name,
+§4.6 compares them as written), and `tests/test_canon.py` pins both directions.
+The gate is not vacuous in the other direction either — `examples/throne_room.ttl`
+and `examples/gallery/11_throne_room.vson` carry **different** canonical hashes,
+which is the same finding §5.15.6 reports as F1 0.767.
+
 ## v1.2.0 — 2026-07-31
 
 Namespace release. Every canonical VSON IRI moves off `https://vson.dev/` and

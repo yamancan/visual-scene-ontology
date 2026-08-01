@@ -54,6 +54,7 @@ VSON does not invent a parser, grammar, or formal semantics. It rides on:
 - **OWL 2 RL** — decidable reasoning fragment
 - **SHACL** — well-formedness
 - **SPARQL 1.1** — query ([`queries/`](queries/); the RDF-star spelling of §5.11 awaits SPARQL-star support in a pinned engine — [§5.14.2](docs/vson.md#5142-sparql-11-and-what-the-pack-defers))
+- **RDFC-1.0** — canonical form, so "these two documents describe the same scene" is a byte comparison and not an opinion ([§4.6](docs/vson.md#46-denotation--when-two-documents-describe-the-same-scene))
 - **Penman** — authoring concrete syntax (proven by AMR)
 
 > **The canonical reference is [`docs/vson.md`](docs/vson.md)** — single-file RFC-style spec with Quick Start, per-field reference, JSON Schema, and the 16-scene example gallery.
@@ -69,7 +70,7 @@ ontology/         VSO TBox (OWL 2 RL) + VSV vocabulary
 shapes/           SHACL shapes for well-formedness
 queries/          29 competency questions (SPARQL 1.1) + byte-frozen answers — make cq-check
 examples/         Throne-room scene + gallery/ (16 scenes, minimal → complex)
-                  + gallery-x/ (scenes 01–11 plus 12_persona in VSON-X compact syntax)
+                  + gallery-x/ (scenes 01–12 in VSON-X compact syntax)
 cli/              `vson` Rust CLI (validate / verify --geometry / diff /
                   convert {p2t, x2t} / export {cypher, caption, fol})
                   + src/penman/routing-tables.json (single source of truth for both impls)
@@ -79,6 +80,7 @@ tools/penman/     Reference Penman ↔ Turtle-star transpiler (Python)
 tools/vson_x/     VSON-X compact-syntax parser + emitter + cross-syntax graph-equivalence
 tools/render/     Deterministic graph → English caption renderer
 tools/metrics/    Smatch graph agreement behind `vson diff` — per-layer precision/recall/F1
+tools/canon.py    RDFC-1.0 canonical form — the §4.6 test for "the same scene", + frozen hashes
 tools/schema/     JSON Schema files (extractor envelope + JSON-LD form)
 tools/extractor/  Image-to-graph extractor — orchestrator prompts + bare-VLM baseline
 skills/           Portable extractor skills (SKILL.md + conformance fixtures) — exercised by make x-skill-check
@@ -112,10 +114,11 @@ cli/target/release/vson export caption examples/throne_room.vson
 cli/target/release/vson diff examples/throne_room.ttl examples/gallery/11_throne_room.vson
 
 # Run all tests (Python + Rust)
-make check        # 70 Python tests + 16-scene gallery + 2 schema parses
+make check        # 305 Python tests + 16-scene gallery + 2 schema parses
+                  # includes the 29 frozen canonical hashes of §4.6
 make cq-check     # the 28 executable competency questions vs their frozen answers
 make cli-check    # Rust tests + byte-strict & graph-iso parity vs Python ref
-make x-check      # VSON-X gallery round-trip parity (11 pairs; 12_persona pending)
+make x-check      # VSON-X gallery round-trip parity (12 pairs)
 ```
 
 See [`docs/vson.md`](docs/vson.md) for the full spec, [`cli/README.md`](cli/README.md) for the CLI, and [`web/README.md`](web/README.md) for the studio.
@@ -139,7 +142,7 @@ VSON's genuinely-new content (everything else is W3C/ISO):
 3. **`SpatialFact` with mandatory viewer for directionals** — directional facts are viewer-anchored by schema. VSON commits to the relative frame of reference (Levinson 2003) with an explicit, machine-checkable anchor; figure/ground asymmetry follows Talmy.
 4. **Closed VSV vocabulary** curated for visual scenes.
 5. **Penman authoring surface** tuned for VSV.
-6. **VSON-X compact syntax** (v1.1) — nine prefix sigils, no brackets, LL(1), bearer-class dispatch for `*K V`. Round-trips graph-equivalent to Penman across the 11 gallery scenes that have a VSON-X counterpart (12 files; 12_persona pending round-trip coverage).
+6. **VSON-X compact syntax** (v1.1) — nine prefix sigils, no brackets, LL(1), bearer-class dispatch for `*K V`. All 12 gallery scenes that have a VSON-X counterpart denote the same scene as their Penman twin under [§4.6](docs/vson.md#46-denotation--when-two-documents-describe-the-same-scene): identical RDFC-1.0 canonical N-Quads, frozen in [`tests/fixtures/canonical/hashes.txt`](tests/fixtures/canonical/hashes.txt).
 7. **Persona / cross-document identity** (v1.1) — `vso:Persona` Frame + `vso:embodies` lets the same character appear in many scenes with consistent invariants.
 8. **Deterministic caption renderer** — graph → English, template-driven, byte-identical CI fixtures.
 9. **Exporter matrix** — shipped Cypher / caption / FOL (CLI) and DOT / GraphML / Mermaid / caption / FOL (web studio, in-browser) exporters, plus a published JSON-LD form; spec-only mappings for AMR / Visual Genome / USD.
