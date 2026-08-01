@@ -151,6 +151,10 @@ by rewriting its namespace and nothing else.
   merges, resolve the Pages URLs directly. The release does not depend on that
   PR — IRIs are names, and these names now have documents behind them either
   way.
+  *Annotation, 2026-07-31: PR #6471 merged; the canonical names now resolve —
+  `303` for the five namespace documents, `302` for the context and both schema
+  `$id`s. The paragraph above stands as written, as the record of what was true
+  at release; `make live-check` re-verifies the redirects (`docs/vson.md` §5.1).*
 - **JSON-LD context shipped.** `ontology/context.jsonld` — the IRI §4.4 has
   named since v1.0 and which never existed — now exists: prefix bindings for
   `vso`/`rcc`/`allen`, an `@vocab`, and `@type: @id` declarations for the seven

@@ -140,6 +140,33 @@ A document is a **conformant VSON v1.2 document** iff all of the following hold:
 
 Any conflict between two entries in this list is a bug. Resolve it by changing the lower-ranked artifact, or — if the lower-ranked artifact is right and this document is wrong — by fixing this document. Do not route around the disagreement.
 
+### 2.1 What conformance establishes
+
+Conformance is not one property. C1–C9 name three separable ones, checked by three different mechanisms, and a passing result establishes only what the mechanism that produced it examined.
+
+| Construct | Mechanism | Clauses |
+|---|---|---|
+| **Syntactic well-formedness** | the parser for the surface the document is written in — VSON-T (§4.1), VSON-P (§4.2, Appendix B), VSON-X (§4.3, Appendix D) | C1 |
+| **Structural well-formedness** | SHACL over [`shapes/vson-shapes.ttl`](../shapes/vson-shapes.ttl) at `inference="rdfs"` | C3–C9 |
+| **Internal consistency** | the OWL 2 RL closure of the document plus the TBox, checked for disjointness clashes ([`tools/owlrl_check.py`](../tools/owlrl_check.py)) | none — see below |
+
+**Syntactic well-formedness.** The bytes parse into one RDF graph under the surface the document declares. A conformant document **MUST** parse (C1). Parsing establishes nothing about what the resulting graph says: a document asserting `vso:rcc "banana"` is syntactically well-formed, and so is one that describes the same object twice under two names.
+
+**Structural well-formedness.** The parsed graph satisfies the shapes — the required edges are present, the cardinalities hold, the closed vocabularies of §5.12 are respected, and a directional fact carries its viewer (§3.3). A conformant document **MUST** satisfy C3–C9 with no violation. This is a statement about graph shape and nothing else: every value a shape does not constrain — a bounding box, a confidence, a lemma, a `vso:value` literal — is unexamined, and a structurally well-formed document **MAY** carry any of them. Where a clause is stated more tightly than the shape that enforces it, the clause is the requirement and the shape is incomplete; two such gaps are open — C5's *exactly one* `vso:viewer` and C6's *exactly one* `vso:lemma` on `vso:Process` and `vso:Stative` are enforced as *at least one*, so a document carrying two of either violates the clause and passes SHACL.
+
+**Internal consistency.** The OWL 2 RL closure of the document together with the ontology contains no individual inferred into two classes VSO declares disjoint. This is the document's agreement with itself and with the TBox, and it is the one construct **no numbered clause requires**: C1–C9 do not mention it, while `vson validate` runs it as its second gate — the SHACL gate runs at `inference="rdfs"`, which does not process `owl:disjointWith` and therefore cannot see those clashes. A document **MAY** satisfy C1–C9 and still be OWL 2 RL inconsistent. A verifier **SHOULD** run both gates, and a consumer **MUST NOT** read "conformant" as meaning the closure was computed.
+
+C2 belongs to none of the three. It is a vocabulary-closure property — no orphan VSO terms — and, as stated above, no tool checks it at validate time.
+
+**None of the three establishes correspondence to the image.** Nothing in this specification reads pixels. A document asserting a red cube left of a blue sphere, describing a photograph that contains neither, parses, satisfies every shape, and has a clash-free closure: fully conformant, entirely false. Producers, consumers, exporters, and user interfaces **MUST NOT** describe a conformant document as accurate, correct, faithful, or verified against the image, and **MUST NOT** present a passing result as evidence that a claim about the depicted scene is true. A tool reporting one pass/fail verdict **SHOULD** name the constructs it checked.
+
+**The absent construct is groundedness** — the property that each assertion in a document corresponds to what the image depicts. VSON v1.x defines no groundedness check, ships no groundedness evidence, and makes no groundedness claim. Establishing it would take at least two things this repository does not have:
+
+1. **A geometry consistency decision.** Where a document already carries the geometry of §5.10, agreement between that geometry and the relations asserted over it is decidable *inside the document*: two `vso:bbox2d` rectangles determine which RCC-8 relation of C8 holds between them, and their positions under the viewer's `vso:CameraView` determine the directional values §3.3 anchors. A document whose `vso:rcc` contradicts its own boxes is ungrounded in a way that needs no image to detect — and nothing in v1.x detects it. This one is checkable and unchecked.
+2. **Ground truth for what geometry cannot decide.** Class, dimension values, lemmas, thematic roles, and frame attributions do not follow from boxes. Evidence for those means comparison against human annotation over a fixed image set, with a published protocol and a reported inter-annotator agreement figure. No such corpus, protocol, or figure exists in this repository.
+
+Until both exist, **verified** in VSON means *verified against the schema*. Any stronger reading is unsupported by anything this project ships.
+
 ---
 
 ## 3. Concepts
@@ -308,7 +335,7 @@ Per-field template:
 
 The old names are **withdrawn, not aliased.** There is no `owl:sameAs` bridge, no redirect, and no shape that targets them: a document minted under `https://vson.dev/` selects zero focus nodes against the v1.2 shapes and does not validate. Withdrawal is the honest option here precisely because the legacy names had **zero external consumers** — they never dereferenced, no third party could have resolved or cached them, and every producer and consumer of them lives in this repository. Aliasing would have preserved a name that was never real.
 
-These IRIs are stable names, and the documents behind them are published: the ontology, shapes, JSON-LD context, and schemas are served at `https://vson.pages.dev/v1/` (a static site assembled from this repository by `scripts/build_site.py`). The w3id redirect that makes the canonical `w3id.org/vson` IRIs dereference is [pending review](https://github.com/perma-id/w3id.org/pull/6471); until it merges, resolve the Pages URLs directly. See §8 for the immutability rule and its one historical exception.
+These IRIs are stable names, and they dereference. The documents behind them — three ontologies, both shape profiles, the JSON-LD context, and both JSON Schemas — are served at `https://vson.pages.dev/v1/`, a static site assembled from this repository by [`scripts/build_site.py`](../scripts/build_site.py); and since 2026-07-31, when the [w3id redirect](https://github.com/perma-id/w3id.org/pull/6471) merged, each canonical name resolves to its document. `https://w3id.org/vson/v1/ontology` answers `303 See Other` to `https://vson.pages.dev/v1/ontology.ttl`, as do the other four namespace documents; the context IRI and both schema `$id`s answer `302 Found` to theirs. Cite the `w3id.org` names, not the Pages paths: the names are the identifiers, the host is only where the bytes currently sit. [`scripts/check_live_claims.py`](../scripts/check_live_claims.py) (`make live-check`) re-checks all eight of those redirects against the live services and fails when a response contradicts this paragraph — deliberately outside `make check`, which stays answerable from the checkout alone. See §8 for the immutability rule and its one historical exception.
 
 ### 5.2 `vso:Composition`
 
