@@ -45,7 +45,7 @@
 
 use super::gates::{
     absolutize, exit_status, forward, python_gate, require_script, spawn, stderr_excerpt,
-    transpile_to_temp, vson_home, GateRun, PyGate, TempFile,
+    transpile_text_to_temp, vson_home, GateRun, PyGate, TempFile,
 };
 use super::report::{FileReport, Records, Report, RECORDS_VERSION};
 use super::sourcemap::{sniff, SourceMap, Syntax};
@@ -183,8 +183,10 @@ fn resolve(arg: &Path, structured: bool) -> Result<Input> {
     }
     let penman = arg.extension().and_then(|e| e.to_str()) == Some("vson");
     if penman {
+        // Read once: the same bytes are compiled for the gates and indexed for
+        // the position map.
         let text = std::fs::read_to_string(arg)?;
-        let temp = transpile_to_temp(arg)?;
+        let temp = transpile_text_to_temp(arg, &text)?;
         return Ok(Input {
             label,
             data: temp.path().to_path_buf(),

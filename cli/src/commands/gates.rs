@@ -87,8 +87,17 @@ fn temp_stem(file: &Path) -> String {
 
 /// Compile a `.vson` (Penman) input to a temp Turtle file the gates can read.
 pub fn transpile_to_temp(file: &Path) -> Result<TempFile> {
-    let src = std::fs::read_to_string(file)?;
-    let ttl = crate::penman::to_turtle(&src).map_err(Error::Parse)?;
+    transpile_text_to_temp(file, &std::fs::read_to_string(file)?)
+}
+
+/// The same, for a caller that has already read the source.
+///
+/// `validate --format json|sarif` keeps the Penman text to resolve line
+/// numbers from ([`super::sourcemap`]), and reading the file a second time
+/// here to compile the same bytes would be work for nothing. `file` is used
+/// only to name the temp file.
+pub fn transpile_text_to_temp(file: &Path, src: &str) -> Result<TempFile> {
+    let ttl = crate::penman::to_turtle(src).map_err(Error::Parse)?;
     TempFile::create(&temp_stem(file), &ttl)
 }
 
