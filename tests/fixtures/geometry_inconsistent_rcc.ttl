@@ -1,0 +1,59 @@
+# Negative geometry fixture — the topological half (docs/vson.md §5.13).
+#
+# This document is a **conformant VSON v1.3 document**. It satisfies C1-C9, it
+# passes SHACL against shapes/vson-shapes.ttl, its OWL 2 RL closure has no
+# clash, and every VSO term it names is declared: `vson validate` reports OK on
+# all three gates. It is also, on its own account, false. It says the mug is a
+# non-tangential proper part of the shelf — inside it, touching no edge — and
+# then gives two rectangles in which the mug's box sits entirely *below* the
+# shelf's, sharing not one point with it.
+#
+# That gap is the whole thesis of §5.13, and this fixture is where CI holds it:
+# three green gates and a red fourth, decided from nothing but the document's
+# own numbers. No image is involved. The gate is not claiming the picture has no
+# mug in it; it is reporting that the document cannot be describing any picture,
+# because no arrangement of a real mug and a real shelf satisfies both of the
+# things it says.
+#
+# `:sf_pot_shelf` is the control. It is decided and consistent, so a gate that
+# simply flagged every fact in sight would fail this file for the wrong reason.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix :    <https://example.org/scenes/geometry-bad-rcc#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :shelf , :mug , :pot ;
+    vso:hasFact  :sf_mug_shelf , :sf_pot_shelf .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "medium_shot" .
+
+# x[0.10,0.90] y[0.20,0.50]
+:shelf a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Shelf ;
+    vso:bbox2d "0.10,0.20,0.80,0.30" .
+
+# x[0.40,0.55] y[0.70,0.90] — the whole box is below y=0.50, so it does not
+# meet the shelf's box, let alone sit strictly inside it.
+:mug a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Mug ;
+    vso:bbox2d "0.40,0.70,0.15,0.20" .
+
+# x[0.20,0.35] y[0.25,0.45] — strictly inside the shelf's box on all four sides.
+:pot a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Pot ;
+    vso:bbox2d "0.20,0.25,0.15,0.20" .
+
+# INCONSISTENT. NTPP entails mug ⊆ interior(shelf), so bbox(mug) must lie
+# strictly inside bbox(shelf) on all four sides; it lies wholly outside it.
+:sf_mug_shelf a vso:SpatialFact ;
+    vso:figure :mug ; vso:ground :shelf ; vso:rcc rcc:NTPP .
+
+# CONSISTENT, and decided — the control.
+:sf_pot_shelf a vso:SpatialFact ;
+    vso:figure :pot ; vso:ground :shelf ; vso:rcc rcc:NTPP .

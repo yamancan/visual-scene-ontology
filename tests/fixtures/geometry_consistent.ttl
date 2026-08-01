@@ -1,0 +1,100 @@
+# Positive geometry fixture (docs/vson.md §5.13). Every relation this document
+# asserts over two rectangles is compatible with those rectangles, and the two
+# it asserts outside the gate's scope are reported as undecidable rather than
+# waved through. `make geometry-check` runs it beside the shipped corpus, which
+# is what keeps that target from being vacuous: no gallery scene carries both a
+# bbox2d and a spatial fact.
+#
+# The `:sf_cat_table` fact is the one to read first. A cat sitting on a table is
+# rcc:EC — the regions touch — while the cat's *rectangle* and the table's
+# overlap with positive area, so the rectangles stand in PO. A gate that
+# computed the rectangles' own RCC-8 relation and demanded a match would call
+# this document inconsistent. §5.13 refutes rather than confirms: a bounding box
+# contains the region and is not the region, so EC is refuted only by rectangles
+# that do not meet at all. Same reading of the shipped `books` studio envelope,
+# where a group of people is rcc:EC with the snowy ground its box sits inside.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/geometry-ok#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :table , :bowl , :apple , :label , :cat , :lamp ;
+    vso:hasFact  :sf_apple_bowl , :sf_label_bowl , :sf_cat_table ,
+                 :sf_lamp_table , :sf_bowl_table , :sf_cat_bowl .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "medium_shot" .
+
+# x[0.00,1.00] y[0.60,1.00]
+:table a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Furniture ;
+    vso:bbox2d "0.00,0.60,1.00,0.40" ;
+    vso:visibleFraction "0.85"^^xsd:decimal .
+
+# x[0.30,0.60] y[0.50,0.70]
+:bowl a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Container ;
+    vso:bbox2d "0.30,0.50,0.30,0.20" .
+
+# x[0.38,0.48] y[0.54,0.64] — strictly inside the bowl's rectangle on all four
+# sides, which is what NTPP entails of it.
+:apple a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Apple ;
+    vso:bbox2d "0.38,0.54,0.10,0.10" .
+
+# x[0.30,0.40] y[0.60,0.65] — inside the bowl's rectangle but flush against its
+# left edge. TPP is satisfied; NTPP would not be, and that cut is exactly the
+# distinction the strict/non-strict containment test decides.
+:label a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Label ;
+    vso:bbox2d "0.30,0.60,0.10,0.05" .
+
+# x[0.05,0.30] y[0.45,0.75]
+:cat a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Agentive ;
+    vso:countability vso:Count ; vso:class :Animal ;
+    vso:bbox2d "0.05,0.45,0.25,0.30" ;
+    vso:occludes :table .
+
+# x[0.75,0.90] y[0.05,0.30] — nowhere near the table's rectangle.
+:lamp a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Lamp ;
+    vso:bbox2d "0.75,0.05,0.15,0.25" .
+
+# Decided, consistent: strict containment.
+:sf_apple_bowl a vso:SpatialFact ;
+    vso:figure :apple ; vso:ground :bowl ; vso:rcc rcc:NTPP .
+
+# Decided, consistent: containment with a shared edge.
+:sf_label_bowl a vso:SpatialFact ;
+    vso:figure :label ; vso:ground :bowl ; vso:rcc rcc:TPP .
+
+# Decided, consistent: EC needs the rectangles to meet, and they do.
+:sf_cat_table a vso:SpatialFact ;
+    vso:figure :cat ; vso:ground :table ; vso:rcc rcc:EC .
+
+# rcc:DC is never refutable — disjoint regions may have any rectangles at all.
+# vso:proximal is out of scope: VSON fixes no distance threshold for `far`.
+:sf_lamp_table a vso:SpatialFact ;
+    vso:figure :lamp ; vso:ground :table ; vso:rcc rcc:DC ; vso:proximal vso:far .
+
+# Two decisions on one fact: PO (the rectangles meet) and above (the bowl's
+# centroid y=0.60 sits higher in the frame than the table's y=0.80).
+:sf_bowl_table a vso:SpatialFact ;
+    vso:figure :bowl ; vso:ground :table ; vso:viewer :cam ;
+    vso:rcc rcc:PO ; vso:directional vso:above .
+
+# Decided, consistent: the cat's centroid x=0.175 is left of the bowl's x=0.45,
+# and the fact is anchored to the same camera the rectangles are normalized
+# against — without that anchor (C5) the gate would have no frame to read.
+:sf_cat_bowl a vso:SpatialFact ;
+    vso:figure :cat ; vso:ground :bowl ; vso:viewer :cam ;
+    vso:directional vso:left_of .

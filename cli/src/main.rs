@@ -5,6 +5,11 @@
 //! - `validate <files...>` — both of the gates `make check` runs: SHACL
 //!   conformance via `pyshacl`, then OWL 2 RL consistency via
 //!   `python3 -m tools.owlrl_check`.
+//! - `verify --geometry <files...>` — the checks that are *not* conformance.
+//!   Today one: whether the spatial relations a document asserts agree with the
+//!   `vso:bbox2d` rectangles it asserts beside them (docs/vson.md §5.13). It
+//!   reads no image, and a document that fails it is still conformant — which
+//!   is exactly why it is not a `validate` gate.
 //! - `convert p2t|t2p|x2t <file>` — Penman/VSON-X <-> Turtle transpilation.
 //! - `export cypher <file>` — emit Cypher CREATE statements from Turtle.
 //! - `export caption <file>` — render a deterministic English caption for
@@ -40,6 +45,22 @@ enum Cmd {
         #[arg(required = true)]
         files: Vec<PathBuf>,
         /// Path to the repo root containing ontology/ and shapes/.
+        #[arg(long, env = "VSON_HOME")]
+        home: Option<PathBuf>,
+    },
+    /// Run a non-conformance check. Name the check: `--geometry`.
+    Verify {
+        /// Files to check (.ttl or .vson).
+        #[arg(required = true)]
+        files: Vec<PathBuf>,
+        /// Check asserted spatial relations against the document's own
+        /// vso:bbox2d rectangles (docs/vson.md §5.13). Reads no image.
+        #[arg(long)]
+        geometry: bool,
+        /// Report every relation's verdict, not only the contradicted ones.
+        #[arg(long)]
+        verbose: bool,
+        /// Path to the repo root containing tools/.
         #[arg(long, env = "VSON_HOME")]
         home: Option<PathBuf>,
     },
@@ -79,6 +100,12 @@ fn main() -> ExitCode {
     let cli = Cli::parse();
     let result = match cli.command {
         Cmd::Validate { files, home } => commands::validate::run(&files, home.as_deref()),
+        Cmd::Verify {
+            files,
+            geometry,
+            verbose,
+            home,
+        } => commands::verify::run(&files, home.as_deref(), geometry, verbose),
         Cmd::Convert {
             direction: ConvertDirection::P2t { file },
         } => commands::convert::p2t(&file),

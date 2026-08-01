@@ -1,0 +1,56 @@
+# Negative geometry fixture — the viewer-relative half (docs/vson.md §5.13).
+#
+# Conformant on all three `vson validate` gates, and contradicted by its own
+# rectangles. The fact says the sign is `vso:left_of` the door, anchored to
+# `:cam` as C5 requires; the boxes put the sign's centroid at x=0.775 and the
+# door's at x=0.25. Under §5.13's directional rule — read in the image frame of
+# the camera the composition is `vso:viewedBy`, x increasing to the right — that
+# is the opposite of what the document asserts.
+#
+# The anchor is what makes the decision possible, and it is what the mandatory
+# viewer of C5 buys. `left_of` is not a property of two regions; it is a
+# property of two regions *and a viewpoint*. Delete the `vso:viewer` and this
+# file stops being geometry-inconsistent and starts being SHACL-invalid, which
+# is a different gate's report (`bad_no_viewer.ttl`).
+#
+# `:sf_lamp_door` is the control: same shape, same anchor, decided the other way.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix :    <https://example.org/scenes/geometry-bad-dir#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :door , :sign , :lamp ;
+    vso:hasFact  :sf_sign_door , :sf_lamp_door .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "wide_shot" .
+
+# x[0.10,0.40], centroid x=0.25
+:door a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Door ;
+    vso:bbox2d "0.10,0.30,0.30,0.60" .
+
+# x[0.70,0.85], centroid x=0.775 — to the right of the door, not the left.
+:sign a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Sign ;
+    vso:bbox2d "0.70,0.35,0.15,0.10" .
+
+# x[0.01,0.06], centroid x=0.035 — genuinely left of the door.
+:lamp a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Lamp ;
+    vso:bbox2d "0.01,0.20,0.05,0.40" .
+
+# INCONSISTENT. left_of holds exactly when the figure's centroid sits further
+# left than the ground's; 0.775 does not sit further left than 0.25.
+:sf_sign_door a vso:SpatialFact ;
+    vso:figure :sign ; vso:ground :door ; vso:viewer :cam ;
+    vso:directional vso:left_of .
+
+# CONSISTENT, and decided — the control.
+:sf_lamp_door a vso:SpatialFact ;
+    vso:figure :lamp ; vso:ground :door ; vso:viewer :cam ;
+    vso:directional vso:left_of .

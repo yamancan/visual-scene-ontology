@@ -7,11 +7,11 @@ TOOLS = -m tools.penman.vson_penman
 EXAMPLE_VSON = examples/throne_room.vson
 EXAMPLE_TTL = examples/throne_room.ttl
 
-.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check fragment-check registry-check iri-check live-check x-check x-skill-check envelope-check web-check web-deploy web-smoke deploy-check site clean
+.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check fragment-check registry-check geometry-check iri-check live-check x-check x-skill-check envelope-check web-check web-deploy web-smoke deploy-check site clean
 
 all: check
 
-check: parse-ontology penman-roundtrip shacl owl-consistency test spec-check fragment-check registry-check lint-py iri-check
+check: parse-ontology penman-roundtrip shacl owl-consistency test spec-check fragment-check registry-check geometry-check lint-py iri-check
 
 # Everything the CI runs, minus the web app (which needs pnpm/node).
 check-all: check cli-check x-check x-skill-check envelope-check
@@ -110,6 +110,21 @@ fragment-check:
 registry-check:
 	@echo "==> Dimension registry: every copy MUST match ontology/vso.ttl"
 	@$(PY) scripts/check_registry_drift.py
+
+# The fourth construct (docs/vson.md §5.13), and the one that is not a
+# conformance check: it asks whether a document's asserted relations agree with
+# its own asserted rectangles. It reads no image and it decides no clause, which
+# is why `vson validate` does not run it and `vson verify --geometry` does. It
+# belongs in `check` for the same reason the other offline gates do — this
+# repository's own corpus should not contradict itself — and the positive
+# fixture is named explicitly because it is what keeps the target from being
+# vacuous: no gallery scene carries both a bbox2d and a spatial fact. The two
+# negative fixtures are exercised by tests/test_geometry_check.py, which is
+# where a file that MUST fail belongs.
+geometry-check:
+	@echo "==> Geometry consistency: asserted relations vs the document's own bbox2d"
+	@$(PY) -m tools.geometry_check examples/throne_room.ttl \
+		$(wildcard examples/gallery/*.vson) tests/fixtures/geometry_consistent.ttl
 
 iri-check:
 	@echo "==> Legacy IRI gate: the withdrawn namespace host MUST NOT reappear"
