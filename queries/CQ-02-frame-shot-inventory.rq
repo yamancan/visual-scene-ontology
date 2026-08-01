@@ -1,0 +1,24 @@
+# CQ-02 · frame-shot-inventory
+#
+# Question: Which camera angle × framing combinations does the corpus actually
+#           use, and how many documents use each?
+# Persona:  P1 — generation-pipeline engineer. The coverage question a shot
+#           library asks before it trusts a value set: which of the documented
+#           combinations has anything ever been written in?
+# Spec:     docs/vson.md §5.3.3 (`vso:angle`, `vso:framing`); §2.1
+# Form:     SELECT — one row per combination in use
+# Note:     Neither value list is SHACL-closed in v1.x — §2.1 lists the §5.3.1 /
+#           §5.3.3 value lists among the things no shape examines, and §8.2
+#           forbids narrowing them mid-version. So this answer reports what the
+#           corpus writes, never what a producer is allowed to write.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?angle ?framing (COUNT(DISTINCT ?doc) AS ?documents)
+WHERE {
+  GRAPH ?doc {
+    ?scene a vso:Composition ; vso:viewedBy ?cam .
+    ?cam vso:angle ?angle ; vso:framing ?framing .
+  }
+}
+GROUP BY ?angle ?framing
+ORDER BY ?angle ?framing

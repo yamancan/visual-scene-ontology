@@ -1,0 +1,10 @@
+# CQ-19-event-role-arity
+# form: SELECT
+# rows: 5
+
+?doc	?perdurant	?lemma	?roles
+06_event_with_instrument	06_event_with_instrument#strike	"strike"	"3"^^xsd:integer
+07_ditransitive	07_ditransitive#give	"give"	"3"^^xsd:integer
+11_throne_room	11_throne_room#strike	"strike"	"3"^^xsd:integer
+16_annotation	16_annotation#strike	"strike"	"3"^^xsd:integer
+throne_room	throne_room#strike	"strike"	"4"^^xsd:integer

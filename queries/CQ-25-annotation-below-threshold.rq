@@ -1,0 +1,29 @@
+# CQ-25 · annotation-below-threshold
+#
+# Question: Which annotated triples does the producer report below 0.80
+#           confidence?
+# Persona:  P1 — generation-pipeline engineer. The query a pipeline runs to
+#           route low-confidence edges to review instead of to the renderer —
+#           a gate the schema cannot express, because the schema has no opinion
+#           about how confident is confident enough.
+# Spec:     docs/vson.md §5.11 (`vso:confidence`, bounded to [0,1] since v1.3)
+# Form:     SELECT — one row per triple below the threshold
+# Note:     0.80 is this query's threshold and nothing else's: VSON fixes no
+#           confidence policy, and `vss:ConfidenceRangeShape` bounds the value
+#           to [0,1] without preferring any part of the interval. The comparison
+#           is numeric, so the `xsd:decimal` the transpiler emits and an
+#           `xsd:double` from another producer are both ordered correctly.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?doc ?subject ?predicate ?object ?confidence
+WHERE {
+  GRAPH ?doc {
+    ?annotation a vso:Annotation ;
+                vso:annotatedSubject   ?subject ;
+                vso:annotatedPredicate ?predicate ;
+                vso:annotatedObject    ?object ;
+                vso:confidence         ?confidence .
+    FILTER(?confidence < 0.80)
+  }
+}
+ORDER BY ?doc ?subject ?predicate

@@ -1,0 +1,8 @@
+# CQ-09-spatial-contact
+# form: SELECT
+# rows: 3
+
+?doc	?figure	?ground	?rcc
+03_spatial_topology	03_spatial_topology#cat	03_spatial_topology#mat	rcc:EC
+11_throne_room	11_throne_room#crown	11_throne_room#alice	rcc:EC
+throne_room	throne_room#crown	throne_room#alice	rcc:EC

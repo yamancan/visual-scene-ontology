@@ -1,0 +1,11 @@
+# CQ-02-frame-shot-inventory
+# form: SELECT
+# rows: 6
+
+?angle	?framing	?documents
+"eye_level"	"close_up"	"3"^^xsd:integer
+"eye_level"	"medium_shot"	"5"^^xsd:integer
+"eye_level"	"wide_shot"	"3"^^xsd:integer
+"high"	"wide_shot"	"1"^^xsd:integer
+"low"	"medium_shot"	"4"^^xsd:integer
+"low"	"wide_shot"	"1"^^xsd:integer

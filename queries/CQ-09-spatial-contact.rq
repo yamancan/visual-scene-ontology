@@ -1,0 +1,25 @@
+# CQ-09 · spatial-contact
+#
+# Question: Which pairs of entities does the corpus assert to be in contact —
+#           connected rather than disconnected regions?
+# Persona:  P2 — scene-data annotator / ML researcher. Adjacency is the
+#           relation a scene-graph dataset reports as "on", "in" or "touching",
+#           collapsed; RCC-8 is what VSON says instead.
+# Spec:     docs/vson.md §5.7 (`vso:rcc`); §2 clause C8; §5.12
+# Form:     SELECT — one row per connected figure/ground pair
+# Note:     Contact here is RCC-8 connection: all eight base relations except
+#           `rcc:DC`, which is the one that asserts the regions share no point.
+#           The seven are listed rather than filtered out, so a value outside
+#           C8 cannot leak into the answer.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+PREFIX rcc: <https://w3id.org/vson/v1/rcc8#>
+
+SELECT ?doc ?figure ?ground ?rcc
+WHERE {
+  GRAPH ?doc {
+    ?fact a vso:SpatialFact ;
+          vso:figure ?figure ; vso:ground ?ground ; vso:rcc ?rcc .
+    VALUES ?rcc { rcc:EC rcc:PO rcc:EQ rcc:TPP rcc:NTPP rcc:TPPi rcc:NTPPi }
+  }
+}
+ORDER BY ?doc ?figure ?ground

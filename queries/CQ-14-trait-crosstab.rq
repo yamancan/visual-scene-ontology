@@ -1,0 +1,22 @@
+# CQ-14 · trait-crosstab
+#
+# Question: How many entities does the corpus carry in each animacy ×
+#           countability cell?
+# Persona:  P2 — scene-data annotator / ML researcher. The two axes are
+#           orthogonal by design (§3.2); a cross-tabulation is how you check
+#           that the corpus treats them as orthogonal rather than as a
+#           relabelled single type hierarchy.
+# Spec:     docs/vson.md §3.2; §5.4 (`vso:animacy`, `vso:countability`); §5.12
+# Form:     SELECT — one row per occupied cell
+# Note:     Four of the six cells are occupied. An entity missing either axis is
+#           absent from every cell — CQ-15 is the query that finds those, and
+#           the two answers are meant to be read together: 39 entities appear
+#           here and 41 assert an animacy.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?animacy ?countability (COUNT(DISTINCT ?entity) AS ?entities)
+WHERE {
+  ?entity vso:animacy ?animacy ; vso:countability ?countability .
+}
+GROUP BY ?animacy ?countability
+ORDER BY ?animacy ?countability

@@ -1,0 +1,7 @@
+# CQ-23-causal-temporal
+# form: SELECT
+# rows: 2
+
+?doc	?from	?relation	?to
+throne_room	throne_room#charge	allen:before	throne_room#strike
+throne_room	throne_room#charge	vso:causes	throne_room#strike

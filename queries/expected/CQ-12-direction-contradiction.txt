@@ -1,0 +1,4 @@
+# CQ-12-direction-contradiction
+# form: ASK
+
+false

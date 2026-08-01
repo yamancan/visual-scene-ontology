@@ -1,0 +1,19 @@
+# CQ-17-quality-inventory
+# form: SELECT
+# rows: 14
+
+?dimension	?qualities	?documents
+vso:ActionState	"2"^^xsd:integer	"2"^^xsd:integer
+vso:Affect	"9"^^xsd:integer	"6"^^xsd:integer
+vso:Age	"3"^^xsd:integer	"3"^^xsd:integer
+vso:Color	"6"^^xsd:integer	"5"^^xsd:integer
+vso:Enchantment	"2"^^xsd:integer	"2"^^xsd:integer
+vso:Focal	"2"^^xsd:integer	"2"^^xsd:integer
+vso:Hair	"1"^^xsd:integer	"1"^^xsd:integer
+vso:Layout	"2"^^xsd:integer	"2"^^xsd:integer
+vso:Material	"6"^^xsd:integer	"5"^^xsd:integer
+vso:Pose	"1"^^xsd:integer	"1"^^xsd:integer
+vso:Role	"12"^^xsd:integer	"9"^^xsd:integer
+vso:Size	"1"^^xsd:integer	"1"^^xsd:integer
+vso:Skin	"1"^^xsd:integer	"1"^^xsd:integer
+vso:Weight	"1"^^xsd:integer	"1"^^xsd:integer

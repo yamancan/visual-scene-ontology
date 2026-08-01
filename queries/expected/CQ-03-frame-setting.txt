@@ -1,0 +1,8 @@
+# CQ-03-frame-setting
+# form: SELECT
+# rows: 3
+
+?doc	?venue	?atmosphere	?timeOfDay
+08_collective	"marketplace"	"energetic"	"noon"
+11_throne_room	"throne_room"	"tense"	"dusk"
+throne_room	"throne_room"	"tense"	"dusk"

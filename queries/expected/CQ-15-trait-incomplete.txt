@@ -1,0 +1,7 @@
+# CQ-15-trait-incomplete
+# form: SELECT
+# rows: 2
+
+?doc	?entity	?axis
+throne_room	throne_room#crown	vso:countability
+throne_room	throne_room#sword	vso:countability

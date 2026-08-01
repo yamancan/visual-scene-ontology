@@ -1,0 +1,21 @@
+# CQ-07 · viewer-anchored
+#
+# Question: Is there a directional spatial fact anywhere in the corpus that does
+#           not name the viewer its direction is relative to?
+# Persona:  P1 — generation-pipeline engineer. "Left of" with no vantage point
+#           is the ambiguity that makes an unvalidated scene description
+#           unusable downstream; clause C5 is VSON's answer to it.
+# Spec:     docs/vson.md §2 clause C5; §3.3 (viewer anchoring); §5.7
+# Form:     ASK — a conformant corpus answers false
+# Note:     This is the headline competency question: the mandatory viewer is
+#           the constraint the README's contribution list rests on, and a
+#           corpus-wide ASK returning false is what makes that claim checkable
+#           rather than asserted. It is a real corpus-wide question because the
+#           loader gives each document its own namespace — a fact in one
+#           document can never borrow a viewer from another.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+ASK {
+  ?fact a vso:SpatialFact ; vso:directional ?direction .
+  FILTER NOT EXISTS { ?fact vso:viewer ?viewer }
+}

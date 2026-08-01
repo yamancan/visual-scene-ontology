@@ -1,0 +1,24 @@
+# CQ-05 · frame-not-depicted
+#
+# Question: Does any document in the corpus depict a Frame — that is, does
+#           `vso:depicts` anywhere reach the lens instead of the world?
+# Persona:  P1 — generation-pipeline engineer. Clause C9 is the one that keeps
+#           the camera out of the object list a renderer is handed.
+# Spec:     docs/vson.md §2 clause C9; §3.1 (Frame is not an Entity)
+# Form:     ASK — a conformant corpus answers false
+# Note:     The five Frame subtypes are named explicitly because the corpus
+#           carries no TBox and this pack runs under no entailment regime: an
+#           asserted `a vso:CameraView` does not yield `a vso:Frame` here.
+#           Gallery scenes 13–15 attach Negation, BeliefState and Quantification
+#           nodes with `vso:depicts`; those are reification nodes, not Frames,
+#           and C9 does not reach them (`vss:DepictsEntityShape`, §5.2).
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+ASK {
+  ?scene  vso:depicts ?target .
+  ?target a ?kind .
+  VALUES ?kind {
+    vso:Frame vso:SceneContext vso:VisualStyle
+    vso:CameraView vso:Composition vso:Persona
+  }
+}

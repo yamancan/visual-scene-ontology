@@ -1,0 +1,8 @@
+# CQ-26-persona-identity
+# form: SELECT
+# rows: 3
+
+?doc	?persona	?entity	?dimension	?value
+12_persona	12_persona#alice_persona	12_persona#alice	vso:Hair	12_persona#blonde_long
+12_persona	12_persona#alice_persona	12_persona#alice	vso:Role	12_persona#queen
+12_persona	12_persona#alice_persona	12_persona#alice	vso:Skin	12_persona#light

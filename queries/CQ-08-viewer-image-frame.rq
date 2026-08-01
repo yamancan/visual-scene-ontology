@@ -1,0 +1,23 @@
+# CQ-08 · viewer-image-frame
+#
+# Question: For each directional fact, which camera anchors it, and is that the
+#           camera the composition is viewed by?
+# Persona:  P2 — scene-data annotator / ML researcher. The question the geometry
+#           check has to answer before it may read a rectangle as left or right.
+# Spec:     docs/vson.md §3.3; §5.7 (`vso:viewer`); §5.13.1 (the image frame)
+# Form:     SELECT — one row per directional fact
+# Note:     §5.13.1 decides direction from bounding boxes only when the fact's
+#           viewer and the composition's `vso:viewedBy` are the same node;
+#           otherwise the verdict is `viewer-not-image-frame` (§5.13.6). This
+#           query is that precondition, asked of the corpus directly.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?doc ?fact ?direction ?viewer ?viewedBy ?anchor
+WHERE {
+  GRAPH ?doc {
+    ?fact  a vso:SpatialFact ; vso:directional ?direction ; vso:viewer ?viewer .
+    ?scene a vso:Composition ; vso:viewedBy ?viewedBy .
+    BIND(IF(?viewer = ?viewedBy, "same-camera", "other-camera") AS ?anchor)
+  }
+}
+ORDER BY ?doc ?fact

@@ -1,0 +1,22 @@
+# CQ-01-frame-camera
+# form: SELECT
+# rows: 17
+
+?doc	?angle	?focalLength	?framing
+01_minimal	"eye_level"	"50mm"	"close_up"
+02_quality	"eye_level"	"50mm"	"close_up"
+03_spatial_topology	"eye_level"	"50mm"	"medium_shot"
+04_directional_with_viewer	"eye_level"	"35mm"	"wide_shot"
+05_possession_stative	"low"	"50mm"	"medium_shot"
+06_event_with_instrument	"eye_level"	"35mm"	"medium_shot"
+07_ditransitive	"eye_level"	"50mm"	"medium_shot"
+08_collective	"high"	"24mm"	"wide_shot"
+09_mass_substance	"eye_level"	"85mm"	"close_up"
+10_geometry_bbox	"eye_level"	"50mm"	"medium_shot"
+11_throne_room	"low"	"35mm"	"medium_shot"
+12_persona	"eye_level"	"50mm"	"medium_shot"
+13_negation	"low"	"35mm"	"wide_shot"
+14_belief_state	"eye_level"	"35mm"	"wide_shot"
+15_quantification	"eye_level"	"50mm"	"wide_shot"
+16_annotation	"low"	"35mm"	"medium_shot"
+throne_room	"low"	"35mm"	"medium_shot"

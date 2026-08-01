@@ -1,0 +1,25 @@
+# CQ-18 · composition-quality
+#
+# Question: Which Qualities are borne by the composition root itself rather than
+#           by anything depicted in the scene?
+# Persona:  P3 — director / creative technologist. Layout and focal point are
+#           properties of the picture, not of anything in it; the notation says
+#           so by hanging them on the Composition.
+# Spec:     docs/vson.md §5.5.1 (the Bearer column); §5.2; §5.5
+# Form:     SELECT — one row per composition-borne Quality
+# Note:     The Bearer column of §5.5.1 is guidance, not a constraint — no shape
+#           ties a dimension to a bearer class — so this query asks where the
+#           corpus actually puts them. The `?value` column shows both spellings
+#           §5.5 permits: the Penman transpiler compiles a bareword to an IRI in
+#           the document namespace, while the hand-authored Turtle writes a
+#           plain literal, and the two rows for one scene state the same thing.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?doc ?dimension ?value
+WHERE {
+  GRAPH ?doc {
+    ?scene   a vso:Composition ; vso:hasQuality ?quality .
+    ?quality vso:dimension ?dimension ; vso:value ?value .
+  }
+}
+ORDER BY ?doc ?dimension

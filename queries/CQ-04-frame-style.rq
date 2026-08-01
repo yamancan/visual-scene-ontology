@@ -1,0 +1,26 @@
+# CQ-04 · frame-style
+#
+# Question: Which scenes declare a rendering style, and which style does the
+#           composition say it renders as?
+# Persona:  P3 — director / creative technologist. Style is a separate frame
+#           from the depicted world (§3.1), which is what lets a shot be
+#           re-rendered in another medium without touching the scene.
+# Spec:     docs/vson.md §5.3.2 (`vso:VisualStyle`); §5.2 (`vso:rendersAs`)
+# Form:     SELECT — one row per declared VisualStyle
+# Note:     `vso:framedBy` attaches a style; `vso:rendersAs` picks the one the
+#           composition is rendered in. A document may declare several and
+#           render as one, so the two columns are asked separately.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?doc ?style ?aesthetic ?palette ?medium ?rendersAs
+WHERE {
+  GRAPH ?doc {
+    ?scene a vso:Composition ; vso:framedBy ?style .
+    ?style a vso:VisualStyle .
+    OPTIONAL { ?style vso:aesthetic ?aesthetic }
+    OPTIONAL { ?style vso:palette   ?palette }
+    OPTIONAL { ?style vso:medium    ?medium }
+    OPTIONAL { ?scene vso:rendersAs ?rendersAs }
+  }
+}
+ORDER BY ?doc ?style

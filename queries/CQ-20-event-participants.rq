@@ -1,0 +1,29 @@
+# CQ-20 · event-participants
+#
+# Question: For every Event in the corpus: who does what to whom, with what, and
+#           for whom?
+# Persona:  P3 — director / creative technologist. The shot-list sentence, read
+#           back out of the graph the same way the caption renderer reads it.
+# Spec:     docs/vson.md §5.6 (`vso:Event`, thematic roles); §2 clause C6
+# Form:     SELECT — one row per Event
+# Note:     Each role is OPTIONAL because arity is per-verb: `charge` has an
+#           agent and a patient and no instrument, `give` binds theme and
+#           recipient instead of patient, and an inner join on all five would
+#           silently drop every Event that is not `strike`. That per-verb
+#           variation is the reason §5.6 keeps the role inventory closed and
+#           coarse rather than per-predicate. C6 makes the lemma required, so it
+#           is the one column that cannot be absent.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?doc ?event ?lemma ?agent ?patient ?theme ?recipient ?instrument
+WHERE {
+  GRAPH ?doc {
+    ?event a vso:Event ; vso:lemma ?lemma .
+    OPTIONAL { ?event vso:agent      ?agent }
+    OPTIONAL { ?event vso:patient    ?patient }
+    OPTIONAL { ?event vso:theme      ?theme }
+    OPTIONAL { ?event vso:recipient  ?recipient }
+    OPTIONAL { ?event vso:instrument ?instrument }
+  }
+}
+ORDER BY ?doc ?event

@@ -1,0 +1,7 @@
+# CQ-10-spatial-inventory
+# form: SELECT
+# rows: 2
+
+?rcc	?facts	?documents
+rcc:DC	"3"^^xsd:integer	"3"^^xsd:integer
+rcc:EC	"3"^^xsd:integer	"3"^^xsd:integer

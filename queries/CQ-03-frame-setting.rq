@@ -1,0 +1,23 @@
+# CQ-03 · frame-setting
+#
+# Question: Which scenes declare a setting, and what venue, atmosphere and time
+#           of day does each state?
+# Persona:  P3 — director / creative technologist. The brief-level question:
+#           where and when is this, and what does it feel like.
+# Spec:     docs/vson.md §5.3.1 (`vso:SceneContext`); §5.2 (`vso:framedBy`)
+# Form:     SELECT — one row per document that declares a SceneContext
+# Note:     A scene with no SceneContext is conformant and simply absent from
+#           this answer; the Frame layer is optional throughout (§5.2).
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?doc ?venue ?atmosphere ?timeOfDay
+WHERE {
+  GRAPH ?doc {
+    ?scene a vso:Composition ; vso:framedBy ?ctx .
+    ?ctx   a vso:SceneContext .
+    OPTIONAL { ?ctx vso:venue      ?venue }
+    OPTIONAL { ?ctx vso:atmosphere ?atmosphere }
+    OPTIONAL { ?ctx vso:timeOfDay  ?timeOfDay }
+  }
+}
+ORDER BY ?doc

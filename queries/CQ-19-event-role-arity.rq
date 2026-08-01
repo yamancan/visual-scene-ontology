@@ -1,0 +1,31 @@
+# CQ-19 · event-role-arity
+#
+# Question: Which perdurants carry three or more distinct thematic roles?
+# Persona:  P2 — scene-data annotator / ML researcher. Reifying the action was
+#           done to fix the dyadic-edge defect: an edge cannot carry a third
+#           participant. This asks the corpus to show a third participant.
+# Spec:     docs/vson.md §3.4 (reification); §5.6 (the closed role inventory)
+# Form:     SELECT — one row per perdurant with arity ≥ 3
+# Note:     The role list is the closed inventory of §5.6, written out rather
+#           than matched by namespace, so a `vso:` predicate outside the
+#           inventory (a C2 violation, §2) cannot inflate the arity. `strike`
+#           with agent, patient and instrument is the canonical case; the
+#           hand-authored scene adds `vso:manner` and reaches four.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?doc ?perdurant ?lemma (COUNT(DISTINCT ?role) AS ?roles)
+WHERE {
+  GRAPH ?doc {
+    ?perdurant a ?aspect ; vso:lemma ?lemma .
+    VALUES ?aspect { vso:Event vso:Process vso:Stative }
+    ?perdurant ?role ?participant .
+    VALUES ?role {
+      vso:agent vso:patient vso:theme vso:instrument vso:recipient
+      vso:source vso:goal vso:beneficiary vso:experiencer vso:stimulus
+      vso:holder vso:manner vso:cause vso:result vso:location vso:time
+    }
+  }
+}
+GROUP BY ?doc ?perdurant ?lemma
+HAVING (COUNT(DISTINCT ?role) >= 3)
+ORDER BY ?doc ?perdurant

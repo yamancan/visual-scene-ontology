@@ -1,0 +1,10 @@
+# CQ-08-viewer-image-frame
+# form: SELECT
+# rows: 5
+
+?doc	?fact	?direction	?viewer	?viewedBy	?anchor
+04_directional_with_viewer	04_directional_with_viewer#sf	vso:left_of	04_directional_with_viewer#cam	04_directional_with_viewer#cam	"same-camera"
+11_throne_room	11_throne_room#sf1	vso:in_front_of	11_throne_room#cam	11_throne_room#cam	"same-camera"
+11_throne_room	11_throne_room#sf2	vso:above	11_throne_room#cam	11_throne_room#cam	"same-camera"
+throne_room	throne_room#loc_crown_alice	vso:above	throne_room#cam	throne_room#cam	"same-camera"
+throne_room	throne_room#pos_alice_bob	vso:behind	throne_room#cam	throne_room#cam	"same-camera"

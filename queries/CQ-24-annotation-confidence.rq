@@ -1,0 +1,29 @@
+# CQ-24 · annotation-confidence
+#
+# Question: Which asserted triples does the corpus attach a producer confidence
+#           to, and what is the value?
+# Persona:  P1 — generation-pipeline engineer. A confidence per edge is what
+#           makes a partially-trusted extraction usable: the gate says the
+#           document is well-formed, and this says which edges the producer
+#           itself was unsure of.
+# Spec:     docs/vson.md §5.11 (Annotation reification); §3.4
+# Form:     SELECT — one row per annotated triple carrying a confidence
+# Note:     This reads the RDF 1.1-portable `vso:Annotation` form only. §5.11
+#           states the RDF-star quoted-triple form as the canonical equivalent;
+#           CQ-29 is the same question written once across both forms, and it is
+#           documented-future because no engine in this repository's dependency
+#           set parses a quoted triple. That gap is a tooling fact, and naming
+#           it here is the honest reading of "both forms are conformant".
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?doc ?subject ?predicate ?object ?confidence
+WHERE {
+  GRAPH ?doc {
+    ?annotation a vso:Annotation ;
+                vso:annotatedSubject   ?subject ;
+                vso:annotatedPredicate ?predicate ;
+                vso:annotatedObject    ?object ;
+                vso:confidence         ?confidence .
+  }
+}
+ORDER BY ?doc ?subject ?predicate

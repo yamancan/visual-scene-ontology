@@ -1,0 +1,35 @@
+# CQ-27 · propositional-attitude
+#
+# Question: Which negations, belief states and quantified statements does the
+#           corpus assert, and what proposition does each hold?
+# Persona:  P2 — scene-data annotator / ML researcher. "The dragon does not see
+#           the knight" is not a triple; it is a statement about a triple, and
+#           this asks whether the notation gives that statement back.
+# Spec:     docs/vson.md §3.4 (reification, the universal pattern);
+#           §9.13–§9.15 (the three worked scenes); §5.11
+# Form:     SELECT — one row per attitude node per proposition slot
+# Note:     The four slots are the ones the three classes use —
+#           `vso:negatedStatement`, `vso:proposition`, `vso:qDomain`,
+#           `vso:scope` — and each points at a reified `vso:Annotation` node
+#           rather than at a quoted triple, which is the RDF 1.1-portable half
+#           of the dual form §5.11 defines. A Quantification binds two slots, so
+#           it contributes two rows; that is the shape of the data, not a
+#           duplicate.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?doc ?node ?kind ?slot ?subject ?predicate ?object
+WHERE {
+  GRAPH ?doc {
+    ?node a ?kind .
+    VALUES ?kind { vso:Negation vso:BeliefState vso:Quantification }
+    ?node ?slot ?statement .
+    VALUES ?slot {
+      vso:negatedStatement vso:proposition vso:qDomain vso:scope
+    }
+    ?statement a vso:Annotation ;
+               vso:annotatedSubject   ?subject ;
+               vso:annotatedPredicate ?predicate ;
+               vso:annotatedObject    ?object .
+  }
+}
+ORDER BY ?doc ?node ?slot

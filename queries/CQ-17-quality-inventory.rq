@@ -1,0 +1,27 @@
+# CQ-17 · quality-inventory
+#
+# Question: Which Quality dimensions does the corpus use, how many Qualities
+#           carry each, and in how many documents?
+# Persona:  P2 — scene-data annotator / ML researcher. The dimension registry is
+#           closed under the VSO namespace (§5.5.1); the coverage question is
+#           which of the twenty-one registered axes has ever been written.
+# Spec:     docs/vson.md §5.5 (`vso:Quality`); §5.5.1 (the registry); §2 C2/C7
+# Form:     SELECT — one row per dimension in use
+# Note:     The bearer edge is `vso:hasQuality|vso:hasInvariant`, a SPARQL 1.1
+#           property alternative, because a Persona's invariants are Qualities
+#           on the other edge (§5.3.4) and an inventory that counted only one of
+#           the two would under-report the appearance axes. The Quality node
+#           itself is deliberately not projected: `examples/throne_room.ttl`
+#           writes its Qualities as blank nodes, whose labels are minted per
+#           parse and cannot be frozen.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?dimension (COUNT(*) AS ?qualities) (COUNT(DISTINCT ?doc) AS ?documents)
+WHERE {
+  GRAPH ?doc {
+    ?bearer  vso:hasQuality|vso:hasInvariant ?quality .
+    ?quality vso:dimension ?dimension .
+  }
+}
+GROUP BY ?dimension
+ORDER BY ?dimension

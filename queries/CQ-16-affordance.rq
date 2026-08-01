@@ -1,0 +1,22 @@
+# CQ-16 · affordance
+#
+# Question: Which entities offer an affordance, and which one?
+# Persona:  P3 — director / creative technologist. Whether a prop can be held,
+#           worn or ridden is a staging fact, and it is the fourth axis of the
+#           trait bundle rather than a free-text attribute.
+# Spec:     docs/vson.md §5.4 (`vso:affordance`); §5.12 (closed to five values)
+# Form:     SELECT — one row per entity per affordance
+# Note:     `vso:affordance` is multi-valued (§5.12: no `sh:maxCount`, because
+#           a thing can be both Holdable and Edible), so the entity column may
+#           repeat. Only the hand-authored canonical scene uses the axis; the
+#           gallery does not, which this answer says plainly.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?doc ?entity ?affordance ?class
+WHERE {
+  GRAPH ?doc {
+    ?entity vso:affordance ?affordance .
+    OPTIONAL { ?entity vso:class ?class }
+  }
+}
+ORDER BY ?doc ?entity ?affordance

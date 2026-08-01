@@ -1,0 +1,6 @@
+# CQ-25-annotation-below-threshold
+# form: SELECT
+# rows: 1
+
+?doc	?subject	?predicate	?object	?confidence
+16_annotation	16_annotation#strike	vso:patient	16_annotation#boar	"0.70"^^xsd:decimal

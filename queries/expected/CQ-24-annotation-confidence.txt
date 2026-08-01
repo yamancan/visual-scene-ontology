@@ -1,0 +1,9 @@
+# CQ-24-annotation-confidence
+# form: SELECT
+# rows: 4
+
+?doc	?subject	?predicate	?object	?confidence
+16_annotation	16_annotation#strike	vso:agent	16_annotation#knight	"0.95"^^xsd:decimal
+16_annotation	16_annotation#strike	vso:instrument	16_annotation#sword	"0.88"^^xsd:decimal
+16_annotation	16_annotation#strike	vso:patient	16_annotation#boar	"0.70"^^xsd:decimal
+throne_room	throne_room#strike	vso:patient	throne_room#boar	"0.95"^^xsd:decimal

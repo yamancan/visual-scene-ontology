@@ -7,11 +7,11 @@ TOOLS = -m tools.penman.vson_penman
 EXAMPLE_VSON = examples/throne_room.vson
 EXAMPLE_TTL = examples/throne_room.ttl
 
-.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check fragment-check registry-check geometry-check iri-check live-check x-check x-skill-check envelope-check web-check web-deploy web-smoke deploy-check site clean
+.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check fragment-check registry-check geometry-check cq-check iri-check live-check x-check x-skill-check envelope-check web-check web-deploy web-smoke deploy-check site clean
 
 all: check
 
-check: parse-ontology penman-roundtrip shacl owl-consistency test spec-check fragment-check registry-check geometry-check lint-py iri-check
+check: parse-ontology penman-roundtrip shacl owl-consistency test spec-check fragment-check registry-check geometry-check cq-check lint-py iri-check
 
 # Everything the CI runs, minus the web app (which needs pnpm/node).
 check-all: check cli-check x-check x-skill-check envelope-check
@@ -125,6 +125,19 @@ geometry-check:
 	@echo "==> Geometry consistency: asserted relations vs the document's own bbox2d"
 	@$(PY) -m tools.geometry_check examples/throne_room.ttl \
 		$(wildcard examples/gallery/*.vson) tests/fixtures/geometry_consistent.ttl
+
+# The competency-question pack (docs/vson.md §5.14). Every expressiveness claim
+# §3-§5 makes is a query in queries/ with a byte-frozen answer beside it, run
+# over the 16-scene gallery plus the canonical throne room. It belongs in
+# `check` because that is what makes the claims checkable rather than asserted:
+# a change to the corpus, the transpiler or the ontology that silently moves an
+# answer is exactly the regression a frozen fixture exists to catch. Offline,
+# SPARQL 1.1 only, no reasoner — so it answers from the tree alone like every
+# other gate here. `--freeze` rewrites the answers and is an authoring step, not
+# a fix: establish what moved before running it.
+cq-check:
+	@echo "==> Competency questions: every query MUST return its frozen answer"
+	@$(PY) -m tools.cq_check
 
 iri-check:
 	@echo "==> Legacy IRI gate: the withdrawn namespace host MUST NOT reappear"

@@ -1,0 +1,24 @@
+# CQ-13 · trait-bundle-agentive-count
+#
+# Question: Which entities in the corpus are both Agentive and Count — the
+#           things that can act and can be counted one by one?
+# Persona:  P2 — scene-data annotator / ML researcher. The trait bundle replaces
+#           the v0.1 Object/Item/Unique split, and this is the query that asks
+#           whether the replacement can express the distinction it removed.
+# Spec:     docs/vson.md §3.2 (trait-bundle entity model); §5.4; §5.12
+# Form:     SELECT — one row per entity
+# Note:     `vso:class` is OPTIONAL because the two class idioms of §5.4 are
+#           both conformant: the Penman transpiler compiles a bareword to a
+#           `vso:class` IRI, while `examples/throne_room.ttl` types its entities
+#           with `rdf:type` into a document-local taxonomy. An UNBOUND class in
+#           this answer is the second idiom, not a missing value.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?doc ?entity ?class
+WHERE {
+  GRAPH ?doc {
+    ?entity vso:animacy vso:Agentive ; vso:countability vso:Count .
+    OPTIONAL { ?entity vso:class ?class }
+  }
+}
+ORDER BY ?doc ?entity

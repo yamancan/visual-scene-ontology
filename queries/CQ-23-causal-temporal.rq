@@ -1,0 +1,31 @@
+# CQ-23 · causal-temporal
+#
+# Question: Which perdurants stand in a causal or Allen interval relation to
+#           another perdurant?
+# Persona:  P2 — scene-data annotator / ML researcher. Causation and temporal
+#           order are separate vocabularies over the same two nodes, and a
+#           scheme that conflates them cannot say "before but not because".
+# Spec:     docs/vson.md §5.9 (causal and Allen interval); Appendix E.1
+# Form:     SELECT — one row per asserted relation
+# Note:     The thirteen Allen relations and the three causal predicates are
+#           listed rather than matched by namespace, so the answer is a
+#           statement about a closed vocabulary. `ontology/allen.ttl` ships the
+#           thirteen as a closed value vocabulary with no composition table
+#           (§5.9): the corpus's one `allen:before` entails nothing further.
+PREFIX vso:   <https://w3id.org/vson/v1/ontology#>
+PREFIX allen: <https://w3id.org/vson/v1/allen#>
+
+SELECT ?doc ?from ?relation ?to
+WHERE {
+  GRAPH ?doc {
+    ?from ?relation ?to .
+    VALUES ?relation {
+      vso:causes vso:prevents vso:triggers
+      allen:before allen:after allen:meets allen:metBy
+      allen:overlaps allen:overlappedBy allen:during allen:contains
+      allen:starts allen:startedBy allen:finishes allen:finishedBy
+      allen:equals
+    }
+  }
+}
+ORDER BY ?doc ?from ?relation

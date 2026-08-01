@@ -1,0 +1,54 @@
+# CQ-29 · confidence-dual-form
+#
+# Question: Which asserted triples carry a producer confidence, counting BOTH
+#           spellings §5.11 declares equivalent — the RDF-star quoted triple and
+#           the RDF 1.1 `vso:Annotation` node — in one query?
+# Persona:  P1 — generation-pipeline engineer. §5.11 says both forms are
+#           conformant and a consumer MUST accept either (§2). A consumer that
+#           reads only one of them is a consumer that silently loses half the
+#           annotations, and this is the query that would not.
+# Spec:     docs/vson.md §5.11 (Annotation reification, the dual form);
+#           §3.4; §2 (consumer conformance)
+# Status:   documented-future — needs SPARQL-star quoted-triple patterns
+#           (or the RDF 1.2 triple-term form). NOT EXECUTED, and it has no
+#           frozen answer.
+# Form:     SELECT — one row per annotated triple, per form
+# Note:     Verified against the pinned engine, 2026-08-01: rdflib 7.6.0 parses
+#           neither `<< s p o >>` nor RDF 1.2's `<<( s p o )>>`, in Turtle or in
+#           SPARQL, and registers no `turtle-star` parser plugin. So the
+#           star branch below cannot be run here, and the honest thing is to
+#           ship the query unrun rather than to quietly drop the branch and
+#           claim the dual form is queryable.
+#
+#           `tools/cq_check.py` does not merely skip this file: it asserts the
+#           engine *rejects* it, and fails when the engine accepts. The day
+#           rdflib gains SPARQL-star, this gate goes red and says to promote the
+#           query and freeze its answer — a skip nobody re-checks is a skip that
+#           outlives its reason.
+#
+#           Nothing in the corpus is lost by the deferral today: no shipped
+#           document uses the quoted-triple form, so the star branch would match
+#           nothing and the reified branch is CQ-24, which does run. What is
+#           deferred is the *proof* that one query reaches both, which is the
+#           claim §5.11 actually makes.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?doc ?subject ?predicate ?object ?confidence ?form
+WHERE {
+  GRAPH ?doc {
+    {
+      << ?subject ?predicate ?object >> vso:confidence ?confidence .
+      BIND("rdf-star" AS ?form)
+    }
+    UNION
+    {
+      ?annotation a vso:Annotation ;
+                  vso:annotatedSubject   ?subject ;
+                  vso:annotatedPredicate ?predicate ;
+                  vso:annotatedObject    ?object ;
+                  vso:confidence         ?confidence .
+      BIND("reified" AS ?form)
+    }
+  }
+}
+ORDER BY ?doc ?subject ?predicate ?form

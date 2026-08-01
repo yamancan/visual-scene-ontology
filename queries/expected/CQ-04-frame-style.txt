@@ -1,0 +1,7 @@
+# CQ-04-frame-style
+# form: SELECT
+# rows: 2
+
+?doc	?style	?aesthetic	?palette	?medium	?rendersAs
+11_throne_room	11_throne_room#style	"oil_painting"	"warm"	"canvas"	11_throne_room#style
+throne_room	throne_room#style	"oil_painting"	"warm"	"canvas"	throne_room#style

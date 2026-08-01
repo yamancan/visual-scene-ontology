@@ -1,0 +1,4 @@
+# CQ-05-frame-not-depicted
+# form: ASK
+
+false

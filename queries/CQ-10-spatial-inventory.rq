@@ -1,0 +1,21 @@
+# CQ-10 · spatial-inventory
+#
+# Question: Which RCC-8 relations does the corpus actually use, and in how many
+#           documents does each appear?
+# Persona:  P2 — scene-data annotator / ML researcher. Before an annotation
+#           scheme's value set can be defended it has to be measured: eight
+#           relations are offered, and this says how many are ever written.
+# Spec:     docs/vson.md §5.7; §2 clause C8; §5.12
+# Form:     SELECT — one row per relation in use
+# Note:     Two of the eight. The corpus exercises the vocabulary thinly and
+#           this answer is the honest record of that; §5.13.7 makes the same
+#           point about geometry. An unused relation is not a defect, but a
+#           claim about coverage that this answer does not support.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?rcc (COUNT(*) AS ?facts) (COUNT(DISTINCT ?doc) AS ?documents)
+WHERE {
+  GRAPH ?doc { ?fact a vso:SpatialFact ; vso:rcc ?rcc . }
+}
+GROUP BY ?rcc
+ORDER BY ?rcc

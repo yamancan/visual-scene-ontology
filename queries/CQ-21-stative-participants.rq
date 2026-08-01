@@ -1,0 +1,26 @@
+# CQ-21 · stative-participants
+#
+# Question: Which Statives does the corpus assert, and who holds or experiences
+#           each?
+# Persona:  P2 — scene-data annotator / ML researcher. Possession and gaze are
+#           states, not events; keeping them apart is an aspectual claim the
+#           notation makes and this query is where it is read back.
+# Spec:     docs/vson.md §5.6 (aspect table; `vso:holder`, `vso:experiencer`)
+# Form:     SELECT — one row per Stative
+# Note:     The four role columns are the ones §5.6 lists for Stative. A
+#           possession Stative binds holder and theme; a perceptual one binds
+#           experiencer and stimulus. Both shapes appear in the answer, which is
+#           what makes the aspect class more than a label.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?doc ?stative ?lemma ?holder ?theme ?experiencer ?stimulus
+WHERE {
+  GRAPH ?doc {
+    ?stative a vso:Stative ; vso:lemma ?lemma .
+    OPTIONAL { ?stative vso:holder      ?holder }
+    OPTIONAL { ?stative vso:theme       ?theme }
+    OPTIONAL { ?stative vso:experiencer ?experiencer }
+    OPTIONAL { ?stative vso:stimulus    ?stimulus }
+  }
+}
+ORDER BY ?doc ?stative

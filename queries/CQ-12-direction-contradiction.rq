@@ -1,0 +1,32 @@
+# CQ-12 · direction-contradiction
+#
+# Question: Does any single document assert two opposite directional values of
+#           the same figure/ground pair under the same viewer?
+# Persona:  P2 — scene-data annotator / ML researcher. Above and below from one
+#           vantage point is the directional counterpart of CQ-11, and the same
+#           kind of thing no shape can see.
+# Spec:     docs/vson.md §3.3; §5.7 (`vso:directional`); §5.12
+# Form:     ASK — a clean corpus answers false
+# Note:     The three opposition pairs are listed in both orders, so the answer
+#           does not depend on which of the two facts the engine matches first.
+#           Same viewer is part of the question: the same pair may legitimately
+#           be above from one camera and below from another, which is exactly
+#           what clause C5's mandatory viewer exists to keep straight.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+ASK {
+  GRAPH ?doc {
+    ?first  a vso:SpatialFact ; vso:figure ?figure ; vso:ground ?ground ;
+            vso:viewer ?viewer ; vso:directional ?one .
+    ?second a vso:SpatialFact ; vso:figure ?figure ; vso:ground ?ground ;
+            vso:viewer ?viewer ; vso:directional ?other .
+    VALUES (?one ?other) {
+      (vso:above       vso:below)
+      (vso:below       vso:above)
+      (vso:left_of     vso:right_of)
+      (vso:right_of    vso:left_of)
+      (vso:in_front_of vso:behind)
+      (vso:behind      vso:in_front_of)
+    }
+  }
+}

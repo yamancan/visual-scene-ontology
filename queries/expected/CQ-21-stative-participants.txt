@@ -1,0 +1,10 @@
+# CQ-21-stative-participants
+# form: SELECT
+# rows: 5
+
+?doc	?stative	?lemma	?holder	?theme	?experiencer	?stimulus
+05_possession_stative	05_possession_stative#wear	"wear"	05_possession_stative#queen	05_possession_stative#crown	UNBOUND	UNBOUND
+11_throne_room	11_throne_room#gaze	"look_at"	UNBOUND	UNBOUND	11_throne_room#alice	11_throne_room#boar
+11_throne_room	11_throne_room#hold	"hold"	11_throne_room#bob	11_throne_room#sword	UNBOUND	UNBOUND
+throne_room	throne_room#gaze_alice_bob	"look_at"	UNBOUND	UNBOUND	throne_room#alice	throne_room#bob
+throne_room	throne_room#hold_bob_sword	"hold"	throne_room#bob	throne_room#sword	UNBOUND	UNBOUND

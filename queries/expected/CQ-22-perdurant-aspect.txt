@@ -1,0 +1,12 @@
+# CQ-22-perdurant-aspect
+# form: SELECT
+# rows: 7
+
+?aspect	?lemma	?documents
+vso:Event	"charge"	"2"^^xsd:integer
+vso:Event	"give"	"1"^^xsd:integer
+vso:Event	"strike"	"4"^^xsd:integer
+vso:Process	"pour"	"1"^^xsd:integer
+vso:Stative	"hold"	"2"^^xsd:integer
+vso:Stative	"look_at"	"2"^^xsd:integer
+vso:Stative	"wear"	"1"^^xsd:integer

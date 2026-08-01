@@ -1,0 +1,11 @@
+# CQ-28-geometry-endpoints
+# form: SELECT
+# rows: 6
+
+?doc	?fact	?figure	?figureBox	?ground	?groundBox
+03_spatial_topology	03_spatial_topology#sf	03_spatial_topology#cat	UNBOUND	03_spatial_topology#mat	UNBOUND
+04_directional_with_viewer	04_directional_with_viewer#sf	04_directional_with_viewer#lamp	UNBOUND	04_directional_with_viewer#chair	UNBOUND
+11_throne_room	11_throne_room#sf1	11_throne_room#boar	UNBOUND	11_throne_room#bob	UNBOUND
+11_throne_room	11_throne_room#sf2	11_throne_room#crown	UNBOUND	11_throne_room#alice	UNBOUND
+throne_room	throne_room#loc_crown_alice	throne_room#crown	UNBOUND	throne_room#alice	UNBOUND
+throne_room	throne_room#pos_alice_bob	throne_room#alice	UNBOUND	throne_room#bob	UNBOUND

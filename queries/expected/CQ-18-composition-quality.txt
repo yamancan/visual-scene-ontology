@@ -1,0 +1,9 @@
+# CQ-18-composition-quality
+# form: SELECT
+# rows: 4
+
+?doc	?dimension	?value
+11_throne_room	vso:Focal	11_throne_room#center
+11_throne_room	vso:Layout	11_throne_room#triangular
+throne_room	vso:Focal	"center"
+throne_room	vso:Layout	"triangular"

@@ -1,0 +1,9 @@
+# CQ-27-propositional-attitude
+# form: SELECT
+# rows: 4
+
+?doc	?node	?kind	?slot	?subject	?predicate	?object
+13_negation	13_negation#neg1	vso:Negation	vso:negatedStatement	13_negation#dragon	vso:perceives	13_negation#knight
+14_belief_state	14_belief_state#bs1	vso:BeliefState	vso:proposition	14_belief_state#thief	vso:near	14_belief_state#gate
+15_quantification	15_quantification#qf1	vso:Quantification	vso:qDomain	15_quantification#horse	vso:partOf	15_quantification#field
+15_quantification	15_quantification#qf1	vso:Quantification	vso:scope	15_quantification#horse	vso:hasQuality	15_quantification#brown_color

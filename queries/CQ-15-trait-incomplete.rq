@@ -1,0 +1,27 @@
+# CQ-15 · trait-incomplete
+#
+# Question: Which entities omit one of the three trait axes, and which axis is
+#           missing?
+# Persona:  P1 — generation-pipeline engineer. A consumer that switches on
+#           countability needs to know which entities will not answer.
+# Spec:     docs/vson.md §5.4 (the trait bundle); §2.1 (what is unexamined)
+# Form:     SELECT — one row per entity per missing axis
+# Note:     This is not a conformance question. §2.1 lists Entity trait
+#           completeness among the things no shape enforces in v1.x, so every
+#           row below is a **conformant** document, and §8.2 is why it stays
+#           that way inside v1.x. The answer is non-empty: the hand-authored
+#           canonical scene omits `vso:countability` on two entities. That is
+#           the finding, recorded rather than repaired — the same discipline
+#           §5.13.7 applies to the geometry measurement.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?doc ?entity ?axis
+WHERE {
+  GRAPH ?doc {
+    ?entity a ?kind .
+    VALUES ?kind { vso:PhysicalObject vso:Aggregate vso:Substance }
+    VALUES ?axis { vso:individuation vso:animacy vso:countability }
+    FILTER NOT EXISTS { ?entity ?axis ?value }
+  }
+}
+ORDER BY ?doc ?entity ?axis

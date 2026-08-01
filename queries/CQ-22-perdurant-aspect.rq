@@ -1,0 +1,24 @@
+# CQ-22 · perdurant-aspect
+#
+# Question: Which verb lemmas does the corpus use, under which aspect class?
+# Persona:  P1 — generation-pipeline engineer. The lexicon a producer has to
+#           reach for, measured rather than assumed — and the check that one
+#           lemma is not filed under two aspects.
+# Spec:     docs/vson.md §5.6 (Event / Process / Stative); §2 clause C6
+# Form:     SELECT — one row per aspect × lemma
+# Note:     The three aspect classes are pairwise disjoint in the TBox, so one
+#           lemma under two of them is a modelling choice, not a clash: `look_at`
+#           is a Stative here and could be a Process elsewhere. The OWL 2 RL gate
+#           reports a *node* typed into two of the three; this reports the
+#           vocabulary, which no gate examines.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?aspect ?lemma (COUNT(DISTINCT ?doc) AS ?documents)
+WHERE {
+  GRAPH ?doc {
+    ?perdurant a ?aspect ; vso:lemma ?lemma .
+    VALUES ?aspect { vso:Event vso:Process vso:Stative }
+  }
+}
+GROUP BY ?aspect ?lemma
+ORDER BY ?aspect ?lemma

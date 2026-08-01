@@ -1,0 +1,25 @@
+# CQ-01 · frame-camera
+#
+# Question: From what vantage point is each scene in the corpus shot — camera
+#           angle, focal length and framing?
+# Persona:  P1 — generation-pipeline engineer. The camera block is what a
+#           text-to-image renderer consumes, so it is the first thing a pipeline
+#           reads back out of a document its gate has just passed.
+# Spec:     docs/vson.md §5.3.3 (`vso:CameraView`); §5.2 (`vso:viewedBy`)
+# Form:     SELECT — one row per document
+# Note:     The three fields are optional (§5.3.3), so each is OPTIONAL here: a
+#           CameraView that states only an angle is conformant and must still
+#           appear in the answer rather than dropping out of the join.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?doc ?angle ?focalLength ?framing
+WHERE {
+  GRAPH ?doc {
+    ?scene a vso:Composition ; vso:viewedBy ?cam .
+    ?cam   a vso:CameraView .
+    OPTIONAL { ?cam vso:angle       ?angle }
+    OPTIONAL { ?cam vso:focalLength ?focalLength }
+    OPTIONAL { ?cam vso:framing     ?framing }
+  }
+}
+ORDER BY ?doc

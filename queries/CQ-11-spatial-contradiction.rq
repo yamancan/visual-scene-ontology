@@ -1,0 +1,27 @@
+# CQ-11 · spatial-contradiction
+#
+# Question: Does any single document assert two different RCC-8 relations of the
+#           same ordered figure/ground pair?
+# Persona:  P2 — scene-data annotator / ML researcher. RCC-8's eight relations
+#           are jointly exhaustive and pairwise disjoint, so two of them over
+#           one pair is a contradiction — and nothing in the schema can see it.
+# Spec:     docs/vson.md §5.7 (JEPD holds in the intended interpretation, not as
+#           an axiom); §2.1 (internal consistency); §5.12
+# Form:     ASK — a clean corpus answers false
+# Note:     This is a defect SHACL structurally cannot catch: each fact is its
+#           own node carrying its own single `vso:rcc`, so every shape passes
+#           while the pair of facts says two incompatible things. No OWL rule
+#           reports it either — `ontology/rcc8.ttl` ships the eight as a closed
+#           value vocabulary and asserts no composition table (§5.7). A query is
+#           the mechanism that reaches it, which is one reason this pack exists.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+ASK {
+  GRAPH ?doc {
+    ?first  a vso:SpatialFact ;
+            vso:figure ?figure ; vso:ground ?ground ; vso:rcc ?one .
+    ?second a vso:SpatialFact ;
+            vso:figure ?figure ; vso:ground ?ground ; vso:rcc ?other .
+    FILTER(?one != ?other)
+  }
+}

@@ -1,0 +1,28 @@
+# CQ-28 · geometry-endpoints
+#
+# Question: For each spatial fact, do the figure and the ground carry the
+#           bounding boxes a geometry check would need to decide it?
+# Persona:  P1 — generation-pipeline engineer. Before the fourth gate can say
+#           anything, both endpoints have to carry a rectangle; this is the
+#           coverage question that says how often it can.
+# Spec:     docs/vson.md §5.10 (`vso:bbox2d`); §5.13 (geometry consistency);
+#           §5.13.6 (the `no-geometry` verdict)
+# Form:     SELECT — one row per spatial fact
+# Note:     Every box column comes back UNBOUND, and that is the finding:
+#           §5.13.7 records it in prose — "no gallery scene carries both a
+#           rectangle and a spatial fact" — and this is the same measurement,
+#           re-derivable by anyone with a SPARQL engine. The one scene with
+#           rectangles asserts no relation over them, so the geometry gate
+#           decides nothing on this corpus and its positive fixture is what
+#           keeps `make geometry-check` from being vacuous.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?doc ?fact ?figure ?figureBox ?ground ?groundBox
+WHERE {
+  GRAPH ?doc {
+    ?fact a vso:SpatialFact ; vso:figure ?figure ; vso:ground ?ground .
+    OPTIONAL { ?figure vso:bbox2d ?figureBox }
+    OPTIONAL { ?ground vso:bbox2d ?groundBox }
+  }
+}
+ORDER BY ?doc ?fact

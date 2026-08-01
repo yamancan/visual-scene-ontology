@@ -1,0 +1,34 @@
+# CQ-26 · persona-identity
+#
+# Question: Which entities embody which Persona, in which document, and what
+#           invariants does that Persona carry?
+# Persona:  P3 — director / creative technologist. Character consistency across
+#           shots is the problem a Persona exists for: the same identity, new
+#           scene, new mood, same eyes.
+# Spec:     docs/vson.md §5.3.4 (`vso:Persona`, `vso:embodies`,
+#           `vso:hasInvariant`); §3.1 (a Persona is a Frame, never depicted)
+# Form:     SELECT — one row per persona invariant per embodying entity
+# Note:     The query is written across documents — `?doc` is bound from the
+#           graph the embodiment is asserted in — because that is what a Persona
+#           is for: §5.3.4 says a Persona IRI MAY be shared by several VSON
+#           documents, and this join is how a consumer would collect every scene
+#           an identity appears in. **The shipped corpus exercises one.**
+#           `12_persona` is the only document carrying a Persona, so every row
+#           below names it. That proves the join and the invariant lookup run;
+#           it does not show a Persona shared across documents, because no such
+#           pair is shipped. The mechanism is checkable here, the multi-document
+#           case is not, and this note is the difference.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+SELECT ?doc ?persona ?entity ?dimension ?value
+WHERE {
+  GRAPH ?doc {
+    ?entity  vso:embodies ?persona .
+    ?persona a vso:Persona .
+    OPTIONAL {
+      ?persona   vso:hasInvariant ?invariant .
+      ?invariant vso:dimension ?dimension ; vso:value ?value .
+    }
+  }
+}
+ORDER BY ?doc ?persona ?entity ?dimension

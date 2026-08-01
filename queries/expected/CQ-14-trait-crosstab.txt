@@ -1,0 +1,9 @@
+# CQ-14-trait-crosstab
+# form: SELECT
+# rows: 4
+
+?animacy	?countability	?entities
+vso:Agentive	vso:Collective	"1"^^xsd:integer
+vso:Agentive	vso:Count	"21"^^xsd:integer
+vso:Inert	vso:Count	"16"^^xsd:integer
+vso:Inert	vso:Mass	"1"^^xsd:integer

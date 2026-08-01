@@ -1,0 +1,4 @@
+# CQ-11-spatial-contradiction
+# form: ASK
+
+false

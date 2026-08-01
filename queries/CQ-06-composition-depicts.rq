@@ -1,0 +1,16 @@
+# CQ-06 · composition-depicts
+#
+# Question: Is there a Composition anywhere in the corpus that depicts nothing?
+# Persona:  P1 — generation-pipeline engineer. An empty scene is the failure
+#           mode of a model that emitted a frame block and then stopped.
+# Spec:     docs/vson.md §2 clause C4; §5.2 (`vso:depicts`)
+# Form:     ASK — a conformant corpus answers false
+# Note:     C4 is enforced by `vss:CompositionShape`; this asks the same
+#           question of the corpus from the outside, which is what makes the
+#           shape's verdict checkable by someone who does not run pyshacl.
+PREFIX vso: <https://w3id.org/vson/v1/ontology#>
+
+ASK {
+  ?scene a vso:Composition .
+  FILTER NOT EXISTS { ?scene vso:depicts ?anything }
+}

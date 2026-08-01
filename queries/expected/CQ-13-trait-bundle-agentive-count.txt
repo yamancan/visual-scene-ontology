@@ -1,0 +1,26 @@
+# CQ-13-trait-bundle-agentive-count
+# form: SELECT
+# rows: 21
+
+?doc	?entity	?class
+03_spatial_topology	03_spatial_topology#cat	03_spatial_topology#Animal
+05_possession_stative	05_possession_stative#queen	05_possession_stative#Human
+06_event_with_instrument	06_event_with_instrument#boar	06_event_with_instrument#Animal
+06_event_with_instrument	06_event_with_instrument#knight	06_event_with_instrument#Human
+07_ditransitive	07_ditransitive#child	07_ditransitive#Human
+07_ditransitive	07_ditransitive#merchant	07_ditransitive#Human
+11_throne_room	11_throne_room#alice	11_throne_room#Human
+11_throne_room	11_throne_room#boar	11_throne_room#Animal
+11_throne_room	11_throne_room#bob	11_throne_room#Human
+12_persona	12_persona#alice	12_persona#Human
+13_negation	13_negation#dragon	13_negation#Animal
+13_negation	13_negation#knight	13_negation#Human
+14_belief_state	14_belief_state#thief	14_belief_state#Human
+14_belief_state	14_belief_state#watchman	14_belief_state#Human
+15_quantification	15_quantification#h1	15_quantification#Animal
+15_quantification	15_quantification#h2	15_quantification#Animal
+16_annotation	16_annotation#boar	16_annotation#Animal
+16_annotation	16_annotation#knight	16_annotation#Human
+throne_room	throne_room#alice	UNBOUND
+throne_room	throne_room#boar	UNBOUND
+throne_room	throne_room#bob	UNBOUND

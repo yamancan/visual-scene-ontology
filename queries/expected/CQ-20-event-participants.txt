@@ -1,0 +1,12 @@
+# CQ-20-event-participants
+# form: SELECT
+# rows: 7
+
+?doc	?event	?lemma	?agent	?patient	?theme	?recipient	?instrument
+06_event_with_instrument	06_event_with_instrument#strike	"strike"	06_event_with_instrument#knight	06_event_with_instrument#boar	UNBOUND	UNBOUND	06_event_with_instrument#sword
+07_ditransitive	07_ditransitive#give	"give"	07_ditransitive#merchant	UNBOUND	07_ditransitive#apple	07_ditransitive#child	UNBOUND
+11_throne_room	11_throne_room#charge	"charge"	11_throne_room#boar	11_throne_room#bob	UNBOUND	UNBOUND	UNBOUND
+11_throne_room	11_throne_room#strike	"strike"	11_throne_room#bob	11_throne_room#boar	UNBOUND	UNBOUND	11_throne_room#sword
+16_annotation	16_annotation#strike	"strike"	16_annotation#knight	16_annotation#boar	UNBOUND	UNBOUND	16_annotation#sword
+throne_room	throne_room#charge	"charge"	throne_room#boar	UNBOUND	UNBOUND	UNBOUND	UNBOUND
+throne_room	throne_room#strike	"strike"	throne_room#bob	throne_room#boar	UNBOUND	UNBOUND	throne_room#sword
