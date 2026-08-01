@@ -1,0 +1,66 @@
+{
+  "_doc": "DRAFT — NOT SUBMITTED. The values a prefix.cc registration for this vocabulary would carry, written down so the submission is a copy-paste rather than a decision made at the form. Nothing here has been filed: prefix.cc holds no VSON entry, this project claims no registration, and no automated process may create one. Filing is a person's act, done by the maintainer under their own identity. This file is the record of the drafted values and of what was verified when — update `status`, `submitted`, `submitted_at` and `submitted_by` on the day it is actually filed, and re-run `make site`.",
+
+  "status": "draft",
+  "submitted": false,
+  "submitted_at": null,
+  "submitted_by": null,
+
+  "registry": {
+    "name": "prefix.cc",
+    "form": "https://prefix.cc/",
+    "scope": "prefix.cc binds one short prefix to one namespace URI. It is a convenience lookup, not an authority: nothing in VSON depends on it, and a document that binds any other prefix to the namespace below is exactly as conformant."
+  },
+
+  "submission": {
+    "prefix": "vson",
+    "namespace": "https://w3id.org/vson/v1/ontology#"
+  },
+
+  "declared_in": {
+    "file": "ontology/vso.ttl",
+    "predicate": "http://purl.org/vocab/vann/preferredNamespacePrefix",
+    "value": "vson",
+    "note": "The registration must repeat what the vocabulary already publishes. If these two ever disagree, the Turtle is right and this file is stale."
+  },
+
+  "why_not_vso": "`vso` — the prefix every Turtle document in this repository writes, and the one this vocabulary published until 2026-07-31 — is already the Vehicle Sales Ontology's. Registering it would ask consumers to rebind a prefix a decade-old published vocabulary holds, and a graph mixing the two vocabularies could not bind both. `vson` is unambiguous, matches the notation's name and the w3id path, and costs nothing to adopt: a prefix binding is an abbreviation the parser expands away, so no IRI, no document and no fixture changes. tests/test_prefix_binding.py holds that invariant; docs/vson.md §5.1 states the decision.",
+
+  "no_iri_change": {
+    "namespace_before": "https://w3id.org/vson/v1/ontology#",
+    "namespace_after": "https://w3id.org/vson/v1/ontology#",
+    "note": "Byte-identical. This change moves a published hint about a name, never a name."
+  },
+
+  "evidence": [
+    {
+      "claim": "The prefix `vso` is already published for a different vocabulary.",
+      "source": "https://lov.linkeddata.es/dataset/lov/vocabs/vso",
+      "method": "HTTP GET, read directly",
+      "verified_on": "2026-07-31",
+      "result": "Vehicle Sales Ontology (vso), namespace http://purl.org/vso/ns#, by Martin Hepp; the earliest version LOV lists is dated 2010-10-02."
+    },
+    {
+      "claim": "The prefix `vson` is unbound at prefix.cc.",
+      "source": "https://prefix.cc/vson",
+      "method": "Reported by the reviewer who raised the collision. An independent re-check the same day did not complete: prefix.cc refused the TLS handshake with an expired certificate (curl exit 60), over both plain curl and a fetch tool.",
+      "verified_on": "2026-07-31",
+      "result": "UNCONFIRMED from this checkout. The change to `vson` does not depend on it — an unregistered preferred prefix is still a preferred prefix — but the registration does."
+    }
+  ],
+
+  "recheck_before_filing": [
+    "That https://prefix.cc/vson is still unbound, on a day prefix.cc serves a valid certificate.",
+    "That ontology/vso.ttl still declares vann:preferredNamespacePrefix \"vson\".",
+    "That https://w3id.org/vson/v1/ontology still resolves (make live-check)."
+  ],
+
+  "not_submitted_here": {
+    "note": "The four companion namespaces keep the prefixes they already publish — they were not part of this collision, and none of them has been checked against a prefix registry. Any submission for them needs that check first.",
+    "namespaces": [
+      { "prefix": "rcc", "namespace": "https://w3id.org/vson/v1/rcc8#", "checked": false },
+      { "prefix": "allen", "namespace": "https://w3id.org/vson/v1/allen#", "checked": false },
+      { "prefix": "vss", "namespace": "https://w3id.org/vson/v1/shapes#", "checked": false }
+    ]
+  }
+}

@@ -31,7 +31,21 @@
     # dereference and is not meant to. This is the one legacy-host IRI
     # allowlisted outside the historical specification documents.
     owl:priorVersion <https://vson.dev/v1.1/ontology> ;
-    vann:preferredNamespacePrefix "vso" ;
+    # The prefix this vocabulary ASKS FOR — what a registry, a term browser or
+    # a generated SPARQL header should bind. It is "vson", not "vso": "vso" is
+    # Martin Hepp's Vehicle Sales Ontology, <http://purl.org/vso/ns#>, listed
+    # in LOV with versions back to 2010-10-02. Publishing "vso" would ask every
+    # consumer to rebind a prefix a decade-old vocabulary already publishes,
+    # and a mixed graph could not bind both.
+    #
+    # Nothing else moves. The namespace IRI below is byte-identical, no term
+    # IRI changes, and `@prefix vso:` stays the binding every Turtle document
+    # in this repository writes — a prefix is an abbreviation the parser
+    # expands away, so the two coexist by construction.
+    # tests/test_prefix_binding.py proves it over the whole corpus;
+    # docs/vson.md §5.1 records the choice; publish/registry/prefix-cc.json
+    # holds the drafted (unfiled) registration.
+    vann:preferredNamespacePrefix "vson" ;
     vann:preferredNamespaceUri "https://w3id.org/vson/v1/ontology#" .
 
 #################################################################

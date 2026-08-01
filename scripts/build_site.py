@@ -73,6 +73,15 @@ COPY = (
         "tools/schema/vson-jsonld.schema.json",
         "v1/schema/vson-jsonld.schema.json",
     ),
+    # Not a namespace document and not named by any IRI: the drafted, unfiled
+    # prefix.cc registration. It ships because the claim it records — which
+    # prefix this vocabulary asks registries for, and that nothing has been
+    # filed — is a claim about the published surface, and this project states
+    # its status where the documents are rather than only in the repository.
+    (
+        "publish/registry/prefix-cc.json",
+        "v1/registry/prefix-cc.json",
+    ),
     ("publish/index.html", "index.html"),
     ("publish/_headers", "_headers"),
 )
