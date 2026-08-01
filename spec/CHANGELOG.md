@@ -192,6 +192,47 @@ proper part of the person standing on it. Those envelopes stay byte-frozen and
 stay conformant; the finding is recorded, not repaired, and it is the evidence
 that the check is not vacuous on real extractor output.
 
+*Annotation, 2026-08-01 — the competency questions become executable.* The
+annotations above add or enforce checks on a document. This one adds none: no
+clause, term, shape, schema field or IRI changes, and `vson validate` is
+untouched. What it adds is evidence for the claims §3–§5 already make. New
+§5.14 and `queries/` carry **twenty-nine competency questions** in the
+Grüninger–Fox / NeOn form — each a `.rq` whose header states the
+natural-language question, the persona who asks it, and the section of
+`docs/vson.md` that authorizes it. **Twenty-eight are executed** on every
+`make check` by `tools/cq_check.py` (`make cq-check`) and compared byte-for-byte
+with a frozen answer in `queries/expected/`; §5.14.1's coverage table maps each
+claim to the questions that reach it, and `tests/test_competency_questions.py`
+pins the table and the directory to each other in both directions. Through
+v1.3.0 this repository, whose README's first sentence promised a queryable
+corpus, contained no `.rq` file at all.
+
+The corpus is the sixteen gallery scenes plus `examples/throne_room.ttl`, each
+in its own named graph with its document namespace rewritten **in memory** —
+without that, all sixteen scenes share the transpiler's
+`.../scenes/anonymous#` and `:scene`, `:cam` and `:alice` are one node in every
+one of them. Nothing under `examples/` is modified. The queries are SPARQL 1.1
+over asserted triples with no TBox, no entailment regime and no reasoner, so a
+reviewer reproduces every answer with any SPARQL 1.1 engine and this checkout.
+A frozen answer is **not** a conformance clause: C1–C9 do not mention it, and a
+document that would change one is not thereby non-conformant.
+
+One query ships unrun. CQ-29 is §5.11's confidence question written once across
+both spellings that section declares equivalent — the RDF-star quoted triple and
+the RDF 1.1 `vso:Annotation` node — and it is marked `documented-future` because
+rdflib 7.6.0 parses neither `<< s p o >>` nor `<<( s p o )>>`, in Turtle or in
+SPARQL. The gate does not merely skip it: it asserts the engine *rejects* it and
+fails when the engine accepts, so the day the pinned engine gains SPARQL-star
+this goes red and says to promote the query. Three answers are findings rather
+than confirmations: CQ-15 reports the two `examples/throne_room.ttl` entities
+that omit `vso:countability` — the Entity-trait-completeness gap the §8.2
+annotation above recorded as *declined*, now queryable instead of only measured;
+CQ-10 reports that the corpus writes two of RCC-8's eight relations; and CQ-28
+reports that no spatial fact in the corpus has both endpoints carrying a
+`vso:bbox2d`, which is §5.13.7's prose measurement made re-derivable by anyone
+with a query engine. Appendix E.7 adds the two methodology citations behind the
+form.
+
 ## v1.2.0 — 2026-07-31
 
 Namespace release. Every canonical VSON IRI moves off `https://vson.dev/` and

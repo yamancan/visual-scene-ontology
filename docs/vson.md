@@ -850,6 +850,57 @@ The reference implementation is [`tools/geometry_check.py`](../tools/geometry_ch
 
 **Groundedness is still absent.** §2.1 named two things that establishing it would take, and this section supplies the first: geometry consistency is now decided. The second — ground truth for what geometry cannot decide, meaning class, dimension values, lemmas, thematic roles and frame attributions, against human annotation over a fixed image set with a published protocol and an inter-annotator agreement figure — does not exist in this repository. **Verified** in VSON still means *verified against the schema*, now with one more thing checked beside it and nothing checked against the picture.
 
+### 5.14 Competency questions (`queries/`)
+
+A competency question is the question a vocabulary must be able to answer (Grüninger & Fox 1995; the artefact the NeOn methodology carries through ontology design — [Appendix E](#appendix-e)). Written down, it is a design record. Written down *as a query, against a corpus, beside its frozen answer*, it is a test, and the difference is why [`queries/`](../queries/) exists: every expressiveness claim §3–§5 makes is either reachable by one of these queries or it is not made good on.
+
+**Twenty-nine questions**, `queries/CQ-01-*.rq` … `CQ-29-*.rq`. Each `.rq` carries a header stating the natural-language question, the persona who asks it (P1–P3 as defined in [`docs/strategy/productization.md`](./strategy/productization.md) §1), the section of this document that authorizes it, and its form. **Twenty-eight are executed** on every `make check` by [`tools/cq_check.py`](../tools/cq_check.py) (`make cq-check`) and compared byte-for-byte against a frozen answer in `queries/expected/`. One is not — see the capability matrix below.
+
+**The corpus.** Seventeen documents: the sixteen gallery scenes of §9, compiled from VSON-P by the reference transpiler, plus [`examples/throne_room.ttl`](../examples/throne_room.ttl). Each is loaded into its own named graph, and each document's namespace is rewritten in memory from the transpiler's shared `https://example.org/scenes/anonymous#` to a per-document one. Without that rewrite all sixteen gallery scenes would share a namespace and `:scene`, `:cam` and `:alice` would be one node in every scene — the corpus would answer questions about a document that does not exist, and `?doc` would bind nothing real. No file under `examples/` is modified.
+
+**Asserted triples only.** The pack is SPARQL 1.1 over the documents as written: no TBox in the corpus, no entailment regime, no reasoner. Where a question needs a class hierarchy the query names the asserted classes with `VALUES` rather than relying on `rdfs:subClassOf` entailment the corpus does not carry. That is a deliberate cost: it makes every answer reproducible by anyone with a SPARQL 1.1 engine and this checkout, which is the property a competency-question suite exists to have.
+
+#### 5.14.1 What the questions cover
+
+The table is the adequacy argument: the left column is a claim this document or the README makes, the right column is what makes it checkable.
+
+| Claim | Stated in | Questions |
+|---|---|---|
+| Reified Frame taxonomy — context, style, camera, composition, persona | §5.2, §5.3 | CQ-01, CQ-02, CQ-03, CQ-04 |
+| A Frame is never part of the depicted world | §2 (C9), §3.1 | CQ-05 |
+| A composition depicts something | §2 (C4), §5.2 | CQ-06 |
+| **Directional facts are viewer-anchored** | §2 (C5), §3.3, §5.7 | **CQ-07**, CQ-08, CQ-12 |
+| RCC-8 as a closed value vocabulary, not a calculus | §5.7, §5.12 | CQ-09, CQ-10, CQ-11 |
+| Trait-bundle entity model — animacy × countability × individuation × affordance | §3.2, §5.4 | CQ-13, CQ-14, CQ-15, CQ-16 |
+| Quality reification over a closed dimension registry | §5.5, §5.5.1 | CQ-17, CQ-18 |
+| Reified perdurants — a role structure an edge cannot carry | §3.4, §5.6 | CQ-19, CQ-20, CQ-21, CQ-22 |
+| Causation and temporal order as separate vocabularies | §5.9 | CQ-23 |
+| Annotation reification, and its RDF-star equivalent | §3.4, §5.11 | CQ-24, CQ-25, CQ-29 |
+| Persona as a cross-document identity carrier | §5.3.4 | CQ-26 |
+| Propositional layer — negation, belief, quantification | §3.4, §9.13–§9.15 | CQ-27 |
+| Geometry the fourth gate can reach | §5.10, §5.13 | CQ-28 |
+
+Two questions are there to find what no gate can see. CQ-11 asks whether one document asserts two different RCC-8 relations of the same ordered figure/ground pair, and CQ-12 asks the same of opposite directional values under one viewer. Both are contradictions in the intended interpretation and neither is visible to SHACL — each fact is its own node carrying its own single value, so every shape passes — nor to the OWL 2 RL gate, since `ontology/rcc8.ttl` ships the eight relations as a closed value vocabulary and asserts no composition table (§5.7). A query is the mechanism that reaches them. Both answer `false` on this corpus.
+
+**Three answers are findings, not decoration.** CQ-15 reports two entities in the hand-authored canonical scene that omit `vso:countability` — conformant documents, since §2.1 lists Entity trait completeness among the things no shape examines, and §8.2 is why that stays true inside v1.x. CQ-10 reports that the corpus writes two of RCC-8's eight relations. CQ-28 reports that no spatial fact in the corpus has both endpoints carrying a `vso:bbox2d`, which is §5.13.7's measurement made re-derivable by anyone with a SPARQL engine rather than asserted in prose. A frozen answer that records a gap is worth more than one that records a success.
+
+#### 5.14.2 SPARQL 1.1 and what the pack defers
+
+| Feature | Used by | Status |
+|---|---|---|
+| Basic graph patterns, `GRAPH`, `OPTIONAL`, `UNION`, `FILTER`, `VALUES`, `FILTER NOT EXISTS`, aggregates with `GROUP BY` / `HAVING`, property alternative paths, `ORDER BY` | every executed question | SPARQL 1.1 — W3C Recommendation, 21 March 2013. Supported by the pinned engine. |
+| Quoted-triple patterns — `<< ?s ?p ?o >>` (SPARQL-star) and the RDF 1.2 triple-term form `<<( ?s ?p ?o )>>` | CQ-29 only | Not in SPARQL 1.1. On the Recommendation track, and not depended on here. **Verified 2026-08-01: rdflib 7.6.0 parses neither form, in Turtle or in SPARQL, and registers no Turtle-star parser.** |
+
+CQ-29 is the §5.11 confidence question written once across *both* spellings that section declares equivalent — the RDF-star quoted triple and the RDF 1.1 `vso:Annotation` node — which is what a consumer honouring §2's consumer-conformance rule has to do. It ships **unrun and with no frozen answer**, marked `Status: documented-future` in its header. Nothing in the corpus is lost by that: no shipped document uses the quoted-triple form, so the star branch would match nothing today and the reified branch is CQ-24, which does run. What is deferred is the proof that one query reaches both.
+
+The skip is not taken on trust. `tools/cq_check.py` asserts that the engine *rejects* CQ-29 and fails when it accepts, so the day the pinned engine gains SPARQL-star this gate goes red and says to promote the query and freeze its answer. A skip nobody re-checks is a skip that outlives its reason.
+
+#### 5.14.3 What a frozen answer establishes
+
+Exactly what it says: that this query, over these seventeen documents, returns these rows. It is not a conformance clause — C1–C9 do not mention it, no producer or consumer obligation follows from it, and a document that would change one of these answers is not thereby non-conformant. It is not a reading of the picture either; §2.1 governs, and a competency question is a question about the *graph*.
+
+What it does establish is the thing an expressiveness claim otherwise cannot have: a stranger can run `make cq-check` and watch the claim resolve, or read `queries/expected/` and see the answer without running anything. [`tests/test_competency_questions.py`](../tests/test_competency_questions.py) pins the rest — that every header is complete, that every § a header cites is a heading this document carries, that all three personas are exercised, that the coverage table above names every query in the directory and no query it does not, and that the counts spelled in this section are the directory's.
+
 ---
 
 ## 6. JSON Schema and validation rules
@@ -1660,6 +1711,14 @@ The body/target separation is the same shape as `vso:Annotation` (§5.11); VSON 
 
 **Lebo, T., Sahoo, S., & McGuinness, D. (eds.). *PROV-O: The PROV Ontology*. W3C Recommendation, 2013.**
 The natural target for extractor provenance; VSON v1.1 records only a free-text `vso:source` on annotations and envelope-level `extraction` metadata (§6.1), so PROV-O alignment is future work, not a shipped feature.
+
+### E.7 Ontology engineering methodology
+
+**Grüninger, M., & Fox, M. S. (1995). Methodology for the Design and Evaluation of Ontologies. *Proceedings of the IJCAI-95 Workshop on Basic Ontological Issues in Knowledge Sharing*.**
+Where competency questions come from: the requirements an ontology is evaluated against are stated as questions it must be able to answer, and the evaluation is whether it answers them. §5.14 takes the second half literally — each question ships as a query with a frozen answer, so "can answer" is a thing CI decides rather than a thing the author asserts.
+
+**Suárez-Figueroa, M. C., Gómez-Pérez, A., & Fernández-López, M. (2012). The NeOn Methodology for Ontology Engineering. In *Ontology Engineering in a Networked World*. Springer.**
+The methodology that carries competency questions through as a first-class artefact, with the natural-language question, its author or stakeholder, and its authorizing requirement recorded beside the formalization. `queries/*.rq` keeps that header — question, persona, spec section — for the same reason.
 
 ---
 
