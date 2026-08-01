@@ -187,7 +187,7 @@ by accident: `vson validate` reports `OK` on all three gates and
 and `examples/` are clean (and decide nothing — no gallery scene carries both a
 rectangle and a spatial fact), while four asserted `rcc:TPP` facts in the baked
 studio corpus are refuted by the boxes beside them — `kitchen.json` `sf4` and
-`lamp.json` `sf2`/`sf3`/`sf4`, the last asserting that the grass is a tangential
+`lamp.json` `sf2`/`sf3`/`sf4`, the first asserting that the grass is a tangential
 proper part of the person standing on it. Those envelopes stay byte-frozen and
 stay conformant; the finding is recorded, not repaired, and it is the evidence
 that the check is not vacuous on real extractor output.
