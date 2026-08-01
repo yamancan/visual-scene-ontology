@@ -1,10 +1,10 @@
-# VSON v1.2 — Visual Scene Ontology Notation
+# VSON v1.3 — Visual Scene Ontology Notation
 
 **Specification, Quick Start, Reference, JSON Schema, and Example Gallery — single document, RFC-style.**
 
 | Field | Value |
 |---|---|
-| Status | v1.2 stable |
+| Status | v1.3 stable — vocabulary unchanged from v1.2 (`owl:versionInfo` stays `1.2`); see §8.1 |
 | Date | 2026-07-31 |
 | Editors | Yamancan (github.com/yamancan) |
 | Source repo | this repository (root: `visual-scene-ontology/`) |
@@ -54,7 +54,7 @@ The keywords **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, **MAY** are int
 
 The envelope is a single JSON document conforming to [`tools/schema/vson-output.schema.json`](../tools/schema/vson-output.schema.json). It carries:
 
-- `vson_p` — Penman authoring text (the canonical authoring artifact; **MAY** be the empty string in a v1.1 envelope whose surface was VSON-X — see §6.1);
+- `vson_p` — Penman authoring text (the canonical authoring artifact; **MAY** be the empty string in a v1.1-or-later envelope whose surface was VSON-X — see §6.1);
 - `vson_x` (optional, v1.1+) — the compact sigil form, populated when VSON-X was the authoring surface;
 - `vson_t` — Turtle 1.2 / Turtle-star (machine canonical, derivable from whichever authoring surface is populated);
 - `graph` (optional) — `{nodes, edges}` projection for UI clients;
@@ -91,7 +91,7 @@ cli/target/release/vson export cypher examples/gallery/01_minimal.vson
 # ...
 ```
 
-If the `Conforms: True` line printed, the document is a valid VSON v1.2 scene. **You are done with Quick Start.** The rest of this document is reference material.
+If the `Conforms: True` line printed, the document is a valid VSON v1.3 scene. **You are done with Quick Start.** The rest of this document is reference material.
 
 ### 1.4 First image → graph (preview)
 
@@ -110,7 +110,7 @@ The runner returns a SHACL-conformant `vson_p` string per image. To produce the 
 
 ## 2. Conformance
 
-A document is a **conformant VSON v1.2 document** iff all of the following hold:
+A document is a **conformant VSON v1.3 document** iff all of the following hold. C1–C9 are unchanged from v1.2 — a conformant v1.2 document is a conformant v1.3 document, and the reverse, because nothing below moved (§8.1):
 
 | # | Requirement |
 |---|---|
@@ -533,9 +533,11 @@ Reified property. Always a node, never an inline literal on the bearer.
 
 The **Bearer** column is guidance for producers, not a constraint: no shape ties a dimension to a bearer class, so `vso:Layout` on an Entity parses and validates. The compositional pair (`Layout`, `Focal`) attaches to the `vso:Composition` root; the rest attach to an Entity, and the appearance axes double as `vso:Persona` invariants (§5.3.4).
 
-**Reaching them from the other syntaxes.** VSON-P names the dimension directly (`:dimension Layout`). VSON-X derives it from the `*key` by PascalCasing (`*action_state` → `ActionState`), and that derivation is mechanical — a key outside this table produces a `vso:` IRI outside the registry, which is the C2 failure above, not a warning. [`docs/vson-x-semantics.md`](./vson-x-semantics.md) §3.2.1 lists the twenty keys the extractor skill is tuned to emit; that list is a subset of this table (it omits `Eye`), not a second registry.
+**Reaching them from the other syntaxes.** VSON-P names the dimension directly (`:dimension Layout`). VSON-X derives it from the `*key` by PascalCasing (`*action_state` → `ActionState`), and that derivation is mechanical — a key outside this table produces a `vso:` IRI outside the registry, which is the C2 failure above, not a warning. [`docs/vson-x-semantics.md`](./vson-x-semantics.md) §3.2.1 and [`skills/vson-extractor-x/SKILL.md`](../skills/vson-extractor-x/SKILL.md) restate the same twenty-one keys for the VSON-X surface; they are copies of this table, not second registries.
 
-**Where this list is enforced.** `ontology/vso.ttl` declares all twenty-one as `vso:Dimension` individuals and names all twenty-one in one `owl:AllDifferent` — necessary because `vso:dimension` is an `owl:FunctionalProperty`, so a Quality asserting two dimensions collapses them to `owl:sameAs` under `prp-fp`, and only pairwise distinctness turns that collapse into a reported clash (§5.9). A member missing from the `owl:AllDifferent` list is a member that can silently collapse. Membership itself is checked by the C2 coverage test in `tests/`, not by SHACL: `vss:QualityShape` deliberately carries no `sh:in` on `vso:dimension`, because such an enum would reject the document-namespace dimensions that §8 keeps conformant. `shapes/vson-shapes.ttl` records that reasoning beside the shape.
+**Where this list is enforced, and where it is copied.** `ontology/vso.ttl` is the single source: it declares all twenty-one as `vso:Dimension` individuals and names all twenty-one in one `owl:AllDifferent` — necessary because `vso:dimension` is an `owl:FunctionalProperty`, so a Quality asserting two dimensions collapses them to `owl:sameAs` under `prp-fp`, and only pairwise distinctness turns that collapse into a reported clash (§5.9). A member missing from the `owl:AllDifferent` list is a member that can silently collapse. Membership itself is checked by the C2 coverage test in `tests/`, not by SHACL: `vss:QualityShape` deliberately carries no `sh:in` on `vso:dimension`, because such an enum would reject the document-namespace dimensions that §8 keeps conformant. `shapes/vson-shapes.ttl` records that reasoning beside the shape.
+
+The registry is written out five times — the individuals, the `owl:AllDifferent` list, the table above, `docs/vson-x-semantics.md` §3.2.1, and the VSON-X skill — and copies drift: through v1.3.0 the two VSON-X copies carried one name fewer than the ontology, omitting `vso:Eye` — the second Persona invariant of §5.3.4's own worked example. [`scripts/check_registry_drift.py`](../scripts/check_registry_drift.py) now compares all five in `make check`, including the spelled count in this paragraph. A new dimension is added to `ontology/vso.ttl` first; the copies follow.
 
 ### 5.6 `vso:Event` / `vso:Process` / `vso:Stative`
 
@@ -729,6 +731,8 @@ A document MUST pass both. JSON Schema alone is insufficient — it cannot expre
 
 **File:** [`tools/schema/vson-output.schema.json`](../tools/schema/vson-output.schema.json). Reproduced inline for §5-style cross-reference. The envelope is closed (`additionalProperties: false`): `scene_id`, `version`, `vson_p`, `vson_t`, and `conformance` are required keys, and any top-level key not listed below is a validation error.
 
+A reproduction is a copy, and §2 ranks this document *above* the schemas — so a fragment that has fallen behind is not a formatting lag, it is the highest-precedence artifact stating something false. Every fenced fragment in §5–§6 is therefore compared against the file it quotes by [`scripts/check_spec_fragments.py`](../scripts/check_spec_fragments.py) in `make check`: enums must match exactly, `required` sets must be subsets, patterns must be byte-identical, and the worked example of §6.2 must validate. A fragment abbreviates by omission only.
+
 #### `scene_id` *(string, required)*
 Stable, URL-safe scene identifier. ≤64 chars, `[A-Za-z0-9_-]`.
 ```json
@@ -736,9 +740,9 @@ Stable, URL-safe scene identifier. ≤64 chars, `[A-Za-z0-9_-]`.
 ```
 
 #### `version` *(string, required)*
-The VSON spec version: `"1.0"` (strict), `"1.0.5"` (v1.0 + caption renderer + Phase 0 ontology additions), or `"1.1"` (adds the VSON-X surface form and the partial validation profile). Backwards-compatible — every v1.0 envelope remains valid under newer spec versions.
+Which **spec document** the producer emitted under — not which vocabulary it used, and not which build produced it; §8.1 separates the three axes. `"1.0"` (strict), `"1.0.5"` (v1.0 + caption renderer + Phase 0 ontology additions), `"1.1"` (adds the VSON-X surface form and the partial validation profile), `"1.2"` (re-mints all five namespaces under `https://w3id.org/vson/`; envelope structure unchanged from 1.1), `"1.3"` (this document; envelope structure, every IRI, and the vocabulary unchanged from 1.2). Backwards-compatible — every v1.0 envelope remains valid under newer spec versions, so the enum only ever grows and a consumer **MUST** accept every value in it.
 ```json
-{ "enum": ["1.0", "1.0.5", "1.1"] }
+{ "enum": ["1.0", "1.0.5", "1.1", "1.2", "1.3"] }
 ```
 
 #### `source` *(object, optional)*
@@ -762,7 +766,9 @@ Provenance of the scene. Producers **SHOULD** populate it for any non-hand-autho
 The Penman authoring text. The key is always required, but its minimum length is version-conditional:
 
 - `version` ∈ {`"1.0"`, `"1.0.5"`} — `minLength: 3`. Penman is the source of truth.
-- `version` = `"1.1"` — `vson_p` MAY be the empty string `""` when the authoring surface was VSON-X (back-conversion to Penman waits on `t2p` in v1.2). An `anyOf` then requires that **at least one** of `vson_p` / `vson_x` be non-empty.
+- `version` ∈ {`"1.1"`, `"1.2"`, `"1.3"`} — `vson_p` MAY be the empty string `""` when the authoring surface was VSON-X (back-conversion to Penman still waits on `t2p`). An `anyOf` then requires that **at least one** of `vson_p` / `vson_x` be non-empty.
+
+Every version the enum above admits that allows an empty `vson_p` **MUST** be named in the second clause. A value added to the enum and not to the clause is a version for which the one-surface rule silently stops applying — which is why the two lists are checked against each other, and against this fragment, by [`scripts/check_spec_fragments.py`](../scripts/check_spec_fragments.py). Each `anyOf` branch carries its own `required`: a bare `properties` is vacuously satisfied by an absent key, so a branch written without it accepts the very document it exists to reject.
 
 ```json
 { "type": "string" }
@@ -771,9 +777,9 @@ The Penman authoring text. The key is always required, but its minimum length is
 { "allOf": [
   { "if":   { "properties": { "version": { "enum": ["1.0", "1.0.5"] } } },
     "then": { "properties": { "vson_p": { "minLength": 3 } } } },
-  { "if":   { "properties": { "version": { "const": "1.1" } } },
-    "then": { "anyOf": [ { "properties": { "vson_p": { "minLength": 3 } } },
-                         { "properties": { "vson_x": { "minLength": 3 } } } ] } }
+  { "if":   { "properties": { "version": { "enum": ["1.1", "1.2", "1.3"] } } },
+    "then": { "anyOf": [ { "required": ["vson_p"], "properties": { "vson_p": { "minLength": 3 } } },
+                         { "required": ["vson_x"], "properties": { "vson_x": { "minLength": 3 } } } ] } }
 ] }
 ```
 
@@ -949,6 +955,29 @@ The SHACL shapes file is [`shapes/vson-shapes.ttl`](../shapes/vson-shapes.ttl) �
 - **Private extensions.** Authors MAY define private predicates under their own namespace. Private predicates SHOULD NOT shadow VSV terms. Documents using private predicates are **profile-specific**, not portable.
 - **Closed vocabularies.** §5.12 lists closed enumerations. Producers **MUST NOT** invent values; consumers **MAY** treat unknown values as `Unknown`.
 
+### 8.1 Version model
+
+Three numbers in this project look like one number and are not. They move independently, and each one claims something different. A reader who conflates them reads "VSON 1.3" as a vocabulary change, which it is not.
+
+| Axis | Where it is declared | What it names | What it claims |
+|---|---|---|---|
+| **Spec document version** | the title and `Status` line of this document; the `version` field of the envelope (§6.1) | this text together with the artifacts §2 ranks, as published | that a producer emitted under these clauses and these reference tables |
+| **Vocabulary version** | `owl:versionInfo` in each of [`ontology/vso.ttl`](../ontology/vso.ttl), [`ontology/rcc8.ttl`](../ontology/rcc8.ttl), [`ontology/allen.ttl`](../ontology/allen.ttl), and both shape files | the terms in the namespace | that these classes, properties, characteristics, and registry members are what the namespace declares |
+| **Software release tag** | the git tag; `CITATION.cff`, `pyproject.toml`, the Rust crate, the web package | a build of the reference implementations | that this build exists and passed its gates — nothing about the document or the namespace |
+
+The three currently read **v1.3**, **1.2**, and **1.3.0**. That is not drift; it is the model working. v1.3 moved where verification runs (into the visitor's browser) and what this document says; it moved no term, no IRI, no cardinality, and no shape severity, so `owl:versionInfo` stays at `1.2`. `make site` fails if the published landing page and `owl:versionInfo` ever disagree.
+
+**What an implementer claims.**
+
+- *"Implements VSON v1.3"* — accepts and emits documents per C1–C9 as written **in this document**. It says nothing about which vocabulary version is loaded, because C1–C9 did not change between v1.2 and v1.3.
+- *"Uses VSO 1.2"* — resolves the terms of the namespace whose `owl:versionInfo` is `1.2`. Since all v1.x IRIs are immutable (above), this is a statement about *which terms exist*, never about which IRIs to fetch.
+- *"vson 1.3.0"* — a build. A user reporting a bug **SHOULD** give this number; a document **MUST NOT** be described as conforming to it.
+- A producer **MUST NOT** write a `version` the envelope schema's enum does not carry, and a consumer **MUST** accept every value the enum carries (§6.1). The enum grows and never shrinks — that is what backwards compatibility within v1.x means on the wire.
+
+**`owl:versionIRI` names a version; it is not promised to dereference.** [`ontology/vso.ttl`](../ontology/vso.ttl) declares `owl:versionIRI <https://w3id.org/vson/v1.2/ontology>`. That IRI identifies the 1.2 state of the vocabulary. It is **not** one of the dereferenceable names of §5.1: verified 2026-07-31, a GET returns `302` to the landing page, because the w3id rule for `/vson/` routes the five v1 namespace documents explicitly and sends every other path there. Only `https://w3id.org/vson/v1/…` carries a dereference promise, and `make live-check` is what verifies it.
+
+Making the versionIRI resolve to a frozen snapshot would take two changes, and neither is worth its cost yet: a new rewrite rule in a repository this project does not own, and a second, byte-frozen copy of the ontology published at `v1.2/ontology.ttl` — a copy that no canonical name reaches today and one more surface to drift, which is precisely what §5.5.1's single-source rule exists to avoid. Recorded here rather than papered over: a name that identifies is doing its job even when nothing serves it, and claiming otherwise would be the kind of untrue sentence §2.1 is about.
+
 ---
 
 ## 9. Examples gallery
@@ -1063,7 +1092,7 @@ Gallery scenes 01–11 plus `12_persona` have a graph-equivalent VSON-X form und
 | Browser studio (v1.3) | [`web/`](../web) | runs the Python references above in a Pyodide worker, in the visitor's browser: transpile, two-gate validation, caption/FOL — no backend | offline worker-parity vitest byte-pins p2t, both gate verdicts, and caption/FOL against the CLI fixtures |
 | Routing tables (single source of truth) | [`cli/src/penman/routing-tables.json`](../cli/src/penman/routing-tables.json) | shared by Python + Rust — inside the crate so `include_str!` stays within the crate root and `cargo package` can verify-build it | Rust embeds it at compile time, the Python reference reads the same file at import time; `make cli-check` proves the two agree |
 
-A consumer is "VSON v1.2 reference-conformant" iff it accepts every document accepted by the Python references (`vson_penman.py` + `vson_x.py`) plus `pyshacl`, and rejects every document the references reject.
+A consumer is "VSON v1.3 reference-conformant" iff it accepts every document accepted by the Python references (`vson_penman.py` + `vson_x.py`) plus `pyshacl`, and rejects every document the references reject.
 
 ---
 

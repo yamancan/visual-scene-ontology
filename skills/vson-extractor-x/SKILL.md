@@ -35,7 +35,7 @@ Read an image, emit one VSON-X document. The first line MUST start with `~scene`
 - countability: `Count Mass Collective`
 - affordance: `Holdable Wearable Mountable Container Edible`
 
-**Quality dimensions** — `Color Material Affect Age Role Size Weight Enchantment Layout Focal Pose ActionState Amount Hair Hairstyle Skin Eyewear Headwear Outfit Fit`.
+**Quality dimensions** — `Color Material Affect Age Role Size Weight Enchantment Layout Focal Pose ActionState Amount Hair Hairstyle Skin Eye Eyewear Headwear Outfit Fit`.
 
 **Frame schema** (direct properties on Frame) — CameraView: `angle focalLength framing cameraPosition`. VisualStyle: `aesthetic palette medium`. SceneContext: `venue atmosphere timeOfDay weather`.
 

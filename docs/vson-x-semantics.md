@@ -2,10 +2,10 @@
 
 | Field | Value |
 |---|---|
-| Status | Normative for VSON-X surface semantics, v1.2 stable |
+| Status | Normative for VSON-X surface semantics, v1.3 stable — surface semantics unchanged from v1.2 |
 | Date | 2026-07-31 |
 | Scope | Bearer dispatch, sigil → graph mapping, lemma aspect routing, and the ontology and shape declarations VSON-X depends on. The grammar itself lives in [`docs/vson.md`](./vson.md) Appendix D. |
-| Companion | [`docs/vson.md`](./vson.md) (canonical v1.2 spec) · [`ontology/vso.ttl`](../ontology/vso.ttl) (TBox) · [`shapes/vson-shapes.ttl`](../shapes/vson-shapes.ttl) (validation) · [`tools/vson_x/vson_x.py`](../tools/vson_x/vson_x.py) (reference parser) |
+| Companion | [`docs/vson.md`](./vson.md) (canonical v1.3 spec) · [`ontology/vso.ttl`](../ontology/vso.ttl) (TBox) · [`shapes/vson-shapes.ttl`](../shapes/vson-shapes.ttl) (validation) · [`tools/vson_x/vson_x.py`](../tools/vson_x/vson_x.py) (reference parser) |
 
 The keywords **MUST**, **MUST NOT**, **SHOULD**, **MAY** are interpreted per RFC 2119 as updated by RFC 8174 — that is, only when they appear in all capitals.
 
@@ -130,11 +130,13 @@ Bearer class determines whether `*K V` becomes a Quality node, direct property, 
 
 #### 3.2.1 Closed dimensions
 
-`Color, Material, Affect, Age, Role, Size, Weight, Enchantment, Layout, Focal, Pose, ActionState, Amount, Hair, Hairstyle, Skin, Eyewear, Headwear, Outfit, Fit`.
+`Color, Material, Affect, Age, Role, Size, Weight, Enchantment, Layout, Focal, Pose, ActionState, Amount, Hair, Hairstyle, Skin, Eye, Eyewear, Headwear, Outfit, Fit`.
 
-`Hair` covers color/length compound values (`blonde, brunette, auburn_long, black_short`); `Hairstyle` covers cut/style (`bob, braided, ponytail`). `Skin` covers tone/complexion. Both `Hair` and `Skin` are added in v1.1 to support fashion/portrait extraction without falling to open-dimension warnings.
+This list is a **copy**, not a second registry: the source is the `vso:Dimension` individuals of [`ontology/vso.ttl`](../ontology/vso.ttl), restated as a table in [`docs/vson.md`](./vson.md) §5.5.1, and [`scripts/check_registry_drift.py`](../scripts/check_registry_drift.py) fails `make check` when the copies disagree. Through v1.3.0 this one had drifted: it omitted `Eye`, which the ontology declares and §5.3.4's Persona example uses.
 
-Dimension names are PascalCase; the parser derives them mechanically from the `*key` (`*action_state` → `ActionState`), so a novel key silently produces a novel dimension. **Nothing rejects or warns on one.** `vss:QualityShape` constrains only that a Quality carries exactly one `vso:dimension` and one `vso:value`; no shape holds a dimension vocabulary, so an open dimension is as conformant as a closed one. Keeping to the list above is a producer obligation, and a `Hair` / `Skin` axis was added in v1.1 rather than left open precisely so that fashion and portrait extraction would not drift into private vocabulary. An extension namespace for stable open dimensions is v1.2 work.
+`Hair` covers color/length compound values (`blonde, brunette, auburn_long, black_short`); `Hairstyle` covers cut/style (`bob, braided, ponytail`). `Skin` covers tone/complexion; `Eye` covers eye colour. Both `Hair` and `Skin` are added in v1.1 to support fashion/portrait extraction without falling to open-dimension warnings.
+
+Dimension names are PascalCase; the parser derives them mechanically from the `*key` (`*action_state` → `ActionState`), so a novel key silently produces a novel `vso:` dimension. **No shape rejects or warns on one, and `vson validate` does not report it** — `vss:QualityShape` constrains only that a Quality carries exactly one `vso:dimension` and one `vso:value`, and it deliberately holds no dimension vocabulary (a `sh:in` there would reject the document-namespace dimensions that [`docs/vson.md`](./vson.md) §8 keeps conformant). Unreported is not conformant: a `*key` outside the list above mints a VSO-namespace IRI the ontology does not declare, which is an orphan VSO term and a **C2 violation** ([`docs/vson.md`](./vson.md) §2, §5.5.1) that no tool checks at validate time. Keeping to the list is therefore a producer obligation with no safety net, which is why a `Hair` / `Skin` axis was added in v1.1 rather than left open. A dimension the registry does not carry is minted under the producer's **own** namespace, never under `vso:` — §5.5.1 states that rule and it is the only sanctioned extension path inside v1.x.
 
 #### 3.2.2 Adjective stacking
 

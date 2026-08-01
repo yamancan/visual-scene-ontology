@@ -83,6 +83,24 @@ computation runs, not what a document or an envelope asserts.
   the envelope schema's version enum deliberately stay at 1.2 — the
   vocabulary, the namespace, and the wire format did not change, and
   `make site` still proves the landing page and `owl:versionInfo` agree.
+  *Annotation, 2026-07-31: the version enum did not stay at 1.2. Holding it
+  there left `docs/vson.md` §6.1 quoting `["1.0", "1.0.5", "1.1"]` against a
+  schema that already admitted `"1.2"` — a §2 precedence violation, because
+  this document outranks the schemas, so the stale copy was the highest-ranked
+  artifact stating something false. Resolved in the artifact's favour: the enum
+  and the conditional `allOf` clause beside it both now run through `"1.3"`, and
+  new §8.1 states what the field claims (the spec document, not the vocabulary),
+  which is why `owl:versionInfo` still does not move. Writing the test for that
+  clause exposed a second defect in it: each `anyOf` branch used a bare
+  `properties`, which an absent key satisfies vacuously, so an envelope with
+  `vson_p: ""` and no `vson_x` passed the branch meant to demand `vson_x` —
+  the one-surface rule the `$comment` describes was not being enforced at all.
+  Both branches now carry `required`. This rejects only documents §6.1 and the
+  schema's own `vson_p` description already declared non-conformant, and no
+  shipped envelope is affected: all 21 baked envelopes are `version: "1.0"`,
+  and none carries a short `vson_p`. `make fragment-check` compares the
+  document against the schema from now on. The paragraph above stands as the
+  record of what was decided at release.*
 
 ## v1.2.0 — 2026-07-31
 
