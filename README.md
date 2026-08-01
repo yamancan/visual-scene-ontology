@@ -3,7 +3,7 @@
 [![CI](https://github.com/yamancan/visual-scene-ontology/actions/workflows/ci.yml/badge.svg)](https://github.com/yamancan/visual-scene-ontology/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-A vision-language model's description of an image is unvalidated prose: there is no schema it can violate, so nothing can reject one and no build can fail on it. VSON is a compact scene-graph notation in which every claim about an image — an object, a property, a spatial relation, an action — is instead a checkable graph assertion, gated by SHACL shapes (the W3C standard for validating graph structure). What ships today is that gate: `vson validate` exits non-zero on a scene graph that breaks the schema, and the web studio runs the same two checks in the browser. It checks the graph, not the picture — [§2.1](docs/vson.md#21-what-conformance-establishes) states exactly what a green result does and does not establish; querying a corpus of scenes and diffing two extraction runs are where this is headed, not things it ships. VSON is built for image-generation pipelines, scene-graph and knowledge-representation researchers, and people evaluating VLM output, and it ships as a single-file spec, a Rust CLI, and a drop-an-image web studio.
+A vision-language model's description of an image is unvalidated prose: there is no schema it can violate, so nothing can reject one and no build can fail on it. VSON is a compact scene-graph notation in which every claim about an image — an object, a property, a spatial relation, an action — is instead a checkable graph assertion, gated by SHACL shapes (the W3C standard for validating graph structure). What ships today is that gate: `vson validate` exits non-zero on a scene graph that breaks the schema, and the web studio runs the same two checks in the browser. It checks the graph, not the picture — [§2.1](docs/vson.md#21-what-conformance-establishes) states exactly what a green result does and does not establish. Querying ships too: [`queries/`](queries/) holds 29 competency questions as SPARQL — 28 of them run by CI on every commit against the 17-document corpus and compared byte-for-byte with a frozen answer — and [§5.14.1](docs/vson.md#5141-what-the-questions-cover) maps each structural claim below to the questions that reach it, so "it is queryable" is a thing you can run rather than a thing this page asserts. Diffing two extraction runs is still where this is headed, not a thing it ships. VSON is built for image-generation pipelines, scene-graph and knowledge-representation researchers, and people evaluating VLM output, and it ships as a single-file spec, a Rust CLI, and a drop-an-image web studio.
 
 Canonical namespace: **`https://w3id.org/vson/v1/`**. The canonical IRIs dereference: the [w3id redirect](https://github.com/perma-id/w3id.org/pull/6471) merged on 2026-07-31, so `https://w3id.org/vson/v1/ontology` resolves to the ontology, and shapes, JSON-LD context, and schemas resolve alongside it — served from [vson.pages.dev/v1/](https://vson.pages.dev/v1/ontology.ttl). `make live-check` re-verifies all eight names against the live services.
 
@@ -53,7 +53,7 @@ VSON does not invent a parser, grammar, or formal semantics. It rides on:
 - **RDF 1.2 / RDF-star** — abstract semantics
 - **OWL 2 RL** — decidable reasoning fragment
 - **SHACL** — well-formedness
-- **SPARQL-star** — query
+- **SPARQL 1.1** — query ([`queries/`](queries/); the RDF-star spelling of §5.11 awaits SPARQL-star support in a pinned engine — [§5.14.2](docs/vson.md#5142-sparql-11-and-what-the-pack-defers))
 - **Penman** — authoring concrete syntax (proven by AMR)
 
 > **The canonical reference is [`docs/vson.md`](docs/vson.md)** — single-file RFC-style spec with Quick Start, per-field reference, JSON Schema, and the 16-scene example gallery.
@@ -67,6 +67,7 @@ docs/strategy/    Productization plan, UI flows, extractor architecture
 spec/             Historical normative spec (v1.0) + v0.1 deprecation record
 ontology/         VSO TBox (OWL 2 RL) + VSV vocabulary
 shapes/           SHACL shapes for well-formedness
+queries/          29 competency questions (SPARQL 1.1) + byte-frozen answers — make cq-check
 examples/         Throne-room scene + gallery/ (16 scenes, minimal → complex)
                   + gallery-x/ (scenes 01–11 plus 12_persona in VSON-X compact syntax)
 cli/              `vson` Rust CLI (validate / convert {p2t, x2t} / export {cypher, caption, fol})
@@ -107,6 +108,7 @@ cli/target/release/vson export caption examples/throne_room.vson
 
 # Run all tests (Python + Rust)
 make check        # 70 Python tests + 16-scene gallery + 2 schema parses
+make cq-check     # the 28 executable competency questions vs their frozen answers
 make cli-check    # Rust tests + byte-strict & graph-iso parity vs Python ref
 make x-check      # VSON-X gallery round-trip parity (11 pairs; 12_persona pending)
 ```
