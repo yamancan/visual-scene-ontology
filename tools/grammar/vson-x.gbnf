@@ -10,7 +10,7 @@ wsr ::= ( [ \t\r\n] | comment )+
 
 document ::= composition
 composition ::= "~" ws ident ( ws kv ( ws kv )* )? ( ws item ( ws item )* )?
-ident ::= alpha ( [A-Za-z_0-9\-] ( [A-Za-z_0-9\-] )* )?
+ident ::= alpha ( [A-Za-z_0-9\x2d] ( [A-Za-z_0-9\x2d] )* )?
 kv ::= "*" ws ident ws value ( ws "~" ws mod )?
 item ::= ( frame-decl | viewer-anchor | handle-item )
 alpha ::= [A-Za-z_]
@@ -21,7 +21,7 @@ frame-decl ::= "/" ws concept ( ws "@" ws ident )? ( ws kv ( ws kv )* )?
 viewer-anchor ::= "^" ws ident
 handle-item ::= handle ( ws entity-tail | ws stative | ws event | ws spatial-asym | ws spatial-sym )
 string ::= "\"" ( ( [^"\\] | "\\" [^\n] ) ( ( [^"\\] | "\\" [^\n] ) )* )? "\""
-unit ::= num alpha ( [A-Za-z_0-9\-] ( [A-Za-z_0-9\-] )* )?
+unit ::= num alpha ( [A-Za-z_0-9\x2d] ( [A-Za-z_0-9\x2d] )* )?
 num ::= ( float | int )
 ref ::= ( "@" )? ws ident
 trait-keyword ::= ( "Generic" | "Named" | "Kind" | "Skolem" | "Agentive" | "Inert" | "Count" | "Mass" | "Collective" | "Holdable" | "Wearable" | "Mountable" | "Container" | "Edible" )

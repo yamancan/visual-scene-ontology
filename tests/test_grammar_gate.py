@@ -234,6 +234,14 @@ class TheGateGoesRed(unittest.TestCase):
         with self.assertRaises(gbnf_backend.GbnfError):
             gbnf_backend.read("root ::= missing-rule\n")
 
+    def test_an_escape_llama_cpp_would_throw_on_is_rejected(self):
+        # `parse_char` knows ten escapes and raises on the rest. A `\-`, which
+        # is how Python spells a literal hyphen in a class, is one of the rest.
+        self.assertNotIn("\\-", check_gbnf_text())
+        with self.assertRaises(gbnf_backend.GbnfError):
+            gbnf_backend.read('root ::= [a-z\\-]\n')
+        gbnf_backend.read('root ::= [a-z\\x2d]\n')
+
 
 def check_gbnf_text() -> str:
     from tools.grammar import check

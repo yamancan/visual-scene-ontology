@@ -248,16 +248,42 @@ class GbnfTranslator:
 
     @staticmethod
     def _rewrite_class(body: str) -> str:
-        """Re-escape a Python class body for GBNF (same syntax, fewer escapes)."""
+        """Re-escape a Python character class for GBNF.
+
+        The two notations spell classes the same way and escape them
+        differently, and the difference is not cosmetic: llama.cpp's
+        `parse_char` knows exactly `\\x`, `\\u`, `\\U`, `\\t`, `\\r`, `\\n`,
+        `\\\\`, `\\"`, `\\[` and `\\]`, and *throws* on anything else. A `\\-`
+        — which is what a Python class body carries for a literal hyphen — is
+        not a laxer spelling there, it is a parse error, so every character
+        outside that set leaves as a hex escape.
+        """
+        SAFE_ESCAPE = {"\n": "\\n", "\r": "\\r", "\t": "\\t", "\\": "\\\\", "]": "\\]"}
         out = []
         i = 0
         while i < len(body):
             if body[i] == "\\" and i + 1 < len(body):
                 nxt = body[i + 1]
-                out.append("\\" + nxt if nxt in "\\]^-[nrt" else nxt)
+                if nxt in "nrt" or nxt in ("\\", "]"):
+                    out.append("\\" + nxt)
+                elif nxt in "xuU":  # a hex escape carries over untouched
+                    width = {"x": 2, "u": 4, "U": 8}[nxt]
+                    out.append(body[i:i + 2 + width])
+                    i += 2 + width
+                    continue
+                else:
+                    out.append("\\x%02x" % ord(nxt))
                 i += 2
                 continue
-            out.append(body[i])
+            ch = body[i]
+            # A bare `-` here is the range operator — `_esc_class` escapes a
+            # literal hyphen, and the branch above turned that into `\x2d`.
+            if ch in SAFE_ESCAPE:
+                out.append(SAFE_ESCAPE[ch])
+            elif ord(ch) < 0x20 or ch in "^[":
+                out.append("\\x%02x" % ord(ch))
+            else:
+                out.append(ch)
             i += 1
         return "".join(out)
 
@@ -419,6 +445,24 @@ class GbnfRules:
         self.refs = refs
 
 
+#: The escapes llama.cpp's `parse_char` knows. It throws on every other one,
+#: so this reader does too — a `\-` that Python's `re` would shrug at is a
+#: parse error in the engine the artifact exists for.
+_ESCAPE_OK = re.compile(r"\\(?:x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8}|[trn\\\"\[\]])")
+
+
+def _check_escapes(text: str, where: str) -> None:
+    i = 0
+    while i < len(text):
+        if text[i] != "\\":
+            i += 1
+            continue
+        m = _ESCAPE_OK.match(text, i)
+        if m is None:
+            raise GbnfError("unknown escape %r in %s" % (text[i:i + 2], where))
+        i = m.end()
+
+
 def read(source: str) -> GbnfRules:
     """Parse GBNF text. Raises GbnfError on anything llama.cpp would reject."""
     toks: List[Tuple[str, str]] = []
@@ -426,6 +470,8 @@ def read(source: str) -> GbnfRules:
         kind = m.lastgroup
         if kind in ("comment", "space"):
             continue
+        if kind in ("lit", "cls"):
+            _check_escapes(m.group(kind), "a %s" % ("literal" if kind == "lit" else "class"))
         if kind == "bad":
             raise GbnfError("unexpected character %r" % m.group(0))
         toks.append((kind, m.group(kind)))
