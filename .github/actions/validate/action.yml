@@ -1,0 +1,200 @@
+# Gate a build on VSON conformance.
+#
+#   - uses: yamancan/visual-scene-ontology/.github/actions/validate@main
+#     with:
+#       files: 'scenes/**/*.vson'
+#
+# What it runs is `vson validate` (docs/vson.md §2): SHACL over the shapes plus
+# the three ontology files, then OWL 2 RL disjointness, then C2 vocabulary
+# closure. Every violation becomes an annotation on the line that caused it and
+# a row in the job summary; the report file stays behind for you to upload.
+#
+# It checks the graph, not the picture. A conformant document may still
+# describe an image incorrectly — docs/vson.md §2.1 says exactly what a green
+# result establishes, and the summary table repeats it on every run.
+#
+# COLD START. No release binaries exist yet (the repository is private and
+# publishing is a later release), so this builds the CLI from source with cargo.
+# That is the cost of using it today: about twenty seconds of compile time on a
+# developer laptop with a warm cargo registry, and more on a hosted runner that
+# downloads the crates first. Put `Swatinem/rust-cache@v2` with
+# `workspaces: cli` ahead of this step and later runs skip it. When binaries
+# ship, this action downloads one and the build step disappears.
+#
+# WHAT THE RUNNER MUST ALREADY HAVE: `python3` (with `venv`) and `cargo`. Both
+# are preinstalled on GitHub-hosted `ubuntu-*` and `macos-*` images; a container
+# or self-hosted runner needs `actions/setup-python` and a Rust toolchain first.
+# The gates' own dependencies — `pyshacl`, `rdflib`, `owlrl` — are installed
+# here at the versions this repository pins, into a virtual environment under
+# `$RUNNER_TEMP`. A venv rather than the system interpreter because recent
+# distributions refuse `pip install` into theirs (PEP 668), and because a build
+# gate has no business editing the machine it runs on. Windows runners are not
+# supported: every step here is bash and every path is POSIX.
+#
+# SARIF. `format: sarif` writes a SARIF 2.1.0 log you can hand to
+# `github/codeql-action/upload-sarif` — on a public repository, or a private one
+# with GitHub Advanced Security. Without either, that upload silently gets you
+# nothing, which is why this action never calls it: the annotations above need
+# no such plan and appear on any repository.
+
+name: VSON validate
+description: >-
+  Validate VSON scene graphs (SHACL + OWL 2 RL + C2 vocabulary closure) and
+  annotate the offending line. Checks the graph, not the image.
+author: yamancan
+
+inputs:
+  files:
+    description: >-
+      Glob patterns of documents to validate, separated by spaces or newlines
+      (globstar is enabled where the shell supports it, so `**` matches across
+      directories). Paths containing spaces are not supported. A pattern that
+      matches nothing fails the step — a gate that checks nothing is a gate
+      that always passes.
+    required: false
+    default: "**/*.vson"
+  profile:
+    description: >-
+      Validation profile (docs/vson.md §6.1). Only `strict` is implemented;
+      `relaxed` is refused rather than silently run as strict.
+    required: false
+    default: strict
+  format:
+    description: "Report format: `json` or `sarif` (SARIF 2.1.0)."
+    required: false
+    default: json
+  report:
+    description: >-
+      Where to write the report. Defaults to `vson-report.json` or
+      `vson-report.sarif`, matching `format`.
+    required: false
+    default: ""
+  annotate:
+    description: >-
+      Emit one GitHub annotation per violation. Set to `false` in a job that
+      *expects* the failure, so its own fixtures are not flagged as errors.
+    required: false
+    default: "true"
+  working-directory:
+    description: "Directory the globs and the report path are relative to."
+    required: false
+    default: "."
+
+outputs:
+  report:
+    description: "Path to the report file, relative to `working-directory`."
+    value: ${{ steps.validate.outputs.report }}
+  conformant:
+    description: "`true` when every document cleared all three gates."
+    value: ${{ steps.validate.outputs.conformant }}
+  findings:
+    description: "Number of violations in the report."
+    value: ${{ steps.validate.outputs.findings }}
+
+runs:
+  using: composite
+  steps:
+    # $GITHUB_ACTION_PATH is this directory inside whichever checkout supplied
+    # the action — the workspace for `uses: ./.github/actions/validate`, a temp
+    # checkout for `uses: owner/repo/.github/actions/validate@ref`. Three levels
+    # up is the repository root either way, which is where the CLI crate, the
+    # ontology, the shapes and the Python gates live.
+    - name: Locate the VSON checkout
+      shell: bash
+      run: |
+        set -eo pipefail
+        root="$(cd "$GITHUB_ACTION_PATH/../../.." && pwd)"
+        if [ ! -f "$root/cli/Cargo.toml" ]; then
+          echo "::error::$root does not look like a VSON checkout (no cli/Cargo.toml)."
+          exit 2
+        fi
+        echo "VSON_ROOT=$root" >> "$GITHUB_ENV"
+
+    - name: Install the Python gates
+      shell: bash
+      run: |
+        set -eo pipefail
+        venv="$RUNNER_TEMP/vson-venv"
+        echo "::group::pip install (rdflib, pyshacl, owlrl — this repository's pins)"
+        python3 -m venv "$venv"
+        "$venv/bin/python" -m pip install --quiet --disable-pip-version-check "$VSON_ROOT"
+        echo "::endgroup::"
+        # The CLI spawns `python3` and the `pyshacl` console script by name, so
+        # the venv has to win on PATH. $GITHUB_PATH applies from the next step.
+        echo "$venv/bin" >> "$GITHUB_PATH"
+
+    - name: Build the vson CLI
+      shell: bash
+      run: |
+        set -eo pipefail
+        echo "::group::cargo build --release (no release binaries exist yet — see this action's header)"
+        cargo build --release --quiet --manifest-path "$VSON_ROOT/cli/Cargo.toml"
+        echo "::endgroup::"
+
+    - name: Validate
+      id: validate
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      # Every input arrives through the environment rather than through `${{ }}`
+      # interpolation into the script: an input is attacker-controlled text on a
+      # fork's pull request, and interpolation would run it.
+      env:
+        INPUT_FILES: ${{ inputs.files }}
+        INPUT_PROFILE: ${{ inputs.profile }}
+        INPUT_FORMAT: ${{ inputs.format }}
+        INPUT_REPORT: ${{ inputs.report }}
+        INPUT_ANNOTATE: ${{ inputs.annotate }}
+      run: |
+        set -eo pipefail
+        # `**` needs bash 4; the macOS image still ships 3.2, where it degrades
+        # to a single-level `*` rather than failing the run.
+        shopt -s globstar 2>/dev/null || \
+          echo "::warning::bash $BASH_VERSION has no globstar — '**' matches one directory level only."
+        shopt -s nullglob
+
+        case "$INPUT_FORMAT" in
+          json|sarif) ;;
+          *) echo "::error::format must be json or sarif, got '$INPUT_FORMAT'." ; exit 2 ;;
+        esac
+        report="${INPUT_REPORT:-vson-report.$INPUT_FORMAT}"
+
+        # Word splitting is the feature here: `files` is a list of patterns.
+        documents=()
+        for pattern in $INPUT_FILES; do
+          for match in $pattern; do
+            if [ -f "$match" ]; then documents+=("$match"); fi
+          done
+        done
+        if [ "${#documents[@]}" -eq 0 ]; then
+          echo "::error::no file matched '$INPUT_FILES' — a gate that checks nothing always passes, so this is a failure."
+          exit 2
+        fi
+        echo "vson validate: ${#documents[@]} document(s), profile $INPUT_PROFILE, report $report"
+
+        code=0
+        "$VSON_ROOT/cli/target/release/vson" validate \
+          --format "$INPUT_FORMAT" --profile "$INPUT_PROFILE" --home "$VSON_ROOT" \
+          "${documents[@]}" > "$report" || code=$?
+
+        # 2 is "no verdict" — a missing dependency, an unreadable input, a bad
+        # flag. It is not a failing document and must not be reported as one.
+        if [ "$code" -eq 2 ]; then
+          echo "::error::vson validate could not reach a verdict (exit 2). The log above carries the reason."
+          exit 2
+        fi
+
+        # --documents is passed because a SARIF log records results and not the
+        # clean files beside them: without it a passing run could only report
+        # that it had checked nothing.
+        annotator=("$VSON_ROOT/scripts/gha_annotate.py" --report "$report"
+                   --format "$INPUT_FORMAT" --documents "${#documents[@]}")
+        if [ "$INPUT_ANNOTATE" != "true" ]; then annotator+=(--no-annotate); fi
+        python3 "${annotator[@]}" --github-output "$GITHUB_OUTPUT"
+
+        echo "report=$report" >> "$GITHUB_OUTPUT"
+        if [ "$code" -eq 0 ]; then
+          echo "conformant=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "conformant=false" >> "$GITHUB_OUTPUT"
+        fi
+        exit "$code"

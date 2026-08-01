@@ -73,6 +73,99 @@ jobs:
       - name: make site (publish surface assembles and self-checks)
         run: make site
 
+  # The composite action is a shipped artifact, so it is tested like one. Both
+  # halves matter: a gate that never goes red is not a gate, and a gate that
+  # goes red on a conformant corpus is worse than none.
+  action:
+    name: Composite action (gallery passes · a bad fixture fails)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      # The action builds the CLI from source — no release binaries exist yet.
+      # This is the cache its own header tells callers to add, exercised here so
+      # the advice is tested rather than asserted.
+      - name: Cache cargo build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: cli
+
+      - name: The gallery must pass
+        id: gallery
+        uses: ./.github/actions/validate
+        with:
+          files: "examples/gallery/*.vson examples/throne_room.ttl"
+          format: sarif
+          report: vson-gallery.sarif
+
+      - name: A clean run still produces a report
+        run: |
+          set -eo pipefail
+          test "${{ steps.gallery.outputs.conformant }}" = "true"
+          test "${{ steps.gallery.outputs.findings }}" = "0"
+          python3 - <<'PY'
+          import json
+          log = json.load(open("vson-gallery.sarif"))
+          # Not an empty file: a caller has to be able to tell "clean" from
+          # "the tool never ran", and only a report can say the first.
+          assert log["version"] == "2.1.0", log
+          assert log["runs"][0]["tool"]["driver"]["name"] == "vson", log
+          assert log["runs"][0]["results"] == [], log
+          print("action self-test: 17 documents, zero results, a valid SARIF log.")
+          PY
+
+      # `continue-on-error` keeps the job alive; `outcome` still records what
+      # the step did, which is what the next step asserts on. `annotate: false`
+      # keeps a fixture that is *supposed* to fail from decorating the pull
+      # request with an error nobody needs to act on.
+      - name: A bad fixture must fail
+        id: bad
+        continue-on-error: true
+        uses: ./.github/actions/validate
+        with:
+          files: tests/fixtures/bad_no_viewer.vson
+          annotate: "false"
+          report: vson-bad.json
+
+      # Asserted off the report rather than off the step outputs: a composite
+      # action whose step failed is not guaranteed to publish them, and the
+      # file it wrote before failing is.
+      - name: The failure must be the documented one
+        run: |
+          set -eo pipefail
+          test "${{ steps.bad.outcome }}" = "failure"
+          python3 - <<'PY'
+          import json
+          report = json.load(open("vson-bad.json"))
+          finding = report["files"][0]["findings"][0]
+          # The line is the assertion that matters: an annotation on the wrong
+          # line is worse than no annotation, and this is the only place the
+          # whole path — SHACL focus node, Penman variable, source offset,
+          # workflow command — is exercised end to end.
+          assert finding["location"]["line"] == 26, finding
+          assert finding["rule"] == "vson/shacl/DirectionalNeedsViewerShape", finding
+          assert report["files"][0]["gate"] == "shacl", report
+          print("action self-test: the violation resolved to line 26 of the fixture.")
+          PY
+
+      - name: A glob that matches nothing must fail
+        id: empty
+        continue-on-error: true
+        uses: ./.github/actions/validate
+        with:
+          files: "no/such/**/*.vson"
+
+      - name: A gate that checks nothing is a failure
+        run: test "${{ steps.empty.outcome }}" = "failure"
+
   web:
     name: Web studio (svelte-check · test · build)
     runs-on: ubuntu-latest

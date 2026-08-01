@@ -1,0 +1,54 @@
+# pre-commit hooks — reject a non-conformant VSON document before it is
+# committed, with the same three gates CI runs (docs/vson.md §2).
+#
+#   # .pre-commit-config.yaml, in the repository whose scenes you are gating
+#   repos:
+#     - repo: https://github.com/yamancan/visual-scene-ontology
+#       rev: v1.3.0
+#       hooks:
+#         - id: vson-validate
+#
+# It checks the graph, not the picture: a conformant document may still
+# describe an image incorrectly (docs/vson.md §2.1).
+#
+# WHICH FILES. `.vson` (VSON-P, the Penman authoring syntax) by default, with
+# `.x.vson` excluded — `vson validate` reads a `.vson` extension as Penman, and
+# a VSON-X document handed to the Penman parser is a parse error rather than a
+# verdict. To gate Turtle scenes as well, override the pattern in your own
+# config, and point it at your scenes rather than at every `.ttl` in the tree:
+#
+#         - id: vson-validate
+#           files: ^scenes/.*\.(vson|ttl)$
+#           exclude: \.x\.vson$
+#
+# WHAT IT NEEDS. `python3` with `pyshacl`, `rdflib` and `owlrl` — the gates are
+# Python and the hook will not install them into your interpreter behind your
+# back; it names them and stops. Plus a `vson` binary: on PATH, at $VSON_BIN,
+# or built from the pinned checkout with cargo the first time (about twenty
+# seconds). There are no release binaries to download yet — the repository is
+# private and publishing is a later release — so building is the honest cost
+# today. `vson-validate-system` is the variant for a machine that already has
+# the binary and should never build one.
+
+- id: vson-validate
+  name: vson validate (SHACL + OWL 2 RL + C2)
+  description: >-
+    Validate VSON scene graphs against the shapes, the OWL 2 RL closure and the
+    C2 vocabulary. Builds the CLI from source on first use if no binary is
+    available.
+  entry: scripts/precommit_vson.sh
+  language: script
+  files: \.vson$
+  exclude: \.x\.vson$
+  require_serial: true
+
+- id: vson-validate-system
+  name: vson validate (system binary)
+  description: >-
+    The same three gates, run by the `vson` already on your PATH. Fails if
+    there is none — nothing is built and nothing is installed.
+  entry: vson validate
+  language: system
+  files: \.vson$
+  exclude: \.x\.vson$
+  require_serial: true
