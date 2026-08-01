@@ -18,6 +18,15 @@ pub enum TokKind {
 #[derive(Debug, Clone)]
 pub struct Tok {
     pub kind: TokKind,
+    /// Byte offset of the token's match in the source it was lexed from.
+    ///
+    /// The parser ignores it; `commands::sourcemap` is what reads it, to turn a
+    /// focus node reported by a gate back into the line and column where the
+    /// Penman variable was declared. Carried on the token rather than
+    /// recomputed by a text scan because a scan cannot tell a variable from the
+    /// same word inside a comment or a quoted literal, and the lexer already
+    /// has.
+    pub offset: usize,
 }
 
 static TOKEN_RE: Lazy<Regex> = Lazy::new(|| {
@@ -81,38 +90,32 @@ pub fn tokenize(src: &str) -> Result<Vec<Tok>, String> {
         if text.starts_with('#') || text.chars().all(char::is_whitespace) {
             continue;
         }
+        // The whole match starts where the token starts for every branch except
+        // the two with a leading sigil, and those report the sigil's position:
+        // `:role` is one token to a reader, and pointing a build annotation at
+        // the colon is pointing at the role.
+        let mut push = |kind: TokKind| {
+            out.push(Tok {
+                kind,
+                offset: m.start(),
+            })
+        };
         if cap.name("lp").is_some() {
-            out.push(Tok {
-                kind: TokKind::LParen,
-            });
+            push(TokKind::LParen);
         } else if cap.name("rp").is_some() {
-            out.push(Tok {
-                kind: TokKind::RParen,
-            });
+            push(TokKind::RParen);
         } else if let Some(g) = cap.name("str") {
-            out.push(Tok {
-                kind: TokKind::Str(decode_escapes(g.as_str())),
-            });
+            push(TokKind::Str(decode_escapes(g.as_str())));
         } else if let Some(g) = cap.name("role") {
-            out.push(Tok {
-                kind: TokKind::Role(g.as_str().to_string()),
-            });
+            push(TokKind::Role(g.as_str().to_string()));
         } else if cap.name("slash").is_some() {
-            out.push(Tok {
-                kind: TokKind::Slash,
-            });
+            push(TokKind::Slash);
         } else if let Some(g) = cap.name("unit") {
-            out.push(Tok {
-                kind: TokKind::Unit(g.as_str().to_string()),
-            });
+            push(TokKind::Unit(g.as_str().to_string()));
         } else if let Some(g) = cap.name("num") {
-            out.push(Tok {
-                kind: TokKind::Num(g.as_str().to_string()),
-            });
+            push(TokKind::Num(g.as_str().to_string()));
         } else if let Some(g) = cap.name("id") {
-            out.push(Tok {
-                kind: TokKind::Id(g.as_str().to_string()),
-            });
+            push(TokKind::Id(g.as_str().to_string()));
         } else if let Some(g) = cap.name("bad") {
             return Err(format!("unexpected character: {:?}", g.as_str()));
         }
@@ -175,6 +178,17 @@ mod tests {
             TokKind::Str(s) => assert_eq!(s, "a\nb\tc"),
             other => panic!("got {:?}", other),
         }
+    }
+
+    #[test]
+    fn tokens_carry_their_source_offset() {
+        // The offsets are what `commands::sourcemap` turns into a line and a
+        // column, so a comment before the node must not shift them: they are
+        // positions in the source, not in the token stream.
+        let src = "# note\n(s / Composition)";
+        let toks = tokenize(src).unwrap();
+        assert_eq!(toks[0].offset, 7, "'(' sits right after the comment line");
+        assert_eq!(&src[toks[1].offset..toks[1].offset + 1], "s");
     }
 
     #[test]

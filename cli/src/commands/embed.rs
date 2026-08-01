@@ -97,6 +97,10 @@ pub const ASSETS: &[(&str, &str)] = &[
         include_str!("../../assets/tools/geometry_check.py"),
     ),
     (
+        "tools/validate_report.py",
+        include_str!("../../assets/tools/validate_report.py"),
+    ),
+    (
         "tools/penman/__init__.py",
         include_str!("../../assets/tools/penman/__init__.py"),
     ),

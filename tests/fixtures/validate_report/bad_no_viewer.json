@@ -1,0 +1,41 @@
+{
+  "report": "vson-validate/1",
+  "tool": {
+    "name": "vson",
+    "version": "1.3.0"
+  },
+  "profile": "strict",
+  "conforms": false,
+  "summary": {
+    "files": 1,
+    "conformant": 0,
+    "findings": 1
+  },
+  "files": [
+    {
+      "path": "tests/fixtures/bad_no_viewer.vson",
+      "syntax": "penman",
+      "conforms": false,
+      "gate": "shacl",
+      "findings": [
+        {
+          "gate": "shacl",
+          "rule": "vson/shacl/DirectionalNeedsViewerShape",
+          "severity": "violation",
+          "message": "Directional spatial facts require exactly one vso:viewer for construal disambiguation (C5), and that viewer must be a CameraView, never an Entity.",
+          "shape": "https://w3id.org/vson/v1/shapes#DirectionalNeedsViewerShape",
+          "constraint": "http://www.w3.org/ns/shacl#MinCountConstraintComponent",
+          "focus_node": "https://example.org/scenes/anonymous#sf",
+          "result_path": "https://w3id.org/vson/v1/ontology#viewer",
+          "value": null,
+          "location": {
+            "line": 26,
+            "column": 14,
+            "anchor": "sf",
+            "resolved_from": "penman-variable"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "columnKind": "unicodeCodePoints",
+      "results": [
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tests/fixtures/bad_no_viewer.vson"
+                },
+                "region": {
+                  "startColumn": 14,
+                  "startLine": 26
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "Directional spatial facts require exactly one vso:viewer for construal disambiguation (C5), and that viewer must be a CameraView, never an Entity."
+          },
+          "properties": {
+            "constraint": "http://www.w3.org/ns/shacl#MinCountConstraintComponent",
+            "focusNode": "https://example.org/scenes/anonymous#sf",
+            "gate": "shacl",
+            "resolvedFrom": "penman-variable",
+            "resultPath": "https://w3id.org/vson/v1/ontology#viewer",
+            "severity": "violation",
+            "shape": "https://w3id.org/vson/v1/shapes#DirectionalNeedsViewerShape"
+          },
+          "ruleId": "vson/shacl/DirectionalNeedsViewerShape",
+          "ruleIndex": 0
+        }
+      ],
+      "tool": {
+        "driver": {
+          "informationUri": "https://github.com/yamancan/visual-scene-ontology",
+          "name": "vson",
+          "rules": [
+            {
+              "helpUri": "https://w3id.org/vson/v1/shapes#DirectionalNeedsViewerShape",
+              "id": "vson/shacl/DirectionalNeedsViewerShape",
+              "name": "DirectionalNeedsViewerShape",
+              "properties": {
+                "gate": "shacl"
+              },
+              "shortDescription": {
+                "text": "Directional spatial facts require exactly one vso:viewer for construal disambiguation (C5), and that viewer must be a CameraView, never an Entity."
+              }
+            }
+          ],
+          "version": "1.3.0"
+        }
+      }
+    }
+  ],
+  "version": "2.1.0"
+}

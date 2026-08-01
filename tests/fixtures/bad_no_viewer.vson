@@ -1,0 +1,29 @@
+# Negative fixture in VSON-P — the Penman twin of bad_no_viewer.ttl: a
+# directional spatial fact with no viewer, which MUST fail
+# vss:DirectionalNeedsViewerShape (C5).
+#
+# It exists because the Turtle fixtures cannot exercise the one thing
+# `--format json|sarif` adds over `--format text`: a source position. A focus
+# node reported by SHACL is an IRI in a graph, and turning it back into a line
+# and a column is exact only for Penman, where the transpiler mints the IRI
+# from the variable that declares the node (docs/vson.md §5.16). The report
+# goldens beside this file pin `sf` to the line and column below, so moving a
+# line here without refreezing them is a test failure — deliberately.
+#
+# The comment above also names `sf` several times. That is the second thing
+# this fixture pins: the resolver reads the lexer's tokens, so a variable named
+# in a comment is not a declaration and the location must still be line 26.
+
+(scene / Composition
+   :framedBy (cam / CameraView :angle eye_level :framing wide_shot)
+   :viewedBy cam
+   :depicts (lamp / PhysicalObject
+               :individuation Generic :animacy Inert :countability Count
+               :class Lamp)
+   :depicts (chair / PhysicalObject
+               :individuation Generic :animacy Inert :countability Count
+               :class Furniture)
+   :hasFact (sf / SpatialFact
+               :figure lamp
+               :ground chair
+               :directional left_of))

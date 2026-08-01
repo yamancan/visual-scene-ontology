@@ -8,6 +8,8 @@ pub mod export_fol;
 pub mod gates;
 pub mod home;
 pub mod python_bridge;
+pub mod report;
+pub mod sourcemap;
 pub mod validate;
 pub mod verify;
 

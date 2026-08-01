@@ -4,7 +4,11 @@
 //!
 //! - `validate <files...>` — both of the gates `make check` runs: SHACL
 //!   conformance via `pyshacl`, then OWL 2 RL consistency via
-//!   `python3 -m tools.owlrl_check`.
+//!   `python3 -m tools.owlrl_check`. Reads `-` as standard input, and
+//!   `--format json|sarif` turns each violation into a structured record —
+//!   shape, focus node, result path, severity, and the source line the Penman
+//!   variable was declared on — so a build can annotate the offending line
+//!   (docs/vson.md §5.16).
 //! - `verify --geometry <files...>` — the checks that are *not* conformance.
 //!   Today one: whether the spatial relations a document asserts agree with the
 //!   `vso:bbox2d` rectangles it asserts beside them (docs/vson.md §5.13). It
@@ -45,9 +49,15 @@ struct Cli {
 enum Cmd {
     /// Validate one or more files against the VSON shapes.
     Validate {
-        /// Files to validate (.ttl or .vson).
+        /// Files to validate (.ttl or .vson), or `-` for standard input.
         #[arg(required = true)]
         files: Vec<PathBuf>,
+        /// Report shape: `text` (default), `json`, or `sarif` (2.1.0).
+        #[arg(long, default_value = "text")]
+        format: String,
+        /// Validation profile: `strict` (default). See docs/vson.md §6.1.
+        #[arg(long, default_value = "strict")]
+        profile: String,
         /// Path to the repo root containing ontology/ and shapes/.
         #[arg(long, env = "VSON_HOME")]
         home: Option<PathBuf>,
@@ -116,7 +126,12 @@ enum ExportTarget {
 fn main() -> ExitCode {
     let cli = Cli::parse();
     let result = match cli.command {
-        Cmd::Validate { files, home } => commands::validate::run(&files, home.as_deref()),
+        Cmd::Validate {
+            files,
+            format,
+            profile,
+            home,
+        } => commands::validate::run(&files, home.as_deref(), &format, &profile),
         Cmd::Verify {
             files,
             geometry,
