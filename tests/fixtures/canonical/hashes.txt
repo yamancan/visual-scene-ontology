@@ -1,0 +1,43 @@
+# VSON canonical hashes — docs/vson.md §4.6.
+#
+# SHA-256 of the RDFC-1.0 canonical N-Quads of each shipped document, after
+# the §4.6 normalizations (N1 anonymization, N2 composition edges). Two rows
+# with one hash are two documents that denote the same scene; the eleven
+# VSON-P / VSON-X pairs below are the cross-syntax proof, and every one of
+# them is a pair of equal hashes.
+#
+# Frozen. Regenerate with `python3 -m tools.canon --freeze`, which is an
+# authoring step and never a fix: a moved hash means a document, a transpiler
+# or an emitter changed what a scene denotes, and which one it was is the
+# thing to establish before the fixture moves.
+#
+# <sha256>  <surface>  <path>
+92be4129e1f5a1302d1bc46c4d263438350cf69b95be2e359a595b6e75da288f  VSON-T  examples/throne_room.ttl
+42d4b053e4417d0a876dc63b1c97daed332e80ef291b591ecdc4e627367d105d  VSON-P  examples/gallery/01_minimal.vson
+40652e26a439ba1dafcb58d19dcea8a95ba95c0ec68e2adaf58336c538d203dd  VSON-P  examples/gallery/02_quality.vson
+621f125acc6ea9d65b00bc2df37fc0a97a7e364cdbe255e785d5026235db9289  VSON-P  examples/gallery/03_spatial_topology.vson
+4afcfe4a16036fae5ca8b5c76922c8e953ca19920db1b15efa29bf36e85a109a  VSON-P  examples/gallery/04_directional_with_viewer.vson
+4b1aa412bf9692d183df669c4d81e52e42d039f99de140038920dcb6badc0ffe  VSON-P  examples/gallery/05_possession_stative.vson
+9fe139d9dbeb50dcc9c6c162a3755461ce67e0bf4e68600a3c26a11dc1a1be8b  VSON-P  examples/gallery/06_event_with_instrument.vson
+550bfe032d7a77df7e851ba5ffadaea90cea87372ba46fd582532ffc523bb8c4  VSON-P  examples/gallery/07_ditransitive.vson
+39c27a5b309840530cd403b14f69651e7bf92cb6bf1e682d04cd6ef111bb3114  VSON-P  examples/gallery/08_collective.vson
+fb6461993a7db5804e955c866777bf0ff9a7e70252585f7fee075ab28bfa3e15  VSON-P  examples/gallery/09_mass_substance.vson
+a0accef5f4b4729d7bc5ff33754b35bf1284478b4c6c962e10a2df25b3989aff  VSON-P  examples/gallery/10_geometry_bbox.vson
+107d7020bc99fb8223c802b7f1c366a853a41487f64a3488f11f97709f613b58  VSON-P  examples/gallery/11_throne_room.vson
+3230760ed25716719c0f7545a9d90e6bb40a68b50a2d7c4dd17fac51ec9b3700  VSON-P  examples/gallery/12_persona.vson
+d4f31e2ef0392604ae455417aeeabe35b6842dd38e9e601b972a579a6578ce3a  VSON-P  examples/gallery/13_negation.vson
+171f424c3373e022754845176d56273444098f5b10e73f2625ddeff668ed977d  VSON-P  examples/gallery/14_belief_state.vson
+12fd9b2139488b9c3b2d51c54d1be379ce89827e6500f9c65e9de851b4e754f0  VSON-P  examples/gallery/15_quantification.vson
+7da745eafcdf6a543d1194236fb84be710f70a14ccee09ccda40f49157671db7  VSON-P  examples/gallery/16_annotation.vson
+42d4b053e4417d0a876dc63b1c97daed332e80ef291b591ecdc4e627367d105d  VSON-X  examples/gallery-x/01_minimal.x.vson
+40652e26a439ba1dafcb58d19dcea8a95ba95c0ec68e2adaf58336c538d203dd  VSON-X  examples/gallery-x/02_quality.x.vson
+621f125acc6ea9d65b00bc2df37fc0a97a7e364cdbe255e785d5026235db9289  VSON-X  examples/gallery-x/03_spatial_topology.x.vson
+4afcfe4a16036fae5ca8b5c76922c8e953ca19920db1b15efa29bf36e85a109a  VSON-X  examples/gallery-x/04_directional_with_viewer.x.vson
+4b1aa412bf9692d183df669c4d81e52e42d039f99de140038920dcb6badc0ffe  VSON-X  examples/gallery-x/05_possession_stative.x.vson
+9fe139d9dbeb50dcc9c6c162a3755461ce67e0bf4e68600a3c26a11dc1a1be8b  VSON-X  examples/gallery-x/06_event_with_instrument.x.vson
+550bfe032d7a77df7e851ba5ffadaea90cea87372ba46fd582532ffc523bb8c4  VSON-X  examples/gallery-x/07_ditransitive.x.vson
+39c27a5b309840530cd403b14f69651e7bf92cb6bf1e682d04cd6ef111bb3114  VSON-X  examples/gallery-x/08_collective.x.vson
+fb6461993a7db5804e955c866777bf0ff9a7e70252585f7fee075ab28bfa3e15  VSON-X  examples/gallery-x/09_mass_substance.x.vson
+a0accef5f4b4729d7bc5ff33754b35bf1284478b4c6c962e10a2df25b3989aff  VSON-X  examples/gallery-x/10_geometry_bbox.x.vson
+107d7020bc99fb8223c802b7f1c366a853a41487f64a3488f11f97709f613b58  VSON-X  examples/gallery-x/11_throne_room.x.vson
+3230760ed25716719c0f7545a9d90e6bb40a68b50a2d7c4dd17fac51ec9b3700  VSON-X  examples/gallery-x/12_persona.x.vson
