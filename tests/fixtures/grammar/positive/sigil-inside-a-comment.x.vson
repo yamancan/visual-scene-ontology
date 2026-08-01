@@ -1,0 +1,7 @@
+# §D.2: a comment is discarded whole, so a sigil inside one is not a sigil.
+# `b` here is a positional ref, not a handle, even though a `/` follows it on
+# the same line — the parser never sees that `/`.
+~scene
+  a /PhysicalObject
+  b /PhysicalObject
+  a >> strike b  # the boar / the knight, unresolved

@@ -137,6 +137,14 @@ class TranslationRules(unittest.TestCase):
             _accepts(self.parser, "~s\n a /PhysicalObject\n a >> strike @b b /PhysicalObject\n")
         )
 
+    def test_t11_a_sigil_inside_a_comment_is_not_a_sigil(self):
+        # The lookahead T11 injects is a regex, and a regex backtracks: without
+        # the maximal-match guard it would give back half of the comment and
+        # read the `/` in it as the sigil that makes `b` a handle. §D.2
+        # discards a comment whole, so `b` stays a positional ref.
+        text = "~s\n a /PhysicalObject\n b /PhysicalObject\n a >> strike b # x / y"
+        self.assertTrue(_accepts(self.parser, text))
+
     def test_t12_a_trait_spelling_outside_entity_tail_is_an_ordinary_ident(self):
         self.assertTrue(_accepts(self.parser, "~s\n Named /PhysicalObject\n"))
 

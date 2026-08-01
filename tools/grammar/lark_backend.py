@@ -380,11 +380,31 @@ class Translator:
         Whitespace, and anything T10 discards — a comment between an item's
         handle and its sigil does not end the item, because the parser never
         sees the comment at all.
+
+        Each discarded terminal is matched MAXIMALLY, which a lookahead does
+        not get for free: a regex backtracks, so a plain `#[^\\n]*` inside the
+        lookahead would happily give back half of `# note / here` and report
+        the `/` in the comment as the handle's sigil. `_maximal_guard` forbids
+        that, and the reason it has to is that §D.2 discards a comment whole:
+        a sigil the parser never sees cannot end an item.
         """
         parts = ["\\s"] + [
-            "(?:%s)" % self._regex_of(t) for t in self.ignored_terminals()
+            "(?:%s%s)" % (self._regex_of(t), self._maximal_guard(t))
+            for t in self.ignored_terminals()
         ]
         return "(?:%s)*" % "|".join(parts)
+
+    def _maximal_guard(self, name: str) -> str:
+        """A lookahead asserting the terminal could not have matched further.
+
+        For a terminal shaped `HEAD { TAIL }` that is "no further `TAIL`".
+        A terminal of any other shape gets no guard, and the caller has to be
+        able to live with a shorter match.
+        """
+        expr = self.g.rules.get(name)
+        if isinstance(expr, ebnf.Seq) and isinstance(expr.items[-1], ebnf.Rep):
+            return "(?!%s)" % self._regex(expr.items[-1].item)
+        return ""
 
     # -- T10 --------------------------------------------------------------
     def referenced_terminals(self) -> List[str]:
