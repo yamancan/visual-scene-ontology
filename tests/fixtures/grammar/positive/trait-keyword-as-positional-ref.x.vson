@@ -1,0 +1,6 @@
+# §D.3 again, in the other position §D.4 makes ambiguous: inside an arglist
+# a bare IDENT is a positional ref, trait spelling or not.
+~scene
+  a /PhysicalObject
+  Count /PhysicalObject
+  a >> strike Count

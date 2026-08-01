@@ -1,0 +1,4 @@
+# §D.7 E3 — a domain class where §D.3's CONCEPT is required; `Knight` is a
+# value of *class (Appendix C), never a concept. Decided by: grammar.
+~scene
+  a /Knight

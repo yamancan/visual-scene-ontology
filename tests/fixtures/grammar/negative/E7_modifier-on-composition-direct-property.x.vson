@@ -1,0 +1,5 @@
+# §D.7 E7 — ~MOD on the Composition's *rendersAs. The productions admit it
+# (`kv` carries the tail); only the direct-key set of §4.3 rejects it.
+# Decided by: parser.
+~scene *rendersAs @style ~bold
+  /VisualStyle @style

@@ -1,0 +1,4 @@
+# §D.7 E8 — ~MOD on a metadata-Frame kv. A Persona kv does admit one, so
+# the bearer decides and the grammar cannot. Decided by: parser.
+~scene
+  /CameraView @cam *angle low ~soft

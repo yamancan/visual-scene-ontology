@@ -1,0 +1,7 @@
+# §D.7 E10 — ~MOD on a perdurant arglist kv. Rejected whatever the key is,
+# which is why §D.5's arg_kv drops the tail. Decided by: grammar.
+~scene
+  a /PhysicalObject
+  b /PhysicalObject
+  /CameraView @cam
+  a >> strike b *manner gently ~soft

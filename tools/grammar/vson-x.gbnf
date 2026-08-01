@@ -1,0 +1,43 @@
+# Generated from docs/vson.md by tools/grammar/gbnf_backend.py.
+# Do not edit: edit the spec, then run `make grammar-gbnf`.
+# What this constrains, and what it does not: docs/vson.md §D.10.
+# Relaxed on translation (rule G10):
+#   - `IDENT - TRAIT_KEYWORD` is emitted as `ident`
+
+root ::= ws document ws
+ws ::= ( [ \t\r\n] | comment )*
+wsr ::= ( [ \t\r\n] | comment )+
+
+document ::= composition
+composition ::= "~" ws ident ( ws kv ( ws kv )* )? ( ws item ( ws item )* )?
+ident ::= alpha ( [A-Za-z_0-9\-] ( [A-Za-z_0-9\-] )* )?
+kv ::= "*" ws ident ws value ( ws "~" ws mod )?
+item ::= ( frame-decl | viewer-anchor | handle-item )
+alpha ::= [A-Za-z_]
+digit ::= [0-9]
+value ::= ( string | unit | num | ref )
+mod ::= ident
+frame-decl ::= "/" ws concept ( ws "@" ws ident )? ( ws kv ( ws kv )* )?
+viewer-anchor ::= "^" ws ident
+handle-item ::= handle ( ws entity-tail | ws stative | ws event | ws spatial-asym | ws spatial-sym )
+string ::= "\"" ( ( [^"\\] | "\\" [^\n] ) ( ( [^"\\] | "\\" [^\n] ) )* )? "\""
+unit ::= num alpha ( [A-Za-z_0-9\-] ( [A-Za-z_0-9\-] )* )?
+num ::= ( float | int )
+ref ::= ( "@" )? ws ident
+trait-keyword ::= ( "Generic" | "Named" | "Kind" | "Skolem" | "Agentive" | "Inert" | "Count" | "Mass" | "Collective" | "Holdable" | "Wearable" | "Mountable" | "Container" | "Edible" )
+concept ::= ( "PhysicalObject" | "Aggregate" | "Substance" | "CameraView" | "VisualStyle" | "SceneContext" | "Persona" | "Quality" | "Event" | "Process" | "Stative" | "SpatialFact" )
+handle ::= ( "@" )? ws ident
+entity-tail ::= "/" ws concept ( ( wsr trait-keyword | ws kv ) ( ( ws trait-keyword | ws kv ) )* )?
+stative ::= ">" ws ident ws arglist
+event ::= ">>" ws ident ws arglist
+spatial-asym ::= "!" ws rel ws ref ( ws viewer-anchor )? ( ws kv ( ws kv )* )?
+spatial-sym ::= "&" ws sym-lemma ws "&" ws ref
+float ::= int "." digit ( digit ( digit )* )?
+int ::= ( "-" )? digit ( digit ( digit )* )?
+arglist ::= ( ( ref | arg-kv ) ( ( ws ref | ws arg-kv ) )* )?
+rel ::= ( rcc-token | dir-token )
+sym-lemma ::= ( "near" | "far" | "adjacent" )
+arg-kv ::= "*" ws ident ws value
+rcc-token ::= ( "DC" | "EC" | "PO" | "EQ" | "TPP" | "NTPP" | "TPPi" | "NTPPi" )
+dir-token ::= ( "above" | "below" | "left_of" | "right_of" | "in_front_of" | "behind" | "leftOf" | "rightOf" | "inFrontOf" )
+comment ::= "#" ( [^\n] ( [^\n] )* )?

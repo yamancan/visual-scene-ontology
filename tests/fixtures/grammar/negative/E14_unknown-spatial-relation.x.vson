@@ -1,0 +1,7 @@
+# §D.7 E14 — the token after `!` is in neither closed set of §D.3.
+# Decided by: grammar.
+~scene
+  a /PhysicalObject
+  b /PhysicalObject
+  /CameraView @cam
+  a ! ZZ b

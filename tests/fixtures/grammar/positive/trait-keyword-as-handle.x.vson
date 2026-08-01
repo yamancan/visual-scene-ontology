@@ -1,0 +1,4 @@
+# §D.3: a TRAIT_KEYWORD spelling is an ordinary IDENT outside entity_tail,
+# so `Named` is a perfectly good handle.
+~scene
+  Named /PhysicalObject Agentive

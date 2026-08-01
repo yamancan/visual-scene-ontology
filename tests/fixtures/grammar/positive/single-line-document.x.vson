@@ -1,0 +1,2 @@
+# §D.4: no production has a NEWLINE terminal, so a whole scene may be one line.
+~scene *layout triangular a /PhysicalObject *class Knight b /PhysicalObject a >> strike b

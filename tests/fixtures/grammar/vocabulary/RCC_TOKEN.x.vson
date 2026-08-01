@@ -1,0 +1,6 @@
+# §D.3 RCC_TOKEN is closed, and a member only matches a whole identifier:
+# `DCx` is not `DC`.
+~scene
+  a /PhysicalObject
+  b /PhysicalObject
+  a ! DCx b

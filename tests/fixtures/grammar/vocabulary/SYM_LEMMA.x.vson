@@ -1,0 +1,5 @@
+# §D.3 SYM_LEMMA is closed at three: `next_to` is the one §4.9 deferred.
+~scene
+  a /PhysicalObject
+  b /PhysicalObject
+  a & next_to & b

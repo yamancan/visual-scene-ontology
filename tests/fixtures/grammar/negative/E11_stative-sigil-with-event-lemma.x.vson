@@ -1,0 +1,6 @@
+# §D.7 E11 — `>` with a lemma in the Event table. Decided by: parser.
+~scene
+  a /PhysicalObject
+  b /PhysicalObject
+  /CameraView @cam
+  a > strike b

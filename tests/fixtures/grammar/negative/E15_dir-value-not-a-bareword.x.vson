@@ -1,0 +1,7 @@
+# §D.7 E15 — *dir given a STRING. `value` admits a STRING for every other
+# key, so only the key name decides. Decided by: parser.
+~scene
+  a /PhysicalObject
+  b /PhysicalObject
+  /CameraView @cam
+  a ! EC b ^cam *dir "above"

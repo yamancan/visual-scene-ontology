@@ -1,0 +1,4 @@
+# §D.2: a comment is discarded with the whitespace, so it does not end an item.
+~scene
+  a  # the handle is on this line, its sigil on the next
+  /PhysicalObject

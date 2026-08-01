@@ -1,0 +1,6 @@
+# §D.7 E13 — `fall` has no positional slot. Decided by: parser.
+~scene
+  a /PhysicalObject
+  b /PhysicalObject
+  /CameraView @cam
+  a >> fall b

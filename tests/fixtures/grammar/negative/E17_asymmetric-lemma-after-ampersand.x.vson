@@ -1,0 +1,6 @@
+# §D.7 E17 — a `&` lemma outside SYM_LEMMA. Decided by: grammar.
+~scene
+  a /PhysicalObject
+  b /PhysicalObject
+  /CameraView @cam
+  a & beside & b

@@ -1,0 +1,6 @@
+# §D.7 E12 — `>>` with a lemma in the Stative table only. Decided by: parser.
+~scene
+  a /PhysicalObject
+  b /PhysicalObject
+  /CameraView @cam
+  a >> hold b

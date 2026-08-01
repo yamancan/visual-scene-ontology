@@ -1,0 +1,6 @@
+# §D.3 DIR_TOKEN is closed at nine spellings: `upward` is not one of them.
+~scene
+  a /PhysicalObject
+  b /PhysicalObject
+  /CameraView @cam
+  a ! upward b ^cam

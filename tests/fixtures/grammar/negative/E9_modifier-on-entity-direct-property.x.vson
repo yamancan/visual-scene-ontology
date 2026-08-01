@@ -1,0 +1,4 @@
+# §D.7 E9 — ~MOD on one of the seven Entity direct keys. *color would be
+# well-formed here; *class is not. Decided by: parser.
+~scene
+  a /PhysicalObject *class Knight ~rough

@@ -1,0 +1,4 @@
+# §D.7 E6 — a handle followed by something that is not one of §D.4's five
+# sigils. Decided by: grammar.
+~scene
+  alice *color red

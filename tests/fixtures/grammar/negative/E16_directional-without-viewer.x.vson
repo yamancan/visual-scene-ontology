@@ -1,0 +1,6 @@
+# §D.7 E16 — a directional fact with no ^ anchor (§4.10.2). Decided by: parser.
+~scene
+  a /PhysicalObject
+  b /PhysicalObject
+  /CameraView @cam
+  a ! above b

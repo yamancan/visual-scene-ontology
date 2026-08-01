@@ -1,0 +1,4 @@
+# §D.3 TRAIT_KEYWORD is closed: `Sentient` is not one of the 14, so the
+# entity declaration ends and a handle with no sigil after it is left over.
+~scene
+  a /PhysicalObject Sentient
