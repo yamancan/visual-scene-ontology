@@ -122,6 +122,17 @@ by rewriting its namespace and nothing else.
   moved in a single commit. `cli/src/penman/routing-tables.json` is the sole
   mint site for both the Rust and Python emitters, so the move was three lines
   there plus a mechanical substitution everywhere the names were baked.
+  *Annotation, 2026-07-31: those namespaces are unchanged, but the prefix the
+  core vocabulary publishes for its namespace is. `vann:preferredNamespacePrefix`
+  moved `"vso"` → `"vson"`: `vso:` belongs to the Vehicle Sales Ontology
+  (`http://purl.org/vso/ns#`, in LOV with versions back to 2010-10-02), so the
+  declaration shipped here asked consumers to rebind a prefix somebody else
+  already publishes. No IRI moved and nothing migrates — every Turtle document
+  still writes `@prefix vso:`, which is legal because a prefix is an
+  abbreviation the parser expands away, and `tests/test_prefix_binding.py`
+  re-serializes the whole corpus under both bindings to hold the graphs
+  identical. The registration itself is drafted and unfiled
+  (`publish/registry/prefix-cc.json`); `docs/vson.md` §5.1 records the choice.*
 - **The old names are withdrawn, not aliased.** There is no `owl:sameAs`
   bridge, no redirect, and no shape that targets them: a document minted under
   the old host selects zero focus nodes against the v1.2 shapes and does not
