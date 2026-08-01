@@ -21,7 +21,9 @@ globs will not resurrect a file that `*.md` already matched.
 CI is the source of truth for versions (`.github/workflows/ci.yml`):
 
 - **Python 3.9+** — `make deps` installs the pinned dependencies
-  (`pip install --user -e .`, ranges live in `pyproject.toml`). CI tests 3.11.
+  (`pip install --user -e ".[dev]"`, ranges live in `pyproject.toml`). The `dev`
+  extra is `lark`, which `make grammar-check` generates its parsers with; the
+  runtime dependencies stay free of it. CI tests 3.11.
 - **Rust** (stable toolchain) for the `cli/` crate.
 - **pnpm 10** and **Node 22** for `web/`.
 
@@ -30,7 +32,7 @@ CI is the source of truth for versions (`.github/workflows/ci.yml`):
 Run these before opening a pull request. CI runs the same set.
 
 ```bash
-make check           # ontology parse, Penman→Turtle round-trip, SHACL, OWL RL, ruff lint, unittests, spec gallery
+make check           # ontology parse, Penman→Turtle round-trip, SHACL, OWL RL, ruff lint, unittests, spec gallery, executable grammars
 make cli-check       # Rust build + tests + graph-isomorphism parity against the Python reference
 make x-check         # VSON-X round-trip parity
 make x-skill-check   # VSON-X skill conformance over examples/gallery-x
@@ -57,6 +59,11 @@ pnpm build
 - **Parser or emitter changes**: the Rust CLI and the Python reference must emit
   isomorphic graphs — `make cli-check` checks this with `rdflib.to_isomorphic`
   over `throne_room` plus the gallery. Change both or neither.
+- **Grammar changes**: `docs/vson.md` Appendix B and Appendix D are the source.
+  `tools/grammar/` carries no copy of a production, so edit the spec and run
+  `make grammar-check`; `make grammar-gbnf` regenerates the committed GBNF after
+  a deliberate change, and is never the fix for a red gate (`docs/vson.md`
+  §D.10).
 - **Spec changes**: update `docs/vson.md` (the canonical spec — see its
   precedence clause in section 2) and add an entry to `spec/CHANGELOG.md` in
   the same change. `spec/vson-spec-v1.md` is a superseded historical record.

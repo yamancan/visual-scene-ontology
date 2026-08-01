@@ -71,6 +71,8 @@ shapes/           SHACL shapes for well-formedness
 queries/          29 competency questions (SPARQL 1.1) + byte-frozen answers — make cq-check
 examples/         Throne-room scene + gallery/ (16 scenes, minimal → complex)
                   + gallery-x/ (scenes 01–12 in VSON-X compact syntax)
+tools/grammar/    The spec's own EBNF, extracted and executable — make grammar-check
+                  + vson-x.gbnf, the llama.cpp constrained-decoding translation
 cli/              `vson` Rust CLI (validate / verify --geometry / diff /
                   convert {p2t, x2t} / export {cypher, caption, fol})
                   + src/penman/routing-tables.json (single source of truth for both impls)
@@ -114,9 +116,10 @@ cli/target/release/vson export caption examples/throne_room.vson
 cli/target/release/vson diff examples/throne_room.ttl examples/gallery/11_throne_room.vson
 
 # Run all tests (Python + Rust)
-make check        # 333 Python tests + 16-scene gallery + 2 schema parses
+make check        # 354 Python tests + 16-scene gallery + 2 schema parses
                   # includes the 29 frozen canonical hashes of §4.6
 make cq-check     # the 28 executable competency questions vs their frozen answers
+make grammar-check # Appendix B and Appendix D, extracted from the spec and run
 make cli-check    # Rust tests + byte-strict & graph-iso parity vs Python ref
 make x-check      # VSON-X gallery round-trip parity (12 pairs)
 ```
