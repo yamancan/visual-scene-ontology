@@ -91,7 +91,37 @@
 		e.preventDefault();
 		dragOver = false;
 		const f = e.dataTransfer?.files?.[0];
-		if (f) handleFile(f);
+		if (f) {
+			handleFile(f);
+			return;
+		}
+		// A drag from another tab or app carries a URL, not the image bytes —
+		// dataTransfer.files is empty and silently doing nothing reads as a
+		// broken dropzone. The bytes can't be fetched either: connect-src is
+		// 'self' + openrouter.ai only. Say so, and point at the paths that work.
+		const types = e.dataTransfer?.types ?? [];
+		if (types.length > 0) {
+			dropError =
+				'that drag carried a link, not the image · copy the image and paste it here, or drop a saved file';
+		}
+	}
+
+	// Paste-to-extract: browsers put real image bytes on the clipboard for
+	// "copy image" and screenshots, so paste works even where cross-tab drag
+	// cannot. Only acts when an image file is present; other pastes are not
+	// this component's business.
+	function onPaste(e: ClipboardEvent) {
+		const items = e.clipboardData?.items ?? [];
+		for (const item of items) {
+			if (item.kind === 'file' && item.type.startsWith('image/')) {
+				const f = item.getAsFile();
+				if (f) {
+					e.preventDefault();
+					handleFile(f);
+				}
+				return;
+			}
+		}
 	}
 
 	function onChange(e: Event) {
@@ -101,6 +131,8 @@
 		t.value = '';
 	}
 </script>
+
+<svelte:window onpaste={onPaste} />
 
 <div class="zone-wrap">
 	<button
@@ -136,7 +168,7 @@
 		</svg>
 		<div class="zone-copy">
 			<span class="zone-title">{dragOver ? 'release to extract' : 'drop image here'}</span>
-			<span class="zone-meta font-mono">jpeg or png · ≤5 MB · click to browse</span>
+			<span class="zone-meta font-mono">jpeg or png · ≤5 MB · browse, drop, or paste</span>
 		</div>
 	</button>
 	<input
