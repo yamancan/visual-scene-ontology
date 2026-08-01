@@ -155,6 +155,43 @@ precedence order resolving a disagreement in the lower-ranked artifact.
 existing contract the tooling executes. All 21 baked envelopes, the 16-scene
 gallery and `examples/` still conform, byte-untouched.
 
+*Annotation, 2026-08-01 — a fourth construct: geometry consistency.* The two
+annotations above are about enforcing the contract that already existed. This
+one adds a check **outside** it. New §5.13 defines what two `vso:bbox2d`
+rectangles decide about a relation asserted between the entities they bound:
+exact procedures on the x/y interval projections for the eight RCC-8 values, a
+centroid rule for the four viewer-relative directionals read in the image frame
+of the composition's `vso:viewedBy` camera (which is what C5's mandatory viewer
+buys), and a meet test for `vso:occludes`. It refutes and does not confirm — a
+bounding box contains the region and is not the region, so `rcc:DC` is never
+refutable and a cat that is `rcc:EC` with the table it sits on keeps its
+overlapping rectangle. Verdicts are `consistent` / `inconsistent` /
+`undecidable`, the last always with a reason from a closed list; `vso:proximal`,
+`in_front_of` / `behind` and `vso:visibleFraction` are out of scope on every
+run, and §5.13.5 states why the `visibleFraction` one is unavailable rather than
+merely unimplemented. It reads no image, and §2.1's prohibition is unchanged: a
+green run is coherence between two sets of the document's own claims, never
+evidence about the picture.
+
+It is **not** a conformance check and §8.2 does not govern it. No clause
+requires geometry consistency, so a check that made a geometry-inconsistent
+document non-conformant would be rejecting a document this specification
+permits — which is the one thing §8.2 forbids. C1–C9 are unchanged,
+`vson validate` still runs exactly its three gates, and the new check runs under
+`vson verify --geometry` (exit 0/1/2 on the same contract as `validate`) and
+`make geometry-check`. Fixtures: `tests/fixtures/geometry_consistent.ttl`, plus
+`geometry_inconsistent_rcc.ttl` and `geometry_inconsistent_directional.ttl` —
+the first two `tests/fixtures/` files that are neither `bad_*` nor conformant
+by accident: `vson validate` reports `OK` on all three gates and
+`vson verify --geometry` refuses. Measured before landing: the 16-scene gallery
+and `examples/` are clean (and decide nothing — no gallery scene carries both a
+rectangle and a spatial fact), while four asserted `rcc:TPP` facts in the baked
+studio corpus are refuted by the boxes beside them — `kitchen.json` `sf4` and
+`lamp.json` `sf2`/`sf3`/`sf4`, the last asserting that the grass is a tangential
+proper part of the person standing on it. Those envelopes stay byte-frozen and
+stay conformant; the finding is recorded, not repaired, and it is the evidence
+that the check is not vacuous on real extractor output.
+
 ## v1.2.0 — 2026-07-31
 
 Namespace release. Every canonical VSON IRI moves off `https://vson.dev/` and

@@ -128,7 +128,7 @@ A document is a **conformant VSON v1.3 document** iff all of the following hold.
 
 **Consumer conformance.** A consumer is conformant iff it accepts every document satisfying C1–C9 without modification, and rejects (or flags) documents that do not.
 
-**Verification.** The reference verifier is `cli/target/release/vson validate <file>`. Exit code 0 establishes C1–C9: it parses the document, runs SHACL, and — since v1.3 — runs the C2 vocabulary-closure sweep as a third gate ([`tools/c2_check.py`](../tools/c2_check.py)), which rejects any VSON-namespace IRI the three ontology files do not declare. Exit code 1 means at least one of those failed; the `FAIL` line names which gate. Through v1.2 exit 0 established C1 and C3–C9 only, and C2 was covered by a test that swept this repository's own corpus — a document from anywhere else could mint `vso:Ambience`, pass `vson validate` clean, and be non-conformant. Two things exit 0 still does not establish, neither of them a numbered clause: another verifier's "conformant" verdict says nothing about the OWL 2 RL closure, which no clause requires and which this verifier happens to compute as its second gate (§2.1); and no verdict from any tool says the document corresponds to the image.
+**Verification.** The reference verifier is `cli/target/release/vson validate <file>`. Exit code 0 establishes C1–C9: it parses the document, runs SHACL, and — since v1.3 — runs the C2 vocabulary-closure sweep as a third gate ([`tools/c2_check.py`](../tools/c2_check.py)), which rejects any VSON-namespace IRI the three ontology files do not declare. Exit code 1 means at least one of those failed; the `FAIL` line names which gate. Through v1.2 exit 0 established C1 and C3–C9 only, and C2 was covered by a test that swept this repository's own corpus — a document from anywhere else could mint `vso:Ambience`, pass `vson validate` clean, and be non-conformant. Two things exit 0 still does not establish, neither of them a numbered clause: another verifier's "conformant" verdict says nothing about the OWL 2 RL closure, which no clause requires and which this verifier happens to compute as its second gate (§2.1); and no verdict from any tool says the document corresponds to the image. A third is deliberately not among `validate`'s gates at all — whether a document's spatial relations agree with the `vso:bbox2d` rectangles it asserts beside them. That is `vson verify --geometry` (§5.13), and a document that fails it is still conformant.
 
 **Normative precedence.** VSON's normative content is spread across five artifacts. When two of them disagree, the higher entry wins:
 
@@ -162,10 +162,10 @@ C2 belongs to none of the three. It is a **vocabulary-closure** property — no 
 
 **The absent construct is groundedness** — the property that each assertion in a document corresponds to what the image depicts. VSON v1.x defines no groundedness check, ships no groundedness evidence, and makes no groundedness claim. Establishing it would take at least two things this repository does not have:
 
-1. **A geometry consistency decision.** Where a document already carries the geometry of §5.10, agreement between that geometry and the relations asserted over it is decidable *inside the document*: two `vso:bbox2d` rectangles determine which RCC-8 relation of C8 holds between them, and their positions under the viewer's `vso:CameraView` determine the directional values §3.3 anchors. A document whose `vso:rcc` contradicts its own boxes is ungrounded in a way that needs no image to detect — and nothing in v1.x detects it. This one is checkable and unchecked.
+1. **A geometry consistency decision.** Where a document already carries the geometry of §5.10, agreement between that geometry and the relations asserted over it is decidable *inside the document*: a `vso:bbox2d` rectangle bounds the region it is asserted of, which is enough to refute a claim of containment or contact that the two rectangles cannot support, and their centroids under the viewer's `vso:CameraView` decide the directional values §3.3 anchors. A document whose `vso:rcc` contradicts its own boxes is ungrounded in a way that needs no image to detect. **Since v1.3 this one is checked** — §5.13 defines the decision procedures and `vson verify --geometry` runs them. It is a separate command and not a `validate` gate, because it decides no numbered clause: a document that fails it is still conformant.
 2. **Ground truth for what geometry cannot decide.** Class, dimension values, lemmas, thematic roles, and frame attributions do not follow from boxes. Evidence for those means comparison against human annotation over a fixed image set, with a published protocol and a reported inter-annotator agreement figure. No such corpus, protocol, or figure exists in this repository.
 
-Until both exist, **verified** in VSON means *verified against the schema*. Any stronger reading is unsupported by anything this project ships.
+The second does not exist, so groundedness does not. **Verified** in VSON means *verified against the schema* — and, where §5.13 can reach, that a document does not contradict its own geometry. Neither is a reading of the picture, and any stronger claim is unsupported by anything this project ships.
 
 ---
 
@@ -695,7 +695,7 @@ What it does **not** buy: no spatial or temporal composition tables, no cardinal
 
 **Normalized, not pixels.** Every component of `vso:bbox2d` is a fraction of the image's width or height. `ontology/vso.ttl`'s comment also offered a pixel reading until v1.3, which §2 resolves in favour of this document; the ontology comment now says normalized, `vss:GeometryShape` rejects the pixel form ([`bad_bbox2d_pixels.ttl`](../tests/fixtures/bad_bbox2d_pixels.ttl)), and every `vso:bbox2d` in the shipped corpus was already normalized.
 
-**What the geometry shapes do not check.** They read the value space, not the picture, and not the scene's agreement with itself: nothing here checks that `x + w ≤ 1`, that an occluder's `vso:visibleFraction` is consistent with the two boxes' overlap, or that a `vso:rcc` value agrees with the rectangles it is asserted over. §2.1 names that last one as the checkable-and-unchecked half of groundedness.
+**What the geometry shapes do not check.** They read the value space, not the picture, and not the scene's agreement with itself: nothing here checks that `x + w ≤ 1`, that an occluder's `vso:visibleFraction` is consistent with the two boxes' overlap, or that a `vso:rcc` value agrees with the rectangles it is asserted over. The last of those is decided since v1.3, outside SHACL and outside conformance, by §5.13's check — which also states why the `vso:visibleFraction` one is not merely unimplemented but unavailable: no bound on a region's visible area follows from a rectangle that over-approximates it.
 
 The three 3D grammars admit exponent notation (`1.5,-2,3e-4`) and no whitespace, and bound no component: world coordinates are unbounded, unlike a normalized box. Negative fixture: [`bad_geometry_grammar.ttl`](../tests/fixtures/bad_geometry_grammar.ttl).
 
@@ -735,6 +735,120 @@ Producers **MUST NOT** invent values for closed enumerations. Open dimensions (`
 | `vso:directional` | `above, below, left_of, right_of, in_front_of, behind` |
 | `vso:proximal` | `near, far, adjacent, next_to, facing` (five values — `vss:ProximalValueShape`; VSON-X's `&` form admits only the first three) |
 | `vso:dimension` | The twenty-one registered dimensions of §5.5.1 — closed *within the VSO namespace* only. Unlike the rows above, no shape enumerates them: a document-namespace dimension IRI stays conformant, and a `vso:`-namespace one outside the registry fails C2 rather than C3 — reported by `vson validate`'s third gate since v1.3, not by SHACL. |
+
+### 5.13 Geometry consistency (`vson verify --geometry`)
+
+A document that carries both a relation and the geometry of §5.10 has said two things that can disagree. `:sf vso:figure :mug ; vso:ground :shelf ; vso:rcc rcc:NTPP` says the mug is inside the shelf; `:mug vso:bbox2d "0.40,0.70,0.15,0.20"` and `:shelf vso:bbox2d "0.10,0.20,0.80,0.30"` put the mug's rectangle entirely below the shelf's. Both statements are structurally well-formed, both are in their value spaces, and they cannot both describe one picture. This section defines the decision procedure that says so, and — as precisely — what it does not establish.
+
+**What it checks, and against what.** Three constructs were named in §2.1: syntax (the parser), structure (SHACL), internal consistency (the OWL 2 RL closure). This is a **fourth**, in the same position as the third — worth running, required by no clause:
+
+| Construct | Mechanism | What a pass means |
+|---|---|---|
+| **Geometry consistency** | the decision procedures below, over the document's `vso:bbox2d` rectangles ([`tools/geometry_check.py`](../tools/geometry_check.py)) | no relation the document asserts is refuted by the geometry the document asserts |
+
+It compares **claims against claims**. It reads no image, and it is not a step toward reading one: a document whose boxes and relations agree can still describe a photograph containing neither object, and §2.1's prohibition on calling such a document accurate or verified is untouched by a green run. What it removes is one specific way of being wrong — the way that needs no picture to detect, because the document refutes itself.
+
+**Not a conformance clause.** C1–C9 do not mention geometry consistency, and §8.2 forbids making them mention it inside v1.x: nothing in this specification, before this section, required a `vso:rcc` value to agree with a `vso:bbox2d`, so a check that rejected such a document would be rejecting a document the specification permits. A geometry-inconsistent document is a **conformant VSON document**. `vson validate` therefore does not run this check and its three gates are unchanged; `vson verify --geometry` runs it, and reports it as what it is.
+
+#### 5.13.1 The image frame
+
+`vso:bbox2d` is `"x,y,w,h"` as fractions of the image (§5.4). This section fixes the two things that reading leaves open, because a decision procedure cannot be stated without them:
+
+- **Origin and axes.** The origin is the **top-left** of the frame, `x` increases to the right, and `y` increases **downward** — the convention of the layout consumers §5.4's example names, and the one every `vso:bbox2d` in this repository's corpus was written in. A rectangle is therefore the closed set `[x, x+w] × [y, y+h]`.
+- **Whose image.** The rectangles are fractions of one image: the image of the `vso:CameraView` the composition is `vso:viewedBy` (§5.2). A `vso:directional` value is anchored to its own `vso:viewer` (C5, §3.3), so the rectangles may be read as *that viewer's* left and right only when the two cameras are the same node. When they are not, or when the document declares no single viewed camera, nothing directional is decided — see the taxonomy in §5.13.5. This is what the mandatory viewer buys: without C5 there would be no anchor to compare a rectangle against.
+
+Neither point restricts what a document may say, and neither changes any clause. A document that meant `y` upward was already stating something this specification never defined.
+
+#### 5.13.2 The engine: a bounding box refutes, it does not confirm
+
+`vso:bbox2d` is a *bounding* box — the tightest axis-aligned rectangle containing the entity's projection. Write `bbox(X)` for it. Two properties hold, and they are the whole of what follows:
+
+```text
+X ⊆ bbox(X)                     (extensive)
+X ⊆ Y  ⟹  bbox(X) ⊆ bbox(Y)     (monotone)
+```
+
+A relation asserted between two *regions* entails something about their rectangles; when the rectangles falsify that entailment, the assertion is refuted. **The converse never holds.** A cat sitting on a mat stands in `rcc:EC` — the regions touch and their interiors do not meet — while the cat's rectangle and the mat's overlap with positive area, so the *rectangles* stand in PO. The difference is not academic: of the 13 `vso:rcc` facts the 21 baked studio envelopes state over two rectangles, a check that computed the rectangles' own RCC-8 relation and demanded a match would reject **11**; the refutation table below rejects 4 (§5.13.7). An implementation of this check therefore **MUST NOT** report an inconsistency except where an entailment in §5.13.3 or a rule in §5.13.4 licenses it.
+
+#### 5.13.3 RCC-8, decided on rectangles
+
+A rectangle is the product of two intervals, `X = [x₁,x₂] × [y₁,y₂]`, so every test below is a conjunction of the same test on the two axis projections. With `A` the figure's rectangle and `B` the ground's:
+
+```text
+meet(A,B)     ≡  A.x₁ ≤ B.x₂ ∧ B.x₁ ≤ A.x₂ ∧ A.y₁ ≤ B.y₂ ∧ B.y₁ ≤ A.y₂
+inside(A,B)   ≡  B.x₁ ≤ A.x₁ ∧ A.x₂ ≤ B.x₂ ∧ B.y₁ ≤ A.y₁ ∧ A.y₂ ≤ B.y₂
+strict(A,B)   ≡  B.x₁ < A.x₁ ∧ A.x₂ < B.x₂ ∧ B.y₁ < A.y₁ ∧ A.y₂ < B.y₂
+```
+
+| Asserted | Entails, of the regions | Refuted exactly when |
+|---|---|---|
+| `rcc:DC` | the regions share no point | **never** — disjoint regions may have any two boxes at all, up to identical ones (two interleaved combs) |
+| `rcc:EC` | the regions share a boundary point | `¬meet(A,B)` |
+| `rcc:PO` | the interiors share a point | `¬meet(A,B)` |
+| `rcc:EQ` | one region | `A ≠ B` |
+| `rcc:TPP` | figure ⊆ ground | `¬inside(A,B)` |
+| `rcc:NTPP` | figure ⊆ interior(ground) | `¬strict(A,B)` |
+| `rcc:TPPi` | ground ⊆ figure | `¬inside(B,A)` |
+| `rcc:NTPPi` | ground ⊆ interior(figure) | `¬strict(B,A)` |
+
+The two strict rows are the only ones that need an argument. If `X ⊆ interior(Y)`, then the point of `X` attaining its greatest `x` lies in an open subset of `Y`, so `Y` contains a point of strictly greater `x`; hence `bbox(Y)` extends strictly beyond `bbox(X)` on that side, and the same on the other three. `TPP` and `NTPP` differ only in that strictness, which is why a figure flush against one edge of its ground is `TPP`-compatible and `NTPP`-refuted.
+
+`DC`'s row is not a gap to be closed later. It is the shape of the whole method: bounding boxes over-approximate, so they refute claims of *containment and contact* and can never refute a claim of *separation*.
+
+Arithmetic is exact. Comparisons run on decimal values, never binary floats, and the four boundary cuts above (`EC` vs `DC`, `EQ`, the `TPP`/`NTPP` line) turn on equality of coordinates, which a float would decide by rounding error.
+
+#### 5.13.4 Direction, decided on centroids
+
+Unlike §5.13.3, this is a **stipulation, not an entailment**: nothing about two regions forces an ordering of their bounding boxes' centres. For the purpose of this check, and with `x̄`/`ȳ` the centroid of a rectangle read in the frame of §5.13.1:
+
+| Asserted | Holds exactly when | Refuted otherwise |
+|---|---|---|
+| `vso:above` | `ȳ(figure) < ȳ(ground)` | including equality — two centroids at one height stand in no vertical order |
+| `vso:below` | `ȳ(figure) > ȳ(ground)` | " |
+| `vso:left_of` | `x̄(figure) < x̄(ground)` | " |
+| `vso:right_of` | `x̄(figure) > x̄(ground)` | " |
+| `vso:in_front_of`, `vso:behind` | — | **out of scope**: depth is not a function of the image plane, and no pair of rectangles decides it |
+
+The decision needs the fact's `vso:viewer` and the composition's `vso:viewedBy` to be the same camera (§5.13.1). A centroid needs no interior, so a degenerate rectangle blocks §5.13.3 and not this table.
+
+#### 5.13.5 `vso:occludes`, and what rectangles cannot reach
+
+**`vso:occludes`.** An occluder hides part of what it occludes, so the two projections share image points and `¬meet(A,B)` refutes the claim. Only the closed test is used: §5.10 does not say an occluder hides positive *area*, and demanding overlapping interiors would refute a document this specification permits.
+
+**`vso:visibleFraction` is out of scope, and stays so.** §5.10 lists "an occluder's `vso:visibleFraction` consistent with the two boxes' overlap" among the things nothing checks; this section does not close that one, because no bound follows. The visible fraction is a ratio of *region* areas, a rectangle over-approximates a region's area by an unbounded factor, and VSON makes no closed-world commitment about `vso:occludes` — so a value below 1 is always explicable by an occluder the document does not declare, or by the frame edge. There is no sound lower bound and no sound upper bound to compute, and this check reports the value as undecidable rather than inventing one.
+
+**`vso:proximal` is out of scope.** VSON fixes no distance threshold for `near` / `far` / `adjacent` / `next_to`, and no orientation for `facing`. A threshold invented by a checker would be a requirement this document never stated.
+
+#### 5.13.6 Verdicts
+
+Every asserted relation gets exactly one of three verdicts, and an implementation **MUST NOT** report a fourth or silently omit a relation:
+
+| Verdict | Meaning |
+|---|---|
+| `consistent` | decided, and the geometry does not refute the assertion — **not** evidence that the assertion is true |
+| `inconsistent` | decided, and the geometry refutes the assertion |
+| `undecidable` | not decided, with a reason from the list below |
+
+| Reason | When |
+|---|---|
+| `no-geometry` | an endpoint carries no `vso:bbox2d` |
+| `malformed-geometry` | a `vso:bbox2d` outside the §5.4 value space — a SHACL violation, reported by `vss:GeometryShape`, and decided from here not at all |
+| `ambiguous-geometry` | an endpoint carries more than one `vso:bbox2d` (also a SHACL violation) |
+| `ambiguous-endpoints` | the fact does not carry exactly one `vso:figure` and one `vso:ground` |
+| `degenerate-geometry` | a zero-area rectangle bounds a region with no interior, and RCC-8 is defined over regions that have one |
+| `viewer-not-image-frame` | a directional fact whose `vso:viewer` is not the camera the rectangles are normalized against (§5.13.1) |
+| `relation-out-of-scope` | `vso:proximal`, `in_front_of` / `behind`, `vso:visibleFraction` (§5.13.5) |
+| `unrecognized-value` | a value outside C8 or the §5.12 enumeration — SHACL's report, not this one's |
+
+The list is exhaustive by construction: a relation that is not decided is reported with the reason it was not, and "not applicable" is never a silent skip.
+
+#### 5.13.7 Where it runs, and what it found
+
+The reference implementation is [`tools/geometry_check.py`](../tools/geometry_check.py), run by `vson verify --geometry <files>` (exit 0 clean, 1 an inconsistency, 2 no verdict) and by `make geometry-check` over the gallery, the throne room and [`tests/fixtures/geometry_consistent.ttl`](../tests/fixtures/geometry_consistent.ttl). The two negative fixtures are the claim of this section made executable — [`geometry_inconsistent_rcc.ttl`](../tests/fixtures/geometry_inconsistent_rcc.ttl) and [`geometry_inconsistent_directional.ttl`](../tests/fixtures/geometry_inconsistent_directional.ttl) are conformant VSON that `vson validate` reports `OK` on all three gates, and `vson verify --geometry` refuses.
+
+**Measured on the shipped corpus, 2026-08-01.** The 16-scene gallery and `examples/throne_room.ttl` are clean, though only just: no gallery scene carries both a rectangle and a spatial fact, so the gallery decides nothing and the positive fixture is what gives the target teeth. The 21 baked studio envelopes are not clean. Four asserted `rcc:TPP` facts across two of them are refuted by the boxes asserted beside them — `kitchen.json` `sf4`, and `lamp.json` `sf2`, `sf3` and `sf4`, of which `sf2` says the grass is a tangential proper part of the person standing on it. Both envelopes pass SHACL, OWL 2 RL and C2 today and stay conformant, and they are byte-frozen extractor output that is not rewritten to suit a check that arrived after them. They are recorded here as the measurement that says this check is not vacuous on real model output: the corpus that clears every conformance gate contains claims that refute themselves.
+
+**Groundedness is still absent.** §2.1 named two things that establishing it would take, and this section supplies the first: geometry consistency is now decided. The second — ground truth for what geometry cannot decide, meaning class, dimension values, lemmas, thematic roles and frame attributions, against human annotation over a fixed image set with a published protocol and an inter-annotator agreement figure — does not exist in this repository. **Verified** in VSON still means *verified against the schema*, now with one more thing checked beside it and nothing checked against the picture.
 
 ---
 
@@ -1023,6 +1137,8 @@ This section says **check**, not **shape**, throughout. A shape is the usual ins
 - **Loosening** — removing a check, or widening a value space or an enumeration — can never invalidate a conformant document, so it is permitted within v1.x without this test. It still changes what a producer may rely on the validator to catch, so it is recorded in the CHANGELOG on the same terms.
 
 **What this section does not license.** It is not a route to changing what a clause requires. C1–C9 and the §5 value spaces are the contract; this section only governs how much of that contract the tooling executes. A tightening that needs a clause reworded first is a v2.0 change wearing a shape's clothing.
+
+**A check outside conformance is not a tightening.** §5.13's geometry consistency check is the case, and it is worth stating because it looks like one: it landed in v1.3, it rejects documents, and four of them are shipped envelopes. It is not governed by this section, because it does not decide conformance — no clause requires geometry consistency, `vson validate` does not run it, and a document it refuses is a conformant VSON document that `vson validate` reports `OK`. Applying this section's rule to it would be the mistake: the rule would forbid the check, since the documents it rejects *are* documents this specification permits. That is exactly why it is not a `validate` gate. The line to hold is the one the third bullet draws — a check may not make a permitted document non-conformant — and a check reported under its own name, outside the conformance verdict, does not.
 
 **Applied in v1.3.** Constraints this document already stated, made executable — the `vso:bbox2d` grammar (§5.4, §5.10), the three 3D geometry grammars and the `[0,1]` bounds on `vso:visibleFraction` (§5.10), the `[0,1]` bounds on `vso:probability` and `vso:confidence` (§5.11), the snake_case `vso:lemma` pattern (§5.6), the `vso:class`, `vso:viewedBy` and `vso:rendersAs` caps (§5.2, §5.4), the `0..1` caps on the three `SpatialFact` relation slots (§5.7), and the two clause gaps §2.1 named: C5's *exactly one* `vso:viewer` and C6's *exactly one* `vso:lemma` on `vso:Process` and `vso:Stative`. Off the shapes, one whole clause: **C2**, which `vson validate` had never checked, is now its third gate (§2, [`tools/c2_check.py`](../tools/c2_check.py)) — the most tightly authorized tightening this section can license, since the documents it rejects are the ones C2 itself names. Each landed with a `tests/fixtures/bad_*.ttl` that the v1.2 tooling accepted. Two candidates were declined under the third bullet and the measurements are recorded beside the shapes: the §5.3.1 / §5.3.3 value lists (three shipped envelopes carry `timeOfDay "day"`, `atmosphere "cold"`, `atmosphere "clear"`), and Entity trait completeness (51 entity/trait pairs across 6 shipped documents).
 

@@ -10,7 +10,7 @@ cargo build --release
 # binary lands at target/release/vson
 ```
 
-The release binary is ~1.8 MB stripped and links nothing beyond libc. `validate` and the three Python-backed subcommands are the only parts that need an external toolchain: they spawn `pyshacl` and `python3`.
+The release binary is ~1.8 MB stripped and links nothing beyond libc. `validate`, `verify` and the three Python-backed export/convert subcommands are the only parts that need an external toolchain: they spawn `pyshacl` and `python3`.
 
 ```bash
 pip install pyshacl rdflib owlrl   # required for `vson validate` (or: make deps)
@@ -20,6 +20,7 @@ pip install pyshacl rdflib owlrl   # required for `vson validate` (or: make deps
 
 ```bash
 vson validate <files...>         # exit 0 pass, 1 gate failure, 2 could not run
+vson verify --geometry <files...># non-conformance checks; same three exit codes
 vson convert p2t <file.vson>     # Penman -> Turtle on stdout
 vson convert t2p <file.ttl>      # not implemented (stub; use Python ref)
 vson convert x2t <file.x.vson>   # VSON-X -> Turtle on stdout
@@ -96,6 +97,52 @@ $ echo $?
 1
 ```
 
+## `verify`
+
+`validate` answers one question: is this a conformant VSON document? `verify` is
+where the checks that are **not** conformance live — properties worth checking
+that no numbered clause requires, and that a document may fail while staying
+fully conformant. Today there is one:
+
+```bash
+vson verify --geometry [--verbose] <files...>
+```
+
+`--geometry` checks the spatial relations a document asserts against the
+`vso:bbox2d` rectangles it asserts beside them ([`../docs/vson.md`](../docs/vson.md)
+§5.13, via `python3 -m tools.geometry_check`). When a `vso:SpatialFact`'s figure
+and ground both carry a box, the two statements can disagree — `rcc:NTPP`
+between rectangles that do not overlap, `vso:left_of` between centroids ordered
+the other way — and this reports the disagreements.
+
+It **reads no image**. A clean run says the document does not contradict itself,
+not that it describes the picture; §2.1 of the spec is unchanged and the report
+says so on every run. The check refutes rather than confirms: a bounding box
+contains the region and is not the region, so `rcc:DC` is never refutable and a
+cat that is `rcc:EC` with the table it sits on keeps its overlapping box.
+Anything the rectangles cannot decide — `vso:proximal`, `in_front_of` /
+`behind`, `vso:visibleFraction`, a missing box — is reported `undecidable` with
+a reason, never guessed at. `--verbose` prints every relation's verdict instead
+of only the contradicted ones.
+
+Naming a check is required: `vson verify` with no flag is a usage error (exit
+2), so that a second check landing later cannot change what an existing command
+line means.
+
+```bash
+$ vson validate tests/fixtures/geometry_inconsistent_rcc.ttl
+OK  tests/fixtures/geometry_inconsistent_rcc.ttl
+$ vson verify --geometry tests/fixtures/geometry_inconsistent_rcc.ttl
+FAIL tests/fixtures/geometry_inconsistent_rcc.ttl (geometry)
+$ echo $?
+1
+```
+
+That pair is the point: three conformance gates green, geometry red, on one
+file. Exit codes match `validate` — 0 clean, 1 a document that contradicts its
+own geometry, 2 no verdict — and stdout carries only the `OK` / `FAIL` lines,
+with the report on stderr.
+
 ## `export cypher`
 
 The exporter emits **one** Cypher statement for the whole scene — every node
@@ -143,20 +190,21 @@ same `CREATE`. It is not checked against a live Neo4j server.
 Two families of subcommand need to find a VSON checkout — the repo root, not
 the data file's directory:
 
-- `validate` reads `ontology/vso.ttl`, `ontology/rcc8.ttl`, `ontology/allen.ttl`, `shapes/vson-shapes.ttl`, `tools/owlrl_check.py` and `tools/c2_check.py` from it;
+- `validate` reads `ontology/vso.ttl`, `ontology/rcc8.ttl`, `ontology/allen.ttl`, `shapes/vson-shapes.ttl`, `tools/owlrl_check.py` and `tools/c2_check.py` from it; `verify --geometry` reads `tools/geometry_check.py` and resolves the home the same way (it takes the same `--home` flag);
 - `convert x2t`, `export caption` and `export fol` run their Python module from it (`tools/vson_x/vson_x.py`, `tools/render/caption.py`, `tools/render/fol.py` respectively) — `python3 -m` puts the child's working directory on `sys.path`, so the root *is* the import path.
 
-They resolve it differently, because only `validate` has a flag:
+They resolve it differently, because only `validate` and `verify` have a flag:
 
-| Step | `validate` | `convert x2t`, `export caption`, `export fol` |
+| Step | `validate`, `verify` | `convert x2t`, `export caption`, `export fol` |
 | --- | --- | --- |
 | 1 | `--home <dir>` | — (no flag) |
 | 2 | `$VSON_HOME` | `$VSON_HOME`, if it holds the module |
 | 3 | — (no walk-up) | the input file's directory, then each parent, up to `/` |
 | 4 | the working directory | the working directory, if it holds the module |
 
-`validate` takes the first of its steps that is set and then reports whichever
-file is missing under it. The three Python-backed commands take the first step
+`validate` and `verify` take the first of their steps that is set and then
+report whichever file is missing under it. The three export/convert commands
+take the first step
 that actually holds the module they are about to run, so passing a stale
 `VSON_HOME` is not fatal as long as the input sits inside a checkout. Their
 resolution lives in exactly one place — [`src/commands/python_bridge.rs`](src/commands/python_bridge.rs) —
