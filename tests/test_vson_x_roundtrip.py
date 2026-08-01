@@ -9,9 +9,12 @@ examples/gallery-x, we assert:
 The two syntaxes must produce identical RDF graphs (modulo blank-node
 identity for auto-anonymous reified nodes; see tools.vson_x.equiv).
 
-This is the canonical proof that VSON-X is corpus-complete: every v1.0
-gallery scene has a VSON-X form that parses to the same graph the
-Penman form produces.
+Twelve of the sixteen gallery scenes have a VSON-X counterpart, and this
+asserts every one of them denotes the same scene as its Penman twin. The
+question it answers is docs/vson.md §4.6's; the answer it computes is the
+fast one. tests/test_canon.py answers the same twelve through the
+normative route — RDFC-1.0 canonical N-Quads, compared byte for byte and
+frozen — and checks the two routes against each other.
 """
 
 from __future__ import annotations
@@ -43,6 +46,7 @@ PAIRS = [
     "09_mass_substance",
     "10_geometry_bbox",
     "11_throne_room",
+    "12_persona",
 ]
 
 
