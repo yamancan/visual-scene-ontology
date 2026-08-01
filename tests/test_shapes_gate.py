@@ -3,9 +3,12 @@
 Three properties that the repo previously asserted only in prose:
 
   (a) Conformance clause C2 (docs/vson.md §2) — "no orphan VSO terms". Every
-      IRI a corpus document mints under the VSO namespace must be declared as a
-      subject in ontology/vso.ttl. Nothing enforced this, so vso:occurs and six
-      Quality dimensions shipped undeclared while the docs described them.
+      IRI a corpus document mints under a VSON namespace must be declared as a
+      subject in ontology/vso.ttl, rcc8.ttl or allen.ttl. Nothing enforced this,
+      so vso:occurs and six Quality dimensions shipped undeclared while the docs
+      described them. The sweep itself moved to tools/c2_check.py in v1.3, when
+      `vson validate` gained it as a third gate; these tests drive that module,
+      with the negative controls the corpus sweep alone cannot supply.
 
   (b) The range-mirrored sh:class checks are not vacuous. Validation runs with
       inference="rdfs" (C3), so a `sh:class C` sitting on a property whose
@@ -33,6 +36,7 @@ try:
     import pyshacl
     import rdflib
 
+    from tools.c2_check import declared_terms, orphans_in
     from tools.owlrl_check import clashes_for
     from tools.penman import vson_penman as vp
     from tools.shacl_helper import ONTOLOGY_FILES, ROOT, validate_graph
@@ -40,6 +44,8 @@ except ImportError:  # pragma: no cover — dependency probe for the skip guards
     pyshacl = None
     rdflib = None
     clashes_for = None
+    declared_terms = None
+    orphans_in = None
     vp = None
     ONTOLOGY_FILES = ()
     ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -52,7 +58,9 @@ VSS_NS = "https://w3id.org/vson/v1/shapes#"
 STRICT_SHAPES = "shapes/vson-shapes.ttl"
 RELAXED_SHAPES = "shapes/vson-shapes-relaxed.ttl"
 
-_HAVE_DEPS = bool(rdflib and pyshacl and vp and validate_graph and clashes_for)
+_HAVE_DEPS = bool(
+    rdflib and pyshacl and vp and validate_graph and clashes_for and orphans_in
+)
 
 # A minimal directional scene, mirroring the Turtle that
 # examples/gallery/04_directional_with_viewer.vson transpiles to: one camera,
@@ -179,32 +187,67 @@ def _vss_node_shapes(rel_path: str) -> set:
 
 @unittest.skipUnless(_HAVE_DEPS, "rdflib + pyshacl + owlrl required")
 class C2OrphanTermTests(unittest.TestCase):
-    """C2: every VSO-namespace IRI a document asserts must be declared."""
+    """C2: every VSON-namespace IRI a document asserts must be declared.
 
-    def test_ontology_declares_every_vso_term_the_corpus_uses(self) -> None:
-        ont = _parse("ontology/vso.ttl")
-        declared = {
-            str(s) for s in ont.subjects() if isinstance(s, rdflib.URIRef)
-        }
+    The sweep itself now lives in `tools.c2_check`, because `vson validate` runs
+    it as its third gate (docs/vson.md §2). These tests exercise that module
+    rather than restating it: one implementation, checked here and shipped in
+    the verifier.
+    """
+
+    def test_ontology_declares_every_vson_term_the_corpus_uses(self) -> None:
         for path in _corpus():
             rel = os.path.relpath(path, ROOT)
             with self.subTest(document=rel):
-                used = set()
-                for triple in _emit(path):
-                    for term in triple:
-                        if isinstance(term, rdflib.URIRef) and str(
-                            term
-                        ).startswith(VSO_NS):
-                            used.add(str(term))
-                orphans = sorted(t for t in used if t not in declared)
+                orphans = orphans_in(_emit(path))
                 self.assertEqual(
                     orphans,
                     [],
                     msg=(
-                        f"{rel} asserts VSO terms with no declaration in "
-                        f"ontology/vso.ttl (C2 violation): {orphans}"
+                        f"{rel} asserts VSON terms with no declaration in the "
+                        f"ontology files (C2 violation): {orphans}"
                     ),
                 )
+
+    def test_an_unregistered_dimension_is_reported(self) -> None:
+        # The negative control. Without it the sweep above would pass just as
+        # well if declared_terms() returned everything, or orphans_in() nothing.
+        # docs/vson.md §5.5.1 names this exact case: a vso: dimension outside
+        # the twenty-one-member registry is an orphan term, not a warning.
+        doc = _doc(
+            GOOD_SCENE
+            + "\n:lamp vso:hasQuality :q .\n"
+            + ":q a vso:Quality ; vso:dimension vso:Ambience ; vso:value \"warm\" .\n"
+        )
+        self.assertEqual(orphans_in(doc), [VSO_NS + "Ambience"])
+
+    def test_a_document_namespace_dimension_is_not_an_orphan(self) -> None:
+        # The other half of §5.5.1: the registry is closed *within the VSO
+        # namespace* only. A gate that flagged :Layout would reject documents
+        # the specification permits, which §8.2 forbids.
+        doc = _doc(
+            GOOD_SCENE
+            + "\n:lamp vso:hasQuality :q .\n"
+            + ":q a vso:Quality ; vso:dimension :Layout ; vso:value \"triangular\" .\n"
+        )
+        self.assertEqual(orphans_in(doc), [])
+
+    def test_the_shipped_c2_fixture_is_rejected_for_c2_alone(self) -> None:
+        # tests/fixtures/bad_orphan_term.ttl is the fixture cli/tests/
+        # golden_validate.rs drives the third gate with. It has to fail C2 and
+        # pass SHACL: if a shape ever started rejecting it, the CLI test would
+        # still be green while proving nothing about the C2 gate.
+        doc = _parse("tests/fixtures/bad_orphan_term.ttl")
+        self.assertEqual(orphans_in(doc), [VSO_NS + "Ambience"])
+        conforms, report = validate_graph(doc)
+        self.assertTrue(conforms, msg=report)
+
+    def test_rcc8_and_allen_terms_are_declared_too(self) -> None:
+        # C2 names three ontology files, not one. rcc:DC appears in the corpus
+        # and is declared in ontology/rcc8.ttl; a sweep that only loaded
+        # vso.ttl would call it an orphan.
+        self.assertIn("https://w3id.org/vson/v1/rcc8#DC", declared_terms())
+        self.assertIn("https://w3id.org/vson/v1/allen#before", declared_terms())
 
     def test_occurs_is_declared(self) -> None:
         # Named explicitly: the gallery emitted vso:occurs long before the

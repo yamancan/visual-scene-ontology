@@ -184,10 +184,15 @@ vss:LemmaShape a sh:NodeShape ;
 #   - owl:AllDifferent over every registered dimension in ontology/vso.ttl, so
 #     two dimensions on one Quality clash detectably in the owl-consistency
 #     gate rather than sameAs-collapsing (vso:dimension is functional);
-#   - the C2 coverage test in tests/test_shapes_gate.py, which fails if any
-#     corpus document asserts a VSO-namespace IRI the ontology never declared.
-# Clause C2 (docs/vson.md §2) already says validate-time SHACL does not
-# establish C2; this comment records why that gap is by design here.
+#   - tools/c2_check.py, the third `vson validate` gate since v1.3, which
+#     rejects any document asserting a VSON-namespace IRI the ontology never
+#     declared — including a vso: dimension outside the registry.
+# The division of labour is the point: SHACL asks whether the graph has the
+# right shape, C2 asks whether the *names in it are VSON's*, and the second
+# question needs the ontology's declared subjects rather than the data graph.
+# Leaving vso:dimension unenumerated here does not leave the registry unguarded;
+# it routes the guard to the gate that can tell a document-namespace dimension
+# from a minted vso: one.
 
 vss:QualityShape a sh:NodeShape ;
     sh:targetClass vso:Quality ;
@@ -623,12 +628,18 @@ vss:EmbodimentConsistencyShape a sh:NodeShape ;
 #################################################################
 # Documented but deliberately unshaped
 #
-# Three constraints docs/vson.md states and this file does not enforce. Each was
+# Two constraints docs/vson.md states and this file does not enforce. Each was
 # measured against the shipped corpus (examples/, the 16-scene gallery, all 21
 # baked envelopes) and each fires on documents this specification permits, which
 # under §8.2 disqualifies it at *every* severity — a warning on a conformant
 # document is still the shapes contradicting the contract. They are recorded
 # here so the next reader does not re-derive them.
+#
+# A third constraint is unshaped for an unrelated reason and is NOT unenforced:
+# C2's vocabulary closure is checked by tools/c2_check.py, the third gate
+# `vson validate` runs. It is absent from this file because no shape can decide
+# it — see the note beside vss:QualityShape — not because it rejects anything
+# the specification permits. It rejects exactly what C2 rejects.
 #
 #  1. Entity trait completeness. §5.4 types individuation / animacy /
 #     countability / class "required, exactly 1" on every Entity, and its own
@@ -649,9 +660,4 @@ vss:EmbodimentConsistencyShape a sh:NodeShape ;
 #     demos over a closure the contract does not declare. v2.0 is where an
 #     enum narrows; §8.2 says so.
 #
-#  3. C2 orphan-term closure. No SHACL shape can decide "every VSO-namespace
-#     IRI this document asserts is declared in the ontology" without the
-#     ontology in the data graph, and `vson validate` does not guarantee one.
-#     §2 already states that validate-time SHACL does not establish C2;
-#     tests/test_shapes_gate.py carries the corpus-wide check instead.
 #################################################################

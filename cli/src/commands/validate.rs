@@ -1,24 +1,31 @@
-//! `vson validate <files...>` — runs both of the gates CI runs, per input.
+//! `vson validate <files...>` — runs all three of the gates CI runs, per input.
 //!
 //! Gate 1 (SHACL): `pyshacl --abort` over the shapes plus the three ontology
 //! files, with `rdfs` inference.
 //! Gate 2 (OWL 2 RL): `python3 -m tools.owlrl_check <file>`, run from the
 //! resolved home. It catches `owl:disjointWith` / `owl:AllDifferent` clashes
 //! that gate 1 is structurally blind to, because `rdfs` inference never
-//! processes disjointness. A file is `OK` only once it clears both.
+//! processes disjointness.
+//! Gate 3 (C2): `python3 -m tools.c2_check <file>`. Clause C2 (docs/vson.md §2)
+//! — every VSON-namespace IRI the document asserts is declared in one of the
+//! three ontology files. Neither gate above can decide it: a shape would have to
+//! assume the ontology sits in the data graph, and an undeclared IRI entails no
+//! OWL clash. Until v1.3 nothing checked C2 at validate time and §2 said so.
+//! A file is `OK` only once it clears all three.
 //!
 //! Exit contract:
-//!   0 — every input cleared both gates;
-//!   1 — an input genuinely failed a gate (SHACL violation or OWL clash);
+//!   0 — every input cleared all three gates;
+//!   1 — an input genuinely failed a gate (SHACL violation, OWL clash, or an
+//!       orphan VSO term);
 //!   2 — a gate never reached a verdict (missing dependency, unparseable
 //!       input, wrong `--home`, ...).
 //!
-//! Telling 1 from 2 takes more than the child's exit status. Both `pyshacl`
-//! and `python3 -m tools.owlrl_check` exit 1 for "did not conform" *and* for
-//! "crashed with an uncaught exception" — an unparseable `.ttl` and a missing
-//! `owlrl` module both land on 1. So this module captures the child's stdout
-//! and looks for the report each tool writes only when it truly ran; anything
-//! else at exit 1 is a broken toolchain, not a broken document.
+//! Telling 1 from 2 takes more than the child's exit status. `pyshacl` and both
+//! Python gates exit 1 for "did not conform" *and* for "crashed with an
+//! uncaught exception" — an unparseable `.ttl` and a missing `owlrl` module
+//! both land on the same code. So this module captures the child's stdout and
+//! looks for the report each tool writes only when it truly ran; anything else
+//! at exit 1 is a broken toolchain, not a broken document.
 //!
 //! Output discipline: the `OK` / `FAIL` lines are the only thing on stdout, so
 //! `vson validate` is scriptable. Every human-readable report goes to stderr.
@@ -202,34 +209,69 @@ fn shacl_gate(shapes: &Path, ontology: &Path, data: &Path, label: &Path) -> Resu
     }
 }
 
-/// Gate 2 — OWL 2 RL consistency. `Ok(true)` is consistent, `Ok(false)` is a
-/// genuine disjointness/distinctness clash, `Err(Usage)` means the checker
-/// never reached a verdict.
-fn owl_gate(home: &Path, data: &Path, label: &Path) -> Result<bool> {
-    // Module form, matching the Makefile's `owl-consistency` target and the
-    // checker's own documented usage: `python3 -m` puts the cwd on sys.path,
-    // so the `tools` package resolves from the home we set below.
+/// Gates 2 and 3 — the two Python checkers, which differ only in the module
+/// they run and the summary line that proves they ran.
+///
+/// `Ok(true)` cleared the gate, `Ok(false)` is a genuine failure of it,
+/// `Err(Usage)` means the checker never reached a verdict.
+///
+/// `tell` is the prefix each checker prints on its own summary line, and only
+/// once it has actually finished: the overloaded exit 1 is the same trap as
+/// pyshacl's, where a real violation and a missing dependency are
+/// indistinguishable by status alone.
+struct PyGate {
+    /// The `python3 -m` module path.
+    module: &'static str,
+    /// The file that must exist under home for the module to be runnable.
+    script: &'static str,
+    /// The summary-line prefix the checker prints only when it truly ran.
+    tell: &'static str,
+    /// Names the gate in the "never reached a verdict" error.
+    what: &'static str,
+    /// Names the gate in the `FAIL <file> (<label>)` line.
+    label: &'static str,
+}
+
+/// Module form, matching the Makefile targets and each checker's own documented
+/// usage: `python3 -m` puts the cwd on sys.path, so the `tools` package resolves
+/// from the home set below.
+const OWL_GATE: PyGate = PyGate {
+    module: "tools.owlrl_check",
+    script: "tools/owlrl_check.py",
+    tell: "owl-consistency:",
+    what: "the OWL 2 RL gate",
+    label: "owl-consistency",
+};
+
+const C2_GATE: PyGate = PyGate {
+    module: "tools.c2_check",
+    script: "tools/c2_check.py",
+    tell: "c2-closure:",
+    what: "the C2 vocabulary-closure gate",
+    label: "c2",
+};
+
+fn python_gate(gate: &PyGate, home: &Path, data: &Path, label: &Path) -> Result<bool> {
+    let program = format!("python3 -m {}", gate.module);
     let out = spawn(
         Command::new("python3")
             .arg("-m")
-            .arg("tools.owlrl_check")
+            .arg(gate.module)
             .arg(absolutize(data))
             .current_dir(home),
-        "python3 -m tools.owlrl_check",
+        &program,
     )?;
     let report = String::from_utf8_lossy(&out.stdout);
 
-    // Same overloaded exit 1 as pyshacl: a real clash and a missing `owlrl`
-    // module are indistinguishable by status. The checker's own summary line
-    // is only printed when it actually ran the closure.
     match out.status.code() {
         Some(0) => Ok(true),
-        Some(1) if report.contains("owl-consistency:") => {
+        Some(1) if report.contains(gate.tell) => {
             forward(&report, &out.stderr);
             Ok(false)
         }
         _ => Err(Error::Usage(format!(
-            "the OWL 2 RL gate could not check {} ({}):\n{}",
+            "{} could not check {} ({}):\n{}",
+            gate.what,
             label.display(),
             exit_status(&out),
             stderr_excerpt(&out.stderr)
@@ -240,7 +282,7 @@ fn owl_gate(home: &Path, data: &Path, label: &Path) -> Result<bool> {
 pub fn run(files: &[PathBuf], home: Option<&Path>) -> Result<()> {
     let home = vson_home(home);
     let shapes = home.join("shapes/vson-shapes.ttl");
-    let owl_check = home.join("tools/owlrl_check.py");
+    let gates = [OWL_GATE, C2_GATE];
     let ont_files = [
         "ontology/vso.ttl",
         "ontology/rcc8.ttl",
@@ -262,11 +304,15 @@ pub fn run(files: &[PathBuf], home: Option<&Path>) -> Result<()> {
             home.display()
         )));
     }
-    if !owl_check.exists() {
-        return Err(Error::Usage(format!(
-            "tools/owlrl_check.py not found under VSON_HOME={}; the OWL 2 RL gate needs it",
-            home.display()
-        )));
+    for gate in &gates {
+        if !home.join(gate.script).exists() {
+            return Err(Error::Usage(format!(
+                "{} not found under VSON_HOME={}; {} needs it",
+                gate.script,
+                home.display(),
+                gate.what
+            )));
+        }
     }
 
     // pyshacl takes a single ontology graph, so the three ontology files are
@@ -294,8 +340,19 @@ pub fn run(files: &[PathBuf], home: Option<&Path>) -> Result<()> {
             any_failed = true;
             continue;
         }
-        if !owl_gate(&home, data, file)? {
-            println!("FAIL {} (owl-consistency)", file.display());
+        // Short-circuits on the first failure: a document already reported
+        // non-conformant does not need every remaining gate's opinion, and each
+        // one costs a Python process.
+        let failed = gates
+            .iter()
+            .find_map(|gate| match python_gate(gate, &home, data, file) {
+                Ok(true) => None,
+                Ok(false) => Some(Ok(gate.label)),
+                Err(e) => Some(Err(e)),
+            })
+            .transpose()?;
+        if let Some(label) = failed {
+            println!("FAIL {} ({})", file.display(), label);
             any_failed = true;
             continue;
         }

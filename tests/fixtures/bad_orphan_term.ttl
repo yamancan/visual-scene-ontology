@@ -1,0 +1,35 @@
+# Negative C2 fixture — NOT a SHACL fixture. This document satisfies every
+# shape in shapes/vson-shapes.ttl and is OWL 2 RL consistent; it fails clause C2
+# (docs/vson.md §2) alone, which is the point: it is the fixture that proves the
+# third `vson validate` gate exists and is reached.
+#
+# `vso:Ambience` is not a registered dimension. docs/vson.md §5.5.1 closes the
+# VSO dimension registry at twenty-one members and names this exact case — "a
+# vso:dimension whose value is any other IRI under the VSO namespace is an orphan
+# VSO term and the document is non-conformant by clause C2". vss:QualityShape
+# deliberately carries no sh:in on vso:dimension (a document-namespace dimension
+# such as :Layout below stays conformant), so SHACL cannot and must not be what
+# rejects this file. tools/c2_check.py is.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix :    <https://example.org/scenes/orphan#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :lamp .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "wide_shot" .
+
+:lamp a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Lamp ;
+    vso:hasQuality :q_local , :q_orphan .
+
+# Conformant: a dimension minted in the document's own namespace. §5.5.1 keeps
+# these legal, which is why no sh:in may close vso:dimension.
+:q_local  a vso:Quality ; vso:dimension :Layout      ; vso:value "triangular" .
+
+# NOT conformant: a dimension minted under the VSO namespace that
+# ontology/vso.ttl never declares. C2 violation.
+:q_orphan a vso:Quality ; vso:dimension vso:Ambience ; vso:value "warm" .

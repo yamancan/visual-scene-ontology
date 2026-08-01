@@ -1,4 +1,9 @@
-//! Negative SHACL fixtures: each must fail with exit 1.
+//! Negative validation fixtures: each must fail with exit 1.
+//!
+//! The last one is not a SHACL fixture. `bad_orphan_term.ttl` satisfies every
+//! shape and is OWL 2 RL consistent; it fails clause C2 alone, so it fails only
+//! if `vson validate` really reaches its third gate. Without it, deleting the
+//! C2 gate would leave every test in this file green.
 
 use assert_cmd::Command;
 use std::path::PathBuf;
@@ -45,4 +50,29 @@ fn frame_depicted_fails() {
 #[test]
 fn event_no_lemma_fails() {
     assert_validation_fails("tests/fixtures/bad_event_no_lemma.ttl", "lemma");
+}
+
+#[test]
+fn orphan_vso_term_fails() {
+    // C2 (docs/vson.md §2). `vso:Ambience` is not a registered dimension, and
+    // §5.5.1 names that exact case as a C2 violation. Asserting on the term
+    // itself, not on the word "orphan", so the test pins what was rejected.
+    assert_validation_fails("tests/fixtures/bad_orphan_term.ttl", "Ambience");
+}
+
+#[test]
+fn the_c2_gate_runs_after_the_other_two() {
+    // Not redundant with the test above: this pins that a C2 failure is
+    // *reported as* a C2 failure. If the gate ever moved ahead of SHACL, or the
+    // label drifted, the `FAIL ... (c2)` line would change and the surviving
+    // assertion above would not notice.
+    let mut cmd = Command::cargo_bin("vson").unwrap();
+    cmd.current_dir(repo_root())
+        .args(["validate", "tests/fixtures/bad_orphan_term.ttl"]);
+    let output = cmd.output().unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("(c2)"),
+        "expected the failure to be attributed to the c2 gate\nstdout: {stdout}",
+    );
 }

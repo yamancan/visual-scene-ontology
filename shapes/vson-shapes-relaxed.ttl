@@ -316,7 +316,8 @@ vss:StativeShape a sh:NodeShape ;
 # strict QualityShape in shapes/vson-shapes.ttl: the VSO dimension registry is
 # closed only within the VSO namespace, document-namespace dimensions stay
 # conformant, and the closed half is enforced by owl:AllDifferent in
-# ontology/vso.ttl plus the C2 coverage test in tests/test_shapes_gate.py.
+# ontology/vso.ttl plus tools/c2_check.py — the C2 gate `vson validate` runs
+# alongside SHACL, which is where a minted vso: dimension is rejected.
 vss:QualityShape a sh:NodeShape ;
     sh:targetClass vso:Quality ;
     sh:property [
