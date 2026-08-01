@@ -7,7 +7,7 @@ TOOLS = -m tools.penman.vson_penman
 EXAMPLE_VSON = examples/throne_room.vson
 EXAMPLE_TTL = examples/throne_room.ttl
 
-.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check iri-check x-check x-skill-check envelope-check web-check web-deploy deploy-check site clean
+.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check iri-check x-check x-skill-check envelope-check web-check web-deploy web-smoke deploy-check site clean
 
 all: check
 
@@ -119,10 +119,14 @@ web-check:
 	@echo "  OK web build, dist=$$(du -sh web/build 2>/dev/null | cut -f1 || echo n/a)"
 
 web-deploy:
-	@echo "==> Web: build + manual Cloudflare Pages deploy (project vson-studio)"
+	@echo "==> Web: build + browser smoke + manual Cloudflare Pages deploy (project vson-studio)"
 	@cd web && pnpm install --frozen-lockfile --silent 2>&1 | tail -3
 	@cd web && pnpm build 2>&1 | tail -3
+	scripts/browser_smoke.sh web/build
 	npx wrangler pages deploy web/build --project-name vson-studio
+
+web-smoke:
+	scripts/browser_smoke.sh web/build
 
 site:
 	@echo "==> Publish surface: assemble site/ from publish/ + the tracked sources"
