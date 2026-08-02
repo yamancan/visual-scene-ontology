@@ -677,6 +677,14 @@ def spec_enums() -> List[str]:
     return enums
 
 
+def _section_key(section: str) -> tuple:
+    """Sort "2.1" before "5.12" before "B" before "D.7", numerically."""
+    parts = section.split(".")
+    return tuple(
+        (0, int(part), "") if part.isdigit() else (1, 0, part) for part in parts
+    )
+
+
 def spec_sections() -> List[str]:
     """The numbered §5 and §6 subsection headings, in document order."""
     with open(SPEC, encoding="utf-8") as handle:
@@ -782,6 +790,15 @@ class Coverage:
         """
         loci = set()
         for entry in entries:
+            # An equivalence or an export entry compares a hash or a byte
+            # string, so a wrong value fails it whether or not the entry is
+            # labelled negative — the comparison is the enforcement.
+            if entry.kind == "EquivalenceTest":
+                loci.add("canonical form")
+                continue
+            if entry.kind == "ExportTest":
+                loci.add("exporter")
+                continue
             if not entry.negative():
                 continue
             if entry.kind in ("ParsePTest", "ParseXTest"):
@@ -795,10 +812,7 @@ class Coverage:
                         "c2": "C2 gate",
                     }.get(_local(str(gate)), "SHACL")
                 )
-            elif entry.kind == "EquivalenceTest":
-                loci.add("canonical form")
-            elif entry.kind == "ExportTest":
-                loci.add("exporter")
+
         if not loci:
             return "no gate" if entries else "—"
         order = ["parser", "SHACL", "OWL 2 RL", "C2 gate", "canonical form", "exporter"]
@@ -835,6 +849,19 @@ class Coverage:
             if not any(section in entry.sections for entry in self.entries)
         ]
 
+    def tagged_sections(self) -> List[str]:
+        """Every section any entry names, in the order the specification does.
+
+        Wider than `self.sections` on purpose. §2.2's table is scoped to C1-C9
+        and the numbered §5/§6 subsections, which is what a reader of a
+        specification section can take in; entries also tag §2.1, §3.x, §4.x,
+        §7, §9.x and the appendices, and those would be invisible if the map
+        used the table's scope. A tag no row could ever show is a tag nobody
+        maintains.
+        """
+        tagged = {section for entry in self.entries for section in entry.sections}
+        return sorted(tagged | set(self.sections), key=_section_key)
+
     def map(self) -> str:
         """Clause and section -> the entry ids that cover it, one per line.
 
@@ -847,7 +874,7 @@ class Coverage:
         lines = []
         for label, key in (
             [(clause, ("clauses", clause)) for clause in CLAUSES]
-            + [("§" + section, ("sections", section)) for section in self.sections]
+            + [("§" + section, ("sections", section)) for section in self.tagged_sections()]
         ):
             covering = [
                 entry for entry in self.entries if key[1] in getattr(entry, key[0])
@@ -856,8 +883,13 @@ class Coverage:
                 lines.append("%-8s uncovered" % label)
                 continue
             lines.append(
-                "%-8s %d entries — %s"
-                % (label, len(covering), self.locus(covering))
+                "%-8s %d %s — %s"
+                % (
+                    label,
+                    len(covering),
+                    "entry" if len(covering) == 1 else "entries",
+                    self.locus(covering),
+                )
             )
             for entry in covering:
                 lines.append(

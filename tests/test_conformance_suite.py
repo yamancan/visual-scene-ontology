@@ -327,12 +327,29 @@ class CoverageTests(unittest.TestCase):
         fields, and this is what says so.
         """
         text = self.coverage.map()
-        for label, key in ([(c, ("clauses", c)) for c in cr.CLAUSES]):
-            covering = [e for e in self.coverage.entries if key[1] in e.clauses]
-            with self.subTest(clause=label):
-                self.assertIn("%-8s %d entries" % (label, len(covering)), text)
+        for clause in cr.CLAUSES:
+            covering = [e for e in self.coverage.entries if clause in e.clauses]
+            with self.subTest(clause=clause):
+                self.assertIn("%-8s %d entries" % (clause, len(covering)), text)
                 for entry in covering:
                     self.assertIn(entry.id, text)
+
+    def test_the_map_shows_every_section_an_entry_names(self) -> None:
+        # The table is scoped to C1-C9 and §5/§6 — what a reader of a
+        # specification section can take in. A tag outside that scope (§4.6,
+        # §7, Appendix D.7) would otherwise be a tag no output ever shows,
+        # which is a tag nobody maintains.
+        tagged = {s for entry in self.coverage.entries for s in entry.sections}
+        text = self.coverage.map()
+        for section in sorted(tagged):
+            with self.subTest(section=section):
+                self.assertIn("§" + section, text)
+
+    def test_the_map_still_names_the_uncovered_sections(self) -> None:
+        text = self.coverage.map()
+        for section in self.coverage.uncovered():
+            with self.subTest(section=section):
+                self.assertIn("%-8s uncovered" % section, text)
 
     def test_the_uncovered_sections_are_the_ones_the_spec_names(self) -> None:
         # §5.14/§5.15/§5.16 constrain a tool, §6.1/§6.2 are the envelope schema,
