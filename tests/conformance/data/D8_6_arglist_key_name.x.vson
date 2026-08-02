@@ -1,0 +1,8 @@
+# §D.8 row 6 — any IDENT is accepted as a thematic-role key; the emitted
+# vso: term is what the C2 gate rejects.
+~scene
+  /CameraView @cam *angle eye_level *framing medium_shot
+  ^cam
+  a /PhysicalObject Generic Agentive Count *class Human
+  b /PhysicalObject Generic Inert Count *class Thing
+  a >> strike b *frobnicate b

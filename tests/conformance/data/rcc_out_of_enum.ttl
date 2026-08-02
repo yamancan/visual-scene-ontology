@@ -1,0 +1,29 @@
+# vss:RccValueShape / vso:rcc / sh:in — MUST fail.
+#
+# C8: vso:rcc takes one of the eight RCC-8 base relations. The value below
+# is minted in the document's own namespace, so this document fails the
+# shape and nothing else — C2 has no opinion about a non-VSON IRI.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/rcc_out_of_enum#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :a , :b .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "medium_shot" .
+
+:a a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:b a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:scene vso:hasFact :sf .
+
+:sf a vso:SpatialFact ; vso:figure :a ; vso:ground :b ; vso:rcc :Overlapping .

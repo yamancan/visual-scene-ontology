@@ -1,0 +1,36 @@
+# Positive — every value of the four trait axes of §3.2.
+#
+# individuation x animacy x countability x affordance. Four of the eight
+# closed vocabularies of §5.12, exercised at every member.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/traits_all_values_positive#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :generic , :named , :kind , :skolem .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "wide_shot" .
+
+:generic a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Cup ;
+    vso:affordance vso:Holdable , vso:Container .
+
+:named a vso:PhysicalObject ;
+    vso:individuation vso:Named ; vso:animacy vso:Agentive ;
+    vso:countability vso:Count ; vso:class :Human ;
+    vso:affordance vso:Wearable .
+
+:kind a vso:Aggregate ;
+    vso:individuation vso:Kind ; vso:animacy vso:Inert ;
+    vso:countability vso:Collective ; vso:class :Crowd ;
+    vso:affordance vso:Mountable .
+
+:skolem a vso:Substance ;
+    vso:individuation vso:Skolem ; vso:animacy vso:Inert ;
+    vso:countability vso:Mass ; vso:class :Water ;
+    vso:affordance vso:Edible .

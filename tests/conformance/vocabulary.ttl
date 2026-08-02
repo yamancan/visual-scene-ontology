@@ -1,0 +1,190 @@
+#################################################################
+# VSON conformance-suite vocabulary (VSON-C).
+#
+# The terms manifest.ttl uses that mf:, sht: and sh: do not supply. VSON has
+# three things the W3C SHACL test suite has no vocabulary for — two
+# hand-written surfaces with their own parse-error sets (Appendix B, Appendix
+# D), the denotation relation of docs/vson.md §4.6, and the exporters of §7 —
+# so five test types are declared here rather than borrowed.
+#
+# This file is a closure check, not decoration. tools/conformance_runner.py
+# collects every vsont: IRI the manifest asserts and refuses to run if one of
+# them is not declared below: the same question clause C2 asks of a VSON
+# document, asked of the suite's own manifest. A term added to the manifest
+# and not to this file stops the suite instead of being silently ignored.
+#
+# Namespace: https://w3id.org/vson/v1/conformance#
+# The namespace does not dereference. docs/vson.md §5.1 lists the four IRI
+# namespaces `make site` publishes, and this is not one of them: the suite
+# travels with the repository, its mf:action IRIs are relative to the manifest
+# document, and publishing the manifest alone would be publishing a catalogue
+# whose entries all 404. Publishing the whole suite under /v1/tests/ is a
+# deploy decision, not a claim this file may make on its own.
+#################################################################
+
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix dc:    <http://purl.org/dc/terms/> .
+@prefix vann:  <http://purl.org/vocab/vann/> .
+@prefix mf:    <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix vsont: <https://w3id.org/vson/v1/conformance#> .
+
+<https://w3id.org/vson/v1/conformance>
+    a owl:Ontology ;
+    rdfs:label "VSON v1 conformance-suite vocabulary" ;
+    rdfs:comment "Test types and result vocabulary for the VSON v1 conformance test suite (docs/vson.md §2.2)." ;
+    dc:title "VSON-C conformance vocabulary" ;
+    dc:creator "yamancan" ;
+    dc:license <https://www.apache.org/licenses/LICENSE-2.0> ;
+    dc:modified "2026-08-01"^^xsd:date ;
+    owl:versionInfo "1.0.0" ;
+    vann:preferredNamespacePrefix "vsont" ;
+    vann:preferredNamespaceUri "https://w3id.org/vson/v1/conformance#" .
+
+#################################################################
+# Test types
+#################################################################
+
+vsont:Test a rdfs:Class ;
+    rdfs:label "Test" ;
+    rdfs:comment "A conformance-suite entry: one mf:action, one mf:result." .
+
+vsont:ParsePTest a rdfs:Class ; rdfs:subClassOf vsont:Test ;
+    rdfs:label "ParseP test" ;
+    rdfs:comment "A VSON-P source (docs/vson.md §4.2, Appendix B) that MUST be accepted, or MUST be rejected. Appendix B declares no numbered error set, so a rejection is pinned by the reference parser's message rather than by an identifier the specification does not define — see the uncovered list in manifest.ttl." .
+
+vsont:ParseXTest a rdfs:Class ; rdfs:subClassOf vsont:Test ;
+    rdfs:label "ParseX test" ;
+    rdfs:comment "A VSON-X source (docs/vson.md §4.3, Appendix D) that MUST be accepted, or MUST be rejected at the §D.7 row named by vsont:errorRow." .
+
+vsont:ValidationTest a rdfs:Class ; rdfs:subClassOf vsont:Test ;
+    rdfs:label "Validation test" ;
+    rdfs:comment "A document run through the three gates of docs/vson.md §2.1 — SHACL, then OWL 2 RL, then C2 vocabulary closure — with the expected report pinned. Expected results are exhaustive: a document pinned with one sh:result MUST produce exactly one." .
+
+vsont:EquivalenceTest a rdfs:Class ; rdfs:subClassOf vsont:Test ;
+    rdfs:label "Equivalence test" ;
+    rdfs:comment "One or more documents whose RDFC-1.0 canonical form (docs/vson.md §4.6) MUST hash to vsont:canonicalHash. Two documents with one hash denote the same scene." .
+
+vsont:ExportTest a rdfs:Class ; rdfs:subClassOf vsont:Test ;
+    rdfs:label "Export test" ;
+    rdfs:comment "A document and an exporter (docs/vson.md §7) whose output MUST be byte-identical to vsont:expectedOutput." .
+
+vsont:ParseError a rdfs:Class ;
+    rdfs:label "parse error" ;
+    rdfs:comment "The expected outcome of a parse test that MUST be rejected." .
+
+vsont:CoverageExemptions a rdfs:Class ;
+    rdfs:label "coverage exemptions" ;
+    rdfs:comment "The honest half of the coverage map: named shapes that no input can exercise, each with the property of the shape that makes it so. A shape that is merely untested does not belong here — the runner fails on one." .
+
+#################################################################
+# Outcomes and enumerated values
+#################################################################
+
+vsont:Accepted a vsont:Outcome ; rdfs:label "accepted" ;
+    rdfs:comment "The reference parser accepts the input." .
+
+vsont:Outcome a rdfs:Class ; rdfs:label "outcome" .
+
+vsont:Surface a rdfs:Class ; rdfs:label "surface" ;
+    rdfs:comment "One of the three concrete syntaxes of docs/vson.md §4." .
+
+vsont:VSON-T a vsont:Surface ; rdfs:label "VSON-T" ;
+    rdfs:comment "Turtle-star canonical form (docs/vson.md §4.1). Read as-is." .
+vsont:VSON-P a vsont:Surface ; rdfs:label "VSON-P" ;
+    rdfs:comment "Penman authoring form (docs/vson.md §4.2). Transpiled before validation." .
+vsont:VSON-X a vsont:Surface ; rdfs:label "VSON-X" ;
+    rdfs:comment "Compact sigil form (docs/vson.md §4.3). Transpiled before validation." .
+
+vsont:Gate a rdfs:Class ; rdfs:label "gate" ;
+    rdfs:comment "One of the three gates `vson validate` runs, in docs/vson.md §2's order. At most one speaks: the report names the first that failed (§5.16)." .
+
+vsont:shacl a vsont:Gate ; rdfs:label "shacl" ;
+    rdfs:comment "SHACL over shapes/vson-shapes.ttl at inference=\"rdfs\" — clauses C3-C9." .
+vsont:owl-consistency a vsont:Gate ; rdfs:label "owl-consistency" ;
+    rdfs:comment "The OWL 2 RL closure, checked for disjointness clashes. No numbered clause requires it (docs/vson.md §2.1)." .
+vsont:c2 a vsont:Gate ; rdfs:label "c2" ;
+    rdfs:comment "Vocabulary closure — clause C2. No shape can decide it." .
+
+vsont:Exporter a rdfs:Class ; rdfs:label "exporter" ;
+    rdfs:comment "An output form of docs/vson.md §7 with a reference implementation in this repository." .
+
+vsont:caption a vsont:Exporter ; rdfs:label "caption" ;
+    rdfs:comment "tools/render/caption.py — graph to English, deterministic, no model. The frozen bytes are the command's stdout, which terminates the caption with a newline the renderer does not return." .
+vsont:fol a vsont:Exporter ; rdfs:label "fol" ;
+    rdfs:comment "tools/render/fol.py — graph to first-order logic. The renderer terminates its own last line." .
+vsont:canonical-nquads a vsont:Exporter ; rdfs:label "canonical-nquads" ;
+    rdfs:comment "tools/canon.py — the RDFC-1.0 canonical N-Quads of docs/vson.md §4.6." .
+vsont:turtle a vsont:Exporter ; rdfs:label "turtle" ;
+    rdfs:comment "The transpiler for the document's surface: tools/penman/vson_penman.py for VSON-P, tools/vson_x/vson_x.py for VSON-X. Byte-frozen output, which is what makes the two transpilers comparable at all." .
+
+vsont:NodeKind a rdfs:Class ; rdfs:label "node kind" .
+vsont:BlankNode a vsont:NodeKind ; rdfs:label "blank node" ;
+    rdfs:comment "Pinned instead of an identity when the focus node is a blank node the transpiler synthesised — its label is minted per parse and pinning it would freeze an accident." .
+vsont:IRI a vsont:NodeKind ; rdfs:label "IRI" .
+
+#################################################################
+# Properties — the action side
+#################################################################
+
+vsont:document a rdf:Property ;
+    rdfs:comment "The input document of an export action." .
+
+vsont:exporter a rdf:Property ; rdfs:range vsont:Exporter ;
+    rdfs:comment "The exporter an export action runs." .
+
+vsont:surface a rdf:Property ; rdfs:range vsont:Surface ;
+    rdfs:comment "The concrete syntax the action's document is written in. A non-Turtle surface is transpiled by the reference implementation for that surface before the gates run." .
+
+#################################################################
+# Properties — the result side
+#################################################################
+
+vsont:gate a rdf:Property ; rdfs:range vsont:Gate ;
+    rdfs:comment "The first gate that MUST fail. Absent when the document conforms." .
+
+vsont:rule a rdf:Property ; rdfs:range xsd:string ;
+    rdfs:comment "The rule identifier of a non-SHACL finding, as tools/validate_report.py emits it (docs/vson.md §5.16)." .
+
+vsont:focusNodeKind a rdf:Property ; rdfs:range vsont:NodeKind ;
+    rdfs:comment "Pinned in place of sh:focusNode when the focus node is a blank node." .
+
+vsont:canonicalHash a rdf:Property ; rdfs:range xsd:string ;
+    rdfs:comment "The SHA-256 of the RDFC-1.0 canonical N-Quads every document in the action MUST have (docs/vson.md §4.6). The same values are frozen in tests/fixtures/canonical/hashes.txt; the suite reads its own copy so a third party can run it without that file." .
+
+vsont:expectedOutput a rdf:Property ;
+    rdfs:comment "The file whose bytes the exporter MUST reproduce." .
+
+vsont:errorRow a rdf:Property ; rdfs:range xsd:string ;
+    rdfs:comment "The docs/vson.md §D.7 row identifier (E1-E18) the parser MUST reject at. The runner reads §D.7's own message column out of the specification and matches the raised message against it, so this identifier is checked rather than trusted." .
+
+vsont:errorMessage a rdf:Property ; rdfs:range xsd:string ;
+    rdfs:comment "The reference parser's message, pinned where the surface has no numbered error set. Weaker than vsont:errorRow by exactly the amount the specification is weaker." .
+
+#################################################################
+# Properties — coverage
+#################################################################
+
+vsont:clause a rdf:Property ; rdfs:range xsd:string ;
+    rdfs:comment "A numbered conformance clause (C1-C9, docs/vson.md §2) this entry exercises." .
+
+vsont:section a rdf:Property ; rdfs:range xsd:string ;
+    rdfs:comment "A specification section this entry exercises, without the section sign — \"5.7\", \"D.7\". docs/vson.md §2.2's coverage table is generated from these." .
+
+vsont:shape a rdf:Property ; rdfs:range sh:NodeShape ;
+    rdfs:comment "The named shape a negative validation entry exists to trip. Every named shape in shapes/vson-shapes.ttl MUST be named here by at least one entry or listed in the exemptions; a new shape with neither fails the build." .
+
+vsont:enum a rdf:Property ;
+    rdfs:comment "The closed enumeration of docs/vson.md §5.12 this entry exercises." .
+
+vsont:exempt a rdf:Property ;
+    rdfs:comment "A shape no input can exercise, with the reason. Attached to the vsont:CoverageExemptions node." .
+
+vsont:specification a rdf:Property ;
+    rdfs:comment "The specification version this manifest tests." .
+
+vsont:entryCount a rdf:Property ; rdfs:range xsd:integer ;
+    rdfs:comment "The number of entries in mf:entries. Stated so that a truncated manifest is a failure rather than a shorter run." .

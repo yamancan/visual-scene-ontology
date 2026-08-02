@@ -1,0 +1,5 @@
+# §D.8 row 5 — nothing checks that a `^` target is a declared CameraView.
+~scene
+  /CameraView @cam *angle eye_level *framing medium_shot
+  ^ghost
+  a /PhysicalObject Generic Inert Count *class Thing

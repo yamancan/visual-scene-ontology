@@ -7,11 +7,11 @@ TOOLS = -m tools.penman.vson_penman
 EXAMPLE_VSON = examples/throne_room.vson
 EXAMPLE_TTL = examples/throne_room.ttl
 
-.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check fragment-check registry-check geometry-check cq-check grammar-check grammar-gbnf iri-check live-check rdfc10-suite x-check x-skill-check envelope-check web-check web-deploy web-smoke deploy-check site clean
+.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check fragment-check registry-check geometry-check cq-check grammar-check grammar-gbnf conformance iri-check live-check rdfc10-suite x-check x-skill-check envelope-check web-check web-deploy web-smoke deploy-check site clean
 
 all: check
 
-check: parse-ontology penman-roundtrip shacl owl-consistency test spec-check fragment-check registry-check geometry-check cq-check grammar-check lint-py iri-check
+check: parse-ontology penman-roundtrip shacl owl-consistency test spec-check fragment-check registry-check geometry-check cq-check grammar-check conformance lint-py iri-check
 
 # Everything the CI runs, minus the web app (which needs pnpm/node).
 check-all: check cli-check x-check x-skill-check envelope-check
@@ -161,6 +161,27 @@ cq-check:
 grammar-check:
 	@echo "==> Executable grammars: Appendix B and Appendix D, extracted and run"
 	@$(PY) -m tools.grammar.check
+
+# The suite that *is* the definition (docs/vson.md §2.2). Every other target
+# here checks this repository against itself; this one runs the artifact a
+# second implementer would run instead of reading our code — an RDF manifest of
+# input documents and the verdict each MUST get, in the form of the W3C SHACL
+# test suite. It belongs in `check` because a conformance definition nobody
+# executes is the definition it replaced.
+#
+# Three things fail it, and the third is why the table is generated rather than
+# written: an entry whose verdict moved, a named shape in shapes/vson-shapes.ttl
+# with no negative entry and no stated exemption, and a docs/vson.md §2.2
+# coverage table that is not the one the manifest produces. Regenerate that
+# table with `--coverage-table`; there is no --freeze for the entries
+# themselves, because a pinned expectation exists to be decided by a person.
+#
+# Offline, Python only — the manifest is executed against the reference
+# transpilers and pyshacl, so it runs without cargo and without a network. Exit
+# 2 means the suite could not run, which is not a pass.
+conformance:
+	@echo "==> Conformance suite: every entry MUST get its pinned verdict (docs/vson.md §2.2)"
+	@$(PY) -m tools.conformance_runner
 
 # Regenerates tools/grammar/vson-x.gbnf, the llama.cpp constrained-decoding
 # translation of Appendix D. `grammar-check` compares the committed file byte

@@ -1,0 +1,33 @@
+# vss:DepictsEntityShape — the shape this document CANNOT trip.
+#
+# docs/vson.md §5.2 says reification nodes attach via vso:hasFact and not
+# vso:depicts, and vss:DepictsEntityShape states that as sh:class
+# vso:Entity at sh:Warning. Under C3's inference="rdfs" the check is
+# vacuous: vso:depicts declares rdfs:range vso:Entity, so every object of
+# vso:depicts is entailed into the very class the shape asks about — the
+# trap the shapes file's own NB documents twice, on a third site neither
+# note names. This document depicts a SpatialFact and CONFORMS. The entry
+# pins that verdict so a future change to the range, to the shape, or to
+# the inference setting has to be decided rather than discovered.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/depicts_reification_node#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :a , :b , :sf .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "medium_shot" .
+
+:a a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:b a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:sf a vso:SpatialFact ; vso:figure :a ; vso:ground :b ; vso:rcc rcc:EC .

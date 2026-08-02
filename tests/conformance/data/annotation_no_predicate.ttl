@@ -1,0 +1,31 @@
+# vss:AnnotationShape / vso:annotatedPredicate / sh:minCount — MUST fail.
+#
+# docs/vson.md §5.11: the RDF 1.1 portable reification names all three
+# positions of the triple it is about. Two of three names no triple.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/annotation_no_predicate#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :a , :b .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "medium_shot" .
+
+:a a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:b a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:scene vso:hasFact :ann .
+
+:ann a vso:Annotation ;
+     vso:annotatedSubject :a ;
+     vso:annotatedObject  :b ;
+     vso:confidence 0.9 .

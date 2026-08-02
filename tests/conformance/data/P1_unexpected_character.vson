@@ -1,0 +1,4 @@
+# Appendix B — the lexer meets a character no production admits.
+(scene / Composition
+   :depicts (apple / PhysicalObject :class Apple)
+   :note %)

@@ -1,0 +1,7 @@
+# §D.8 row 4 — a non-Frame concept after a leading `/` attaches via
+# vso:framedBy, producing a framedBy edge to something that is not a Frame.
+~scene
+  /CameraView @cam *angle eye_level *framing medium_shot
+  ^cam
+  a /PhysicalObject Generic Inert Count *class Thing
+  /PhysicalObject @stray

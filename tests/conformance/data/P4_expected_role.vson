@@ -1,0 +1,4 @@
+# Appendix B — inside a node, only a role or `)` may follow.
+(scene / Composition
+   :depicts (apple / PhysicalObject :class Apple)
+   apple)

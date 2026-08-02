@@ -1,0 +1,28 @@
+# vss:SpatialFactShape / sh:or — MUST fail.
+#
+# docs/vson.md §5.7: a SpatialFact asserts at least one of vso:rcc,
+# vso:directional or vso:proximal. Figure and ground alone relate nothing.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/spatialfact_no_relation#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :a , :b .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "medium_shot" .
+
+:a a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:b a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:scene vso:hasFact :sf .
+
+:sf a vso:SpatialFact ; vso:figure :a ; vso:ground :b .

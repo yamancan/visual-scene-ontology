@@ -1,0 +1,6 @@
+# §5.9 — `:causal` and `:temporal` are container roles: the target is a nested
+# node whose first edge carries the actual predicate. A bare reference has no
+# predicate to carry.
+(scene / Composition
+   :depicts (apple / PhysicalObject :class Apple)
+   :causal apple)

@@ -1,0 +1,38 @@
+# Positive — all six frame-relative directions, each with its viewer.
+#
+# docs/vson.md §5.12 and §3.3 together: six values, and every one of them
+# needs the anchor C5 requires.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/directional_all_six_positive#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :a , :b ;
+    vso:hasFact  :above , :below , :left , :right , :front , :behind .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "medium_shot" .
+
+:a a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:b a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:above  a vso:SpatialFact ; vso:figure :a ; vso:ground :b ; vso:viewer :cam ;
+        vso:directional vso:above .
+:below  a vso:SpatialFact ; vso:figure :a ; vso:ground :b ; vso:viewer :cam ;
+        vso:directional vso:below .
+:left   a vso:SpatialFact ; vso:figure :a ; vso:ground :b ; vso:viewer :cam ;
+        vso:directional vso:left_of .
+:right  a vso:SpatialFact ; vso:figure :a ; vso:ground :b ; vso:viewer :cam ;
+        vso:directional vso:right_of .
+:front  a vso:SpatialFact ; vso:figure :a ; vso:ground :b ; vso:viewer :cam ;
+        vso:directional vso:in_front_of .
+:behind a vso:SpatialFact ; vso:figure :a ; vso:ground :b ; vso:viewer :cam ;
+        vso:directional vso:behind .

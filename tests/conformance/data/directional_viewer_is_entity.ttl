@@ -1,0 +1,34 @@
+# vss:DirectionalNeedsViewerShape / vso:viewer / sh:not [ sh:class vso:Entity ] — MUST fail.
+#
+# C5 and §3.3: the viewer anchoring a directional fact is a CameraView. An
+# entity in the picture is not a construal frame. The entity used is not
+# depicted, for the reason composition_framedby_entity.ttl records.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/directional_viewer_is_entity#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :a , :b .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "medium_shot" .
+
+:a a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:b a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:c a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:scene vso:hasFact :sf .
+
+:sf a vso:SpatialFact ; vso:figure :a ; vso:ground :b ;
+    vso:directional vso:above ; vso:viewer :c .

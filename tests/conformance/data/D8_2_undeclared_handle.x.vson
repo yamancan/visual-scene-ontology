@@ -1,0 +1,7 @@
+# §D.8 row 2 — a ref to a handle that is never declared parses and emits a
+# dangling IRI.
+~scene
+  /CameraView @cam *angle eye_level *framing medium_shot
+  ^cam
+  a /PhysicalObject Generic Inert Count *class Thing
+  a ! EC ghost

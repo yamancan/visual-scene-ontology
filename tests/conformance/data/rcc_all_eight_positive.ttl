@@ -1,0 +1,35 @@
+# Positive — all eight RCC-8 base relations, one fact each.
+#
+# C8 lists eight values and the gallery exercises one. Every member of a
+# closed vocabulary is a value-space claim, and an unexercised member is
+# an unchecked one.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/rcc_all_eight_positive#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :a , :b ;
+    vso:hasFact  :dc , :ec , :po , :eq , :tpp , :ntpp , :tppi , :ntppi .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "medium_shot" .
+
+:a a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:b a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:dc    a vso:SpatialFact ; vso:figure :a ; vso:ground :b ; vso:rcc rcc:DC .
+:ec    a vso:SpatialFact ; vso:figure :a ; vso:ground :b ; vso:rcc rcc:EC .
+:po    a vso:SpatialFact ; vso:figure :a ; vso:ground :b ; vso:rcc rcc:PO .
+:eq    a vso:SpatialFact ; vso:figure :a ; vso:ground :b ; vso:rcc rcc:EQ .
+:tpp   a vso:SpatialFact ; vso:figure :a ; vso:ground :b ; vso:rcc rcc:TPP .
+:ntpp  a vso:SpatialFact ; vso:figure :a ; vso:ground :b ; vso:rcc rcc:NTPP .
+:tppi  a vso:SpatialFact ; vso:figure :a ; vso:ground :b ; vso:rcc rcc:TPPi .
+:ntppi a vso:SpatialFact ; vso:figure :a ; vso:ground :b ; vso:rcc rcc:NTPPi .

@@ -1,0 +1,3541 @@
+#################################################################
+# VSON v1 conformance test suite — the manifest.
+#
+# docs/vson.md §2.2 is the normative half of this file: an implementation
+# claims VSON v1 conformance by passing this suite, and the suite is what
+# "passing" means. Through v1.3.0 the specification defined a conformant
+# consumer as one that "accepts every document accepted by the Python
+# references plus pyshacl" — a definition no second implementation can be
+# checked against without running the first, and one that makes every
+# accident of the reference implementations normative. This manifest replaces
+# it with a list of documents and the verdict each one MUST get.
+#
+# Modelled on the W3C SHACL test suite: mf: for the manifest structure, sht:
+# for the data/shapes pair of a validation action, sh: for the pinned
+# validation report, and five VSON-local test types in the vsont: namespace
+# for the things SHACL's suite has no vocabulary for — the two hand-written
+# surfaces, the denotation relation of §4.6, and the exporters.
+#
+#   vsont:ParsePTest       VSON-P (Appendix B) source -> accepted or rejected
+#   vsont:ParseXTest       VSON-X (Appendix D) source -> accepted, or rejected
+#                          at a named §D.7 row
+#   vsont:ValidationTest   a document -> the three gates of §2.1, with the
+#                          report pinned to sh:sourceShape / sh:focusNode /
+#                          sh:resultPath / sh:resultSeverity
+#   vsont:EquivalenceTest  one or more documents -> the RDFC-1.0 canonical
+#                          hash of §4.6 they all MUST have
+#   vsont:ExportTest       a document + an exporter -> byte-frozen output
+#
+# The vocabulary is declared in vocabulary.ttl beside this file, and
+# tools/conformance_runner.py refuses to run a manifest that uses a term the
+# vocabulary does not declare — the same closure C2 asks of a document.
+#
+# WHAT IS PINNED, AND WHY THAT SHAPE
+#
+# A validation result names its *named* source shape. VSON-S states its
+# cardinality and value-space constraints as sh:property blank nodes nested
+# inside named node shapes, and a blank node cannot be pinned across runs, so
+# the runner resolves each result to the nearest named ancestor
+# (tools/validate_report.py named_shape) and this file pins that. Where the
+# focus node is itself a blank node — a Quality or a SpatialFact the VSON-X
+# emitter synthesised — vsont:focusNodeKind vsont:BlankNode is pinned instead
+# of an identity that changes on every parse.
+#
+# Expected results are exhaustive. A document pinned with one sh:result MUST
+# produce exactly one, which is what makes an over-firing shape a red build
+# rather than an unnoticed one.
+#
+# HOW THIS FILE IS MAINTAINED
+#
+# By hand. There is no --freeze: unlike tests/fixtures/canonical/hashes.txt,
+# nothing here is regenerated from a run, because the point of a pinned
+# expectation is that a human decided it. Every entry was authored against
+# the shape or the clause it exercises and then checked against a reference
+# run; a run that disagrees is a question to answer, not a fixture to rewrite.
+#
+# COVERAGE
+#
+# vsont:clause, vsont:section, vsont:shape and vsont:enum on each entry are
+# what docs/vson.md §2.2's coverage table is generated from
+# (`python3 -m tools.conformance_runner --coverage-table`); the runner
+# compares that table against the copy §2.2 publishes on every run and fails
+# the build when the two disagree, so the specification cannot claim coverage
+# this manifest lacks. The exemption block at the foot of this file is the
+# honest half: a shape no input can trip is recorded there with the property
+# of the shape that makes it so, and a shape that is merely untested is not —
+# the runner rejects a shapes file carrying a named shape that is neither
+# exercised nor exempted.
+#################################################################
+
+@prefix mf:    <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix sht:   <http://www.w3.org/ns/shacl-test#> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix dc:    <http://purl.org/dc/terms/> .
+@prefix vso:   <https://w3id.org/vson/v1/ontology#> .
+@prefix vss:   <https://w3id.org/vson/v1/shapes#> .
+@prefix rcc:   <https://w3id.org/vson/v1/rcc8#> .
+@prefix vsont: <https://w3id.org/vson/v1/conformance#> .
+@prefix t:     <https://w3id.org/vson/v1/conformance/tests#> .
+
+
+<https://w3id.org/vson/v1/conformance/manifest>
+    a mf:Manifest ;
+    rdfs:label "VSON v1 conformance test suite" ;
+    dc:title "VSON v1 conformance test suite" ;
+    dc:creator "yamancan" ;
+    dc:license <https://www.apache.org/licenses/LICENSE-2.0> ;
+    dc:modified "2026-08-01"^^xsd:date ;
+    owl:versionInfo "1.0.0" ;
+    rdfs:seeAlso <https://w3id.org/vson/v1/> ;
+    rdfs:comment "Passing every entry below is what claiming VSON v1 conformance means (docs/vson.md §2.2)." ;
+    vsont:specification <https://w3id.org/vson/v1/> ;
+    vsont:entryCount 218 ;
+    mf:entries (
+        t:parse-p-throne-room
+        t:parse-p-01-minimal
+        t:parse-p-02-quality
+        t:parse-p-03-spatial-topology
+        t:parse-p-04-directional-with-viewer
+        t:parse-p-05-possession-stative
+        t:parse-p-06-event-with-instrument
+        t:parse-p-07-ditransitive
+        t:parse-p-08-collective
+        t:parse-p-09-mass-substance
+        t:parse-p-10-geometry-bbox
+        t:parse-p-11-throne-room
+        t:parse-p-12-persona
+        t:parse-p-13-negation
+        t:parse-p-14-belief-state
+        t:parse-p-15-quantification
+        t:parse-p-16-annotation
+        t:parse-p-bad-no-viewer
+        t:parse-p-neg-p1
+        t:parse-p-neg-p2
+        t:parse-p-neg-p3
+        t:parse-p-neg-p4
+        t:parse-p-neg-p5
+        t:parse-p-neg-p6
+        t:parse-p-neg-p7
+        t:parse-p-neg-p8
+        t:parse-x-01-minimal
+        t:parse-x-02-quality
+        t:parse-x-03-spatial-topology
+        t:parse-x-04-directional-with-viewer
+        t:parse-x-05-possession-stative
+        t:parse-x-06-event-with-instrument
+        t:parse-x-07-ditransitive
+        t:parse-x-08-collective
+        t:parse-x-09-mass-substance
+        t:parse-x-10-geometry-bbox
+        t:parse-x-11-throne-room
+        t:parse-x-12-persona
+        t:parse-x-comment-between-handle-and-sigil
+        t:parse-x-sigil-inside-a-comment
+        t:parse-x-single-line-document
+        t:parse-x-trait-keyword-as-handle
+        t:parse-x-trait-keyword-as-positional-ref
+        t:parse-x-d8-1
+        t:parse-x-d8-2
+        t:parse-x-d8-3
+        t:parse-x-d8-4
+        t:parse-x-d8-5
+        t:parse-x-d8-6
+        t:parse-x-d8-7
+        t:parse-x-d8-8
+        t:parse-x-neg-e1
+        t:parse-x-neg-e2
+        t:parse-x-neg-e3
+        t:parse-x-neg-e4
+        t:parse-x-neg-e5
+        t:parse-x-neg-e6
+        t:parse-x-neg-e7
+        t:parse-x-neg-e8
+        t:parse-x-neg-e9
+        t:parse-x-neg-e10
+        t:parse-x-neg-e11
+        t:parse-x-neg-e12
+        t:parse-x-neg-e13
+        t:parse-x-neg-e14
+        t:parse-x-neg-e15
+        t:parse-x-neg-e16
+        t:parse-x-neg-e17
+        t:parse-x-neg-e18
+        t:parse-x-neg-vocab-concept
+        t:parse-x-neg-vocab-dir-token
+        t:parse-x-neg-vocab-rcc-token
+        t:parse-x-neg-vocab-sym-lemma
+        t:parse-x-neg-vocab-trait-keyword
+        t:validate-pos-throne-room-t
+        t:validate-pos-throne-room-p
+        t:validate-pos-01-minimal
+        t:validate-pos-02-quality
+        t:validate-pos-03-spatial-topology
+        t:validate-pos-04-directional-with-viewer
+        t:validate-pos-05-possession-stative
+        t:validate-pos-06-event-with-instrument
+        t:validate-pos-07-ditransitive
+        t:validate-pos-08-collective
+        t:validate-pos-09-mass-substance
+        t:validate-pos-10-geometry-bbox
+        t:validate-pos-11-throne-room
+        t:validate-pos-12-persona
+        t:validate-pos-13-negation
+        t:validate-pos-14-belief-state
+        t:validate-pos-15-quantification
+        t:validate-pos-16-annotation
+        t:validate-pos-x-01-minimal
+        t:validate-pos-x-02-quality
+        t:validate-pos-x-03-spatial-topology
+        t:validate-pos-x-04-directional-with-viewer
+        t:validate-pos-x-05-possession-stative
+        t:validate-pos-x-06-event-with-instrument
+        t:validate-pos-x-07-ditransitive
+        t:validate-pos-x-08-collective
+        t:validate-pos-x-09-mass-substance
+        t:validate-pos-x-10-geometry-bbox
+        t:validate-pos-x-11-throne-room
+        t:validate-pos-x-12-persona
+        t:validate-pos-geometry-consistent
+        t:validate-pos-geometry-inconsistent-rcc
+        t:validate-pos-geometry-inconsistent-directional
+        t:validate-pos-enum-rcc
+        t:validate-pos-enum-directional
+        t:validate-pos-enum-proximal
+        t:validate-pos-enum-traits
+        t:validate-pos-enum-quantifier
+        t:validate-pos-enum-dimension
+        t:validate-pos-value-spaces
+        t:validate-pos-depicts-reification-node
+        t:validate-neg-composition-depicts-min
+        t:validate-neg-composition-framedby-entity
+        t:validate-neg-composition-rendersas-max
+        t:validate-neg-composition-viewedby-max
+        t:validate-neg-event-lemma-min
+        t:validate-neg-event-agent-max
+        t:validate-neg-event-agent-perdurant
+        t:validate-neg-process-lemma-min
+        t:validate-neg-process-lemma-max
+        t:validate-neg-stative-lemma-min
+        t:validate-neg-stative-experiencer-frame
+        t:validate-neg-lemma-pattern
+        t:validate-neg-quality-dimension-min
+        t:validate-neg-quality-value-max
+        t:validate-neg-quality-modifier-max
+        t:validate-neg-spatialfact-no-relation
+        t:validate-neg-spatialfact-ground-min
+        t:validate-neg-spatialfact-rcc-max
+        t:validate-neg-directional-viewer-min
+        t:validate-neg-directional-viewer-max
+        t:validate-neg-directional-viewer-entity
+        t:validate-neg-frame-depicted
+        t:validate-neg-frame-bears-quality
+        t:validate-neg-entity-class-max
+        t:validate-neg-negation-statement-min
+        t:validate-neg-belief-proposition-min
+        t:validate-neg-annotation-predicate-min
+        t:validate-neg-persona-invariant-min
+        t:validate-neg-bbox2d-not-normalized
+        t:validate-neg-bbox2d-not-a-box
+        t:validate-neg-geometry-grammar
+        t:validate-neg-confidence-range
+        t:validate-neg-visible-fraction-range
+        t:validate-neg-probability-range
+        t:validate-neg-embodiment-contradiction
+        t:validate-neg-enum-rcc
+        t:validate-neg-enum-directional
+        t:validate-neg-enum-proximal
+        t:validate-neg-enum-individuation
+        t:validate-neg-enum-animacy
+        t:validate-neg-enum-countability
+        t:validate-neg-enum-affordance
+        t:validate-neg-enum-quantifier
+        t:validate-neg-orphan-term
+        t:validate-neg-dimension-outside-registry
+        t:validate-neg-owl-disjoint
+        t:validate-neg-bad-no-viewer-p
+        t:validate-neg-d8-3
+        t:validate-neg-d8-4
+        t:validate-neg-d8-6
+        t:validate-neg-d8-8
+        t:equivalence-throne-room-t
+        t:equivalence-01-minimal
+        t:equivalence-02-quality
+        t:equivalence-03-spatial-topology
+        t:equivalence-04-directional-with-viewer
+        t:equivalence-05-possession-stative
+        t:equivalence-06-event-with-instrument
+        t:equivalence-07-ditransitive
+        t:equivalence-08-collective
+        t:equivalence-09-mass-substance
+        t:equivalence-10-geometry-bbox
+        t:equivalence-11-throne-room
+        t:equivalence-12-persona
+        t:equivalence-13-negation
+        t:equivalence-14-belief-state
+        t:equivalence-15-quantification
+        t:equivalence-16-annotation
+        t:export-caption-01-minimal
+        t:export-caption-02-quality
+        t:export-caption-03-spatial-topology
+        t:export-caption-04-directional-with-viewer
+        t:export-caption-05-possession-stative
+        t:export-caption-06-event-with-instrument
+        t:export-caption-07-ditransitive
+        t:export-caption-08-collective
+        t:export-caption-09-mass-substance
+        t:export-caption-10-geometry-bbox
+        t:export-caption-11-throne-room
+        t:export-caption-12-persona
+        t:export-caption-13-negation
+        t:export-caption-14-belief-state
+        t:export-caption-15-quantification
+        t:export-caption-16-annotation
+        t:export-fol-01-minimal
+        t:export-fol-02-quality
+        t:export-fol-03-spatial-topology
+        t:export-fol-04-directional-with-viewer
+        t:export-fol-05-possession-stative
+        t:export-fol-06-event-with-instrument
+        t:export-fol-07-ditransitive
+        t:export-fol-08-collective
+        t:export-fol-09-mass-substance
+        t:export-fol-10-geometry-bbox
+        t:export-fol-11-throne-room
+        t:export-fol-12-persona
+        t:export-fol-13-negation
+        t:export-fol-14-belief-state
+        t:export-fol-15-quantification
+        t:export-fol-16-annotation
+        t:export-canonical-nquads-11-throne-room
+        t:export-turtle-11-throne-room-p
+        t:export-turtle-11-throne-room-x
+    ) .
+
+t:parse-p-throne-room
+    a vsont:ParsePTest ;
+    mf:name "the canonical throne room parses as VSON-P" ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <../../examples/throne_room.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-p-01-minimal
+    a vsont:ParsePTest ;
+    mf:name "gallery 01_minimal parses as VSON-P — minimal scene — one Composition, one Entity, one Frame" ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <../../examples/gallery/01_minimal.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-p-02-quality
+    a vsont:ParsePTest ;
+    mf:name "gallery 02_quality parses as VSON-P — a Quality on an Entity" ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <../../examples/gallery/02_quality.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-p-03-spatial-topology
+    a vsont:ParsePTest ;
+    mf:name "gallery 03_spatial_topology parses as VSON-P — an RCC-8 topological fact" ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <../../examples/gallery/03_spatial_topology.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-p-04-directional-with-viewer
+    a vsont:ParsePTest ;
+    mf:name "gallery 04_directional_with_viewer parses as VSON-P — a directional fact with its mandatory viewer" ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <../../examples/gallery/04_directional_with_viewer.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-p-05-possession-stative
+    a vsont:ParsePTest ;
+    mf:name "gallery 05_possession_stative parses as VSON-P — possession as a Stative" ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <../../examples/gallery/05_possession_stative.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-p-06-event-with-instrument
+    a vsont:ParsePTest ;
+    mf:name "gallery 06_event_with_instrument parses as VSON-P — an Event with agent, patient and instrument" ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <../../examples/gallery/06_event_with_instrument.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-p-07-ditransitive
+    a vsont:ParsePTest ;
+    mf:name "gallery 07_ditransitive parses as VSON-P — a ditransitive Event" ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <../../examples/gallery/07_ditransitive.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-p-08-collective
+    a vsont:ParsePTest ;
+    mf:name "gallery 08_collective parses as VSON-P — collective countability" ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <../../examples/gallery/08_collective.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-p-09-mass-substance
+    a vsont:ParsePTest ;
+    mf:name "gallery 09_mass_substance parses as VSON-P — a mass Substance in a Process" ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <../../examples/gallery/09_mass_substance.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-p-10-geometry-bbox
+    a vsont:ParsePTest ;
+    mf:name "gallery 10_geometry_bbox parses as VSON-P — normalized bbox2d geometry" ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <../../examples/gallery/10_geometry_bbox.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-p-11-throne-room
+    a vsont:ParsePTest ;
+    mf:name "gallery 11_throne_room parses as VSON-P — the canonical full scene" ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <../../examples/gallery/11_throne_room.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-p-12-persona
+    a vsont:ParsePTest ;
+    mf:name "gallery 12_persona parses as VSON-P — a Persona and its invariants" ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <../../examples/gallery/12_persona.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-p-13-negation
+    a vsont:ParsePTest ;
+    mf:name "gallery 13_negation parses as VSON-P — a reified Negation" ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <../../examples/gallery/13_negation.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-p-14-belief-state
+    a vsont:ParsePTest ;
+    mf:name "gallery 14_belief_state parses as VSON-P — a propositional attitude" ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <../../examples/gallery/14_belief_state.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-p-15-quantification
+    a vsont:ParsePTest ;
+    mf:name "gallery 15_quantification parses as VSON-P — a quantified statement" ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <../../examples/gallery/15_quantification.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-p-16-annotation
+    a vsont:ParsePTest ;
+    mf:name "gallery 16_annotation parses as VSON-P — confidence on a thematic-role edge" ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <../../examples/gallery/16_annotation.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-p-bad-no-viewer
+    a vsont:ParsePTest ;
+    mf:name "a document that fails C5 still parses" ;
+    rdfs:comment "Syntactic well-formedness is independent of structural well-formedness (docs/vson.md §2.1): this source parses and then fails C5." ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <../fixtures/bad_no_viewer.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-p-neg-p1
+    a vsont:ParsePTest ;
+    mf:name "VSON-P rejects: the lexer meets a character no production admits" ;
+    rdfs:comment "Appendix B declares no numbered error set, so the expectation pins the reference parser's message rather than an identifier the specification does not define." ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <data/P1_unexpected_character.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorMessage "Unexpected character: '%'" ;
+    ] .
+
+t:parse-p-neg-p2
+    a vsont:ParsePTest ;
+    mf:name "VSON-P rejects: a node with no variable" ;
+    rdfs:comment "Appendix B declares no numbered error set, so the expectation pins the reference parser's message rather than an identifier the specification does not define." ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <data/P2_expected_variable.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorMessage "expected ID, got Tok(kind='/', value='/')" ;
+    ] .
+
+t:parse-p-neg-p3
+    a vsont:ParsePTest ;
+    mf:name "VSON-P rejects: the input ends before the node closes" ;
+    rdfs:comment "Appendix B declares no numbered error set, so the expectation pins the reference parser's message rather than an identifier the specification does not define." ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <data/P3_eof_inside_node.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorMessage "unexpected EOF inside node" ;
+    ] .
+
+t:parse-p-neg-p4
+    a vsont:ParsePTest ;
+    mf:name "VSON-P rejects: a bare identifier where a role must be" ;
+    rdfs:comment "Appendix B declares no numbered error set, so the expectation pins the reference parser's message rather than an identifier the specification does not define." ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <data/P4_expected_role.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorMessage "expected role or ')', got Tok(kind='ID', value='apple')" ;
+    ] .
+
+t:parse-p-neg-p5
+    a vsont:ParsePTest ;
+    mf:name "VSON-P rejects: the input ends where a target must be" ;
+    rdfs:comment "Appendix B declares no numbered error set, so the expectation pins the reference parser's message rather than an identifier the specification does not define." ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <data/P5_eof_in_term.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorMessage "unexpected EOF in term" ;
+    ] .
+
+t:parse-p-neg-p6
+    a vsont:ParsePTest ;
+    mf:name "VSON-P rejects: a close parenthesis where a term must be" ;
+    rdfs:comment "Appendix B declares no numbered error set, so the expectation pins the reference parser's message rather than an identifier the specification does not define." ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <data/P6_unexpected_term.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorMessage "unexpected term: Tok(kind=')', value=')')" ;
+    ] .
+
+t:parse-p-neg-p7
+    a vsont:ParsePTest ;
+    mf:name "VSON-P rejects: a second top-level node" ;
+    rdfs:comment "Appendix B declares no numbered error set, so the expectation pins the reference parser's message rather than an identifier the specification does not define." ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <data/P7_trailing_token.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorMessage "unexpected trailing token after top-level node: Tok(kind='(', value='(')" ;
+    ] .
+
+t:parse-p-neg-p8
+    a vsont:ParsePTest ;
+    mf:name "VSON-P rejects: a container role given a bare reference" ;
+    rdfs:comment "Appendix B declares no numbered error set, so the expectation pins the reference parser's message rather than an identifier the specification does not define." ;
+    vsont:clause "C1" ;
+    vsont:section "4.2" , "B" ;
+    mf:action <data/P8_container_expects_node.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorMessage "causal container expects nested node" ;
+    ] .
+
+t:parse-x-01-minimal
+    a vsont:ParseXTest ;
+    mf:name "gallery-x 01_minimal parses as VSON-X" ;
+    vsont:clause "C1" ;
+    vsont:section "4.3" , "D" ;
+    mf:action <../../examples/gallery-x/01_minimal.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-02-quality
+    a vsont:ParseXTest ;
+    mf:name "gallery-x 02_quality parses as VSON-X" ;
+    vsont:clause "C1" ;
+    vsont:section "4.3" , "D" ;
+    mf:action <../../examples/gallery-x/02_quality.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-03-spatial-topology
+    a vsont:ParseXTest ;
+    mf:name "gallery-x 03_spatial_topology parses as VSON-X" ;
+    vsont:clause "C1" ;
+    vsont:section "4.3" , "D" ;
+    mf:action <../../examples/gallery-x/03_spatial_topology.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-04-directional-with-viewer
+    a vsont:ParseXTest ;
+    mf:name "gallery-x 04_directional_with_viewer parses as VSON-X" ;
+    vsont:clause "C1" ;
+    vsont:section "4.3" , "D" ;
+    mf:action <../../examples/gallery-x/04_directional_with_viewer.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-05-possession-stative
+    a vsont:ParseXTest ;
+    mf:name "gallery-x 05_possession_stative parses as VSON-X" ;
+    vsont:clause "C1" ;
+    vsont:section "4.3" , "D" ;
+    mf:action <../../examples/gallery-x/05_possession_stative.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-06-event-with-instrument
+    a vsont:ParseXTest ;
+    mf:name "gallery-x 06_event_with_instrument parses as VSON-X" ;
+    vsont:clause "C1" ;
+    vsont:section "4.3" , "D" ;
+    mf:action <../../examples/gallery-x/06_event_with_instrument.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-07-ditransitive
+    a vsont:ParseXTest ;
+    mf:name "gallery-x 07_ditransitive parses as VSON-X" ;
+    vsont:clause "C1" ;
+    vsont:section "4.3" , "D" ;
+    mf:action <../../examples/gallery-x/07_ditransitive.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-08-collective
+    a vsont:ParseXTest ;
+    mf:name "gallery-x 08_collective parses as VSON-X" ;
+    vsont:clause "C1" ;
+    vsont:section "4.3" , "D" ;
+    mf:action <../../examples/gallery-x/08_collective.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-09-mass-substance
+    a vsont:ParseXTest ;
+    mf:name "gallery-x 09_mass_substance parses as VSON-X" ;
+    vsont:clause "C1" ;
+    vsont:section "4.3" , "D" ;
+    mf:action <../../examples/gallery-x/09_mass_substance.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-10-geometry-bbox
+    a vsont:ParseXTest ;
+    mf:name "gallery-x 10_geometry_bbox parses as VSON-X" ;
+    vsont:clause "C1" ;
+    vsont:section "4.3" , "D" ;
+    mf:action <../../examples/gallery-x/10_geometry_bbox.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-11-throne-room
+    a vsont:ParseXTest ;
+    mf:name "gallery-x 11_throne_room parses as VSON-X" ;
+    vsont:clause "C1" ;
+    vsont:section "4.3" , "D" ;
+    mf:action <../../examples/gallery-x/11_throne_room.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-12-persona
+    a vsont:ParseXTest ;
+    mf:name "gallery-x 12_persona parses as VSON-X" ;
+    vsont:clause "C1" ;
+    vsont:section "4.3" , "D" ;
+    mf:action <../../examples/gallery-x/12_persona.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-comment-between-handle-and-sigil
+    a vsont:ParseXTest ;
+    mf:name "VSON-X accepts: comment between handle and sigil" ;
+    vsont:clause "C1" ;
+    vsont:section "4.3" , "D.4" ;
+    mf:action <../fixtures/grammar/positive/comment-between-handle-and-sigil.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-sigil-inside-a-comment
+    a vsont:ParseXTest ;
+    mf:name "VSON-X accepts: sigil inside a comment" ;
+    vsont:clause "C1" ;
+    vsont:section "4.3" , "D.4" ;
+    mf:action <../fixtures/grammar/positive/sigil-inside-a-comment.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-single-line-document
+    a vsont:ParseXTest ;
+    mf:name "VSON-X accepts: single line document" ;
+    vsont:clause "C1" ;
+    vsont:section "4.3" , "D.4" ;
+    mf:action <../fixtures/grammar/positive/single-line-document.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-trait-keyword-as-handle
+    a vsont:ParseXTest ;
+    mf:name "VSON-X accepts: trait keyword as handle" ;
+    vsont:clause "C1" ;
+    vsont:section "4.3" , "D.4" ;
+    mf:action <../fixtures/grammar/positive/trait-keyword-as-handle.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-trait-keyword-as-positional-ref
+    a vsont:ParseXTest ;
+    mf:name "VSON-X accepts: trait keyword as positional ref" ;
+    vsont:clause "C1" ;
+    vsont:section "4.3" , "D.4" ;
+    mf:action <../fixtures/grammar/positive/trait-keyword-as-positional-ref.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-d8-1
+    a vsont:ParseXTest ;
+    mf:name "§D.8 row 1 — duplicate handle declarations parse" ;
+    rdfs:comment "The grammar is deliberately thin. This document is well-formed VSON-X and no later gate catches it either." ;
+    vsont:clause "C1" ;
+    vsont:section "D.8" ;
+    mf:action <data/D8_1_duplicate_handle.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-d8-2
+    a vsont:ParseXTest ;
+    mf:name "§D.8 row 2 — an undeclared handle parses" ;
+    rdfs:comment "The grammar is deliberately thin. This document is well-formed VSON-X and no later gate catches it either." ;
+    vsont:clause "C1" ;
+    vsont:section "D.8" ;
+    mf:action <data/D8_2_undeclared_handle.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-d8-3
+    a vsont:ParseXTest ;
+    mf:name "§D.8 row 3 — an out-of-enum *dir value parses" ;
+    rdfs:comment "The grammar is deliberately thin. This document is well-formed VSON-X and is caught by vss:DirectionalValueShape." ;
+    vsont:clause "C1" ;
+    vsont:section "D.8" ;
+    mf:action <data/D8_3_dir_out_of_enum.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-d8-4
+    a vsont:ParseXTest ;
+    mf:name "§D.8 row 4 — a non-Frame concept after a leading / parses" ;
+    rdfs:comment "The grammar is deliberately thin. This document is well-formed VSON-X and is caught by vss:CompositionShape." ;
+    vsont:clause "C1" ;
+    vsont:section "D.8" ;
+    mf:action <data/D8_4_nonframe_concept_lead.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-d8-5
+    a vsont:ParseXTest ;
+    mf:name "§D.8 row 5 — an unchecked viewer anchor parses" ;
+    rdfs:comment "The grammar is deliberately thin. This document is well-formed VSON-X and no later gate catches it either." ;
+    vsont:clause "C1" ;
+    vsont:section "D.8" ;
+    mf:action <data/D8_5_viewer_anchor_unchecked.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-d8-6
+    a vsont:ParseXTest ;
+    mf:name "§D.8 row 6 — any IDENT is accepted as a thematic-role key" ;
+    rdfs:comment "The grammar is deliberately thin. This document is well-formed VSON-X and is caught by the C2 gate." ;
+    vsont:clause "C1" ;
+    vsont:section "D.8" ;
+    mf:action <data/D8_6_arglist_key_name.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-d8-7
+    a vsont:ParseXTest ;
+    mf:name "§D.8 row 7 — a ~MOD on a SpatialFact kv is accepted and discarded" ;
+    rdfs:comment "The grammar is deliberately thin. This document is well-formed VSON-X and no later gate catches it either." ;
+    vsont:clause "C1" ;
+    vsont:section "D.8" ;
+    mf:action <data/D8_7_modifier_on_spatialfact_kv.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-d8-8
+    a vsont:ParseXTest ;
+    mf:name "§D.8 row 8 — an out-of-range *bbox2d parses" ;
+    rdfs:comment "The grammar is deliberately thin. This document is well-formed VSON-X and is caught by vss:GeometryShape." ;
+    vsont:clause "C1" ;
+    vsont:section "D.8" ;
+    mf:action <data/D8_8_geometry_out_of_range.x.vson> ;
+    mf:result vsont:Accepted .
+
+t:parse-x-neg-e1
+    a vsont:ParseXTest ;
+    mf:name "§D.7 E1 — unexpected character" ;
+    vsont:clause "C1" ;
+    vsont:section "D.7" ;
+    vsont:errorRow "E1" ;
+    mf:action <../fixtures/grammar/negative/E1_unexpected-character.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E1" ;
+    ] .
+
+t:parse-x-neg-e2
+    a vsont:ParseXTest ;
+    mf:name "§D.7 E2 — a required terminal is missing" ;
+    vsont:clause "C1" ;
+    vsont:section "D.7" ;
+    vsont:errorRow "E2" ;
+    mf:action <../fixtures/grammar/negative/E2_missing-required-terminal.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E2" ;
+    ] .
+
+t:parse-x-neg-e3
+    a vsont:ParseXTest ;
+    mf:name "§D.7 E3 — unknown concept after /" ;
+    vsont:clause "C1" ;
+    vsont:section "D.7" ;
+    vsont:errorRow "E3" ;
+    mf:action <../fixtures/grammar/negative/E3_unknown-concept-after-slash.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E3" ;
+    ] .
+
+t:parse-x-neg-e4
+    a vsont:ParseXTest ;
+    mf:name "§D.7 E4 — unexpected lead token" ;
+    vsont:clause "C1" ;
+    vsont:section "D.7" ;
+    vsont:errorRow "E4" ;
+    mf:action <../fixtures/grammar/negative/E4_unexpected-lead-token.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E4" ;
+    ] .
+
+t:parse-x-neg-e5
+    a vsont:ParseXTest ;
+    mf:name "§D.7 E5 — input ends after a handle" ;
+    vsont:clause "C1" ;
+    vsont:section "D.7" ;
+    vsont:errorRow "E5" ;
+    mf:action <../fixtures/grammar/negative/E5_eof-after-handle.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E5" ;
+    ] .
+
+t:parse-x-neg-e6
+    a vsont:ParseXTest ;
+    mf:name "§D.7 E6 — a handle followed by the wrong token" ;
+    vsont:clause "C1" ;
+    vsont:section "D.7" ;
+    vsont:errorRow "E6" ;
+    mf:action <../fixtures/grammar/negative/E6_handle-followed-by-other.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E6" ;
+    ] .
+
+t:parse-x-neg-e7
+    a vsont:ParseXTest ;
+    mf:name "§D.7 E7 — a modifier on the Composition's direct property" ;
+    vsont:clause "C1" ;
+    vsont:section "D.7" ;
+    vsont:errorRow "E7" ;
+    mf:action <../fixtures/grammar/negative/E7_modifier-on-composition-direct-property.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E7" ;
+    ] .
+
+t:parse-x-neg-e8
+    a vsont:ParseXTest ;
+    mf:name "§D.7 E8 — a modifier on a Frame direct property" ;
+    vsont:clause "C1" ;
+    vsont:section "D.7" ;
+    vsont:errorRow "E8" ;
+    mf:action <../fixtures/grammar/negative/E8_modifier-on-frame-direct-property.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E8" ;
+    ] .
+
+t:parse-x-neg-e9
+    a vsont:ParseXTest ;
+    mf:name "§D.7 E9 — a modifier on an Entity direct property" ;
+    vsont:clause "C1" ;
+    vsont:section "D.7" ;
+    vsont:errorRow "E9" ;
+    mf:action <../fixtures/grammar/negative/E9_modifier-on-entity-direct-property.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E9" ;
+    ] .
+
+t:parse-x-neg-e10
+    a vsont:ParseXTest ;
+    mf:name "§D.7 E10 — a modifier on a thematic role" ;
+    vsont:clause "C1" ;
+    vsont:section "D.7" ;
+    vsont:errorRow "E10" ;
+    mf:action <../fixtures/grammar/negative/E10_modifier-on-thematic-role.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E10" ;
+    ] .
+
+t:parse-x-neg-e11
+    a vsont:ParseXTest ;
+    mf:name "§D.7 E11 — a Stative sigil with an Event lemma" ;
+    vsont:clause "C1" ;
+    vsont:section "D.7" ;
+    vsont:errorRow "E11" ;
+    mf:action <../fixtures/grammar/negative/E11_stative-sigil-with-event-lemma.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E11" ;
+    ] .
+
+t:parse-x-neg-e12
+    a vsont:ParseXTest ;
+    mf:name "§D.7 E12 — an Event sigil with a Stative lemma" ;
+    vsont:clause "C1" ;
+    vsont:section "D.7" ;
+    vsont:errorRow "E12" ;
+    mf:action <../fixtures/grammar/negative/E12_event-sigil-with-stative-lemma.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E12" ;
+    ] .
+
+t:parse-x-neg-e13
+    a vsont:ParseXTest ;
+    mf:name "§D.7 E13 — too many positional arguments" ;
+    vsont:clause "C1" ;
+    vsont:section "D.7" ;
+    vsont:errorRow "E13" ;
+    mf:action <../fixtures/grammar/negative/E13_too-many-positional-arguments.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E13" ;
+    ] .
+
+t:parse-x-neg-e14
+    a vsont:ParseXTest ;
+    mf:name "§D.7 E14 — unknown spatial relation" ;
+    vsont:clause "C1" ;
+    vsont:section "D.7" ;
+    vsont:errorRow "E14" ;
+    mf:action <../fixtures/grammar/negative/E14_unknown-spatial-relation.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E14" ;
+    ] .
+
+t:parse-x-neg-e15
+    a vsont:ParseXTest ;
+    mf:name "§D.7 E15 — a *dir value that is not a bareword" ;
+    vsont:clause "C1" ;
+    vsont:section "D.7" ;
+    vsont:errorRow "E15" ;
+    mf:action <../fixtures/grammar/negative/E15_dir-value-not-a-bareword.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E15" ;
+    ] .
+
+t:parse-x-neg-e16
+    a vsont:ParseXTest ;
+    mf:name "§D.7 E16 — a directional fact with no viewer anchor" ;
+    vsont:clause "C1" ;
+    vsont:section "D.7" ;
+    vsont:errorRow "E16" ;
+    mf:action <../fixtures/grammar/negative/E16_directional-without-viewer.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E16" ;
+    ] .
+
+t:parse-x-neg-e17
+    a vsont:ParseXTest ;
+    mf:name "§D.7 E17 — an asymmetric lemma after &" ;
+    vsont:clause "C1" ;
+    vsont:section "D.7" ;
+    vsont:errorRow "E17" ;
+    mf:action <../fixtures/grammar/negative/E17_asymmetric-lemma-after-ampersand.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E17" ;
+    ] .
+
+t:parse-x-neg-e18
+    a vsont:ParseXTest ;
+    mf:name "§D.7 E18 — a kv with no parsable value" ;
+    vsont:clause "C1" ;
+    vsont:section "D.7" ;
+    vsont:errorRow "E18" ;
+    mf:action <../fixtures/grammar/negative/E18_unparsable-value.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E18" ;
+    ] .
+
+t:parse-x-neg-vocab-concept
+    a vsont:ParseXTest ;
+    mf:name "§D.3 CONCEPT is closed — a concept outside §D.3's twelve" ;
+    vsont:clause "C1" ;
+    vsont:section "D.3" ;
+    vsont:errorRow "E3" ;
+    mf:action <../fixtures/grammar/vocabulary/CONCEPT.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E3" ;
+    ] .
+
+t:parse-x-neg-vocab-dir-token
+    a vsont:ParseXTest ;
+    mf:name "§D.3 DIR_TOKEN is closed — a direction outside §D.3's nine accepted tokens" ;
+    vsont:clause "C1" ;
+    vsont:section "D.3" ;
+    vsont:errorRow "E14" ;
+    mf:action <../fixtures/grammar/vocabulary/DIR_TOKEN.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E14" ;
+    ] .
+
+t:parse-x-neg-vocab-rcc-token
+    a vsont:ParseXTest ;
+    mf:name "§D.3 RCC_TOKEN is closed — an RCC token outside §D.3's eight" ;
+    vsont:clause "C1" ;
+    vsont:section "D.3" ;
+    vsont:errorRow "E14" ;
+    mf:action <../fixtures/grammar/vocabulary/RCC_TOKEN.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E14" ;
+    ] .
+
+t:parse-x-neg-vocab-sym-lemma
+    a vsont:ParseXTest ;
+    mf:name "§D.3 SYM_LEMMA is closed — a symmetric lemma outside §D.3's three" ;
+    vsont:clause "C1" ;
+    vsont:section "D.3" ;
+    vsont:errorRow "E17" ;
+    mf:action <../fixtures/grammar/vocabulary/SYM_LEMMA.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E17" ;
+    ] .
+
+t:parse-x-neg-vocab-trait-keyword
+    a vsont:ParseXTest ;
+    mf:name "§D.3 TRAIT_KEYWORD is closed — a trait keyword outside §D.3's nine" ;
+    vsont:clause "C1" ;
+    vsont:section "D.3" ;
+    vsont:errorRow "E5" ;
+    mf:action <../fixtures/grammar/vocabulary/TRAIT_KEYWORD.x.vson> ;
+    mf:result [
+        a vsont:ParseError ;
+        vsont:errorRow "E5" ;
+    ] .
+
+t:validate-pos-throne-room-t
+    a vsont:ValidationTest ;
+    mf:name "the canonical throne room conforms" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" , "C5" , "C6" , "C7" , "C8" , "C9" ;
+    vsont:section "4.1" , "5.2" , "5.3" , "5.4" , "5.5" , "5.6" , "5.7" , "5.10" , "5.11" ;
+    mf:action [
+        sht:dataGraph <../../examples/throne_room.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-throne-room-p
+    a vsont:ValidationTest ;
+    mf:name "the throne room conforms in VSON-P" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" , "C5" , "C6" , "C7" , "C8" , "C9" ;
+    vsont:section "4.2" ;
+    mf:action [
+        sht:dataGraph <../../examples/throne_room.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-P
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-01-minimal
+    a vsont:ValidationTest ;
+    mf:name "gallery 01_minimal conforms — minimal scene — one Composition, one Entity, one Frame" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" ;
+    vsont:section "5.2" , "5.4" , "9.1" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery/01_minimal.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-P
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-02-quality
+    a vsont:ValidationTest ;
+    mf:name "gallery 02_quality conforms — a Quality on an Entity" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" , "C7" ;
+    vsont:section "5.5" , "9.2" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery/02_quality.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-P
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-03-spatial-topology
+    a vsont:ValidationTest ;
+    mf:name "gallery 03_spatial_topology conforms — an RCC-8 topological fact" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" , "C8" ;
+    vsont:section "5.7" , "9.3" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery/03_spatial_topology.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-P
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-04-directional-with-viewer
+    a vsont:ValidationTest ;
+    mf:name "gallery 04_directional_with_viewer conforms — a directional fact with its mandatory viewer" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" , "C5" ;
+    vsont:section "3.3" , "5.7" , "9.4" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery/04_directional_with_viewer.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-P
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-05-possession-stative
+    a vsont:ValidationTest ;
+    mf:name "gallery 05_possession_stative conforms — possession as a Stative" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" , "C6" ;
+    vsont:section "5.6" , "9.5" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery/05_possession_stative.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-P
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-06-event-with-instrument
+    a vsont:ValidationTest ;
+    mf:name "gallery 06_event_with_instrument conforms — an Event with agent, patient and instrument" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" , "C6" ;
+    vsont:section "5.6" , "9.6" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery/06_event_with_instrument.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-P
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-07-ditransitive
+    a vsont:ValidationTest ;
+    mf:name "gallery 07_ditransitive conforms — a ditransitive Event" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" , "C6" ;
+    vsont:section "5.6" , "9.7" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery/07_ditransitive.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-P
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-08-collective
+    a vsont:ValidationTest ;
+    mf:name "gallery 08_collective conforms — collective countability" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" ;
+    vsont:section "5.4" , "9.8" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery/08_collective.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-P
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-09-mass-substance
+    a vsont:ValidationTest ;
+    mf:name "gallery 09_mass_substance conforms — a mass Substance in a Process" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" , "C6" ;
+    vsont:section "5.4" , "5.6" , "9.9" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery/09_mass_substance.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-P
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-10-geometry-bbox
+    a vsont:ValidationTest ;
+    mf:name "gallery 10_geometry_bbox conforms — normalized bbox2d geometry" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" ;
+    vsont:section "5.10" , "9.10" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery/10_geometry_bbox.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-P
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-11-throne-room
+    a vsont:ValidationTest ;
+    mf:name "gallery 11_throne_room conforms — the canonical full scene" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" , "C5" , "C6" , "C7" , "C8" , "C9" ;
+    vsont:section "5.2" , "5.3" , "5.4" , "5.5" , "5.6" , "5.7" , "5.8" , "5.9" , "5.10" , "9.11" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery/11_throne_room.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-P
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-12-persona
+    a vsont:ValidationTest ;
+    mf:name "gallery 12_persona conforms — a Persona and its invariants" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" ;
+    vsont:section "5.3" , "9.12" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery/12_persona.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-P
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-13-negation
+    a vsont:ValidationTest ;
+    mf:name "gallery 13_negation conforms — a reified Negation" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" ;
+    vsont:section "5.11" , "9.13" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery/13_negation.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-P
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-14-belief-state
+    a vsont:ValidationTest ;
+    mf:name "gallery 14_belief_state conforms — a propositional attitude" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" ;
+    vsont:section "5.11" , "9.14" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery/14_belief_state.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-P
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-15-quantification
+    a vsont:ValidationTest ;
+    mf:name "gallery 15_quantification conforms — a quantified statement" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" ;
+    vsont:section "5.11" , "9.15" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery/15_quantification.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-P
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-16-annotation
+    a vsont:ValidationTest ;
+    mf:name "gallery 16_annotation conforms — confidence on a thematic-role edge" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" ;
+    vsont:section "5.11" , "9.16" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery/16_annotation.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-P
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-x-01-minimal
+    a vsont:ValidationTest ;
+    mf:name "gallery-x 01_minimal conforms" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" ;
+    vsont:section "4.3" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery-x/01_minimal.x.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-X
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-x-02-quality
+    a vsont:ValidationTest ;
+    mf:name "gallery-x 02_quality conforms" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" ;
+    vsont:section "4.3" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery-x/02_quality.x.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-X
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-x-03-spatial-topology
+    a vsont:ValidationTest ;
+    mf:name "gallery-x 03_spatial_topology conforms" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" ;
+    vsont:section "4.3" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery-x/03_spatial_topology.x.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-X
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-x-04-directional-with-viewer
+    a vsont:ValidationTest ;
+    mf:name "gallery-x 04_directional_with_viewer conforms" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" ;
+    vsont:section "4.3" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery-x/04_directional_with_viewer.x.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-X
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-x-05-possession-stative
+    a vsont:ValidationTest ;
+    mf:name "gallery-x 05_possession_stative conforms" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" ;
+    vsont:section "4.3" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery-x/05_possession_stative.x.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-X
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-x-06-event-with-instrument
+    a vsont:ValidationTest ;
+    mf:name "gallery-x 06_event_with_instrument conforms" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" ;
+    vsont:section "4.3" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery-x/06_event_with_instrument.x.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-X
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-x-07-ditransitive
+    a vsont:ValidationTest ;
+    mf:name "gallery-x 07_ditransitive conforms" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" ;
+    vsont:section "4.3" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery-x/07_ditransitive.x.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-X
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-x-08-collective
+    a vsont:ValidationTest ;
+    mf:name "gallery-x 08_collective conforms" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" ;
+    vsont:section "4.3" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery-x/08_collective.x.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-X
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-x-09-mass-substance
+    a vsont:ValidationTest ;
+    mf:name "gallery-x 09_mass_substance conforms" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" ;
+    vsont:section "4.3" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery-x/09_mass_substance.x.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-X
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-x-10-geometry-bbox
+    a vsont:ValidationTest ;
+    mf:name "gallery-x 10_geometry_bbox conforms" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" ;
+    vsont:section "4.3" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery-x/10_geometry_bbox.x.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-X
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-x-11-throne-room
+    a vsont:ValidationTest ;
+    mf:name "gallery-x 11_throne_room conforms" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" ;
+    vsont:section "4.3" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery-x/11_throne_room.x.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-X
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-x-12-persona
+    a vsont:ValidationTest ;
+    mf:name "gallery-x 12_persona conforms" ;
+    vsont:clause "C1" , "C2" , "C3" , "C4" ;
+    vsont:section "4.3" ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery-x/12_persona.x.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-X
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-geometry-consistent
+    a vsont:ValidationTest ;
+    mf:name "a document whose boxes agree with its relations conforms" ;
+    vsont:clause "C3" ;
+    vsont:section "5.13" ;
+    mf:action [
+        sht:dataGraph <../fixtures/geometry_consistent.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-geometry-inconsistent-rcc
+    a vsont:ValidationTest ;
+    mf:name "a document whose boxes contradict its RCC-8 fact still conforms" ;
+    rdfs:comment "Geometry consistency decides no numbered clause (docs/vson.md §5.13): a document that fails `vson verify --geometry` is still conformant, and this entry is where the suite says so." ;
+    vsont:clause "C3" ;
+    vsont:section "2.1" , "5.13" ;
+    mf:action [
+        sht:dataGraph <../fixtures/geometry_inconsistent_rcc.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-geometry-inconsistent-directional
+    a vsont:ValidationTest ;
+    mf:name "a document whose boxes contradict its direction still conforms" ;
+    vsont:clause "C3" ;
+    vsont:section "2.1" , "5.13" ;
+    mf:action [
+        sht:dataGraph <../fixtures/geometry_inconsistent_directional.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-enum-rcc
+    a vsont:ValidationTest ;
+    mf:name "all eight RCC-8 relations conform" ;
+    vsont:clause "C8" ;
+    vsont:section "5.12" ;
+    vsont:enum vso:rcc ;
+    mf:action [
+        sht:dataGraph <data/rcc_all_eight_positive.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-enum-directional
+    a vsont:ValidationTest ;
+    mf:name "all six directions, each anchored, conform" ;
+    vsont:clause "C5" ;
+    vsont:section "3.3" , "5.12" ;
+    vsont:enum vso:directional ;
+    mf:action [
+        sht:dataGraph <data/directional_all_six_positive.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-enum-proximal
+    a vsont:ValidationTest ;
+    mf:name "all five proximity relations conform" ;
+    vsont:clause "C3" ;
+    vsont:section "5.12" ;
+    vsont:enum vso:proximal ;
+    mf:action [
+        sht:dataGraph <data/proximal_all_five_positive.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-enum-traits
+    a vsont:ValidationTest ;
+    mf:name "every value of the four trait axes conforms" ;
+    vsont:clause "C3" ;
+    vsont:section "3.2" , "5.4" , "5.12" ;
+    vsont:enum vso:individuation , vso:animacy , vso:countability , vso:affordance ;
+    mf:action [
+        sht:dataGraph <data/traits_all_values_positive.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-enum-quantifier
+    a vsont:ValidationTest ;
+    mf:name "every quantifier value conforms" ;
+    vsont:clause "C3" ;
+    vsont:section "5.11" ;
+    vsont:enum vso:quantifier ;
+    mf:action [
+        sht:dataGraph <data/quantifier_all_six_positive.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-enum-dimension
+    a vsont:ValidationTest ;
+    mf:name "a Quality on a registered vso: dimension conforms" ;
+    rdfs:comment "The dimension registry is the one closed enumeration no shape enumerates: a document-namespace dimension stays conformant and a vso: one outside the registry fails C2, not C3 (docs/vson.md §5.12)." ;
+    vsont:clause "C7" ;
+    vsont:section "5.5" , "5.12" ;
+    vsont:enum vso:dimension ;
+    mf:action [
+        sht:dataGraph <../../examples/gallery/02_quality.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-P
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-value-spaces
+    a vsont:ValidationTest ;
+    mf:name "the numeric and geometric value spaces conform at their bounds" ;
+    vsont:clause "C3" ;
+    vsont:section "5.4" , "5.10" , "5.11" ;
+    mf:action [
+        sht:dataGraph <data/value_spaces_positive.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-pos-depicts-reification-node
+    a vsont:ValidationTest ;
+    mf:name "a depicted SpatialFact conforms — vss:DepictsEntityShape is vacuous" ;
+    rdfs:comment "vso:depicts declares rdfs:range vso:Entity, so C3's inference=\"rdfs\" entails vso:Entity onto every object of vso:depicts and vss:DepictsEntityShape's sh:class check can never fail. The verdict is pinned so a change to the range, the shape or the inference setting has to be decided rather than discovered." ;
+    vsont:clause "C3" ;
+    vsont:section "5.2" ;
+    mf:action [
+        sht:dataGraph <data/depicts_reification_node.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms true
+    ] .
+
+t:validate-neg-composition-depicts-min
+    a vsont:ValidationTest ;
+    mf:name "a Composition that depicts nothing fails C4" ;
+    vsont:clause "C4" ;
+    vsont:section "5.2" ;
+    vsont:shape vss:CompositionShape ;
+    mf:action [
+        sht:dataGraph <data/composition_no_depicts.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:CompositionShape ;
+            sh:sourceConstraintComponent sh:MinCountConstraintComponent ;
+            sh:resultPath vso:depicts ;
+            sh:focusNode <https://example.org/scenes/composition_no_depicts#scene> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-composition-framedby-entity
+    a vsont:ValidationTest ;
+    mf:name "vso:framedBy pointed at an Entity fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.2" ;
+    vsont:shape vss:CompositionShape ;
+    mf:action [
+        sht:dataGraph <data/composition_framedby_entity.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:CompositionShape ;
+            sh:sourceConstraintComponent sh:NotConstraintComponent ;
+            sh:resultPath vso:framedBy ;
+            sh:focusNode <https://example.org/scenes/composition_framedby_entity#scene> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-composition-rendersas-max
+    a vsont:ValidationTest ;
+    mf:name "two dominant visual styles fail" ;
+    vsont:clause "C3" ;
+    vsont:section "5.2" ;
+    vsont:shape vss:CompositionShape ;
+    mf:action [
+        sht:dataGraph <data/composition_two_rendersas.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:CompositionShape ;
+            sh:sourceConstraintComponent sh:MaxCountConstraintComponent ;
+            sh:resultPath vso:rendersAs ;
+            sh:focusNode <https://example.org/scenes/composition_two_rendersas#scene> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-composition-viewedby-max
+    a vsont:ValidationTest ;
+    mf:name "two vso:viewedBy edges fail" ;
+    vsont:clause "C3" ;
+    vsont:section "5.2" ;
+    vsont:shape vss:CompositionShape ;
+    mf:action [
+        sht:dataGraph <../fixtures/bad_two_viewed_by.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:CompositionShape ;
+            sh:sourceConstraintComponent sh:MaxCountConstraintComponent ;
+            sh:resultPath vso:viewedBy ;
+            sh:focusNode <https://example.org/scenes/two_viewedby#scene> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-event-lemma-min
+    a vsont:ValidationTest ;
+    mf:name "an Event with no lemma fails C6" ;
+    vsont:clause "C6" ;
+    vsont:section "5.6" ;
+    vsont:shape vss:EventShape ;
+    mf:action [
+        sht:dataGraph <../fixtures/bad_event_no_lemma.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:EventShape ;
+            sh:sourceConstraintComponent sh:MinCountConstraintComponent ;
+            sh:resultPath vso:lemma ;
+            sh:focusNode <https://example.org/scenes/bad3#e> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-event-agent-max
+    a vsont:ValidationTest ;
+    mf:name "an Event with two agents fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.6" ;
+    vsont:shape vss:EventShape ;
+    mf:action [
+        sht:dataGraph <data/event_two_agents.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:EventShape ;
+            sh:sourceConstraintComponent sh:MaxCountConstraintComponent ;
+            sh:resultPath vso:agent ;
+            sh:focusNode <https://example.org/scenes/event_two_agents#ev> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-event-agent-perdurant
+    a vsont:ValidationTest ;
+    mf:name "an Event used as an agent fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.6" ;
+    vsont:shape vss:EventShape ;
+    mf:action [
+        sht:dataGraph <data/event_agent_is_event.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:EventShape ;
+            sh:sourceConstraintComponent sh:NotConstraintComponent ;
+            sh:resultPath vso:agent ;
+            sh:focusNode <https://example.org/scenes/event_agent_is_event#ev> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-process-lemma-min
+    a vsont:ValidationTest ;
+    mf:name "a Process with no lemma fails C6" ;
+    vsont:clause "C6" ;
+    vsont:section "5.6" ;
+    vsont:shape vss:ProcessShape ;
+    mf:action [
+        sht:dataGraph <data/process_no_lemma.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:ProcessShape ;
+            sh:sourceConstraintComponent sh:MinCountConstraintComponent ;
+            sh:resultPath vso:lemma ;
+            sh:focusNode <https://example.org/scenes/process_no_lemma#pr> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-process-lemma-max
+    a vsont:ValidationTest ;
+    mf:name "a Process with two lemmas fails C6" ;
+    vsont:clause "C6" ;
+    vsont:section "5.6" ;
+    vsont:shape vss:ProcessShape ;
+    mf:action [
+        sht:dataGraph <../fixtures/bad_two_lemmas.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:ProcessShape ;
+            sh:sourceConstraintComponent sh:MaxCountConstraintComponent ;
+            sh:resultPath vso:lemma ;
+            sh:focusNode <https://example.org/scenes/two_lemmas#burn> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-stative-lemma-min
+    a vsont:ValidationTest ;
+    mf:name "a Stative with no lemma fails C6" ;
+    vsont:clause "C6" ;
+    vsont:section "5.6" ;
+    vsont:shape vss:StativeShape ;
+    mf:action [
+        sht:dataGraph <data/stative_no_lemma.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:StativeShape ;
+            sh:sourceConstraintComponent sh:MinCountConstraintComponent ;
+            sh:resultPath vso:lemma ;
+            sh:focusNode <https://example.org/scenes/stative_no_lemma#st> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-stative-experiencer-frame
+    a vsont:ValidationTest ;
+    mf:name "a Frame used as an experiencer fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.6" ;
+    vsont:shape vss:StativeShape ;
+    mf:action [
+        sht:dataGraph <data/stative_experiencer_frame.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:StativeShape ;
+            sh:sourceConstraintComponent sh:NotConstraintComponent ;
+            sh:resultPath vso:experiencer ;
+            sh:focusNode <https://example.org/scenes/stative_experiencer_frame#st> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-lemma-pattern
+    a vsont:ValidationTest ;
+    mf:name "a lemma outside the snake_case value space fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.6" ;
+    vsont:shape vss:LemmaShape ;
+    mf:action [
+        sht:dataGraph <../fixtures/bad_lemma_pattern.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:LemmaShape ;
+            sh:sourceConstraintComponent sh:PatternConstraintComponent ;
+            sh:resultPath vso:lemma ;
+            sh:focusNode <https://example.org/scenes/lemma_pattern#strike> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-quality-dimension-min
+    a vsont:ValidationTest ;
+    mf:name "a Quality with no dimension fails C7" ;
+    vsont:clause "C7" ;
+    vsont:section "5.5" ;
+    vsont:shape vss:QualityShape ;
+    mf:action [
+        sht:dataGraph <data/quality_no_dimension.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:QualityShape ;
+            sh:sourceConstraintComponent sh:MinCountConstraintComponent ;
+            sh:resultPath vso:dimension ;
+            sh:focusNode <https://example.org/scenes/quality_no_dimension#q> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-quality-value-max
+    a vsont:ValidationTest ;
+    mf:name "a Quality with two values fails C7" ;
+    vsont:clause "C7" ;
+    vsont:section "5.5" ;
+    vsont:shape vss:QualityShape ;
+    mf:action [
+        sht:dataGraph <data/quality_two_values.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:QualityShape ;
+            sh:sourceConstraintComponent sh:MaxCountConstraintComponent ;
+            sh:resultPath vso:value ;
+            sh:focusNode <https://example.org/scenes/quality_two_values#q> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-quality-modifier-max
+    a vsont:ValidationTest ;
+    mf:name "a Quality with two modifiers fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.5" ;
+    vsont:shape vss:QualityModifierShape ;
+    mf:action [
+        sht:dataGraph <data/quality_two_modifiers.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:QualityModifierShape ;
+            sh:sourceConstraintComponent sh:MaxCountConstraintComponent ;
+            sh:resultPath vso:modifier ;
+            sh:focusNode <https://example.org/scenes/quality_two_modifiers#q> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-spatialfact-no-relation
+    a vsont:ValidationTest ;
+    mf:name "a SpatialFact asserting no relation fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.7" ;
+    vsont:shape vss:SpatialFactShape ;
+    mf:action [
+        sht:dataGraph <data/spatialfact_no_relation.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:SpatialFactShape ;
+            sh:sourceConstraintComponent sh:OrConstraintComponent ;
+            sh:focusNode <https://example.org/scenes/spatialfact_no_relation#sf> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-spatialfact-ground-min
+    a vsont:ValidationTest ;
+    mf:name "a SpatialFact with no ground fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.7" ;
+    vsont:shape vss:SpatialFactShape ;
+    mf:action [
+        sht:dataGraph <data/spatialfact_no_ground.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:SpatialFactShape ;
+            sh:sourceConstraintComponent sh:MinCountConstraintComponent ;
+            sh:resultPath vso:ground ;
+            sh:focusNode <https://example.org/scenes/spatialfact_no_ground#sf> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-spatialfact-rcc-max
+    a vsont:ValidationTest ;
+    mf:name "a SpatialFact with two RCC-8 relations fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.7" ;
+    vsont:shape vss:SpatialFactShape ;
+    mf:action [
+        sht:dataGraph <../fixtures/bad_two_rcc.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:SpatialFactShape ;
+            sh:sourceConstraintComponent sh:MaxCountConstraintComponent ;
+            sh:resultPath vso:rcc ;
+            sh:focusNode <https://example.org/scenes/two_rcc#sf> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-directional-viewer-min
+    a vsont:ValidationTest ;
+    mf:name "a directional fact with no viewer fails C5" ;
+    vsont:clause "C5" ;
+    vsont:section "3.3" , "5.7" ;
+    vsont:shape vss:DirectionalNeedsViewerShape ;
+    mf:action [
+        sht:dataGraph <../fixtures/bad_no_viewer.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:DirectionalNeedsViewerShape ;
+            sh:sourceConstraintComponent sh:MinCountConstraintComponent ;
+            sh:resultPath vso:viewer ;
+            sh:focusNode <https://example.org/scenes/bad1#sf> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-directional-viewer-max
+    a vsont:ValidationTest ;
+    mf:name "a directional fact with two viewers fails C5" ;
+    vsont:clause "C5" ;
+    vsont:section "3.3" , "5.7" ;
+    vsont:shape vss:DirectionalNeedsViewerShape ;
+    mf:action [
+        sht:dataGraph <../fixtures/bad_two_viewers.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:DirectionalNeedsViewerShape ;
+            sh:sourceConstraintComponent sh:MaxCountConstraintComponent ;
+            sh:resultPath vso:viewer ;
+            sh:focusNode <https://example.org/scenes/two_viewers#sf> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-directional-viewer-entity
+    a vsont:ValidationTest ;
+    mf:name "a directional fact anchored to an Entity fails C5" ;
+    vsont:clause "C5" ;
+    vsont:section "3.3" , "5.7" ;
+    vsont:shape vss:DirectionalNeedsViewerShape ;
+    mf:action [
+        sht:dataGraph <data/directional_viewer_is_entity.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:DirectionalNeedsViewerShape ;
+            sh:sourceConstraintComponent sh:NotConstraintComponent ;
+            sh:resultPath vso:viewer ;
+            sh:focusNode <https://example.org/scenes/directional_viewer_is_entity#sf> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-frame-depicted
+    a vsont:ValidationTest ;
+    mf:name "a depicted Frame fails C9" ;
+    vsont:clause "C9" ;
+    vsont:section "5.2" ;
+    vsont:shape vss:FrameNotDepictedShape ;
+    mf:action [
+        sht:dataGraph <../fixtures/bad_frame_depicted.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:FrameNotDepictedShape ;
+            sh:sourceConstraintComponent sh:NotConstraintComponent ;
+            sh:focusNode <https://example.org/scenes/bad2#cam> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-frame-bears-quality
+    a vsont:ValidationTest ;
+    mf:name "a Frame bearing a Quality fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.5" ;
+    vsont:shape vss:HasQualityShape ;
+    mf:action [
+        sht:dataGraph <../fixtures/bad_frame_bears_quality.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:HasQualityShape ;
+            sh:sourceConstraintComponent sh:OrConstraintComponent ;
+            sh:focusNode <https://example.org/scenes/bad_qb#cam> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-entity-class-max
+    a vsont:ValidationTest ;
+    mf:name "an Entity with two domain classes fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.4" ;
+    vsont:shape vss:EntityClassShape ;
+    mf:action [
+        sht:dataGraph <../fixtures/bad_two_class.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:EntityClassShape ;
+            sh:sourceConstraintComponent sh:MaxCountConstraintComponent ;
+            sh:resultPath vso:class ;
+            sh:focusNode <https://example.org/scenes/two_class#lamp> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-negation-statement-min
+    a vsont:ValidationTest ;
+    mf:name "a Negation with no statement fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.11" ;
+    vsont:shape vss:NegationShape ;
+    mf:action [
+        sht:dataGraph <data/negation_no_statement.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:NegationShape ;
+            sh:sourceConstraintComponent sh:MinCountConstraintComponent ;
+            sh:resultPath vso:negatedStatement ;
+            sh:focusNode <https://example.org/scenes/negation_no_statement#neg> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-belief-proposition-min
+    a vsont:ValidationTest ;
+    mf:name "a BeliefState with no proposition fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.11" ;
+    vsont:shape vss:BeliefStateShape ;
+    mf:action [
+        sht:dataGraph <data/belief_no_proposition.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:BeliefStateShape ;
+            sh:sourceConstraintComponent sh:MinCountConstraintComponent ;
+            sh:resultPath vso:proposition ;
+            sh:focusNode <https://example.org/scenes/belief_no_proposition#bs> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-annotation-predicate-min
+    a vsont:ValidationTest ;
+    mf:name "an Annotation naming two of three positions fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.11" ;
+    vsont:shape vss:AnnotationShape ;
+    mf:action [
+        sht:dataGraph <data/annotation_no_predicate.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:AnnotationShape ;
+            sh:sourceConstraintComponent sh:MinCountConstraintComponent ;
+            sh:resultPath vso:annotatedPredicate ;
+            sh:focusNode <https://example.org/scenes/annotation_no_predicate#ann> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-persona-invariant-min
+    a vsont:ValidationTest ;
+    mf:name "a Persona with no invariant fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.3" ;
+    vsont:shape vss:PersonaShape ;
+    mf:action [
+        sht:dataGraph <data/persona_no_invariant.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:PersonaShape ;
+            sh:sourceConstraintComponent sh:MinCountConstraintComponent ;
+            sh:resultPath vso:hasInvariant ;
+            sh:focusNode <https://example.org/scenes/persona_no_invariant#p> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-bbox2d-not-normalized
+    a vsont:ValidationTest ;
+    mf:name "a pixel-space bbox2d fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.4" , "5.10" ;
+    vsont:shape vss:GeometryShape ;
+    mf:action [
+        sht:dataGraph <../fixtures/bad_bbox2d_pixels.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:GeometryShape ;
+            sh:sourceConstraintComponent sh:PatternConstraintComponent ;
+            sh:resultPath vso:bbox2d ;
+            sh:focusNode <https://example.org/scenes/bbox_pixels#lamp> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-bbox2d-not-a-box
+    a vsont:ValidationTest ;
+    mf:name "a bbox2d that is not a box fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.4" , "5.10" ;
+    vsont:shape vss:GeometryShape ;
+    mf:action [
+        sht:dataGraph <../fixtures/bad_bbox2d_value.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:GeometryShape ;
+            sh:sourceConstraintComponent sh:PatternConstraintComponent ;
+            sh:resultPath vso:bbox2d ;
+            sh:focusNode <https://example.org/scenes/bbox_value#lamp> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-geometry-grammar
+    a vsont:ValidationTest ;
+    mf:name "position3d, scale3d and rotation outside their grammars fail" ;
+    vsont:clause "C3" ;
+    vsont:section "5.10" ;
+    vsont:shape vss:GeometryShape ;
+    mf:action [
+        sht:dataGraph <../fixtures/bad_geometry_grammar.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:GeometryShape ;
+            sh:sourceConstraintComponent sh:PatternConstraintComponent ;
+            sh:resultPath vso:position3d ;
+            sh:focusNode <https://example.org/scenes/geom_grammar#lamp> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:GeometryShape ;
+            sh:sourceConstraintComponent sh:PatternConstraintComponent ;
+            sh:resultPath vso:rotation ;
+            sh:focusNode <https://example.org/scenes/geom_grammar#lamp> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:GeometryShape ;
+            sh:sourceConstraintComponent sh:PatternConstraintComponent ;
+            sh:resultPath vso:scale3d ;
+            sh:focusNode <https://example.org/scenes/geom_grammar#lamp> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-confidence-range
+    a vsont:ValidationTest ;
+    mf:name "a confidence outside [0,1] fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.11" ;
+    vsont:shape vss:ConfidenceRangeShape ;
+    mf:action [
+        sht:dataGraph <../fixtures/bad_confidence_range.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:ConfidenceRangeShape ;
+            sh:sourceConstraintComponent sh:MaxInclusiveConstraintComponent ;
+            sh:resultPath vso:confidence ;
+            sh:focusNode <https://example.org/scenes/confidence#ann> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-visible-fraction-range
+    a vsont:ValidationTest ;
+    mf:name "a visibleFraction outside [0,1] fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.10" ;
+    vsont:shape vss:ConfidenceRangeShape ;
+    mf:action [
+        sht:dataGraph <../fixtures/bad_visible_fraction.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:ConfidenceRangeShape ;
+            sh:sourceConstraintComponent sh:MaxInclusiveConstraintComponent ;
+            sh:resultPath vso:visibleFraction ;
+            sh:focusNode <https://example.org/scenes/visfrac#chair> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-probability-range
+    a vsont:ValidationTest ;
+    mf:name "a probability outside [0,1] fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.11" ;
+    vsont:shape vss:ConfidenceRangeShape ;
+    mf:action [
+        sht:dataGraph <data/probability_out_of_range.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:ConfidenceRangeShape ;
+            sh:sourceConstraintComponent sh:MaxInclusiveConstraintComponent ;
+            sh:resultPath vso:probability ;
+            sh:focusNode <https://example.org/scenes/probability_out_of_range#ann> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-embodiment-contradiction
+    a vsont:ValidationTest ;
+    mf:name "an embodiment that contradicts its Persona warns" ;
+    vsont:clause "C3" ;
+    vsont:section "5.3" ;
+    vsont:shape vss:EmbodimentConsistencyShape ;
+    mf:action [
+        sht:dataGraph <data/embodiment_contradiction.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:EmbodimentConsistencyShape ;
+            sh:sourceConstraintComponent sh:SPARQLConstraintComponent ;
+            sh:focusNode <https://example.org/scenes/embodiment_contradiction#a> ;
+            sh:resultSeverity sh:Warning ;
+        ] ;
+    ] .
+
+t:validate-neg-enum-rcc
+    a vsont:ValidationTest ;
+    mf:name "an RCC-8 value outside the eight fails C8" ;
+    vsont:clause "C8" ;
+    vsont:section "5.12" ;
+    vsont:shape vss:RccValueShape ;
+    vsont:enum vso:rcc ;
+    mf:action [
+        sht:dataGraph <data/rcc_out_of_enum.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:RccValueShape ;
+            sh:sourceConstraintComponent sh:InConstraintComponent ;
+            sh:resultPath vso:rcc ;
+            sh:focusNode <https://example.org/scenes/rcc_out_of_enum#sf> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-enum-directional
+    a vsont:ValidationTest ;
+    mf:name "a direction outside the six fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.12" ;
+    vsont:shape vss:DirectionalValueShape ;
+    vsont:enum vso:directional ;
+    mf:action [
+        sht:dataGraph <data/directional_out_of_enum.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:DirectionalValueShape ;
+            sh:sourceConstraintComponent sh:InConstraintComponent ;
+            sh:resultPath vso:directional ;
+            sh:focusNode <https://example.org/scenes/directional_out_of_enum#sf> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-enum-proximal
+    a vsont:ValidationTest ;
+    mf:name "a proximity outside the five fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.12" ;
+    vsont:shape vss:ProximalValueShape ;
+    vsont:enum vso:proximal ;
+    mf:action [
+        sht:dataGraph <data/proximal_out_of_enum.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:ProximalValueShape ;
+            sh:sourceConstraintComponent sh:InConstraintComponent ;
+            sh:resultPath vso:proximal ;
+            sh:focusNode <https://example.org/scenes/proximal_out_of_enum#sf> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-enum-individuation
+    a vsont:ValidationTest ;
+    mf:name "an individuation outside the four fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.12" ;
+    vsont:shape vss:IndividuationShape ;
+    vsont:enum vso:individuation ;
+    mf:action [
+        sht:dataGraph <data/individuation_out_of_enum.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:IndividuationShape ;
+            sh:sourceConstraintComponent sh:InConstraintComponent ;
+            sh:resultPath vso:individuation ;
+            sh:focusNode <https://example.org/scenes/individuation_out_of_enum#a> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-enum-animacy
+    a vsont:ValidationTest ;
+    mf:name "an animacy outside the two fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.12" ;
+    vsont:shape vss:AnimacyShape ;
+    vsont:enum vso:animacy ;
+    mf:action [
+        sht:dataGraph <data/animacy_out_of_enum.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:AnimacyShape ;
+            sh:sourceConstraintComponent sh:InConstraintComponent ;
+            sh:resultPath vso:animacy ;
+            sh:focusNode <https://example.org/scenes/animacy_out_of_enum#a> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-enum-countability
+    a vsont:ValidationTest ;
+    mf:name "a countability outside the three fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.12" ;
+    vsont:shape vss:CountabilityShape ;
+    vsont:enum vso:countability ;
+    mf:action [
+        sht:dataGraph <data/countability_out_of_enum.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:CountabilityShape ;
+            sh:sourceConstraintComponent sh:InConstraintComponent ;
+            sh:resultPath vso:countability ;
+            sh:focusNode <https://example.org/scenes/countability_out_of_enum#a> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-enum-affordance
+    a vsont:ValidationTest ;
+    mf:name "an affordance outside the five fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.12" ;
+    vsont:shape vss:AffordanceShape ;
+    vsont:enum vso:affordance ;
+    mf:action [
+        sht:dataGraph <data/affordance_out_of_enum.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:AffordanceShape ;
+            sh:sourceConstraintComponent sh:InConstraintComponent ;
+            sh:resultPath vso:affordance ;
+            sh:focusNode <https://example.org/scenes/affordance_out_of_enum#a> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-enum-quantifier
+    a vsont:ValidationTest ;
+    mf:name "a quantifier outside the six fails" ;
+    vsont:clause "C3" ;
+    vsont:section "5.11" , "5.12" ;
+    vsont:shape vss:QuantificationShape ;
+    vsont:enum vso:quantifier ;
+    mf:action [
+        sht:dataGraph <data/quantification_bad_quantifier.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:QuantificationShape ;
+            sh:sourceConstraintComponent sh:InConstraintComponent ;
+            sh:resultPath vso:quantifier ;
+            sh:focusNode <https://example.org/scenes/quantification_bad_quantifier#qn> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-orphan-term
+    a vsont:ValidationTest ;
+    mf:name "an undeclared vso: term fails C2" ;
+    vsont:clause "C2" ;
+    vsont:section "2.1" , "5.1" ;
+    mf:action [
+        sht:dataGraph <../fixtures/bad_orphan_term.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:c2 ;
+        sh:result [
+            a sh:ValidationResult ;
+            vsont:rule "vson/c2/orphan-term" ;
+            sh:value vso:Ambience ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-dimension-outside-registry
+    a vsont:ValidationTest ;
+    mf:name "a vso: dimension outside the registry fails C2" ;
+    vsont:clause "C2" ;
+    vsont:section "5.5" , "5.12" ;
+    vsont:enum vso:dimension ;
+    mf:action [
+        sht:dataGraph <data/dimension_outside_registry.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:c2 ;
+        sh:result [
+            a sh:ValidationResult ;
+            vsont:rule "vson/c2/orphan-term" ;
+            sh:value vso:Ambience ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-owl-disjoint
+    a vsont:ValidationTest ;
+    mf:name "an individual in two disjoint classes fails the OWL 2 RL gate" ;
+    rdfs:comment "No numbered clause requires internal consistency; `vson validate` runs it as its second gate and this entry pins that verdict." ;
+    vsont:section "2.1" ;
+    mf:action [
+        sht:dataGraph <data/owl_disjoint_clash.ttl> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-T
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:owl-consistency ;
+        sh:result [
+            a sh:ValidationResult ;
+            vsont:rule "vson/owl-consistency/disjoint-classes" ;
+            sh:focusNode <https://example.org/scenes/owl_disjoint_clash#b> ;
+            sh:value vso:Perdurant ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-bad-no-viewer-p
+    a vsont:ValidationTest ;
+    mf:name "the C5 failure survives the VSON-P transpiler" ;
+    vsont:clause "C5" ;
+    vsont:section "4.2" ;
+    mf:action [
+        sht:dataGraph <../fixtures/bad_no_viewer.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-P
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:DirectionalNeedsViewerShape ;
+            sh:sourceConstraintComponent sh:MinCountConstraintComponent ;
+            sh:resultPath vso:viewer ;
+            sh:focusNode <https://example.org/scenes/anonymous#sf> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-d8-3
+    a vsont:ValidationTest ;
+    mf:name "§D.8 row 3 is caught by a later gate" ;
+    vsont:clause "C3" ;
+    vsont:section "D.8" ;
+    mf:action [
+        sht:dataGraph <data/D8_3_dir_out_of_enum.x.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-X
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:DirectionalValueShape ;
+            sh:sourceConstraintComponent sh:InConstraintComponent ;
+            sh:resultPath vso:directional ;
+            vsont:focusNodeKind vsont:BlankNode ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-d8-4
+    a vsont:ValidationTest ;
+    mf:name "§D.8 row 4 is caught by a later gate" ;
+    vsont:clause "C3" ;
+    vsont:section "D.8" ;
+    mf:action [
+        sht:dataGraph <data/D8_4_nonframe_concept_lead.x.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-X
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:CompositionShape ;
+            sh:sourceConstraintComponent sh:NotConstraintComponent ;
+            sh:resultPath vso:framedBy ;
+            sh:focusNode <https://example.org/scenes/anonymous#scene> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-d8-6
+    a vsont:ValidationTest ;
+    mf:name "§D.8 row 6 is caught by a later gate" ;
+    vsont:clause "C3" ;
+    vsont:section "D.8" ;
+    mf:action [
+        sht:dataGraph <data/D8_6_arglist_key_name.x.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-X
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:c2 ;
+        sh:result [
+            a sh:ValidationResult ;
+            vsont:rule "vson/c2/orphan-term" ;
+            sh:value vso:frobnicate ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:validate-neg-d8-8
+    a vsont:ValidationTest ;
+    mf:name "§D.8 row 8 is caught by a later gate" ;
+    vsont:clause "C3" ;
+    vsont:section "D.8" ;
+    mf:action [
+        sht:dataGraph <data/D8_8_geometry_out_of_range.x.vson> ;
+        sht:shapesGraph <../../shapes/vson-shapes.ttl> ;
+        vsont:surface vsont:VSON-X
+    ] ;
+    mf:result [
+        a sh:ValidationReport ;
+        sh:conforms false ;
+        vsont:gate vsont:shacl ;
+        sh:result [
+            a sh:ValidationResult ;
+            sh:sourceShape vss:GeometryShape ;
+            sh:sourceConstraintComponent sh:PatternConstraintComponent ;
+            sh:resultPath vso:bbox2d ;
+            sh:focusNode <https://example.org/scenes/anonymous#a> ;
+            sh:resultSeverity sh:Violation ;
+        ] ;
+    ] .
+
+t:equivalence-throne-room-t
+    a vsont:EquivalenceTest ;
+    mf:name "the canonical throne room has its frozen canonical hash" ;
+    vsont:section "4.6" ;
+    mf:action ( <../../examples/throne_room.ttl> ) ;
+    mf:result [
+        vsont:canonicalHash "92be4129e1f5a1302d1bc46c4d263438350cf69b95be2e359a595b6e75da288f"
+    ] .
+
+t:equivalence-01-minimal
+    a vsont:EquivalenceTest ;
+    mf:name "01_minimal denotes one scene in VSON-P and VSON-X" ;
+    vsont:section "4.3" , "4.6" ;
+    mf:action ( <../../examples/gallery/01_minimal.vson> <../../examples/gallery-x/01_minimal.x.vson> ) ;
+    mf:result [
+        vsont:canonicalHash "42d4b053e4417d0a876dc63b1c97daed332e80ef291b591ecdc4e627367d105d"
+    ] .
+
+t:equivalence-02-quality
+    a vsont:EquivalenceTest ;
+    mf:name "02_quality denotes one scene in VSON-P and VSON-X" ;
+    vsont:section "4.3" , "4.6" ;
+    mf:action ( <../../examples/gallery/02_quality.vson> <../../examples/gallery-x/02_quality.x.vson> ) ;
+    mf:result [
+        vsont:canonicalHash "40652e26a439ba1dafcb58d19dcea8a95ba95c0ec68e2adaf58336c538d203dd"
+    ] .
+
+t:equivalence-03-spatial-topology
+    a vsont:EquivalenceTest ;
+    mf:name "03_spatial_topology denotes one scene in VSON-P and VSON-X" ;
+    vsont:section "4.3" , "4.6" ;
+    mf:action ( <../../examples/gallery/03_spatial_topology.vson> <../../examples/gallery-x/03_spatial_topology.x.vson> ) ;
+    mf:result [
+        vsont:canonicalHash "621f125acc6ea9d65b00bc2df37fc0a97a7e364cdbe255e785d5026235db9289"
+    ] .
+
+t:equivalence-04-directional-with-viewer
+    a vsont:EquivalenceTest ;
+    mf:name "04_directional_with_viewer denotes one scene in VSON-P and VSON-X" ;
+    vsont:section "4.3" , "4.6" ;
+    mf:action ( <../../examples/gallery/04_directional_with_viewer.vson> <../../examples/gallery-x/04_directional_with_viewer.x.vson> ) ;
+    mf:result [
+        vsont:canonicalHash "4afcfe4a16036fae5ca8b5c76922c8e953ca19920db1b15efa29bf36e85a109a"
+    ] .
+
+t:equivalence-05-possession-stative
+    a vsont:EquivalenceTest ;
+    mf:name "05_possession_stative denotes one scene in VSON-P and VSON-X" ;
+    vsont:section "4.3" , "4.6" ;
+    mf:action ( <../../examples/gallery/05_possession_stative.vson> <../../examples/gallery-x/05_possession_stative.x.vson> ) ;
+    mf:result [
+        vsont:canonicalHash "4b1aa412bf9692d183df669c4d81e52e42d039f99de140038920dcb6badc0ffe"
+    ] .
+
+t:equivalence-06-event-with-instrument
+    a vsont:EquivalenceTest ;
+    mf:name "06_event_with_instrument denotes one scene in VSON-P and VSON-X" ;
+    vsont:section "4.3" , "4.6" ;
+    mf:action ( <../../examples/gallery/06_event_with_instrument.vson> <../../examples/gallery-x/06_event_with_instrument.x.vson> ) ;
+    mf:result [
+        vsont:canonicalHash "9fe139d9dbeb50dcc9c6c162a3755461ce67e0bf4e68600a3c26a11dc1a1be8b"
+    ] .
+
+t:equivalence-07-ditransitive
+    a vsont:EquivalenceTest ;
+    mf:name "07_ditransitive denotes one scene in VSON-P and VSON-X" ;
+    vsont:section "4.3" , "4.6" ;
+    mf:action ( <../../examples/gallery/07_ditransitive.vson> <../../examples/gallery-x/07_ditransitive.x.vson> ) ;
+    mf:result [
+        vsont:canonicalHash "550bfe032d7a77df7e851ba5ffadaea90cea87372ba46fd582532ffc523bb8c4"
+    ] .
+
+t:equivalence-08-collective
+    a vsont:EquivalenceTest ;
+    mf:name "08_collective denotes one scene in VSON-P and VSON-X" ;
+    vsont:section "4.3" , "4.6" ;
+    mf:action ( <../../examples/gallery/08_collective.vson> <../../examples/gallery-x/08_collective.x.vson> ) ;
+    mf:result [
+        vsont:canonicalHash "39c27a5b309840530cd403b14f69651e7bf92cb6bf1e682d04cd6ef111bb3114"
+    ] .
+
+t:equivalence-09-mass-substance
+    a vsont:EquivalenceTest ;
+    mf:name "09_mass_substance denotes one scene in VSON-P and VSON-X" ;
+    vsont:section "4.3" , "4.6" ;
+    mf:action ( <../../examples/gallery/09_mass_substance.vson> <../../examples/gallery-x/09_mass_substance.x.vson> ) ;
+    mf:result [
+        vsont:canonicalHash "fb6461993a7db5804e955c866777bf0ff9a7e70252585f7fee075ab28bfa3e15"
+    ] .
+
+t:equivalence-10-geometry-bbox
+    a vsont:EquivalenceTest ;
+    mf:name "10_geometry_bbox denotes one scene in VSON-P and VSON-X" ;
+    vsont:section "4.3" , "4.6" ;
+    mf:action ( <../../examples/gallery/10_geometry_bbox.vson> <../../examples/gallery-x/10_geometry_bbox.x.vson> ) ;
+    mf:result [
+        vsont:canonicalHash "a0accef5f4b4729d7bc5ff33754b35bf1284478b4c6c962e10a2df25b3989aff"
+    ] .
+
+t:equivalence-11-throne-room
+    a vsont:EquivalenceTest ;
+    mf:name "11_throne_room denotes one scene in VSON-P and VSON-X" ;
+    vsont:section "4.3" , "4.6" ;
+    mf:action ( <../../examples/gallery/11_throne_room.vson> <../../examples/gallery-x/11_throne_room.x.vson> ) ;
+    mf:result [
+        vsont:canonicalHash "107d7020bc99fb8223c802b7f1c366a853a41487f64a3488f11f97709f613b58"
+    ] .
+
+t:equivalence-12-persona
+    a vsont:EquivalenceTest ;
+    mf:name "12_persona denotes one scene in VSON-P and VSON-X" ;
+    vsont:section "4.3" , "4.6" ;
+    mf:action ( <../../examples/gallery/12_persona.vson> <../../examples/gallery-x/12_persona.x.vson> ) ;
+    mf:result [
+        vsont:canonicalHash "3230760ed25716719c0f7545a9d90e6bb40a68b50a2d7c4dd17fac51ec9b3700"
+    ] .
+
+t:equivalence-13-negation
+    a vsont:EquivalenceTest ;
+    mf:name "13_negation has its frozen canonical hash" ;
+    vsont:section "4.6" ;
+    mf:action ( <../../examples/gallery/13_negation.vson> ) ;
+    mf:result [
+        vsont:canonicalHash "d4f31e2ef0392604ae455417aeeabe35b6842dd38e9e601b972a579a6578ce3a"
+    ] .
+
+t:equivalence-14-belief-state
+    a vsont:EquivalenceTest ;
+    mf:name "14_belief_state has its frozen canonical hash" ;
+    vsont:section "4.6" ;
+    mf:action ( <../../examples/gallery/14_belief_state.vson> ) ;
+    mf:result [
+        vsont:canonicalHash "171f424c3373e022754845176d56273444098f5b10e73f2625ddeff668ed977d"
+    ] .
+
+t:equivalence-15-quantification
+    a vsont:EquivalenceTest ;
+    mf:name "15_quantification has its frozen canonical hash" ;
+    vsont:section "4.6" ;
+    mf:action ( <../../examples/gallery/15_quantification.vson> ) ;
+    mf:result [
+        vsont:canonicalHash "12fd9b2139488b9c3b2d51c54d1be379ce89827e6500f9c65e9de851b4e754f0"
+    ] .
+
+t:equivalence-16-annotation
+    a vsont:EquivalenceTest ;
+    mf:name "16_annotation has its frozen canonical hash" ;
+    vsont:section "4.6" ;
+    mf:action ( <../../examples/gallery/16_annotation.vson> ) ;
+    mf:result [
+        vsont:canonicalHash "7da745eafcdf6a543d1194236fb84be710f70a14ccee09ccda40f49157671db7"
+    ] .
+
+t:export-caption-01-minimal
+    a vsont:ExportTest ;
+    mf:name "the caption export of 01_minimal is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/01_minimal.vson> ;
+        vsont:exporter vsont:caption
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/captions/01_minimal.txt>
+    ] .
+
+t:export-caption-02-quality
+    a vsont:ExportTest ;
+    mf:name "the caption export of 02_quality is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/02_quality.vson> ;
+        vsont:exporter vsont:caption
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/captions/02_quality.txt>
+    ] .
+
+t:export-caption-03-spatial-topology
+    a vsont:ExportTest ;
+    mf:name "the caption export of 03_spatial_topology is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/03_spatial_topology.vson> ;
+        vsont:exporter vsont:caption
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/captions/03_spatial_topology.txt>
+    ] .
+
+t:export-caption-04-directional-with-viewer
+    a vsont:ExportTest ;
+    mf:name "the caption export of 04_directional_with_viewer is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/04_directional_with_viewer.vson> ;
+        vsont:exporter vsont:caption
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/captions/04_directional_with_viewer.txt>
+    ] .
+
+t:export-caption-05-possession-stative
+    a vsont:ExportTest ;
+    mf:name "the caption export of 05_possession_stative is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/05_possession_stative.vson> ;
+        vsont:exporter vsont:caption
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/captions/05_possession_stative.txt>
+    ] .
+
+t:export-caption-06-event-with-instrument
+    a vsont:ExportTest ;
+    mf:name "the caption export of 06_event_with_instrument is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/06_event_with_instrument.vson> ;
+        vsont:exporter vsont:caption
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/captions/06_event_with_instrument.txt>
+    ] .
+
+t:export-caption-07-ditransitive
+    a vsont:ExportTest ;
+    mf:name "the caption export of 07_ditransitive is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/07_ditransitive.vson> ;
+        vsont:exporter vsont:caption
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/captions/07_ditransitive.txt>
+    ] .
+
+t:export-caption-08-collective
+    a vsont:ExportTest ;
+    mf:name "the caption export of 08_collective is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/08_collective.vson> ;
+        vsont:exporter vsont:caption
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/captions/08_collective.txt>
+    ] .
+
+t:export-caption-09-mass-substance
+    a vsont:ExportTest ;
+    mf:name "the caption export of 09_mass_substance is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/09_mass_substance.vson> ;
+        vsont:exporter vsont:caption
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/captions/09_mass_substance.txt>
+    ] .
+
+t:export-caption-10-geometry-bbox
+    a vsont:ExportTest ;
+    mf:name "the caption export of 10_geometry_bbox is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/10_geometry_bbox.vson> ;
+        vsont:exporter vsont:caption
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/captions/10_geometry_bbox.txt>
+    ] .
+
+t:export-caption-11-throne-room
+    a vsont:ExportTest ;
+    mf:name "the caption export of 11_throne_room is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/11_throne_room.vson> ;
+        vsont:exporter vsont:caption
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/captions/11_throne_room.txt>
+    ] .
+
+t:export-caption-12-persona
+    a vsont:ExportTest ;
+    mf:name "the caption export of 12_persona is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/12_persona.vson> ;
+        vsont:exporter vsont:caption
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/captions/12_persona.txt>
+    ] .
+
+t:export-caption-13-negation
+    a vsont:ExportTest ;
+    mf:name "the caption export of 13_negation is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/13_negation.vson> ;
+        vsont:exporter vsont:caption
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/captions/13_negation.txt>
+    ] .
+
+t:export-caption-14-belief-state
+    a vsont:ExportTest ;
+    mf:name "the caption export of 14_belief_state is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/14_belief_state.vson> ;
+        vsont:exporter vsont:caption
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/captions/14_belief_state.txt>
+    ] .
+
+t:export-caption-15-quantification
+    a vsont:ExportTest ;
+    mf:name "the caption export of 15_quantification is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/15_quantification.vson> ;
+        vsont:exporter vsont:caption
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/captions/15_quantification.txt>
+    ] .
+
+t:export-caption-16-annotation
+    a vsont:ExportTest ;
+    mf:name "the caption export of 16_annotation is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/16_annotation.vson> ;
+        vsont:exporter vsont:caption
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/captions/16_annotation.txt>
+    ] .
+
+t:export-fol-01-minimal
+    a vsont:ExportTest ;
+    mf:name "the FOL export of 01_minimal is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/01_minimal.vson> ;
+        vsont:exporter vsont:fol
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/fol/01_minimal.fol>
+    ] .
+
+t:export-fol-02-quality
+    a vsont:ExportTest ;
+    mf:name "the FOL export of 02_quality is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/02_quality.vson> ;
+        vsont:exporter vsont:fol
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/fol/02_quality.fol>
+    ] .
+
+t:export-fol-03-spatial-topology
+    a vsont:ExportTest ;
+    mf:name "the FOL export of 03_spatial_topology is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/03_spatial_topology.vson> ;
+        vsont:exporter vsont:fol
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/fol/03_spatial_topology.fol>
+    ] .
+
+t:export-fol-04-directional-with-viewer
+    a vsont:ExportTest ;
+    mf:name "the FOL export of 04_directional_with_viewer is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/04_directional_with_viewer.vson> ;
+        vsont:exporter vsont:fol
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/fol/04_directional_with_viewer.fol>
+    ] .
+
+t:export-fol-05-possession-stative
+    a vsont:ExportTest ;
+    mf:name "the FOL export of 05_possession_stative is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/05_possession_stative.vson> ;
+        vsont:exporter vsont:fol
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/fol/05_possession_stative.fol>
+    ] .
+
+t:export-fol-06-event-with-instrument
+    a vsont:ExportTest ;
+    mf:name "the FOL export of 06_event_with_instrument is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/06_event_with_instrument.vson> ;
+        vsont:exporter vsont:fol
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/fol/06_event_with_instrument.fol>
+    ] .
+
+t:export-fol-07-ditransitive
+    a vsont:ExportTest ;
+    mf:name "the FOL export of 07_ditransitive is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/07_ditransitive.vson> ;
+        vsont:exporter vsont:fol
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/fol/07_ditransitive.fol>
+    ] .
+
+t:export-fol-08-collective
+    a vsont:ExportTest ;
+    mf:name "the FOL export of 08_collective is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/08_collective.vson> ;
+        vsont:exporter vsont:fol
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/fol/08_collective.fol>
+    ] .
+
+t:export-fol-09-mass-substance
+    a vsont:ExportTest ;
+    mf:name "the FOL export of 09_mass_substance is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/09_mass_substance.vson> ;
+        vsont:exporter vsont:fol
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/fol/09_mass_substance.fol>
+    ] .
+
+t:export-fol-10-geometry-bbox
+    a vsont:ExportTest ;
+    mf:name "the FOL export of 10_geometry_bbox is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/10_geometry_bbox.vson> ;
+        vsont:exporter vsont:fol
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/fol/10_geometry_bbox.fol>
+    ] .
+
+t:export-fol-11-throne-room
+    a vsont:ExportTest ;
+    mf:name "the FOL export of 11_throne_room is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/11_throne_room.vson> ;
+        vsont:exporter vsont:fol
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/fol/11_throne_room.fol>
+    ] .
+
+t:export-fol-12-persona
+    a vsont:ExportTest ;
+    mf:name "the FOL export of 12_persona is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/12_persona.vson> ;
+        vsont:exporter vsont:fol
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/fol/12_persona.fol>
+    ] .
+
+t:export-fol-13-negation
+    a vsont:ExportTest ;
+    mf:name "the FOL export of 13_negation is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/13_negation.vson> ;
+        vsont:exporter vsont:fol
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/fol/13_negation.fol>
+    ] .
+
+t:export-fol-14-belief-state
+    a vsont:ExportTest ;
+    mf:name "the FOL export of 14_belief_state is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/14_belief_state.vson> ;
+        vsont:exporter vsont:fol
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/fol/14_belief_state.fol>
+    ] .
+
+t:export-fol-15-quantification
+    a vsont:ExportTest ;
+    mf:name "the FOL export of 15_quantification is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/15_quantification.vson> ;
+        vsont:exporter vsont:fol
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/fol/15_quantification.fol>
+    ] .
+
+t:export-fol-16-annotation
+    a vsont:ExportTest ;
+    mf:name "the FOL export of 16_annotation is byte-frozen" ;
+    vsont:section "7" ;
+    mf:action [
+        vsont:document <../../examples/gallery/16_annotation.vson> ;
+        vsont:exporter vsont:fol
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/fol/16_annotation.fol>
+    ] .
+
+t:export-canonical-nquads-11-throne-room
+    a vsont:ExportTest ;
+    mf:name "the canonical N-Quads of the throne room are byte-frozen" ;
+    vsont:section "4.6" ;
+    mf:action [
+        vsont:document <../../examples/gallery/11_throne_room.vson> ;
+        vsont:exporter vsont:canonical-nquads
+    ] ;
+    mf:result [
+        vsont:expectedOutput <../fixtures/canonical/11_throne_room.nq>
+    ] .
+
+t:export-turtle-11-throne-room-p
+    a vsont:ExportTest ;
+    mf:name "the VSON-P transpilation of the throne room is byte-frozen" ;
+    vsont:section "4.1" , "4.2" ;
+    mf:action [
+        vsont:document <../../examples/gallery/11_throne_room.vson> ;
+        vsont:exporter vsont:turtle
+    ] ;
+    mf:result [
+        vsont:expectedOutput <expected/11_throne_room.p2t.ttl>
+    ] .
+
+t:export-turtle-11-throne-room-x
+    a vsont:ExportTest ;
+    mf:name "the VSON-X transpilation of the throne room is byte-frozen" ;
+    vsont:section "4.1" , "4.3" ;
+    mf:action [
+        vsont:document <../../examples/gallery-x/11_throne_room.x.vson> ;
+        vsont:exporter vsont:turtle
+    ] ;
+    mf:result [
+        vsont:expectedOutput <expected/11_throne_room.x2t.ttl>
+    ] .
+
+#################################################################
+# Uncovered — the honest half of the coverage map.
+#
+# A named shape in shapes/vson-shapes.ttl with no negative entry is a build
+# failure (tools/conformance_runner.py --check-coverage) unless it is listed
+# here with a reason. "Nobody wrote one yet" is not a reason; the two below
+# are properties of the shape.
+#################################################################
+
+t:coverage-exemptions
+    a vsont:CoverageExemptions ;
+    mf:name "shapes no input can exercise" ;
+    vsont:exempt [
+        vsont:shape vss:DepictsEntityShape ;
+        rdfs:comment """Vacuous under C3's inference="rdfs". The shape asks
+sh:class vso:Entity of every object of vso:depicts, and ontology/vso.ttl
+declares vso:depicts rdfs:range vso:Entity, so the RDFS closure asserts the
+very type the check looks for before validation begins. No document can fail
+it. t:validate-pos-depicts-reification-node pins that fact from the other
+side: a depicted SpatialFact — exactly what docs/vson.md §5.2 asks producers
+not to write — conforms."""
+    ] .

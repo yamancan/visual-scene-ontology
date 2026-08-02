@@ -1,0 +1,29 @@
+# vss:EventShape / vso:agent / sh:maxCount — MUST fail.
+#
+# docs/vson.md §5.6 types the agent role 0..1 on an Event. Two agents are
+# two events, or one event whose agent the producer did not decide.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/event_two_agents#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :a , :b .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "medium_shot" .
+
+:a a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:b a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:scene vso:occurs :ev .
+
+:ev a vso:Event ; vso:lemma "lift" ;
+    vso:agent :a , :b .

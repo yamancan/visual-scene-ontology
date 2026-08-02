@@ -1,0 +1,28 @@
+# vss:CompositionShape / vso:rendersAs / sh:maxCount — MUST fail.
+#
+# docs/vson.md §5.2 types vso:rendersAs 0..1: a Composition designates one
+# dominant visual style, and two are two answers to one question.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/composition_two_rendersas#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :a , :b ;
+    vso:rendersAs :s1 , :s2 .
+
+:s1 a vso:VisualStyle ; vso:medium "photographic" .
+:s2 a vso:VisualStyle ; vso:medium "illustration" .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "medium_shot" .
+
+:a a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:b a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .

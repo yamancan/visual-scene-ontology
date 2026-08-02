@@ -1,0 +1,9 @@
+# §D.8 row 7 — a `~MOD` on a SpatialFact kv other than *dir / *prox is
+# accepted and then discarded; the modifier reaches no triple.
+# §D.5: `kv = "*" IDENT value [ "~" MOD ]` — the modifier follows the value.
+~scene
+  /CameraView @cam *angle eye_level *framing medium_shot
+  ^cam
+  a /PhysicalObject Generic Inert Count *class Thing
+  b /PhysicalObject Generic Inert Count *class Thing
+  a ! EC b ^cam *viewer @cam ~partly

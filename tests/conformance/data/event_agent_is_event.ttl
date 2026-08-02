@@ -1,0 +1,32 @@
+# vss:EventShape / vso:agent / sh:not [ sh:class vso:Perdurant ] — MUST fail.
+#
+# docs/vson.md §5.6: the agent of an Event is an Endurant. The rdfs:range
+# entails Endurant onto the value, so only the asserted Perdurant type can
+# make this check fire — which is exactly why the guard is there.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/event_agent_is_event#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :a , :b .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "medium_shot" .
+
+:a a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:b a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:scene vso:occurs :ev , :ev2 .
+
+:ev a vso:Event ; vso:lemma "lift" ;
+    vso:agent :ev2 .
+
+:ev2 a vso:Event ; vso:lemma "fall" .

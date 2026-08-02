@@ -1,0 +1,6 @@
+# §D.8 row 1 — duplicate handle declarations parse; both emit onto one IRI.
+~scene
+  /CameraView @cam *angle eye_level *framing medium_shot
+  ^cam
+  a /PhysicalObject Generic Inert Count *class Thing
+  a /PhysicalObject Generic Inert Count *class Thing

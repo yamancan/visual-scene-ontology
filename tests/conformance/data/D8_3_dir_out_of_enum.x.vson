@@ -1,0 +1,8 @@
+# §D.8 row 3 — the parser checks only that a `*dir` value is a bareword.
+# §D.5 note 4: the viewer anchor belongs inside the item, before the kv tail.
+~scene
+  /CameraView @cam *angle eye_level *framing medium_shot
+  ^cam
+  a /PhysicalObject Generic Inert Count *class Thing
+  b /PhysicalObject Generic Inert Count *class Thing
+  a ! EC b ^cam *dir sideways

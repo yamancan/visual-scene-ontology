@@ -1,0 +1,4 @@
+# Appendix B — `node = "(" var [ "/" concept ] { edge } ")"`: the variable is
+# not optional.
+(/ Composition
+   :depicts (apple / PhysicalObject :class Apple))

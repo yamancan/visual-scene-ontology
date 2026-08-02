@@ -1,0 +1,32 @@
+# vss:ConfidenceRangeShape / vso:probability / sh:maxInclusive — MUST fail.
+#
+# docs/vson.md §5.11 and ontology/vso.ttl both bound vso:probability to
+# [0,1]. Until v1.3 nothing read that bound.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/probability_out_of_range#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :a , :b .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "medium_shot" .
+
+:a a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:b a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:scene vso:hasFact :ann .
+
+:ann a vso:Annotation ;
+     vso:annotatedSubject   :a ;
+     vso:annotatedPredicate vso:class ;
+     vso:annotatedObject    :Thing ;
+     vso:probability 1.4 .

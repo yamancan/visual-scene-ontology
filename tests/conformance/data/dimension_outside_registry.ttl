@@ -1,0 +1,30 @@
+# C2 gate — SHACL green, vocabulary closure broken.
+#
+# docs/vson.md §5.12: vso:dimension is closed *within the VSO namespace*
+# only, and no shape enumerates it — a document-namespace dimension stays
+# conformant. A vso:-namespace dimension the registry never declared is
+# the case C2 catches and C3 cannot.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/dimension_outside_registry#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam ;
+    vso:viewedBy :cam ;
+    vso:depicts  :a , :b .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "medium_shot" .
+
+:a a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:b a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:a vso:hasQuality :q .
+
+:q a vso:Quality ; vso:dimension vso:Ambience ; vso:value "cozy" .

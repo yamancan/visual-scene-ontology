@@ -1,0 +1,28 @@
+# vss:PersonaShape / vso:hasInvariant / sh:minCount — MUST fail.
+#
+# docs/vson.md §5.3: a Persona is the bundle of qualities that survive
+# across documents. A Persona with no invariant carries no identity.
+
+@prefix vso: <https://w3id.org/vson/v1/ontology#> .
+@prefix rcc: <https://w3id.org/vson/v1/rcc8#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix :    <https://example.org/scenes/persona_no_invariant#> .
+
+:scene a vso:Composition ;
+    vso:framedBy :cam , :p ;
+    vso:viewedBy :cam ;
+    vso:depicts  :a , :b .
+
+:cam a vso:CameraView ; vso:angle "eye_level" ; vso:framing "medium_shot" .
+
+:a a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:b a vso:PhysicalObject ;
+    vso:individuation vso:Generic ; vso:animacy vso:Inert ;
+    vso:countability vso:Count ; vso:class :Thing .
+
+:p a vso:Persona ; vso:personaId "kb:queen" .
+
+:a vso:embodies :p .

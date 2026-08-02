@@ -1,0 +1,3 @@
+# Appendix B — the input ends before the node closes.
+(scene / Composition
+   :depicts (apple / PhysicalObject :class Apple)
