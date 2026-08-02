@@ -32,7 +32,7 @@ CI is the source of truth for versions (`.github/workflows/ci.yml`):
 Run these before opening a pull request. CI runs the same set.
 
 ```bash
-make check           # ontology parse, Penman→Turtle round-trip, SHACL, OWL RL, ruff lint, unittests, spec gallery, executable grammars
+make check           # ontology parse, Penman→Turtle round-trip, SHACL, OWL RL, ruff lint, unittests, spec gallery, executable grammars, conformance suite
 make cli-check       # Rust build + tests + graph-isomorphism parity against the Python reference
 make x-check         # VSON-X round-trip parity
 make x-skill-check   # VSON-X skill conformance over examples/gallery-x
@@ -55,7 +55,18 @@ pnpm build
 ## Changes that need extra care
 
 - **Ontology / shapes** (`ontology/`, `shapes/`): any change must keep
-  `make check` green, including the OWL 2 RL disjointness pass.
+  `make check` green, including the OWL 2 RL disjointness pass. A **new named
+  shape needs a negative entry** in `tests/conformance/manifest.ttl` — a
+  document that trips it, with the source shape, focus node, path and severity
+  pinned. `make conformance` fails on a shape that has neither an entry nor a
+  stated exemption, because the coverage table `docs/vson.md` §2.2 publishes is
+  generated from that manifest and must not claim what the suite lacks.
+- **Conformance suite** (`tests/conformance/`): the manifest is maintained by
+  hand and there is no `--freeze`. A pinned expectation that moves is a question
+  to answer — which of the document, the shape or the engine changed — not a
+  fixture to rewrite. After adding or removing an entry, regenerate §2.2's table
+  with `python3 -m tools.conformance_runner --coverage-table` and paste it
+  between the `conformance-coverage` markers.
 - **Parser or emitter changes**: the Rust CLI and the Python reference must emit
   isomorphic graphs — `make cli-check` checks this with `rdflib.to_isomorphic`
   over `throne_room` plus the gallery. Change both or neither.

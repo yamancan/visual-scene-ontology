@@ -88,6 +88,9 @@ tools/extractor/  Image-to-graph extractor — orchestrator prompts + bare-VLM b
 skills/           Portable extractor skills (SKILL.md + conformance fixtures) — exercised by make x-skill-check
 scripts/          Envelope check, smoke eval, deploy preflight
 tests/            Round-trip and SHACL conformance tests
+tests/conformance/ ★ The conformance test suite — an RDF manifest of documents and the
+                    verdict each MUST get. Passing it is what claiming VSON v1
+                    conformance means (§2.2) — make conformance
 ```
 
 ## Quick start
@@ -116,8 +119,9 @@ cli/target/release/vson export caption examples/throne_room.vson
 cli/target/release/vson diff examples/throne_room.ttl examples/gallery/11_throne_room.vson
 
 # Run all tests (Python + Rust)
-make check        # 356 Python tests + 16-scene gallery + 2 schema parses
+make check        # 389 Python tests + 16-scene gallery + 2 schema parses
                   # includes the 29 frozen canonical hashes of §4.6
+make conformance  # the 218-entry conformance suite — what claiming VSON v1 means
 make cq-check     # the 28 executable competency questions vs their frozen answers
 make grammar-check # Appendix B and Appendix D, extracted from the spec and run
 make cli-check    # Rust tests + byte-strict & graph-iso parity vs Python ref
