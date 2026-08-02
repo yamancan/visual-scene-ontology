@@ -128,6 +128,8 @@ A document is a **conformant VSON v1.3 document** iff all of the following hold.
 
 **Consumer conformance.** A consumer is conformant iff it accepts every document satisfying C1–C9 without modification, and rejects (or flags) documents that do not.
 
+**Claiming conformance.** An implementation claims VSON v1 conformance **by passing the conformance test suite** — [`tests/conformance/manifest.ttl`](../tests/conformance/manifest.ttl), run by `make conformance`. §2.2 defines the claim, what passing the suite establishes, and what it does not. Through v1.3.0 §10 defined a conformant consumer as one that "accepts every document accepted by the Python references plus `pyshacl`": a definition that cannot be checked without running this project's own code, that makes every accident of those implementations normative, and that no second implementer can satisfy except by imitation. §2.2 replaces it. A conformance claim that names no suite run is a claim about C1–C9 that nothing checked, and this specification does not recognize it.
+
 **Verification.** The reference verifier is `cli/target/release/vson validate <file>`. Exit code 0 establishes C1–C9: it parses the document, runs SHACL, and — since v1.3 — runs the C2 vocabulary-closure sweep as a third gate ([`tools/c2_check.py`](../tools/c2_check.py)), which rejects any VSON-namespace IRI the three ontology files do not declare. Exit code 1 means at least one of those failed; the `FAIL` line names which gate. Through v1.2 exit 0 established C1 and C3–C9 only, and C2 was covered by a test that swept this repository's own corpus — a document from anywhere else could mint `vso:Ambience`, pass `vson validate` clean, and be non-conformant. Two things exit 0 still does not establish, neither of them a numbered clause: another verifier's "conformant" verdict says nothing about the OWL 2 RL closure, which no clause requires and which this verifier happens to compute as its second gate (§2.1); and no verdict from any tool says the document corresponds to the image. A third is deliberately not among `validate`'s gates at all — whether a document's spatial relations agree with the `vso:bbox2d` rectangles it asserts beside them. That is `vson verify --geometry` (§5.13), and a document that fails it is still conformant. The same verdict is available in a form a program can act on — one record per violation, with the shape, the focus node and, where it can be established, the line — under `--format json` and `--format sarif` (§5.16); the format changes what a run says and never what it decides.
 
 **Normative precedence.** VSON's normative content is spread across five artifacts. When two of them disagree, the higher entry wins:
@@ -166,6 +168,73 @@ C2 belongs to none of the three. It is a **vocabulary-closure** property — no 
 2. **Ground truth for what geometry cannot decide.** Class, dimension values, lemmas, thematic roles, and frame attributions do not follow from boxes. Evidence for those means comparison against human annotation over a fixed image set, with a published protocol and a reported inter-annotator agreement figure. No such corpus, protocol, or figure exists in this repository. What v1.3 adds is the **instrument** and not the measurement: §5.15 defines the triple-level agreement metric such a figure would be computed *with*, and `vson diff` runs it. A metric is not evidence — the corpus, the protocol and the annotators are still absent, and an agreement number between two model runs says nothing about either one's correspondence to the image.
 
 The second does not exist, so groundedness does not. **Verified** in VSON means *verified against the schema* — and, where §5.13 can reach, that a document does not contradict its own geometry. Neither is a reading of the picture, and any stronger claim is unsupported by anything this project ships.
+
+### 2.2 Claiming conformance — the test suite
+
+An implementation **claims VSON v1 conformance by passing the conformance test suite**. The suite is [`tests/conformance/manifest.ttl`](../tests/conformance/manifest.ttl), an RDF manifest in the form of the [W3C SHACL test suite](https://w3c.github.io/data-shapes/data-shapes-test-suite/): every entry names an input document (`mf:action`) and the verdict that document **MUST** get (`mf:result`). A claimant **MUST** state the suite version it ran (`owl:versionInfo` on the manifest), the entries it did not pass, and the engine it ran them with. A claim naming no version is not checkable and **MUST NOT** be published.
+
+**Why this and not the reference implementations.** Through v1.3.0 §10 defined reference-conformance as agreement with `vson_penman.py`, `vson_x.py` and `pyshacl`. That definition has three defects a specification cannot carry: it is unfalsifiable without this repository, it promotes every bug and every undocumented tolerance of the reference to normative status, and it gives a second implementer no target except imitation. The suite is the repair — a list of documents and verdicts that any implementation in any language can be run against, including this one.
+
+**The five test types.** SHACL's own suite has vocabulary for one of them, so four are declared locally in [`tests/conformance/vocabulary.ttl`](../tests/conformance/vocabulary.ttl) under `https://w3id.org/vson/v1/conformance#`.
+
+| Type | `mf:action` | `mf:result` |
+|---|---|---|
+| `vsont:ParsePTest` | a VSON-P source (§4.2, Appendix B) | `vsont:Accepted`, or the reference parser's rejection message |
+| `vsont:ParseXTest` | a VSON-X source (§4.3, Appendix D) | `vsont:Accepted`, or the §D.7 row identifier it **MUST** be rejected at |
+| `vsont:ValidationTest` | a document plus a shapes graph | a `sh:ValidationReport` with `sh:conforms` and, per result, `sh:sourceShape` / `sh:focusNode` / `sh:resultPath` / `sh:sourceConstraintComponent` / `sh:resultSeverity` |
+| `vsont:EquivalenceTest` | one or more documents | the RDFC-1.0 canonical hash of §4.6 all of them **MUST** have |
+| `vsont:ExportTest` | a document plus an exporter (§7) | the byte-frozen output |
+
+Four properties of the pinning are normative, because an implementation has to know what it is being held to.
+
+1. **A result names its *named* source shape.** VSON-S states its cardinality and value-space constraints as `sh:property` blank nodes nested inside named node shapes, and a blank node has no identity across runs. A result is therefore matched against the nearest named ancestor shape. An implementation whose report names the inner property shape is not non-conformant; the suite resolves upward before comparing.
+2. **Expected results are exhaustive.** A document pinned with one `sh:result` **MUST** produce exactly one. A shape that fires more often than the manifest says is a failure, which is the only way an over-broad shape gets caught at all.
+3. **Where the focus node is a blank node**, `vsont:focusNodeKind` is pinned instead of an identity the transpiler mints per parse.
+4. **A §D.7 identifier is checked, not trusted.** The runner extracts §D.7's own message column out of this document at run time and requires the raised message to match exactly one row. A manifest cannot pin a row this specification does not define, and a row whose message moves here moves there in the same commit.
+
+**What passing establishes.** Exactly what §2.1 says the three constructs establish, over the documents in the manifest — and nothing about documents outside it. The suite is a lower bound on correctness: it is a finite list, and an implementation that passes every entry may still disagree with this specification on a document nobody wrote down. It reads no image, and §2.1's prohibition is unchanged: a passing suite run is not evidence that any document corresponds to any picture.
+
+**Per-clause coverage.** The table below is **generated** from the manifest by `python3 -m tools.conformance_runner --coverage-table` and compared against this copy on every run, so this section cannot claim coverage the suite lacks. `+` counts entries whose expected verdict is acceptance or conformance, `−` counts entries that **MUST** be rejected. **Enforced by** is derived from the negative entries: it names the gate that actually does the rejecting, and a row with no negative entry reads `no gate` — the specification says something about that section and nothing in the conformance surface refuses a document that contradicts it.
+
+<!-- conformance-coverage:begin -->
+| Clause / section | Entries | + | − | Enforced by |
+|---|---|---|---|---|
+| C1 | 104 | 73 | 31 | parser |
+| C2 | 32 | 30 | 2 | C2 gate |
+| C3 | 73 | 38 | 35 | SHACL + C2 gate |
+| C4 | 31 | 30 | 1 | SHACL |
+| C5 | 9 | 5 | 4 | SHACL |
+| C6 | 11 | 7 | 4 | SHACL |
+| C7 | 7 | 5 | 2 | SHACL |
+| C8 | 6 | 5 | 1 | SHACL |
+| C9 | 4 | 3 | 1 | SHACL |
+| §5.1 | 1 | 0 | 1 | C2 gate |
+| §5.2 | 9 | 4 | 5 | SHACL |
+| §5.3 | 5 | 3 | 2 | SHACL |
+| §5.4 | 10 | 7 | 3 | SHACL |
+| §5.5 | 9 | 4 | 5 | SHACL + C2 gate |
+| §5.6 | 14 | 6 | 8 | SHACL |
+| §5.7 | 10 | 4 | 6 | SHACL |
+| §5.8 | 1 | 1 | 0 | no gate |
+| §5.9 | 1 | 1 | 0 | no gate |
+| §5.10 | 8 | 4 | 4 | SHACL |
+| §5.11 | 13 | 7 | 6 | SHACL |
+| §5.12 | 14 | 5 | 9 | SHACL + C2 gate |
+| §5.13 | 3 | 3 | 0 | no gate |
+| §5.14 | 0 | 0 | 0 | — |
+| §5.15 | 0 | 0 | 0 | — |
+| §5.16 | 0 | 0 | 0 | — |
+| §6.1 | 0 | 0 | 0 | — |
+| §6.2 | 0 | 0 | 0 | — |
+| §6.3 | 0 | 0 | 0 | — |
+<!-- conformance-coverage:end -->
+
+**What is not covered, and why.** Six numbered sections have no entry, and the reason is the same for all of them: they do not state a property of a *document*. §5.14 (competency questions), §5.15 (graph agreement) and §5.16 (machine-readable reports) constrain what a *tool* does, and are gated by `make cq-check`, `tests/test_smatch.py` and `tests/test_validate_report.py`. §6.1 and §6.2 are the extractor envelope's JSON Schema, whose corpus is gated by `make envelope-check` — a JSON-Schema test type is a possible v1.4 addition and does not exist. §6.3 is a reference table of the shapes, not a constraint. Two further gaps are properties of the artifacts rather than of the suite, and are recorded where they live: `vss:DepictsEntityShape` is **vacuous** under C3's `inference="rdfs"` — `vso:depicts` declares `rdfs:range vso:Entity`, so the RDFS closure asserts the very type the shape checks, no document can fail it, and the manifest records it under `vsont:CoverageExemptions` with an entry pinning that a depicted `vso:SpatialFact` conforms; and Appendix B declares **no numbered parse-error set**, so VSON-P rejections are pinned by the reference parser's message where VSON-X rejections are pinned by a §D.7 identifier. The second is a weaker guarantee by exactly the amount this specification is weaker.
+
+**One engine.** The suite runs against one SHACL implementation, `pyshacl`, which is also the one the reference verifier uses. That is a real limit on what a passing run means: it establishes that the *shapes* accept and reject these documents *as pyshacl reads them*, not that a second implementation reads them the same way. The runner carries an `--engine` seam and a documented adapter protocol for exactly that reason, and `--engine <name>` for an unregistered name exits 2 rather than falling back — a run that did not cross-validate never reports that it did. No second adapter ships: every available implementation (Apache Jena, RDF4J, TopBraid) needs a JVM and a downloaded distribution, which `make check` may not assume on a contributor's machine. The slot is open and the gap is stated rather than papered over.
+
+**Adding entries inside v1.x.** §8.2 governs. An entry may be added when the verdict it pins is one this specification already requires; an entry that would make a previously-conformant document fail is the tightening §8.2 forbids, whatever severity it pins. The suite's own version (`owl:versionInfo`, `1.0.0` at v1.3) moves on its minor when entries are added and on its major when a pinned verdict changes meaning.
+
 
 ---
 
@@ -1566,8 +1635,9 @@ Gallery scenes 01–12 have a VSON-X form under [`examples/gallery-x/`](../examp
 | Bare-VLM extractor | [`tools/extractor/baseline/extract.py`](../tools/extractor/baseline/extract.py) | image → VSON-P | offline cassette test |
 | Browser studio (v1.3) | [`web/`](../web) | runs the Python references above in a Pyodide worker, in the visitor's browser: transpile, two-gate validation (the CLI's SHACL and OWL gates; not its C2 gate), caption/FOL — no backend | offline worker-parity vitest byte-pins p2t, both gate verdicts, and caption/FOL against the CLI fixtures |
 | Routing tables (single source of truth) | [`cli/src/penman/routing-tables.json`](../cli/src/penman/routing-tables.json) | shared by Python + Rust — inside the crate so `include_str!` stays within the crate root and `cargo package` can verify-build it | Rust embeds it at compile time, the Python reference reads the same file at import time; `make cli-check` proves the two agree |
+| Conformance suite runner (v1.3) | [`tools/conformance_runner.py`](../tools/conformance_runner.py) | executes [`tests/conformance/manifest.ttl`](../tests/conformance/manifest.ttl) — the definition of conformance (§2.2) — behind an `--engine` seam; generates §2.2's coverage table | `make conformance`, inside `make check`: 218 entries at suite v1.0.0, plus `tests/test_conformance_suite.py` on the runner itself |
 
-A consumer is "VSON v1.3 reference-conformant" iff it accepts every document accepted by the Python references (`vson_penman.py` + `vson_x.py`) plus `pyshacl`, and rejects every document the references reject.
+**These are implementations, not the definition.** Through v1.3.0 this section closed by defining a consumer as "VSON v1.3 reference-conformant" iff it accepted every document the Python references plus `pyshacl` accepted and rejected every document they rejected. That sentence is withdrawn. It made this table normative — every bug and every undocumented tolerance in the rows above became part of the contract — and it gave a second implementer no target except imitating code. Conformance is defined in §2.2 and is claimed by passing [the conformance test suite](../tests/conformance/manifest.ttl), which the implementations above are run against like any other candidate.
 
 ---
 

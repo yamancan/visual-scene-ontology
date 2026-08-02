@@ -449,6 +449,84 @@ does not run. `lark` joins `pyproject.toml` as a `dev` extra, never a runtime
 dependency: installing vson-tools to read or write VSON still pulls in no parser
 generator.
 
+*Annotation, 2026-08-01 — conformance stops meaning "agrees with our code".*
+Through v1.3.0 §10 closed with a sentence defining a conformant consumer as one
+that "accepts every document accepted by the Python references (`vson_penman.py`
++ `vson_x.py`) plus `pyshacl`, and rejects every document the references
+reject". That sentence is **withdrawn**. It could not be checked without running
+this project's own code, it promoted every bug and every undocumented tolerance
+of two Python modules to normative status, and it offered a second implementer
+no target except imitation. New **§2.2** replaces it: an implementation claims
+VSON v1 conformance **by passing the conformance test suite**, and a claim that
+names no suite run and no suite version is one this specification does not
+recognize. §10's table stays, relabelled as what it always was — implementations,
+not the definition.
+
+**The suite.** `tests/conformance/` (**suite version 1.0.0**, `owl:versionInfo`
+on the manifest) is an RDF manifest in the form of the W3C SHACL test suite —
+`mf:` for structure, `sht:` for the data/shapes pair, `sh:` for the pinned
+report — with five test types, four of them VSON-local because SHACL's suite has
+no vocabulary for two hand-written surfaces, a denotation relation and a set of
+exporters: `vsont:ParsePTest`, `vsont:ParseXTest`, `vsont:ValidationTest`,
+`vsont:EquivalenceTest`, `vsont:ExportTest`. **218 entries** at v1.3, seeded from
+the corpus that already existed — the 16-scene gallery, the 12 gallery-x scenes,
+`examples/throne_room.*`, the 17 `tests/fixtures/bad_*` negatives, the 18 §D.7
+grammar fixtures and 5 §D.3 vocabulary fixtures, the 29 frozen canonical hashes,
+the 32 caption/FOL goldens — and extended with **45 new input documents** for
+what the corpus lacked: one negative per named shape that had none, an
+out-of-enum negative and an every-member positive for each closed vocabulary of
+§5.12, positives for the four value spaces v1.3 closed and the five `vso:proximal`
+values no shipped document carries, a §D.8 document per row, and eight VSON-P
+rejection fixtures. `tools/conformance_runner.py` executes it, `make conformance`
+runs it inside `make check`, and it is offline and Python-only — a second
+implementer runs the manifest, not our binary. Validation entries pin
+`sh:sourceShape` (resolved to the nearest *named* shape, because VSON-S states
+its constraints as blank-node property shapes), `sh:focusNode`, `sh:resultPath`,
+`sh:sourceConstraintComponent` and `sh:resultSeverity`, and the comparison is
+**exhaustive** — a document pinned with one result that produces two is a
+failure, which is the only way an over-firing shape gets caught. A §D.7 row
+identifier is checked rather than trusted: the runner extracts §D.7's own
+message column out of `docs/vson.md` at run time and requires the raised message
+to match exactly one row.
+
+**The coverage table is generated.** §2.2's per-clause table comes out of the
+manifest (`--coverage-table`) and is compared against the published copy on
+every run, so the specification cannot claim coverage the suite lacks. Its
+**Enforced by** column is derived from the negative entries — a row with none
+reads `no gate`, which is what §5.8, §5.9 and §5.13 honestly are. A named shape
+in `shapes/vson-shapes.ttl` with no negative entry and no stated exemption fails
+the build; that is the rule that keeps the table true as shapes are added.
+
+**What building it found.** Three things, all recorded rather than papered over.
+(1) `vss:DepictsEntityShape` is **vacuous**: it asks `sh:class vso:Entity` of
+every object of `vso:depicts`, and `vso:depicts` declares `rdfs:range vso:Entity`,
+so C3's `inference="rdfs"` asserts the very type the shape checks and no document
+can fail it. It is the third instance of the trap the shapes file's own NB
+documents twice, on a site neither note names. Nothing is changed inside v1.x —
+§8.2 governs — and the finding ships as a `vsont:CoverageExemptions` record plus
+an entry pinning that a depicted `vso:SpatialFact` conforms. (2) The OWL 2 RL
+gate reported a disjointness clash's two classes in an order Python's
+per-process string hashing decided, so one unchanged document produced
+`Endurant, Perdurant` in one run and the reverse in the next — through
+`tools/validate_report.py` into the `constraint` and `value` fields of a record
+§5.16 promises a caller can freeze. `tools/owlrl_check.py` now orders the pair,
+and `tests/test_owlrl_check.py` pins it. (3) Appendix B declares **no numbered
+parse-error set**, so VSON-P rejections are pinned by the reference parser's
+message where VSON-X rejections are pinned by a §D.7 identifier — a weaker
+guarantee by exactly the amount the specification is weaker, stated in §2.2
+rather than smoothed over.
+
+**One engine, and the gap is stated.** The suite runs against `pyshacl` only,
+which is also what the reference verifier uses: a passing run establishes that
+the shapes accept and reject these documents *as pyshacl reads them*, not that a
+second implementation reads them the same way. The runner carries an `--engine`
+seam with a documented adapter protocol, and `--engine <name>` for an
+unregistered name **exits 2** rather than falling back — a run that did not
+cross-validate never reports that it did. No second adapter ships because every
+available implementation (Apache Jena, RDF4J, TopBraid) needs a JVM and a
+downloaded distribution, which `make check` may not assume on a contributor's
+machine. The slot is open and §2.2 says so.
+
 ## v1.2.0 — 2026-07-31
 
 Namespace release. Every canonical VSON IRI moves off `https://vson.dev/` and
