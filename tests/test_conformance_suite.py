@@ -22,6 +22,8 @@ nothing here writes to `tests/conformance/`.
 
 from __future__ import annotations
 
+import contextlib
+import io
 import os
 import shutil
 import tempfile
@@ -40,6 +42,14 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def _suite(manifest: str = None) -> "cr.Suite":
     return cr.Suite(cr.ENGINES["pyshacl"], manifest or cr.MANIFEST)
+
+
+def _quiet_main(argv):
+    """`cr.main` with its report captured — `make check` prints enough already."""
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        code = cr.main(argv)
+    return code, out.getvalue() + err.getvalue()
 
 
 @unittest.skipUnless(rdflib and cr, "rdflib + pyshacl required")
@@ -327,7 +337,9 @@ class EngineSeamTests(unittest.TestCase):
         # Exit 2 is "no verdict". Falling back to pyshacl here would report a
         # cross-validation that did not happen, which is the one outcome worse
         # than not having a second engine.
-        self.assertEqual(cr.main(["--engine", "jena", "--filter", "parse-p-01"]), 2)
+        code, report = _quiet_main(["--engine", "jena", "--filter", "parse-p-01"])
+        self.assertEqual(code, 2)
+        self.assertIn("no cross-validation", report)
 
     def test_a_registered_engine_is_used(self) -> None:
         class CountingEngine(cr.Engine):
@@ -349,7 +361,7 @@ class EngineSeamTests(unittest.TestCase):
         engine = CountingEngine()
         cr.register(engine)
         try:
-            code = cr.main(
+            code, _report = _quiet_main(
                 ["--engine", engine.name, "--filter", "validate-neg-directional-viewer"]
             )
         finally:
@@ -377,7 +389,9 @@ class ManifestLoadingTests(unittest.TestCase):
             broken = os.path.join(tmp, "manifest.ttl")
             with open(broken, "w", encoding="utf-8") as handle:
                 handle.write("this is not turtle {{{")
-            self.assertEqual(cr.main(["--manifest", broken]), 2)
+            code, report = _quiet_main(["--manifest", broken])
+            self.assertEqual(code, 2)
+            self.assertIn("could not load the manifest", report)
 
     def test_a_miscounted_manifest_fails(self) -> None:
         # A truncated mf:entries list is the failure this guards: the run would
