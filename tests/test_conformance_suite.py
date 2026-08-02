@@ -319,6 +319,21 @@ class CoverageTests(unittest.TestCase):
             with self.subTest(shape=shape):
                 self.assertGreater(len(reason), 40, msg="a one-word reason is not one")
 
+    def test_the_map_lists_the_entries_the_table_counts(self) -> None:
+        """--coverage-map and --coverage-table cannot disagree.
+
+        The table publishes counts because a section listing 104 identifiers is
+        one nobody reads; the map is the other half. Both come from the same
+        fields, and this is what says so.
+        """
+        text = self.coverage.map()
+        for label, key in ([(c, ("clauses", c)) for c in cr.CLAUSES]):
+            covering = [e for e in self.coverage.entries if key[1] in e.clauses]
+            with self.subTest(clause=label):
+                self.assertIn("%-8s %d entries" % (label, len(covering)), text)
+                for entry in covering:
+                    self.assertIn(entry.id, text)
+
     def test_the_uncovered_sections_are_the_ones_the_spec_names(self) -> None:
         # §5.14/§5.15/§5.16 constrain a tool, §6.1/§6.2 are the envelope schema,
         # §6.3 is a reference table — all six are named in §2.2's prose. This

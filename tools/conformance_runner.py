@@ -55,6 +55,7 @@ Usage
   python3 -m tools.conformance_runner
   python3 -m tools.conformance_runner --filter validate-neg --verbose
   python3 -m tools.conformance_runner --coverage-table      # §2.2's table
+  python3 -m tools.conformance_runner --coverage-map        # clause -> entry ids
   python3 -m tools.conformance_runner --list-engines
 """
 
@@ -834,6 +835,36 @@ class Coverage:
             if not any(section in entry.sections for entry in self.entries)
         ]
 
+    def map(self) -> str:
+        """Clause and section -> the entry ids that cover it, one per line.
+
+        The table §2.2 publishes gives counts, because a specification section
+        listing 104 identifiers is a section nobody reads. This is the other
+        half — the thing to run when the question is *which* entries reach a
+        clause — and it is generated from the same fields, so the two cannot
+        disagree.
+        """
+        lines = []
+        for label, key in (
+            [(clause, ("clauses", clause)) for clause in CLAUSES]
+            + [("§" + section, ("sections", section)) for section in self.sections]
+        ):
+            covering = [
+                entry for entry in self.entries if key[1] in getattr(entry, key[0])
+            ]
+            if not covering:
+                lines.append("%-8s uncovered" % label)
+                continue
+            lines.append(
+                "%-8s %d entries — %s"
+                % (label, len(covering), self.locus(covering))
+            )
+            for entry in covering:
+                lines.append(
+                    "         %s %s" % ("−" if entry.negative() else "+", entry.id)
+                )
+        return "\n".join(lines)
+
 
 def spec_table() -> Optional[str]:
     """The coverage table as docs/vson.md §2.2 currently publishes it."""
@@ -866,6 +897,11 @@ def _parser() -> argparse.ArgumentParser:
         "--coverage-table",
         action="store_true",
         help="print the coverage table docs/vson.md §2.2 publishes, and exit",
+    )
+    ap.add_argument(
+        "--coverage-map",
+        action="store_true",
+        help="print each clause and section with the entry ids covering it, and exit",
     )
     ap.add_argument(
         "--no-coverage",
@@ -931,6 +967,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     coverage = Coverage(suite)
     if args.coverage_table:
         print(coverage.table())
+        return 0
+    if args.coverage_map:
+        print(coverage.map())
         return 0
 
     print(
