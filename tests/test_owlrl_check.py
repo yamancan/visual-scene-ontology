@@ -11,6 +11,12 @@ rdfs-inference SHACL gate:
     inconsistency. owlrl 7.1.4 collapses the kinds to owl:sameAs (prp-fp) but
     does NOT expand owl:AllDifferent into owl:differentFrom, so the gate
     hand-rolls the eq-diff1 check; this test pins that behaviour.
+  - A clash is reported in an order that is a function of its content. The two
+    classes come out of a set of frozensets, which iterates in the order
+    Python's per-process string hashing decides, so one unchanged document used
+    to report (Endurant, Perdurant) in one run and (Perdurant, Endurant) in the
+    next — through `tools/validate_report.py` into the `constraint` and `value`
+    fields of a record docs/vson.md §5.16 promises a caller can freeze.
 
 Skipped automatically if rdflib/owlrl are not installed.
 """
@@ -78,6 +84,23 @@ class OwlRlConsistencyTests(unittest.TestCase):
             ":q a vso:Quality ; vso:dimension vso:Color, vso:Weight ; vso:value \"x\" ."
         )
         self.assertTrue(clashes_for(g))
+
+    def test_a_clash_is_reported_in_a_stable_order(self) -> None:
+        """The pair, not just the set — see the module docstring.
+
+        Asserting sortedness rather than a literal pair is deliberate: the
+        property the report needs is that the order is a function of the
+        content, and `sorted` is what makes it one. A subprocess per hash seed
+        would test the same thing more slowly and would still only sample.
+        """
+        g = self._doc(":x a vso:Frame, vso:Entity .")
+        clashes = clashes_for(g)
+        self.assertTrue(clashes)
+        for _individual, first, second in clashes:
+            self.assertLessEqual(
+                str(first), str(second), msg="the reported pair is not ordered"
+            )
+        self.assertEqual(clashes, clashes_for(self._doc(":x a vso:Frame, vso:Entity .")))
 
 
 if __name__ == "__main__":

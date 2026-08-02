@@ -59,7 +59,18 @@ def _ontology_closed() -> rdflib.Graph:
 
 def _disjoint_pairs(g: rdflib.Graph):
     """All unordered class pairs declared disjoint, via owl:disjointWith and
-    owl:AllDisjointClasses/owl:members."""
+    owl:AllDisjointClasses/owl:members.
+
+    Sorted, and each pair internally ordered, because a caller freezes what
+    this returns. `clashes_for` reports a clash as (individual, classA, classB)
+    and `tools/validate_report.py` puts classA in the record's `constraint`
+    field and classB in its `value` field; a frozenset iterates in an order
+    Python's per-process string hashing decides, so the same document produced
+    `Endurant, Perdurant` in one run and `Perdurant, Endurant` in the next.
+    docs/vson.md §5.16 requires a report to be a function of its content alone
+    — one a caller can freeze or diff — and a field that flips between runs of
+    one unchanged document is not that.
+    """
     pairs = set()
     for a, _, b in g.triples((None, OWL.disjointWith, None)):
         pairs.add(frozenset((a, b)))
@@ -72,7 +83,10 @@ def _disjoint_pairs(g: rdflib.Graph):
         for i in range(len(members)):
             for j in range(i + 1, len(members)):
                 pairs.add(frozenset((members[i], members[j])))
-    return [tuple(p) for p in pairs if len(p) == 2]
+    return sorted(
+        (tuple(sorted(p, key=str)) for p in pairs if len(p) == 2),
+        key=lambda pair: (str(pair[0]), str(pair[1])),
+    )
 
 
 def _distinct_sets(g: rdflib.Graph):
