@@ -6,16 +6,23 @@
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix vann: <http://purl.org/vocab/vann/> .
+@prefix vs:   <http://www.w3.org/2003/06/sw-vocab-status/ns#> .
 @prefix geo:  <http://www.opengis.net/ont/geosparql#> .
 
 <https://w3id.org/vson/v1/rcc8>
     a owl:Ontology ;
-    rdfs:label "RCC-8 spatial topology" ;
-    rdfs:comment "The 8 RCC-8 base relation names as a closed value vocabulary for vso:rcc; JEPD holds in the intended interpretation; composition-table reasoning is out of scope." ;
+    rdfs:label "RCC-8 spatial topology"@en ;
+    rdfs:comment "The 8 RCC-8 base relation names as a closed value vocabulary for vso:rcc; JEPD holds in the intended interpretation; composition-table reasoning is out of scope."@en ;
     dc:title "VSON RCC-8 value vocabulary" ;
     dc:creator "yamancan" ;
     dc:license <https://www.apache.org/licenses/LICENSE-2.0> ;
     dc:modified "2026-07-31"^^xsd:date ;
+    # Same publishing metadata, same provenance, as ontology/vso.ttl — the
+    # three documents were created in one commit and are released together.
+    dc:created "2026-05-02"^^xsd:date ;
+    dc:issued "2026-07-31"^^xsd:date ;
+    dc:publisher "yamancan" ;
+    dc:bibliographicCitation "yamancan (2026). Visual Scene Ontology Notation (VSON), release 1.3.0. https://github.com/yamancan/visual-scene-ontology (CITATION.cff)" ;
     owl:versionInfo "1.2" ;
     # Unchanged. The core vocabulary's preferred prefix moved "vso" -> "vson"
     # because "vso" is already published by another vocabulary (ontology/vso.ttl,
@@ -28,8 +35,8 @@
 # RCC-8 base relations as instances of a relation class so they can be values
 # of vso:rcc on a SpatialFact. (The relations are the eight values, not edge predicates.)
 rcc:Relation a owl:Class ;
-    rdfs:label "Relation" ;
-    rdfs:comment "Class of the eight RCC-8 base relation values; its instances are the admissible objects of vso:rcc on a vso:SpatialFact." .
+    rdfs:label "Relation"@en ;
+    rdfs:comment "Class of the eight RCC-8 base relation values; its instances are the admissible objects of vso:rcc on a vso:SpatialFact."@en .
 
 # Alignment note. Each SKOS close-match triple below points at the OGC
 # GeoSPARQL RCC-8 term with the same intended reading. GeoSPARQL models its
@@ -37,29 +44,29 @@ rcc:Relation a owl:Class ;
 # on a reified SpatialFact, so the match is advisory: it records the shared
 # reading and imports no OWL entailment.
 
-rcc:DC    a rcc:Relation ; rdfs:label "DC"    ;
-          rdfs:comment "Disconnected: the two regions share no points at all." ;
+rcc:DC    a rcc:Relation ; rdfs:label "DC"@en    ;
+          rdfs:comment "Disconnected: the two regions share no points at all."@en ;
           skos:closeMatch geo:rcc8dc .
-rcc:EC    a rcc:Relation ; rdfs:label "EC"    ;
-          rdfs:comment "Externally connected: the regions touch along their boundaries but their interiors do not overlap." ;
+rcc:EC    a rcc:Relation ; rdfs:label "EC"@en    ;
+          rdfs:comment "Externally connected: the regions touch along their boundaries but their interiors do not overlap."@en ;
           skos:closeMatch geo:rcc8ec .
-rcc:PO    a rcc:Relation ; rdfs:label "PO"    ;
-          rdfs:comment "Partial overlap: the regions share interior points, yet neither is a part of the other." ;
+rcc:PO    a rcc:Relation ; rdfs:label "PO"@en    ;
+          rdfs:comment "Partial overlap: the regions share interior points, yet neither is a part of the other."@en ;
           skos:closeMatch geo:rcc8po .
-rcc:EQ    a rcc:Relation ; rdfs:label "EQ"    ;
-          rdfs:comment "Equal: the two regions occupy exactly the same points." ;
+rcc:EQ    a rcc:Relation ; rdfs:label "EQ"@en    ;
+          rdfs:comment "Equal: the two regions occupy exactly the same points."@en ;
           skos:closeMatch geo:rcc8eq .
-rcc:TPP   a rcc:Relation ; rdfs:label "TPP"   ;
-          rdfs:comment "Tangential proper part: the figure is a proper part of the ground and the two boundaries touch." ;
+rcc:TPP   a rcc:Relation ; rdfs:label "TPP"@en   ;
+          rdfs:comment "Tangential proper part: the figure is a proper part of the ground and the two boundaries touch."@en ;
           skos:closeMatch geo:rcc8tpp .
-rcc:NTPP  a rcc:Relation ; rdfs:label "NTPP"  ;
-          rdfs:comment "Non-tangential proper part: the figure lies wholly inside the ground without their boundaries touching." ;
+rcc:NTPP  a rcc:Relation ; rdfs:label "NTPP"@en  ;
+          rdfs:comment "Non-tangential proper part: the figure lies wholly inside the ground without their boundaries touching."@en ;
           skos:closeMatch geo:rcc8ntpp .
-rcc:TPPi  a rcc:Relation ; rdfs:label "TPPi"  ;
-          rdfs:comment "Inverse of TPP: the ground is a tangential proper part of the figure." ;
+rcc:TPPi  a rcc:Relation ; rdfs:label "TPPi"@en  ;
+          rdfs:comment "Inverse of TPP: the ground is a tangential proper part of the figure."@en ;
           skos:closeMatch geo:rcc8tppi .
-rcc:NTPPi a rcc:Relation ; rdfs:label "NTPPi" ;
-          rdfs:comment "Inverse of NTPP: the ground is a non-tangential proper part of the figure." ;
+rcc:NTPPi a rcc:Relation ; rdfs:label "NTPPi"@en ;
+          rdfs:comment "Inverse of NTPP: the ground is a non-tangential proper part of the figure."@en ;
           skos:closeMatch geo:rcc8ntppi .
 
 # owl:AllDifferent asserts only that the eight names denote distinct values, so
@@ -68,3 +75,34 @@ rcc:NTPPi a rcc:Relation ; rdfs:label "NTPPi" ;
 # intended interpretation, not as axioms here.
 [] a owl:AllDifferent ;
    owl:distinctMembers ( rcc:DC rcc:EC rcc:PO rcc:EQ rcc:TPP rcc:NTPP rcc:TPPi rcc:NTPPi ) .
+
+#################################################################
+# BEGIN GENERATED — scripts/annotate_ontology.py
+#
+# Do not edit by hand: `python3 scripts/annotate_ontology.py --write`
+# regenerates it, and `make check` fails while it is stale.
+#
+# One line per term this document declares, carrying the two annotations a
+# consumer of a MERGED graph cannot recover from the term IRI alone:
+#
+#   rdfs:isDefinedBy  the document to fetch for this term. VSON merges — the
+#                     header imports the two companion documents, and
+#                     site/v1/vson-full.ttl serves all three in one file — so
+#                     "which document is this term from" stops being answerable
+#                     by looking at where the bytes came from.
+#   vs:term_status    "stable": this term ships in a released vocabulary
+#                     version whose IRIs docs/vson.md §8.1 declares immutable
+#                     within v1.x. <http://www.w3.org/2003/06/sw-vocab-status/ns#>
+#
+# 9 term(s).
+#################################################################
+
+rcc:DC       rdfs:isDefinedBy <https://w3id.org/vson/v1/rcc8> ; vs:term_status "stable" .
+rcc:EC       rdfs:isDefinedBy <https://w3id.org/vson/v1/rcc8> ; vs:term_status "stable" .
+rcc:EQ       rdfs:isDefinedBy <https://w3id.org/vson/v1/rcc8> ; vs:term_status "stable" .
+rcc:NTPP     rdfs:isDefinedBy <https://w3id.org/vson/v1/rcc8> ; vs:term_status "stable" .
+rcc:NTPPi    rdfs:isDefinedBy <https://w3id.org/vson/v1/rcc8> ; vs:term_status "stable" .
+rcc:PO       rdfs:isDefinedBy <https://w3id.org/vson/v1/rcc8> ; vs:term_status "stable" .
+rcc:Relation rdfs:isDefinedBy <https://w3id.org/vson/v1/rcc8> ; vs:term_status "stable" .
+rcc:TPP      rdfs:isDefinedBy <https://w3id.org/vson/v1/rcc8> ; vs:term_status "stable" .
+rcc:TPPi     rdfs:isDefinedBy <https://w3id.org/vson/v1/rcc8> ; vs:term_status "stable" .
