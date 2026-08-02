@@ -527,6 +527,59 @@ available implementation (Apache Jena, RDF4J, TopBraid) needs a JVM and a
 downloaded distribution, which `make check` may not assume on a contributor's
 machine. The slot is open and §2.2 says so.
 
+*Annotation, 2026-08-01 — the canonical name resolves to the whole vocabulary.*
+A name that dereferences and a name that resolves to a usable vocabulary are
+two different achievements, and through v1.3.0 this project had only the first.
+`vso:rcc` takes the eight RCC-8 individuals and §5.9's temporal edges **are**
+the thirteen Allen properties, but neither namespace appeared anywhere in the
+core document: measured with rdflib 7.x, a parse of `ontology/vso.ttl` alone
+yields **0** IRIs in `…/rcc8#` and **0** in `…/allen#`, in any triple position.
+A consumer following `https://w3id.org/vson/v1/ontology` got a TBox whose value
+spaces were undefined names.
+
+**`owl:imports`.** The core document now imports both companions, so the
+closure of the canonical name is all three documents, and both imported names
+dereference on the same terms as the importer (new **§5.1.1**). Nothing in this
+repository's verification follows them and none of it goes to the network:
+rdflib does not resolve `owl:imports`, pyshacl only under `do_owl_imports=True`
+which nothing sets, owlrl not at all — every gate keeps loading the three files
+from the checkout, including the studio's Pyodide worker, whose parity test
+passes unchanged.
+
+**One fetch: `vson-full.ttl`.** For a consumer that cannot follow an import,
+the same closure is assembled as one document, `v1/vson-full.ttl` — the three
+ontology documents concatenated, each keeping its own header, prologue and
+comments. `make site` writes it on every run; it reaches
+`https://vson.pages.dev/v1/vson-full.ttl` with the next deploy, which is a
+manual step in this project rather than a CI job. A
+**distribution, not a name**: no IRI is minted for it, none resolves to it, and
+the three canonical names stay the things to cite. It is derived by
+`scripts/build_site.py` and never committed, because a tracked copy of three
+tracked files is a drift surface. Turtle concatenation fails quietly — a
+re-declared prefix rebinds, a truncated source swallows the file after it, and
+both still parse — so `make site` checks it against arithmetic: 1322 triples =
+1103 + 85 + 134, the sources parsed apart, plus the same `owl:versionInfo`. The
+`_headers` gate gains its reverse direction at the same time: every published
+`.ttl`/`.json`/`.jsonld` must carry an exact Content-Type rule, not just every
+rule a published path.
+
+**Three annotations, each at zero coverage before it** (new **§5.1.2**):
+`rdfs:isDefinedBy` on all 183 terms, `@en` on all 186 labels and 186 comments,
+and `vs:term_status "stable"` on every term. All three matter only once the
+graph is merged, which is what the two changes above started asking consumers
+to do — in a merged graph nothing else says which document a term came from,
+and an untagged literal is not English but unspecified. The layer is generated
+by `scripts/annotate_ontology.py` and checked inside `make check`, so a term
+added without it fails the build. Each header also gains `dc:created`,
+`dc:issued`, `dc:publisher` and a `dc:bibliographicCitation` compared against
+`CITATION.cff` on every run. No DOI: nothing has been deposited anywhere.
+
+**Not a version event.** Every triple added here is an annotation — no class,
+property, characteristic, registry member or IRI moves, and with the new
+predicates and the language tags stripped each file's graph is isomorphic to
+its predecessor. The trio goes 942 → 1322 triples and `owl:versionInfo` stays
+at `1.2`, which is §8.1's model working rather than drift.
+
 ## v1.2.0 — 2026-07-31
 
 Namespace release. Every canonical VSON IRI moves off `https://vson.dev/` and

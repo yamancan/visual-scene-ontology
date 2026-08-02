@@ -457,6 +457,41 @@ The old names are **withdrawn, not aliased.** There is no `owl:sameAs` bridge, n
 
 These IRIs are stable names, and they dereference. The documents behind them — three ontologies, both shape profiles, the JSON-LD context, and both JSON Schemas — are served at `https://vson.pages.dev/v1/`, a static site assembled from this repository by [`scripts/build_site.py`](../scripts/build_site.py); and since 2026-07-31, when the [w3id redirect](https://github.com/perma-id/w3id.org/pull/6471) merged, each canonical name resolves to its document. `https://w3id.org/vson/v1/ontology` answers `303 See Other` to `https://vson.pages.dev/v1/ontology.ttl`, as do the other four namespace documents; the context IRI and both schema `$id`s answer `302 Found` to theirs. Cite the `w3id.org` names, not the Pages paths: the names are the identifiers, the host is only where the bytes currently sit. [`scripts/check_live_claims.py`](../scripts/check_live_claims.py) (`make live-check`) re-checks all eight of those redirects against the live services and fails when a response contradicts this paragraph — deliberately outside `make check`, which stays answerable from the checkout alone. See §8 for the immutability rule and its one historical exception.
 
+#### 5.1.1 The imports closure — what the ontology name resolves *to*
+
+A name that dereferences and a name that resolves to a usable vocabulary are two different achievements, and until 2026-08-01 this project had only the first. `vso:rcc` takes the eight RCC-8 relation individuals (§5.7) and the temporal edges of §5.9 **are** the thirteen Allen properties — but neither namespace appeared anywhere in the core document. Measured with rdflib 7.x: a parse of `ontology/vso.ttl` alone yields **0** IRIs in `…/rcc8#` and **0** in `…/allen#`, in any triple position. A consumer that followed the canonical name got a TBox whose value spaces were undefined names.
+
+The core document now declares what it needs:
+
+```turtle
+<https://w3id.org/vson/v1/ontology>
+    owl:imports <https://w3id.org/vson/v1/rcc8> ,
+                <https://w3id.org/vson/v1/allen> .
+```
+
+So **the vocabulary is three documents, and the closure of the core name is all three.** Both imported names dereference on the same terms as the importer (the paragraph above), which is what makes the import followable rather than decorative. Two consequences worth stating explicitly:
+
+- **Nothing in this repository's verification follows them, and none of it goes to the network.** rdflib does not resolve `owl:imports` at all; pyshacl does so only under `do_owl_imports=True`, which nothing here sets — [`tools/shacl_helper.py`](../tools/shacl_helper.py) passes the three files from the checkout as `ont_graph`; owlrl does not resolve them either. The same holds inside the studio, whose Pyodide worker mounts the same three files into the browser filesystem. `make check` stays answerable from the tree alone, exactly as before, and an offline consumer that already has the three documents loses nothing.
+- **It is an annotation, not a version event.** `owl:imports` declares no term and moves no IRI, so `owl:versionInfo` stays at `1.2` (§8.1). The same is true of everything in §5.1.2.
+
+**One fetch: `vson-full.ttl`.** For a consumer that cannot follow an import — a script with a plain parse, a paste into a validator, a `curl` into an editor — the same closure is assembled as a single document, `v1/vson-full.ttl`: the three ontology documents concatenated, each keeping its own header, prologue and comments. `make site` writes it on every run; it reaches `https://vson.pages.dev/v1/vson-full.ttl` with the next deploy, which in this project is a manual step rather than a CI job. It is a **distribution, not a name.** No IRI is minted for it, none is promised to resolve to it, and the w3id rule routes only the five namespace documents (§8.1) — so the three canonical names above remain the things to cite, and are what every term in the file carries an `rdfs:isDefinedBy` back to.
+
+It is derived at build time by [`scripts/build_site.py`](../scripts/build_site.py) from the same tracked sources, never committed: a tracked copy of three tracked files is a drift surface. Turtle concatenation is legal but fails quietly — a re-declared prefix rebinds from that point on, a truncated source swallows the file after it, and both still parse — so `make site` checks the result against arithmetic rather than assuming it: the merged graph must state exactly the sum of the three sources parsed apart (1322 = 1103 + 85 + 134 at v1.3), and declare the same `owl:versionInfo`. Being outside the canonical-name set, it is not part of `make live-check`'s claim table, which covers the eight names above.
+
+#### 5.1.2 What each term carries
+
+Three annotations were added to all three documents on 2026-08-01, each at zero coverage before it (183 terms, 186 labels, 186 comments — the three document IRIs are labelled but are not terms):
+
+| Annotation | On | Why a merged graph needs it |
+|---|---|---|
+| `rdfs:isDefinedBy` | every term | Names the document that declares it. Once the closure is merged — by an import-following tool or by fetching `vson-full.ttl` — nothing else in the graph says which of the three a term came from. The IRI encodes it by convention (`<document>#<name>`); a convention is something a consumer must already know, and a triple is something it can follow. |
+| `@en` | every `rdfs:label`, every `rdfs:comment` | An untagged literal is not English, it is *unspecified*. A term browser cannot tell a label to show an English reader from one not to, and cannot add a second language without guessing what the first was. |
+| `vs:term_status "stable"` | every term | [`sw-vocab-status`](http://www.w3.org/2003/06/sw-vocab-status/ns#)'s four values are `stable`, `testing`, `unstable`, `archaic`. Every term here ships in a released vocabulary version whose IRIs §8.1 declares immutable within v1.x, which is what `stable` says. A provisional term would need its own value, deliberately. |
+
+The layer is generated, not hand-maintained, by [`scripts/annotate_ontology.py`](../scripts/annotate_ontology.py) — a hand-maintained annotation layer rots one forgotten term at a time. It tags literals in place and appends one generated block per file, never reserializing, because a parse-and-serialize would discard every prose comment in files that are written to be read. [`tests/test_ontology_docs.py`](../tests/test_ontology_docs.py) runs it in check mode inside `make check`, so a term added without the layer fails the build rather than shipping.
+
+Each document header also carries `dc:created`, `dc:issued`, `dc:publisher` and `dc:bibliographicCitation`. The citation restates [`CITATION.cff`](../CITATION.cff) and is compared against it on every run — it cites the **software release** (1.3.0), not the vocabulary version (1.2); §8.1 is why those are different numbers. There is no DOI: nothing has been deposited anywhere, and citing an identifier that does not exist would be worse than citing none.
+
 ### 5.2 `vso:Composition`
 
 The mereological root of a scene. Every conformant document **MUST** declare at least one Composition.
