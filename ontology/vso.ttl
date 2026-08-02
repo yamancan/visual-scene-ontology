@@ -31,6 +31,27 @@
     # dereference and is not meant to. This is the one legacy-host IRI
     # allowlisted outside the historical specification documents.
     owl:priorVersion <https://vson.dev/v1.1/ontology> ;
+    # The two companion documents this vocabulary's value spaces live in.
+    # `vso:rcc` takes the eight `rcc:` individuals (§5.7) and §5.9's temporal
+    # edges ARE the thirteen `allen:` properties — so a consumer that parses
+    # this document alone holds a vocabulary whose values are undefined.
+    # Measured 2026-08-01, rdflib 7.x: an rdflib parse of this file alone
+    # yields 0 IRIs in either companion namespace, in any triple position.
+    # owl:imports is the standard way to say the closure is three documents,
+    # and both names dereference (§5.1, `make live-check`), so a tool that
+    # follows imports from the canonical name gets all three.
+    #
+    # Nothing in this repository's gate matrix follows them, and none of it
+    # goes to the network: rdflib does not resolve owl:imports at all, pyshacl
+    # only under do_owl_imports=True (never set here), and owlrl not at all.
+    # Every gate keeps loading the three files from the checkout. The triples
+    # are for consumers; site/v1/vson-full.ttl serves the same closure in one
+    # fetch for a consumer that cannot follow an import.
+    #
+    # Annotation-level under §8.1: it declares no term and moves no IRI, so
+    # owl:versionInfo stays at 1.2.
+    owl:imports <https://w3id.org/vson/v1/rcc8> ,
+                <https://w3id.org/vson/v1/allen> ;
     # The prefix this vocabulary ASKS FOR — what a registry, a term browser or
     # a generated SPARQL header should bind. It is "vson", not "vso": "vso" is
     # Martin Hepp's Vehicle Sales Ontology, <http://purl.org/vso/ns#>, listed

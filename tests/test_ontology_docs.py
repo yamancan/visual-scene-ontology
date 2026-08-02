@@ -13,6 +13,14 @@ tests keep that from silently rotting:
       an owl:Ontology typing plus dc:title, dc:license, owl:versionInfo, and the
       vann namespace-prefix hints a vocabulary registry reads.
 
+  (c) The canonical name resolves to the whole vocabulary. `ontology/vso.ttl`
+      declares `owl:imports` of both companion documents, because `vso:rcc`
+      takes `rcc:` individuals and §5.9's temporal edges are `allen:`
+      properties — a consumer that parses the core document alone holds a
+      vocabulary whose values are undefined. The negative half is asserted too:
+      that document really does yield zero companion-namespace IRIs on its own,
+      which is what makes the import load-bearing rather than decorative.
+
 Run: python3 -m unittest tests.test_ontology_docs
 
 Skipped automatically if rdflib is not installed.
@@ -136,6 +144,70 @@ class OntologyHeaderTests(unittest.TestCase):
                         list(g.objects(doc, prop)),
                         msg="%s header is missing %s" % (rel, name),
                     )
+
+
+@unittest.skipUnless(rdflib, "rdflib required")
+class ImportsClosureTests(unittest.TestCase):
+    """The core document names the two companions it cannot be read without."""
+
+    CORE = "ontology/vso.ttl"
+    COMPANIONS = (
+        "https://w3id.org/vson/v1/rcc8",
+        "https://w3id.org/vson/v1/allen",
+    )
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.core = _graph([cls.CORE])
+
+    def test_core_imports_both_companion_documents(self) -> None:
+        imported = {
+            str(o)
+            for o in self.core.objects(
+                rdflib.URIRef(DOCUMENT_IRIS[self.CORE]), OWL.imports
+            )
+        }
+        self.assertEqual(imported, set(self.COMPANIONS))
+
+    def test_every_imported_name_is_a_document_this_repository_publishes(
+        self,
+    ) -> None:
+        # An import of a name nothing serves is a dangling pointer that no
+        # parse in this repository would notice, because nothing here follows
+        # imports. DOCUMENT_IRIS is the set of names that do resolve (§5.1).
+        for iri in self.COMPANIONS:
+            with self.subTest(imported=iri):
+                self.assertIn(iri, set(DOCUMENT_IRIS.values()))
+
+    def test_the_core_document_alone_defines_no_companion_term(self) -> None:
+        # The measurement the import exists for. If this ever stops being true
+        # — if the eight RCC-8 individuals or the thirteen Allen properties
+        # moved into vso.ttl — the import would be redundant and this file's
+        # comment would be stating something false.
+        for iri in self.COMPANIONS:
+            prefix = "%s#" % iri
+            found = {
+                str(node)
+                for triple in self.core
+                for node in triple
+                if isinstance(node, rdflib.URIRef)
+                and str(node).startswith(prefix)
+            }
+            with self.subTest(namespace=prefix):
+                self.assertEqual(found, set())
+
+    def test_the_imported_documents_carry_those_terms(self) -> None:
+        # The other half: the closure a consumer following the imports gets.
+        merged = _graph(ONTOLOGY_FILES)
+        for iri in self.COMPANIONS:
+            prefix = "%s#" % iri
+            terms = {
+                str(s)
+                for s in merged.subjects()
+                if isinstance(s, rdflib.URIRef) and str(s).startswith(prefix)
+            }
+            with self.subTest(namespace=prefix):
+                self.assertGreater(len(terms), 0)
 
 
 if __name__ == "__main__":
