@@ -24,6 +24,12 @@
 /v1/allen.ttl
   Content-Type: text/turtle; charset=utf-8
 
+# The merged distribution — the three documents above in one file. Not a
+# namespace document and not named by any IRI, so no w3id rule routes to it;
+# it needs the same Content-Type for the same reason they do.
+/v1/vson-full.ttl
+  Content-Type: text/turtle; charset=utf-8
+
 /v1/shapes.ttl
   Content-Type: text/turtle; charset=utf-8
 

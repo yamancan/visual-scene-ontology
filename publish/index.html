@@ -139,6 +139,21 @@
       <code>allen:</code>.
     </p>
 
+    <h2 id="full">All three, in one file</h2>
+    <p>
+      <a href="/v1/vson-full.ttl">/v1/vson-full.ttl</a> — the ontology and both
+      value vocabularies concatenated. It is the import closure of
+      <code>https://w3id.org/vson/v1/ontology</code>, whose header imports the
+      other two: one request instead of three, for a client that cannot follow
+      an <code>owl:imports</code>.
+    </p>
+    <p>
+      A distribution, not a name. No IRI is minted for it and none resolves to
+      it — cite the three names above, which are also what every term in the
+      file carries an <code>rdfs:isDefinedBy</code> back to. Each section keeps
+      its own header and comments, exactly as that document ships.
+    </p>
+
     <h2 id="shapes">SHACL shapes — strict profile</h2>
     <p>
       <a href="/v1/shapes.ttl">/v1/shapes.ttl</a> — the shapes a conformant
