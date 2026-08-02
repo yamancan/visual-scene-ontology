@@ -385,7 +385,7 @@ embeds those files with `include_str!` and writes them to a per-version cache
 directory the first time one is needed, so a downloaded binary works in a
 directory that has never seen this repository.
 
-**Carried** — 21 files, ~292 KiB of source, listed in
+**Carried** — 22 files, ~305 KiB of source, listed in
 [`src/commands/embed.rs`](src/commands/embed.rs):
 
 | Group | Files | Needed by |
@@ -393,6 +393,7 @@ directory that has never seen this repository.
 | Ontology | `ontology/vso.ttl`, `ontology/rcc8.ttl`, `ontology/allen.ttl` | `validate` gates 1 and 3 |
 | Shapes | `shapes/vson-shapes.ttl`, `shapes/vson-shapes-relaxed.ttl` | `validate` gate 1 (the relaxed profile ships in the binary, though no flag selects it yet) |
 | Gates | `tools/owlrl_check.py`, `tools/c2_check.py`, `tools/geometry_check.py` | `validate` gates 2 and 3, `verify --geometry` |
+| Reports | `tools/validate_report.py` | `validate --format json\|sarif` |
 | Metric | `tools/metrics/smatch.py` | `diff` |
 | Transpilers | `tools/penman/vson_penman.py`, `tools/vson_x/vson_x.py`, `tools/vson_ast.py`, `src/penman/routing-tables.json` | `convert x2t`, `diff`, both renderers |
 | Renderers | `tools/render/caption.py`, `tools/render/fol.py`, `tools/render/verbs.json` | `export caption`, `export fol` |
