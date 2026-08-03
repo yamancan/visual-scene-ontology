@@ -9,22 +9,28 @@ checkout but fails the isolated verify build `cargo package` runs — so the cra
 keeps a byte-identical mirror under `cli/assets/`.
 
 A mirror is only worth having while it is still a mirror. This gate establishes
-four things, and the second and third are the ones a person cannot hold in their
+five things, and the middle three are the ones a person cannot hold in their
 head:
 
   1. **Byte equality.** Every mirrored file equals the repository original,
      byte for byte. Edit `shapes/vson-shapes.ttl` and forget the mirror, and the
      binary would validate against last month's shapes while CI — which runs
      from the checkout — stays green.
-  2. **Import closure.** Every `tools.…` module the embedded Python imports is
-     itself embedded. One new `from tools.canon import …` inside `smatch.py` is
-     enough to break `vson diff` for everyone outside a checkout, and no test
-     that runs from the checkout can see it.
-  3. **Path coverage.** Every repository-relative path `cli/src/` names — each
-     `PyGate::script`, each `python_bridge` probe, each ontology and shapes file
-     `validate` reads — is embedded. This is what makes a *new* Python-backed
-     subcommand fail here instead of in a user's terminal.
-  4. **No orphans.** Every file under `cli/assets/` is listed in `ASSETS`. An
+  2. **Import closure.** Every `tools.…` and `vson.…` module the embedded
+     Python imports is itself embedded. One new `from tools.canon import …`
+     inside `smatch.py` is enough to break `vson diff` for everyone outside a
+     checkout, and no test that runs from the checkout can see it.
+  3. **Resource closure.** Every file the embedded Python *reads* rather than
+     imports is embedded too. `vson/_resources.py` resolves the two `SKILL.md`
+     bodies, the two repair templates, the envelope schema and `pyproject.toml`
+     out of the tree the package lives in, and no import statement mentions any
+     of them — so nothing above would notice their absence, and `vson mcp`
+     would fail on the first line of `vson/repair.py`.
+  4. **Path coverage.** Every repository-relative path `cli/src/` names — each
+     `PyGate::script`, each `python_bridge` probe, each `mcp` probe, each
+     ontology and shapes file `validate` reads — is embedded. This is what makes
+     a *new* Python-backed subcommand fail here instead of in a user's terminal.
+  5. **No orphans.** Every file under `cli/assets/` is listed in `ASSETS`. An
      unlisted mirror is a file nobody updates and the binary never carries.
 
 The manifest is read out of `cli/src/commands/embed.rs`, so this gate and the
@@ -32,7 +38,8 @@ binary cannot disagree about what is embedded.
 
 Exit codes
 ----------
-  0  the mirror is current, closed under imports, and covers every named path.
+  0  the mirror is current, closed under imports and reads, and covers every
+     named path.
   1  it has drifted; every difference is printed.
 
 Usage
@@ -64,8 +71,22 @@ ENTRY = re.compile(
 )
 
 # Repository-relative paths named as string literals anywhere in cli/src/. The
-# three prefixes are the only trees the binary reads out of a home.
-NAMED_PATH = re.compile(r"\"((?:tools|ontology|shapes)/[A-Za-z0-9_./-]+\.(?:py|ttl|json))\"")
+# four prefixes are the only trees the binary reads out of a home.
+NAMED_PATH = re.compile(
+    r"\"((?:tools|ontology|shapes|vson)/[A-Za-z0-9_./-]+\.(?:py|ttl|json))\""
+)
+
+# The packages whose modules must be embedded when embedded Python imports them.
+# `tools` is the reference implementation the spawned modules live in; `vson` is
+# the client library `vson mcp` runs as a server.
+EMBEDDED_PACKAGES = ("tools", "vson")
+
+# `read_text("skills", "vson-extractor", "SKILL.md")` and its `read_json` twin,
+# in `vson/_resources.py`'s call convention: one string literal per path
+# segment. Only all-literal calls are resolvable, which is the whole set today
+# and is asserted below — a computed path would silently pass this gate, so a
+# call this cannot resolve is reported rather than skipped.
+RESOURCE_READERS = ("read_text", "read_json")
 
 
 def read(path: str) -> str:
@@ -129,8 +150,44 @@ def module_files(module: str) -> "list[str]":
     return [f"{stem}.py", f"{stem}/__init__.py"]
 
 
-def imported_modules(rel: str, source: str) -> "tuple[set[str], set[str]]":
-    """The `tools.…` modules one embedded Python file imports.
+def read_resources(rel: str, tree: ast.AST) -> "tuple[list[str], list[str]]":
+    """`(resolved home-relative paths, unresolvable call sites)`.
+
+    Reads `read_text(...)` / `read_json(...)` calls whose arguments are all
+    string literals and joins the segments the way `vson/_resources.py` does.
+    A call with a non-literal argument is returned in the second list rather
+    than dropped: this gate cannot follow it, and a resource the gate cannot
+    follow is a resource that can go missing from the binary unnoticed. The one
+    exception is a splat — `read_text(*parts)`, which is how `read_json`
+    forwards to `read_text` inside `_resources.py` itself. A splat carries no
+    path of its own; the literals it will receive are at the call sites, which
+    this gate reads anyway.
+    """
+    paths: "list[str]" = []
+    unresolved: "list[str]" = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        name = func.id if isinstance(func, ast.Name) else getattr(func, "attr", "")
+        if name not in RESOURCE_READERS or not node.args:
+            continue
+        if any(isinstance(a, ast.Starred) for a in node.args):
+            continue
+        segments = [
+            a.value
+            for a in node.args
+            if isinstance(a, ast.Constant) and isinstance(a.value, str)
+        ]
+        if len(segments) != len(node.args) or node.keywords:
+            unresolved.append(f"{rel}:{node.lineno} {name}(…) is not all literals")
+            continue
+        paths.append("/".join(segments))
+    return paths, unresolved
+
+
+def imported_modules(rel: str, tree: ast.AST) -> "tuple[set[str], set[str]]":
+    """The `tools.…` and `vson.…` modules one embedded Python file imports.
 
     Two sets, because `from X import Y` cannot be read off the syntax alone:
     `X` is certainly a module (strict), while `Y` may be a submodule or an
@@ -141,7 +198,7 @@ def imported_modules(rel: str, source: str) -> "tuple[set[str], set[str]]":
     package = os.path.dirname(rel).replace("/", ".")
     strict: "set[str]" = set()
     lenient: "set[str]" = set()
-    for node in ast.walk(ast.parse(source, filename=rel)):
+    for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             strict.update(alias.name for alias in node.names)
         elif isinstance(node, ast.ImportFrom):
@@ -154,10 +211,16 @@ def imported_modules(rel: str, source: str) -> "tuple[set[str], set[str]]":
                 module = node.module or ""
             strict.add(module)
             lenient.update(f"{module}.{alias.name}" for alias in node.names)
-    def is_tools(module: str) -> bool:
-        return module == "tools" or module.startswith("tools.")
+    def is_embedded_package(module: str) -> bool:
+        return any(
+            module == pkg or module.startswith(pkg + ".")
+            for pkg in EMBEDDED_PACKAGES
+        )
 
-    return {m for m in strict if is_tools(m)}, {m for m in lenient if is_tools(m)}
+    return (
+        {m for m in strict if is_embedded_package(m)},
+        {m for m in lenient if is_embedded_package(m)},
+    )
 
 
 def main() -> int:
@@ -194,11 +257,12 @@ def main() -> int:
             if a.read() != b.read():
                 failures.append(f"{included} has drifted from {src} (run --sync)")
 
-    # 2. every tools.… import an embedded module makes is itself embedded
+    # 2/3. every module an embedded module imports, and every file one reads
     for rel, included in pairs:
         if not rel.endswith(".py"):
             continue
-        strict, lenient = imported_modules(rel, read(included))
+        tree = ast.parse(read(included), filename=rel)
+        strict, lenient = imported_modules(rel, tree)
         for module in sorted(strict):
             if not any(c in embedded for c in module_files(module)):
                 failures.append(f"{rel} imports {module}, which is not embedded")
@@ -207,8 +271,13 @@ def main() -> int:
             resolves = any(c in embedded for c in module_files(module))
             if not resolves and not any(c in embedded for c in module_files(parent)):
                 failures.append(f"{rel} imports {module}, which is not embedded")
+        resources, unresolved = read_resources(rel, tree)
+        for path in sorted(set(resources)):
+            if path not in embedded:
+                failures.append(f"{rel} reads {path}, which is not embedded")
+        failures.extend(unresolved)
 
-    # 3. every repo-relative path cli/src/ names is embedded
+    # 4. every repo-relative path cli/src/ names is embedded
     for dirpath, _dirs, names in os.walk(os.path.join(REPO, CRATE, "src")):
         for name in sorted(names):
             if not name.endswith(".rs"):
@@ -218,7 +287,7 @@ def main() -> int:
                 if path not in embedded:
                     failures.append(f"{rs} names {path}, which is not embedded")
 
-    # 4. no orphan under the mirror
+    # 5. no orphan under the mirror
     included_paths = {included for _, included in pairs}
     for path in mirrored_files():
         if path not in included_paths:

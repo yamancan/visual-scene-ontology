@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://w3id.org/vson/v1/schema/vson-output.schema.json",
+  "title": "VSON Extractor Response Envelope",
+  "description": "JSON envelope returned by an image-to-VSON extractor. Carries the canonical Penman text, the derived Turtle, optional structured graph, and metadata. A consumer that only wants the graph reads .vson_p; a consumer that wants triples reads .vson_t; a consumer that wants nodes/edges for a UI reads .graph.",
+  "type": "object",
+  "required": ["scene_id", "version", "vson_p", "vson_t", "conformance"],
+  "additionalProperties": false,
+  "properties": {
+    "scene_id": {
+      "type": "string",
+      "description": "Stable identifier for this scene. URL-safe, document-unique.",
+      "pattern": "^[A-Za-z0-9_-]{1,64}$",
+      "examples": ["throne_room_01", "user-upload-2026-05-02"]
+    },
+    "version": {
+      "type": "string",
+      "enum": ["1.0", "1.0.5", "1.1", "1.2", "1.3"],
+      "description": "VSON spec version — which spec *document* the producer emitted under, not which vocabulary it used (the three version axes are defined in docs/vson.md §8.1). \"1.0\" for v1.0 strict. \"1.0.5\" for v1.0 + caption renderer + Phase 0 ontology additions (vso:class, vso:modifier, Persona). \"1.1\" adds VSON-X surface form and partial validation profile. \"1.2\" re-mints the VSO/RCC-8/Allen/shape namespaces under https://w3id.org/vson/, replacing the host v1.0-v1.1 published under (withdrawn, not aliased — see spec/CHANGELOG.md v1.2.0); envelope structure is unchanged from 1.1. \"1.3\" is the v1.3 spec document: envelope structure, every IRI, and the vocabulary (owl:versionInfo 1.2) are unchanged from 1.2. Backwards-compatible: every v1.0 envelope remains valid under newer spec versions, so this enum only ever grows."
+    },
+    "source": {
+      "type": "object",
+      "description": "Provenance of the scene. Optional. Producers SHOULD populate it for any non-hand-authored scene; this schema does not enforce that, it only requires source.kind once the object is present.",
+      "properties": {
+        "kind": { "enum": ["image", "video_frame", "synthetic", "hand_authored"] },
+        "uri":  { "type": "string", "format": "uri" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "width_px":  { "type": "integer", "minimum": 1 },
+        "height_px": { "type": "integer", "minimum": 1 },
+        "captured_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["kind"]
+    },
+    "vson_p": {
+      "type": "string",
+      "description": "VSON-P (Penman) authoring form. SHOULD be the canonical authoring artifact when extraction targets Penman. Consumers MUST round-trip vson_p -> vson_t via the reference transpiler and SHOULD NOT diverge from vson_t. v1.1 and later: in VSON-X mode this field is the empty string \"\" (back-conversion to Penman is deferred to a future version, whenever t2p ships); those envelopes MUST satisfy the if/then rule below — at least one of vson_p or vson_x is non-empty.",
+      "examples": ["(s / Composition :viewedBy (c / CameraView :angle eye_level) :depicts (a / PhysicalObject :class Apple))"]
+    },
+    "vson_t": {
+      "type": "string",
+      "description": "VSON-T (Turtle 1.2 / Turtle-star) form derived from vson_p or vson_x. Consumers MAY parse this directly with rdflib or any Turtle parser. Always non-empty.",
+      "minLength": 3
+    },
+    "vson_x": {
+      "type": "string",
+      "description": "VSON-X (compact sigil-based) form, optional. Populated when authoring/extraction surface was VSON-X. Spec: docs/vson-x-semantics.md. Available v1.1+."
+    },
+    "graph": {
+      "type": "object",
+      "description": "Optional structured projection for UI clients. Lossy w.r.t. RDF semantics (no RDF-star annotations). Use vson_t for full fidelity.",
+      "required": ["nodes", "edges"],
+      "additionalProperties": false,
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/GraphNode" }
+        },
+        "edges": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/GraphEdge" }
+        }
+      }
+    },
+    "conformance": {
+      "type": "object",
+      "description": "SHACL conformance report. Producers MUST run validation before emitting; consumers MAY trust the conforms flag without re-validating. Conforms is always interpreted within the chosen profile (see profile field).",
+      "required": ["conforms"],
+      "additionalProperties": false,
+      "properties": {
+        "conforms": { "type": "boolean" },
+        "profile": {
+          "enum": ["strict", "relaxed"],
+          "default": "strict",
+          "description": "Validation profile. \"strict\" (default) uses shapes/vson-shapes.ttl (v1.0 byte-identical behavior). \"relaxed\" uses shapes/vson-shapes-relaxed.ttl (viewer anchoring / lemma / Quality dimension+value / Quality modifier downgraded to sh:Warning) for authoring-time documents; as of v1.1 no shipped command selects that file, so a producer sets this to \"relaxed\" only if it validated against it itself. v1.1+. Consumers MUST inspect both conforms and profile to determine document status; conforms=true under relaxed is NOT equivalent to v1.0 conformance."
+        },
+        "violations": {
+          "type": "array",
+          "description": "Empty when conforms=true under chosen profile.",
+          "items": { "$ref": "#/$defs/Violation" }
+        }
+      }
+    },
+    "extraction": {
+      "type": "object",
+      "description": "Optional metadata about how this VSON document was produced.",
+      "additionalProperties": false,
+      "properties": {
+        "model": { "type": "string", "examples": ["claude-opus-4-7"] },
+        "prompt_version": { "type": "string", "examples": ["orchestrator-system@1.0"] },
+        "shacl_retries": { "type": "integer", "minimum": 0 },
+        "latency_ms": { "type": "integer", "minimum": 0 },
+        "input_tokens": { "type": "integer", "minimum": 0 },
+        "output_tokens": { "type": "integer", "minimum": 0 },
+        "confidence_overall": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "$comment": "v1.0 / v1.0.5: vson_p is the source of truth and MUST be non-empty.",
+      "if": { "properties": { "version": { "enum": ["1.0", "1.0.5"] } } },
+      "then": { "properties": { "vson_p": { "minLength": 3 } } }
+    },
+    {
+      "$comment": "v1.1 and later: at least one authoring surface (vson_p or vson_x) MUST be non-empty. Either Penman extraction (vson_p non-empty, vson_x absent) or VSON-X extraction (vson_p='', vson_x non-empty). Every version admitted by the enum above that allows an empty vson_p MUST be listed here, or the rule silently stops applying to it — which is why this list grows with the enum and is checked against docs/vson.md §6.1 by scripts/check_spec_fragments.py. Each anyOf branch carries its own `required`: `properties` alone is vacuously satisfied by an absent key, so without it an envelope with vson_p='' and no vson_x passed the branch that was supposed to demand vson_x.",
+      "if": { "properties": { "version": { "enum": ["1.1", "1.2", "1.3"] } } },
+      "then": {
+        "anyOf": [
+          { "required": ["vson_p"], "properties": { "vson_p": { "minLength": 3 } } },
+          { "required": ["vson_x"], "properties": { "vson_x": { "minLength": 3 } } }
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "GraphNode": {
+      "type": "object",
+      "required": ["id", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "id":   { "type": "string", "pattern": "^[A-Za-z_][\\w-]*$" },
+        "kind": {
+          "enum": [
+            "Composition", "SceneContext", "VisualStyle", "CameraView",
+            "PhysicalObject", "Aggregate", "Substance",
+            "Event", "Process", "Stative",
+            "Quality", "SpatialFact", "Annotation"
+          ]
+        },
+        "class": { "type": "string", "description": "Domain class for PhysicalObject / Aggregate / Substance." },
+        "traits": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "individuation": { "enum": ["Generic", "Named", "Kind", "Skolem"] },
+            "animacy":       { "enum": ["Agentive", "Inert"] },
+            "countability":  { "enum": ["Count", "Mass", "Collective"] },
+            "affordance":    { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": { "type": ["string", "number", "boolean", "null"] }
+        },
+        "bbox2d": {
+          "type": "string",
+          "pattern": "^(0|0\\.\\d+|1|1\\.0+),(0|0\\.\\d+|1|1\\.0+),(0|0\\.\\d+|1|1\\.0+),(0|0\\.\\d+|1|1\\.0+)$",
+          "description": "Normalized x,y,w,h in [0,1]."
+        }
+      }
+    },
+    "GraphEdge": {
+      "type": "object",
+      "required": ["from", "to", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "from":  { "type": "string" },
+        "to":    { "type": "string" },
+        "label": { "type": "string", "description": "VSO/Allen/RCC predicate local name (e.g. depicts, agent, before, EC)." },
+        "qualifiers": {
+          "type": "object",
+          "description": "Edge-level annotations (probability, viewer, manner, ...).",
+          "additionalProperties": { "type": ["string", "number", "boolean"] }
+        }
+      }
+    },
+    "Violation": {
+      "type": "object",
+      "required": ["message", "shape"],
+      "additionalProperties": false,
+      "properties": {
+        "message": { "type": "string" },
+        "shape":   { "type": "string", "examples": ["vss:DirectionalNeedsViewerShape"] },
+        "focus_node":  { "type": "string" },
+        "result_path": { "type": "string" },
+        "severity":    { "enum": ["Violation", "Warning", "Info"], "default": "Violation" }
+      }
+    }
+  }
+}

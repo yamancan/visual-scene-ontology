@@ -47,6 +47,15 @@ web/build/
 !skills/vson-extractor-x/SKILL.md
 !skills/vson-extractor-x/README.md
 !tools/extractor/prompts/specialized/repair-x.md
+# The byte-identical mirrors of four of the above, carried inside the crate so
+# `vson mcp` works outside a checkout (cli/src/commands/embed.rs). They are
+# generated — `python3 scripts/check_embedded_assets.py --sync` writes them and
+# `make cli-check` proves they still equal the originals — but they must ship,
+# because `include_str!` reads them at compile time.
+!cli/assets/skills/vson-extractor/SKILL.md
+!cli/assets/skills/vson-extractor-x/SKILL.md
+!cli/assets/tools/extractor/prompts/specialized/repair.md
+!cli/assets/tools/extractor/prompts/specialized/repair-x.md
 # Repo-policy files GitHub surfaces from the root.
 !SECURITY.md
 !CONTRIBUTING.md

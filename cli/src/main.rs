@@ -25,6 +25,11 @@
 //!   Rust port is planned for v1.2).
 //! - `export fol <file>` — render Prolog-style first-order-logic facts (shells
 //!   out to `tools/render/fol.py`).
+//! - `mcp` — serve `validate`, `convert`, `export` and the extractor skill to
+//!   an agent as Model Context Protocol tools, JSON-RPC 2.0 over stdio (shells
+//!   out to `python3 -m vson.mcp`; docs/vson.md §5.18). It reads and writes the
+//!   protocol stream on this process's own stdin and stdout, so it is the one
+//!   subcommand whose output is not for a person.
 //!
 //! Exit codes: 0 success; 1 a document genuinely failed a gate; 2 the command
 //! never reached a verdict (usage error, missing toolchain, unparseable input).
@@ -101,6 +106,12 @@ enum Cmd {
         #[command(subcommand)]
         target: ExportTarget,
     },
+    /// Serve validate/convert/export/skill to an agent as MCP tools over stdio.
+    Mcp {
+        /// Path to the repo root containing vson/ and tools/.
+        #[arg(long, env = "VSON_HOME")]
+        home: Option<PathBuf>,
+    },
 }
 
 #[derive(Subcommand)]
@@ -157,6 +168,7 @@ fn main() -> ExitCode {
         Cmd::Export {
             target: ExportTarget::Fol { file },
         } => commands::export_fol::run(&file),
+        Cmd::Mcp { home } => commands::mcp::run(home.as_deref()),
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,

@@ -7,6 +7,7 @@ pub mod export_cypher;
 pub mod export_fol;
 pub mod gates;
 pub mod home;
+pub mod mcp;
 pub mod python_bridge;
 pub mod report;
 pub mod sourcemap;

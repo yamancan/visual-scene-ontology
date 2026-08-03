@@ -1,19 +1,22 @@
 //! The repository files this binary carries, and the directory it writes them
 //! to when there is no checkout to read them from.
 //!
-//! Six of the nine subcommands need files that used to exist only inside a
+//! Seven of the ten subcommands need files that used to exist only inside a
 //! checkout: `validate` reads the three ontology files and the shapes and runs
-//! two Python gates; `verify`, `diff`, `convert x2t`, `export caption` and
-//! `export fol` each run a Python module out of `tools/`. A binary copied
-//! anywhere else therefore exited 2 on all six — an install trap, and the
-//! reason this module exists. Only `convert p2t` and `export cypher` (pure
-//! Rust) ever worked standalone.
+//! two Python gates; `verify`, `diff`, `convert x2t`, `export caption`,
+//! `export fol` and `mcp` each run a Python module out of `tools/` or `vson/`.
+//! A binary copied anywhere else therefore exited 2 on all of them — an install
+//! trap, and the reason this module exists. Only `convert p2t` and
+//! `export cypher` (pure Rust) ever worked standalone.
 //!
 //! What is carried is [`ASSETS`]: all three ontology files, both shape files,
 //! the Python package closure every spawned module imports, the caption
-//! renderer's `verbs.json`, and `routing-tables.json` — which the Python
+//! renderer's `verbs.json`, `routing-tables.json` — which the Python
 //! transpiler reads back out of `cli/src/penman/`, so the materialized tree has
-//! to reproduce that path too, not just the file.
+//! to reproduce that path too, not just the file — and, for `mcp`, the `vson`
+//! package plus the four files it reads at import time rather than imports:
+//! both `SKILL.md` bodies, both repair templates, the envelope schema and
+//! `pyproject.toml`.
 //!
 //! **Why a directory on disk rather than memory.** The three consumers are
 //! `pyshacl` (a separate process that takes file paths), `python3 -m tools.…`
@@ -33,9 +36,9 @@
 //! `routing-tables.json` inside `src/penman/`). So the crate carries a
 //! byte-identical mirror, and `scripts/check_embedded_assets.py` — run by `make
 //! cli-check` — is what proves it is still a mirror: byte equality against the
-//! repository original, no orphan mirrored file, no `tools.…` import that
-//! escapes the embedded closure, and no path named in `cli/src/` that is not
-//! carried. `--sync` refreshes it.
+//! repository original, no orphan mirrored file, no `tools.…` or `vson.…`
+//! import and no `_resources` read that escapes the embedded closure, and no
+//! path named in `cli/src/` that is not carried. `--sync` refreshes it.
 
 use super::{Error, Result};
 use std::path::{Path, PathBuf};
@@ -139,6 +142,63 @@ pub const ASSETS: &[(&str, &str)] = &[
     (
         "tools/metrics/smatch.py",
         include_str!("../../assets/tools/metrics/smatch.py"),
+    ),
+    (
+        "tools/canon.py",
+        include_str!("../../assets/tools/canon.py"),
+    ),
+    // The `vson` package and the four files it reads at import time. `vson mcp`
+    // runs `python3 -m vson.mcp`, which imports the whole package, and the
+    // package resolves the canonical skill, prompt and schema texts out of the
+    // tree it lives in (`vson/_resources.py`) — so a materialized home that
+    // carried only the modules would import and then fail on the first line of
+    // `repair.py`. `pyproject.toml` is here for the same reason: it is where
+    // `vson.__version__` — and therefore `serverInfo.version` — is read from.
+    (
+        "vson/__init__.py",
+        include_str!("../../assets/vson/__init__.py"),
+    ),
+    (
+        "vson/_resources.py",
+        include_str!("../../assets/vson/_resources.py"),
+    ),
+    ("vson/api.py", include_str!("../../assets/vson/api.py")),
+    (
+        "vson/envelope.py",
+        include_str!("../../assets/vson/envelope.py"),
+    ),
+    (
+        "vson/errors.py",
+        include_str!("../../assets/vson/errors.py"),
+    ),
+    ("vson/mcp.py", include_str!("../../assets/vson/mcp.py")),
+    (
+        "vson/repair.py",
+        include_str!("../../assets/vson/repair.py"),
+    ),
+    (
+        "skills/vson-extractor/SKILL.md",
+        include_str!("../../assets/skills/vson-extractor/SKILL.md"),
+    ),
+    (
+        "skills/vson-extractor-x/SKILL.md",
+        include_str!("../../assets/skills/vson-extractor-x/SKILL.md"),
+    ),
+    (
+        "tools/extractor/prompts/specialized/repair.md",
+        include_str!("../../assets/tools/extractor/prompts/specialized/repair.md"),
+    ),
+    (
+        "tools/extractor/prompts/specialized/repair-x.md",
+        include_str!("../../assets/tools/extractor/prompts/specialized/repair-x.md"),
+    ),
+    (
+        "tools/schema/vson-output.schema.json",
+        include_str!("../../assets/tools/schema/vson-output.schema.json"),
+    ),
+    (
+        "pyproject.toml",
+        include_str!("../../assets/pyproject.toml"),
     ),
 ];
 

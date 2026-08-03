@@ -4,7 +4,8 @@
 //! from the repository root, where the ontology, the shapes and the `tools/`
 //! package are all one relative path away — which is exactly the condition a
 //! downloaded release binary does not satisfy. Before the payload of
-//! `src/commands/embed.rs` existed, six of the nine subcommands exited 2 here.
+//! `src/commands/embed.rs` existed, six of the then nine subcommands exited 2
+//! here; `mcp`, the tenth, was written after it and has never been able to.
 //!
 //! Each test therefore:
 //!
@@ -105,6 +106,37 @@ impl Sandbox {
             .env("VSON_CACHE_DIR", self.cache())
             .output()
             .expect("the copied binary must be runnable")
+    }
+
+    /// The same run, with `stdin` fed from a string — for `mcp`, whose input is
+    /// a conversation rather than a file.
+    ///
+    /// The whole script is written and the handle dropped *before* stdout is
+    /// read. That order is the deadlock-free one for a child that answers as it
+    /// reads: the script is under a kilobyte, so it lands in the pipe buffer
+    /// without blocking, and closing stdin is also how an MCP client shuts a
+    /// stdio server down — so the child answers everything and exits.
+    fn run_stdin(&self, args: &[&str], stdin: &str) -> Output {
+        use std::io::Write;
+        let mut child = Command::new(&self.exe)
+            .args(args)
+            .current_dir(&self.dir)
+            .env_remove("VSON_HOME")
+            .env("VSON_CACHE_DIR", self.cache())
+            .stdin(std::process::Stdio::piped())
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped())
+            .spawn()
+            .expect("the copied binary must be runnable");
+        child
+            .stdin
+            .take()
+            .expect("stdin was piped")
+            .write_all(stdin.as_bytes())
+            .expect("the script must be writable");
+        child
+            .wait_with_output()
+            .expect("the child must be waitable")
     }
 }
 
@@ -267,6 +299,100 @@ fn the_embedded_files_are_written_once_and_reused() {
         second.modified().ok(),
         "a materialized cache must be reused, not rewritten"
     );
+}
+
+#[test]
+fn mcp_serves_the_tools_with_no_checkout_present() {
+    // The tenth subcommand, and the one with the largest embedded closure: the
+    // whole `vson` package, plus the four files it reads at import time rather
+    // than imports — both SKILL.md bodies, both repair templates, the envelope
+    // schema and pyproject.toml. `vson/_resources.py` resolves those out of the
+    // tree the package lives in, so a home missing any of them fails on import
+    // and this session never reaches its first answer.
+    //
+    // Three things are asserted that only hold outside a checkout: the
+    // handshake completes; a relative `path` argument resolves against the
+    // directory the user ran in rather than the materialized home the child
+    // actually runs in (`VSON_MCP_CWD`); and `export cypher` — whose only
+    // implementation is this binary's own Rust — comes back, which it can only
+    // do through the `VSON_CLI` path this subcommand hands down.
+    let sandbox = Sandbox::new("mcp");
+    sandbox.write("scene.vson", MINIMAL_VSON);
+    let script = concat!(
+        r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":"#,
+        r#"{"protocolVersion":"2025-06-18","capabilities":{},"#,
+        r#""clientInfo":{"name":"standalone-test","version":"0"}}}"#,
+        "\n",
+        r#"{"jsonrpc":"2.0","method":"notifications/initialized"}"#,
+        "\n",
+        r#"{"jsonrpc":"2.0","id":2,"method":"tools/list"}"#,
+        "\n",
+        r#"{"jsonrpc":"2.0","id":3,"method":"tools/call","params":"#,
+        r#"{"name":"vson_validate","arguments":{"path":"scene.vson"}}}"#,
+        "\n",
+        r#"{"jsonrpc":"2.0","id":4,"method":"tools/call","params":"#,
+        r#"{"name":"vson_export","arguments":{"format":"cypher","path":"scene.vson"}}}"#,
+        "\n",
+    );
+
+    let out = sandbox.run_stdin(&["mcp"], script);
+    let stdout = assert_ok(&out, "vson mcp");
+    let replies: Vec<serde_json::Value> = stdout
+        .lines()
+        .filter(|l| !l.trim().is_empty())
+        .map(|l| serde_json::from_str(l).unwrap_or_else(|e| panic!("not JSON: {l} ({e})")))
+        .collect();
+
+    // Five messages in, one of them a notification, so four answers out — and
+    // in order, because a stdio server answers a stream. A reply to the
+    // notification would itself be a protocol violation, so the count is an
+    // assertion about the protocol and not only about the tools.
+    assert_eq!(
+        replies.len(),
+        4,
+        "one reply per request, none for the notification: {stdout}"
+    );
+    assert_eq!(replies[0]["id"], 1);
+    assert_eq!(replies[0]["result"]["protocolVersion"], "2025-06-18");
+    assert_eq!(replies[0]["result"]["serverInfo"]["name"], "vson");
+
+    let names: Vec<&str> = replies[1]["result"]["tools"]
+        .as_array()
+        .expect("tools/list returns an array")
+        .iter()
+        .map(|t| t["name"].as_str().expect("every tool is named"))
+        .collect();
+    assert_eq!(
+        names,
+        [
+            "vson_validate",
+            "vson_convert",
+            "vson_export",
+            "vson_skill_prompt"
+        ],
+        "{stdout}"
+    );
+
+    // The verdict: three gates run out of the embedded home, against a file
+    // named relatively in a directory the child never had as its own cwd.
+    let verdict = &replies[2]["result"];
+    assert_eq!(replies[2]["id"], 3);
+    assert_eq!(verdict["isError"], false, "{stdout}");
+    assert_eq!(verdict["structuredContent"]["conforms"], true, "{stdout}");
+    assert_eq!(
+        verdict["structuredContent"]["profile"], "strict",
+        "{stdout}"
+    );
+
+    // Cypher: the server has no implementation of it and shells back out to
+    // this very binary through $VSON_CLI, which nothing but `vson mcp` sets.
+    let cypher = &replies[3]["result"];
+    assert_eq!(replies[3]["id"], 4);
+    assert_eq!(cypher["isError"], false, "{stdout}");
+    let text = cypher["content"][0]["text"]
+        .as_str()
+        .expect("a text content block");
+    assert!(text.starts_with("CREATE\n"), "{text}");
 }
 
 #[test]
