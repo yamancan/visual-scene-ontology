@@ -67,6 +67,9 @@ docs/vson.md      ★ Canonical single-file spec (Quick Start, reference, JSON S
 docs/strategy/    Productization plan, UI flows, extractor architecture
 spec/             Historical normative spec (v1.0) + v0.1 deprecation record
 ontology/         VSO TBox (OWL 2 RL) + VSV vocabulary
+                  + alignments.ttl — skos:closeMatch/relatedMatch toward gUFO,
+                  rdf:Statement, oa:, foaf: and a SKOS view of the six closed
+                  value vocabularies. Imported by nothing, loaded by no gate.
 shapes/           SHACL shapes for well-formedness
 queries/          29 competency questions (SPARQL 1.1) + byte-frozen answers — make cq-check
 examples/         Throne-room scene + gallery/ (16 scenes, minimal → complex)
@@ -183,7 +186,7 @@ VSON's genuinely-new content (everything else is W3C/ISO):
 
 1. **Frame taxonomy** as a first-class perspectival layer distinct from `Entity`.
 2. **Trait-bundle entity model** — orthogonal axes replace the folk Object/Item/Unique/Attribute mess.
-3. **`SpatialFact` with mandatory viewer for directionals** — directional facts are viewer-anchored by schema. VSON commits to the relative frame of reference (Levinson 2003) with an explicit, machine-checkable anchor; figure/ground asymmetry follows Talmy.
+3. **`SpatialFact` with a viewer a validator enforces** — not a new idea, and this list said otherwise until v1.3. Reifying a spatial relation with required, asymmetric figure and ground slots is standardized practice: ISO 24617-7:2020 requires a link structure to carry a relation type and two arguments, and names those two `@figure` and `@ground` in its revised movement link; SemEval-2012's spatial-role-labeling task ran on the same pair under the names *trajector* and *landmark*. Anchoring a directional to a frame of reference is Levinson's analysis. What VSON commits to is narrower: **one** frame (the relative one) rather than an annotation of which frame is in use, and the anchor as a **structural obligation with an exit code** — C5 and `vss:DirectionalNeedsViewerShape` reject the document, where the prior schemes instruct the annotator. [Appendix E.7](docs/vson.md#appendix-e) states what each of them does that this does not, including the annotated corpora and published agreement studies VSON has neither of.
 4. **Closed VSV vocabulary** curated for visual scenes.
 5. **Penman authoring surface** tuned for VSV.
 6. **VSON-X compact syntax** (v1.1) — nine prefix sigils, no brackets, LL(1), bearer-class dispatch for `*K V`. All 12 gallery scenes that have a VSON-X counterpart denote the same scene as their Penman twin under [§4.6](docs/vson.md#46-denotation--when-two-documents-describe-the-same-scene): identical RDFC-1.0 canonical N-Quads, frozen in [`tests/fixtures/canonical/hashes.txt`](tests/fixtures/canonical/hashes.txt).

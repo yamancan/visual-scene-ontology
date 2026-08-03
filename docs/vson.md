@@ -34,7 +34,7 @@ The keywords **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, **MAY** are int
 13. [Teaching an AI image generator](#13-teaching-an-ai-image-generator)
 14. [Appendix A — Consolidated JSON Schemas](#appendix-a)
 15. [Appendix B — Penman EBNF](#appendix-b)
-16. [Appendix C — Class registry](#appendix-c)
+16. [Appendix C — Example class profile](#appendix-c)
 17. [Appendix D — VSON-X grammar (normative)](#appendix-d)
 18. [Appendix E — Related work and bibliography](#appendix-e)
 
@@ -224,12 +224,13 @@ Four properties of the pinning are normative, because an implementation has to k
 | §5.14 | 0 | 0 | 0 | — |
 | §5.15 | 0 | 0 | 0 | — |
 | §5.16 | 0 | 0 | 0 | — |
+| §5.17 | 0 | 0 | 0 | — |
 | §6.1 | 0 | 0 | 0 | — |
 | §6.2 | 0 | 0 | 0 | — |
 | §6.3 | 0 | 0 | 0 | — |
 <!-- conformance-coverage:end -->
 
-**What is not covered, and why.** Six numbered sections have no entry, and the reason is the same for all of them: they do not state a property of a *document*. §5.14 (competency questions), §5.15 (graph agreement) and §5.16 (machine-readable reports) constrain what a *tool* does, and are gated by `make cq-check`, `tests/test_smatch.py` and `tests/test_validate_report.py`. §6.1 and §6.2 are the extractor envelope's JSON Schema, whose corpus is gated by `make envelope-check` — a JSON-Schema test type is a possible v1.4 addition and does not exist. §6.3 is a reference table of the shapes, not a constraint. Two further gaps are properties of the artifacts rather than of the suite, and are recorded where they live: `vss:DepictsEntityShape` is **vacuous** under C3's `inference="rdfs"` — `vso:depicts` declares `rdfs:range vso:Entity`, so the RDFS closure asserts the very type the shape checks, no document can fail it, and the manifest records it under `vsont:CoverageExemptions` with an entry pinning that a depicted `vso:SpatialFact` conforms; and Appendix B declares **no numbered parse-error set**, so VSON-P rejections are pinned by the reference parser's message where VSON-X rejections are pinned by a §D.7 identifier. The second is a weaker guarantee by exactly the amount this specification is weaker.
+**What is not covered, and why.** Seven numbered sections have no entry, and the reason is the same for all of them: they do not state a property of a *document*. §5.14 (competency questions), §5.15 (graph agreement) and §5.16 (machine-readable reports) constrain what a *tool* does, and are gated by `make cq-check`, `tests/test_smatch.py` and `tests/test_validate_report.py`. §5.17 (external alignment) constrains an artifact no gate loads and no document can violate — a conformant document is conformant whether or not the alignment layer exists — and is gated by `tests/test_alignments.py`. §6.1 and §6.2 are the extractor envelope's JSON Schema, whose corpus is gated by `make envelope-check` — a JSON-Schema test type is a possible v1.4 addition and does not exist. §6.3 is a reference table of the shapes, not a constraint. Two further gaps are properties of the artifacts rather than of the suite, and are recorded where they live: `vss:DepictsEntityShape` is **vacuous** under C3's `inference="rdfs"` — `vso:depicts` declares `rdfs:range vso:Entity`, so the RDFS closure asserts the very type the shape checks, no document can fail it, and the manifest records it under `vsont:CoverageExemptions` with an entry pinning that a depicted `vso:SpatialFact` conforms; and Appendix B declares **no numbered parse-error set**, so VSON-P rejections are pinned by the reference parser's message where VSON-X rejections are pinned by a §D.7 identifier. The second is a weaker guarantee by exactly the amount this specification is weaker.
 
 **One engine.** The suite runs against one SHACL implementation, `pyshacl`, which is also the one the reference verifier uses. That is a real limit on what a passing run means: it establishes that the *shapes* accept and reject these documents *as pyshacl reads them*, not that a second implementation reads them the same way. The runner carries an `--engine` seam and a documented adapter protocol for exactly that reason, and `--engine <name>` for an unregistered name exits 2 rather than falling back — a run that did not cross-validate never reports that it did. No second adapter ships: every available implementation (Apache Jena, RDF4J, TopBraid) needs a JVM and a downloaded distribution, which `make check` may not assume on a contributor's machine. The slot is open and the gap is stated rather than papered over.
 
@@ -274,6 +275,8 @@ Translate:
 "The lamp is to the left of the chair." Left from whose vantage? Without a viewer, the assertion is ambiguous. **VSON enforces an explicit viewer at the schema level**: any `vso:SpatialFact` carrying a `vso:directional` value **MUST** also carry exactly one `vso:viewer` pointing at a `vso:CameraView`. Symmetric/topological facts (`rcc:EC`, `rcc:DC`) do not need a viewer.
 
 Directional facts are viewer-anchored by schema — VSON commits to the relative frame of reference (Levinson 2003) and makes the anchor explicit and machine-checkable; intrinsic and absolute frames are out of scope for v1.x. Figure/ground asymmetry follows Talmy 2000: `vso:figure` is the located thing, `vso:ground` the reference thing, and the two slots are not interchangeable. Both citations are in [Appendix E](#appendix-e). (Shapes, tests, and tooling comments in this repository call the constraint "Talmy resolution" for historical reasons; the mechanism is the one described here.)
+
+**What is new here, stated narrowly.** Neither half of this design is an invention of this project, and earlier drafts of this document and of the README implied otherwise. Reifying a spatial relation with distinct, required figure and ground slots is standardized practice: ISO 24617-7:2020 requires a link structure to carry a relation type and two arguments, and names those two `@figure` and `@ground` in the revised movement link; the SemEval-2012 spatial-role-labeling task ran on the same asymmetry under the names *trajector* and *landmark* ([Appendix E.7](#appendix-e)). Anchoring a directional relation to a frame of reference is Levinson's analysis, not a schema decision. What VSON contributes is narrower and checkable: it **fixes one of the three frames** rather than annotating which one is in use, and it makes the anchor a **structural obligation a validator enforces** — C5, `vss:DirectionalNeedsViewerShape`, a document rejected with an exit code — rather than an annotation guideline a human is asked to follow. The value of that is not novelty; it is that "which viewer?" stops being answerable by reading the annotator's mind. [Appendix E.7](#appendix-e) states what each prior scheme does that this one does not.
 
 ### 3.4 Reification — the universal pattern
 
@@ -478,6 +481,8 @@ So **the vocabulary is three documents, and the closure of the core name is all 
 
 It is derived at build time by [`scripts/build_site.py`](../scripts/build_site.py) from the same tracked sources, never committed: a tracked copy of three tracked files is a drift surface. Turtle concatenation is legal but fails quietly — a re-declared prefix rebinds from that point on, a truncated source swallows the file after it, and both still parse — so `make site` checks the result against arithmetic rather than assuming it: the merged graph must state exactly the sum of the three sources parsed apart (1322 = 1103 + 85 + 134 at v1.3), and declare the same `owl:versionInfo`. Being outside the canonical-name set, it is not part of `make live-check`'s claim table, which covers the eight names above.
 
+**The one published document that is deliberately outside this closure** is [`ontology/alignments.ttl`](../ontology/alignments.ttl), the external-alignment and SKOS layer of §5.17. It is published at `/v1/alignments.ttl`, it is imported by nothing, and it is loaded by no gate — which is the point of it, not an oversight: what it states is how VSON's terms relate to vocabularies VSON does not depend on, and a consumer that follows the canonical name should not acquire those statements by accident. "The vocabulary is three documents" stays true after it ships.
+
 #### 5.1.2 What each term carries
 
 Three annotations were added to all three documents on 2026-08-01, each at zero coverage before it (183 terms, 186 labels, 186 comments — the three document IRIs are labelled but are not terms):
@@ -617,7 +622,7 @@ One of `vso:Agentive`, `vso:Inert`. Agents — humans, animals, animated mechani
 One of `vso:Count`, `vso:Mass`, `vso:Collective`. Substances are Mass; Aggregates are Collective; otherwise Count.
 
 #### `vso:class` *(string bareword or IRI, required, exactly 1)*
-Domain class — see Appendix C registry. Use `Unknown` rather than guessing.
+Domain class — see the example profile in Appendix C. Use `Unknown` rather than guessing.
 
 **Optional traits/edges**
 
@@ -1263,6 +1268,57 @@ The reference output is frozen, byte for byte, at [`tests/fixtures/validate_repo
 
 Exactly what §2 and §2.1 say a verdict establishes, and nothing further. A report is the same verdict with its parts named: a finding is a place where the document breaks a shape, a clause or the vocabulary, and an empty report is a document that breaks none of them. No image is read at any point, so a producer, a consumer or a build **MUST NOT** present a green report as evidence that the document describes the picture — and a passing SARIF log, which a scanner will render beside findings from tools that do read the artifact they check, is the easiest place in this specification to forget that.
 
+### 5.17 External alignment ([`ontology/alignments.ttl`](../ontology/alignments.ttl))
+
+A vocabulary that points at nothing outside itself is a vocabulary a stranger has to take on trust. Through v1.3 this one pointed outside twice — the eight `rcc:` individuals at OGC GeoSPARQL and the thirteen `allen:` properties at W3C OWL-Time (§5.9) — and the 186-term core pointed nowhere at all. This section is the layer that changes that, and the precise statement of how little it claims.
+
+#### 5.17.1 What ships, and what loads it
+
+[`ontology/alignments.ttl`](../ontology/alignments.ttl) is an **additive layer**. It is not in the `owl:imports` closure of the canonical name (§5.1.1), not in [`tools/shacl_helper.py`](../tools/shacl_helper.py)'s ontology list, and not loaded by any gate: `vson validate`'s three gates, `make check`'s SHACL and OWL 2 RL steps, the conformance suite of §2.2 and the studio's in-browser worker all see the same graph after this file exists that they saw before it. A conformant document is conformant whether or not a consumer ever fetches it, and nothing in this section changes a C-clause, a shape or a value space.
+
+That inertness is the design, not an omission. Every triple in the file is a statement about how a VSON term relates to a vocabulary VSON does not depend on. A consumer that wants those statements fetches them; a consumer that does not should not receive them by parsing the canonical name.
+
+The file is published at `/v1/alignments.ttl` on the namespace host and is **not** one of the names §5.1 promises to dereference: the `w3id.org` rule routes the five v1 namespace documents explicitly, `https://w3id.org/vson/v1/alignments` is not among them, and [`scripts/check_live_claims.py`](../scripts/check_live_claims.py) carries no claim for it. The name is declared in the document header because an `owl:Ontology` needs one; no dereference is promised, for the same reason §8.1 makes no promise for `owl:versionIRI`.
+
+#### 5.17.2 The two predicates, and the entailment neither imports
+
+Exactly two predicates appear, and an implementation reading the file **MUST NOT** find a third:
+
+| Predicate | What it records |
+|---|---|
+| `skos:closeMatch` | The two terms have the same reading and could be interchanged in most applications. |
+| `skos:relatedMatch` | The two terms are associated, and one is **not** a substitute for the other. |
+
+Neither imports an OWL entailment. `owl:sameAs`, `owl:equivalentClass`, `owl:equivalentProperty`, `rdfs:subClassOf`, `rdfs:subPropertyOf` and `skos:exactMatch` are absent, and [`tests/test_alignments.py`](../tests/test_alignments.py) fails the build if one appears. A consumer that wants the aligned vocabulary's triples **MUST** rewrite them itself, and no VSON gate checks that rewrite — the advisory posture of the §5.9 design note, applied to the whole core.
+
+The alignments themselves, and what each one does *not* claim:
+
+| VSON term | Predicate | Target | The claim, and its limit |
+|---|---|---|---|
+| `vso:Endurant`, `vso:Perdurant`, `vso:PhysicalObject`, `vso:Substance`, `vso:Aggregate`, `vso:Quality` | `closeMatch` | `gufo:Endurant`, `gufo:Event`, `gufo:Object`, `gufo:Quantity`, `gufo:Collection`, `gufo:Quality` | §3.1's top is DOLCE-*inspired*, and gUFO ([E.3](#appendix-e)) is the nearest published vocabulary whose terms are IRIs. The matches hold **term by term and do not compose**: `gufo:Quantity` and `gufo:Collection` are subclasses of `gufo:Object`, while `vso:Substance` and `vso:Aggregate` are siblings of `vso:PhysicalObject`. That is exactly the difference between `skos:closeMatch` and `rdfs:subClassOf`, and the reason only the first is asserted. |
+| `vso:Region` | `relatedMatch` | `gufo:QualityValue` | A region is the space a value is drawn from; a quality value is the value. Neighbours, not substitutes. |
+| `vso:properPartOf` | `closeMatch` | `gufo:isProperPartOf` | Transitive proper parthood, same direction. `vso:partOf` and `vso:hasPart` have no counterpart at that level and are left unaligned. |
+| `vso:Annotation`, `vso:annotatedSubject`, `vso:annotatedPredicate`, `vso:annotatedObject` | `closeMatch` | `rdf:Statement`, `rdf:subject`, `rdf:predicate`, `rdf:object` | §5.11's reified form **is** RDF reification spelled in this namespace. VSON declares its own because the node also carries the payload (`vso:probability`, `vso:confidence`) and because it is a member of the disjointness set that separates the reification kinds from the Frame layer — a membership `rdf:Statement` could not be given without constraining RDF's own vocabulary. |
+| `vso:Annotation` | `relatedMatch` | `oa:Annotation` | The body/target separation is the same shape ([E.6](#appendix-e)); the targets are not. An `oa:Annotation` targets a resource or a media fragment, a `vso:Annotation` targets a **triple**, and the Web Annotation model defines no target for a statement. |
+| `vso:depicts` | `relatedMatch` | `foaf:depicts` | `foaf:depicts` runs from an image; `vso:depicts` runs from a `vso:Composition`, which is the mereological root of a scene and not a depiction of one. A rewrite has to decide which image the Composition belongs to, and this vocabulary does not say. |
+
+#### 5.17.3 The four gaps, and why each is a sentence rather than a triple
+
+An alignment whose target has no IRI cannot be a triple. Recording it as prose is the honest form; recording it as nothing is what makes a related-work section look complete when it is not. Each of the four below is also an `rdfs:comment` on the alignment document, so a consumer holding only that graph gets the reason too.
+
+- **ISO 24617-7:2020.** Its link structures carry a relation type and two required arguments, and the revised movement link names those two `@figure` and `@ground` — the same asymmetry `vso:figure` / `vso:ground` carries, standardized before this project existed. No triple is minted because the standard is specified as an abstract syntax with XML concrete syntaxes and publishes no RDF namespace: there is no IRI for `@figure` to close-match. [Appendix E.7](#appendix-e) states the correspondence, and §3.3 states what it costs the novelty claim.
+- **The vision datasets' label vocabularies.** `vso:class` is an open dimension (§5.12) and the obvious place to meet Visual Genome, GQA, PSG and Open Images V7. None is minted: PSG's object and predicate classes and GQA's cleaned vocabulary ship as label lists rather than IRIs, and Open Images V7 identifies classes by Freebase / Google Knowledge Graph MIDs (`/m/01g317`), which are identifiers rather than names that resolve today. A per-dataset mapping table is **data**, belongs with an importer, and is not an alignment.
+- **PROV-O.** VSON records producer provenance only as envelope JSON (§6.1) and as a free-text value, so there is no TBox term for `prov:wasGeneratedBy` or `prov:wasAttributedTo` to match. The one property whose name invites the mapping, `vso:source`, is already the *source* thematic role of a motion (§5.6); aligning it to provenance would make one IRI carry two unrelated readings.
+- **`schema:ImageObject`.** VSON models the scene, not the file: no term denotes the image, its bytes, its dimensions or its URL. That absence is why the depiction alignment above sits on `vso:depicts` and is `relatedMatch`.
+
+#### 5.17.4 The SKOS view of the closed value vocabularies
+
+Six value spaces are closed to producer invention (§5.12) and their members are IRIs: `vso:individuation`, `vso:animacy`, `vso:countability`, `vso:affordance`, `vso:directional`, `vso:proximal`. That is the shape of a controlled vocabulary, and the interchange form for a controlled vocabulary is SKOS — the form a term browser, a thesaurus tool and a vocabulary registry ask for and that the VSON namespace could not give them.
+
+The second half of the alignment file is that view: one `skos:ConceptScheme` per value class, one `skos:Concept` per value, `skos:inScheme` and `skos:topConceptOf` on every member because these vocabularies are flat. It is **generated** from [`ontology/vso.ttl`](../ontology/vso.ttl) by [`scripts/build_alignments.py`](../scripts/build_alignments.py): every `skos:prefLabel` is that value's own `rdfs:label` and every `skos:definition` its own `rdfs:comment`, copied rather than re-worded, so the view cannot say something the vocabulary does not. [`tests/test_alignments.py`](../tests/test_alignments.py) checks it twice — against a SKOS integrity shapes graph with `pyshacl`, and term-by-term against the source vocabulary, which SHACL cannot do because the source is not in the file under test.
+
+Typing a value `skos:Concept` does not remove it from its VSO class, does not make it an `owl:Class`, and asserts no hierarchy. The eight `rcc:` relations are not viewed here — they are individuals in their own document, which already carries their GeoSPARQL alignment — and the thirteen `allen:` relations are not either, because they are *properties*, and a concept scheme whose members are properties is a category error. `vso:dimension` is closed only within the VSO namespace (§5.12) and takes document-namespace IRIs as conformant values, so it is not a controlled vocabulary in this sense.
+
 ---
 
 ## 6. JSON Schema and validation rules
@@ -1819,9 +1875,9 @@ Reading the productions:
 
 ---
 
-## Appendix C — Class registry {#appendix-c}
+## Appendix C — Example class profile {#appendix-c}
 
-Open registry. `vso:class` is an open dimension (§5.12): any bareword is conformant, and `Unknown` is the always-safe fallback. The list below is an **illustrative registry for the gallery's fantasy-scene domain** — a starting vocabulary sized for the kind of scene the examples depict, not a controlled vocabulary and not a canonical set. Extend it per domain, under your own namespace where you need term identity (§8); no validator checks membership in this list, so nothing here constrains a conformant document.
+**This is an example profile, not a registry** — the word *registry* was this appendix's title through v1.3, and it invited exactly the reading the paragraph beneath it denied. `vso:class` is an **open** dimension (§5.12): any bareword is conformant, and `Unknown` is the always-safe fallback. What follows is one worked profile for the fantasy-scene domain the gallery depicts — a starting vocabulary sized for those scenes, chosen to make the examples readable, and neither a controlled vocabulary nor a canonical set. Nothing registers a term here, nothing reviews an addition, and no validator checks membership: a document using none of these names is exactly as conformant as one using all of them. Extend or replace it per domain, under your own namespace where you need term identity (§8). §5.17.3 records why no alignment is minted from this list to any vision dataset's labels.
 
 **People / agents.** `Human, Knight, Queen, King, Soldier, Woman, Man, Child, Merchant, Monk, Servant, Civilian, Peasant`
 
@@ -2126,6 +2182,9 @@ Levinson's three frames of reference are why C5 exists: VSON commits to the **re
 **Masolo, C., Borgo, S., Gangemi, A., Guarino, N., & Oltramari, A. (2003). *WonderWeb Deliverable D18: Ontology Library (final)*. ISTC-CNR.**
 The definitive DOLCE description; VSON's `Endurant / Perdurant / Quality / Region` top is **DOLCE-inspired** — it borrows the category names and the endurant/perdurant cut, and imports no DOLCE IRI or axiom (§3.1).
 
+**Almeida, J. P. A., Guizzardi, G., Sales, T. P., & Falbo, R. A. (2019). *gUFO: A Lightweight Implementation of the Unified Foundational Ontology (UFO)*. Namespace `http://purl.org/nemo/gufo#`.**
+Where the borrowing above is finally recorded as triples. DOLCE's own IRIs are not used (§3.1), and gUFO is the nearest published foundational vocabulary whose terms *are* IRIs, so §5.17's `skos:closeMatch` set points at gUFO: `Endurant`, `Event`, `Object`, `Quantity`, `Collection`, `Quality`. What VSON does not take is gUFO's axiomatization or its taxonomy shape — `gufo:Quantity` and `gufo:Collection` sit under `gufo:Object` where `vso:Substance` and `vso:Aggregate` are siblings of `vso:PhysicalObject` — which is why six close-matches do not add up to a subsumption mapping.
+
 ### E.4 Predicate-argument structure
 
 **Kipper Schuler, K. (2005). *VerbNet: A Broad-Coverage, Comprehensive Verb Lexicon*. PhD dissertation, University of Pennsylvania.**
@@ -2154,10 +2213,48 @@ The reference corpus for dense scene-graph annotation and a listed export target
 **Hudson, D. A., & Manning, C. D. (2019). GQA: A New Dataset for Real-World Visual Reasoning and Compositional Question Answering. *IEEE Conference on Computer Vision and Pattern Recognition (CVPR)*.**
 GQA showed what a normalized, cleaned scene-graph vocabulary buys downstream — the argument for VSON's closed enumerations and SHACL gate, rather than post-hoc cleanup.
 
+**Lu, C., Krishna, R., Bernstein, M., & Fei-Fei, L. (2016). Visual Relationship Detection with Language Priors. *European Conference on Computer Vision (ECCV)*.**
+VRD is where the ⟨subject, predicate, object⟩ triple over a **fixed** predicate list became the unit vision research is scored on — 100 object categories and 70 predicates. VSON's closed relation vocabularies (§5.12) share that instinct and apply it one layer up, in the schema rather than in a dataset split. What VSON leaves is the flat list: VRD's 70 predicates mix verbs, prepositions and comparatives in one set, so a single label carries a topological, a directional and an action reading at once. VSON splits those into `vso:rcc`, `vso:directional` (with its viewer), `vso:proximal`, thematic roles and possession, which is why no VSON slot can be ambiguous in the way a flat predicate is.
+
+**Yang, J., Ang, Y. Z., Guo, Z., Zhou, K., Zhang, W., & Liu, Z. (2022). Panoptic Scene Graph Generation. *European Conference on Computer Vision (ECCV)*.**
+The closed-predicate move, executed on a corpus, three years before this project started — the entry that most constrains what §5.12 may claim. PSG annotates 49k images overlapping COCO and Visual Genome against a **predefined predicate set of 56 relations** which its authors group into positional relations, common object–object relations, common actions, human actions, traffic-scene actions, sports-scene actions and background interactions, with objects drawn from COCO panoptic's 133 classes (80 *things* + 53 *stuff*) instead of Visual Genome's open strings. The stated reason is the one §5.12 gives: predicate definition was left unexamined in earlier datasets, and a curated set is what removes trivial and duplicated relations. **So closing a predicate vocabulary for visual scenes is not this project's idea, and this document does not claim it is.** What VSON adds is the locus of enforcement — PSG's 56 predicates are what annotators were *asked* to use, VSON's closed sets are what a document is *rejected* for leaving (C2/C3, §2) — and what VSON does not have is PSG's evidence: an annotated corpus at that scale, and models trained against it (§7's Visual Genome mapping is spec-only, and this repository ships no importer).
+
+**Chang, X., Ren, P., Xu, P., Li, Z., Chen, X., & Hauptmann, A. (2023). A Comprehensive Survey of Scene Graphs: Generation and Application. *IEEE Transactions on Pattern Analysis and Machine Intelligence*, 45(1).**
+The field survey a reader should start from rather than from this appendix: scene-graph generation as a task, its datasets and its metrics, in one place. Cited to say where VSON is *not* — it is a notation and a validator, and takes no position on generation architectures.
+
+**Ji, J., Krishna, R., Fei-Fei, L., & Niebles, J. C. (2020). Action Genome: Actions as Compositions of Spatio-Temporal Scene Graphs. *IEEE Conference on Computer Vision and Pattern Recognition (CVPR)*.**
+Scene graphs over time: an action decomposed into the per-frame graphs it passes through. VSON is a **still-image** scheme — §5.9's Allen relations hold between Perdurants inside one depicted moment, and nothing in v1.x indexes a frame or a timestamp. Action Genome is the shape a future video profile would have to take, and naming it here is the honest way to bound §5.9's temporal claim.
+
+**Armeni, I., He, Z.-Y., Gwak, J., Zamir, A. R., Fischer, M., Malik, J., & Savarese, S. (2019). 3D Scene Graph: A Structure for Unified Semantics, 3D Space, and Camera. *IEEE/CVF International Conference on Computer Vision (ICCV)*.**
+The prior art nearest to §3.3's `vso:CameraView`: a scene graph whose nodes include cameras alongside objects and rooms. Putting the camera in the graph is therefore not new here. The difference is obligation — 3D Scene Graph *can* relate a camera to what it sees; VSON *requires* one on every directional fact, and rejects the document without it.
+
+**Anderson, P., Fernando, B., Johnson, M., & Gould, S. (2016). SPICE: Semantic Propositional Image Caption Evaluation. *European Conference on Computer Vision (ECCV)*.**
+The other graph-agreement metric §5.15 could have been. SPICE scores a caption by parsing it into a scene graph and comparing that graph's tuples with the reference's — F-score over propositional content rather than over n-grams. VSON does not use it, for one structural reason: SPICE's input is text and its graph is whatever its parser produced, so the metric measures parser and caption together, while §5.15 compares two documents that are already graphs. What VSON takes from it is the argument, which is the same argument: the unit of agreement for a scene description is the tuple, not the string.
+
 ### E.6 Web standards VSON builds on or borrows patterns from
 
+The four Recommendations below are the load-bearing ones: remove any of them and a conformance clause of §2 stops having a definition. They were left implicit through v1.3, named in the prose but absent from this bibliography, which made the list of things VSON *builds on* shorter than the list of things it *cites*.
+
+**Knublauch, H., & Kontokostas, D. (eds.). *Shapes Constraint Language (SHACL)*. W3C Recommendation, 20 July 2017.**
+C3 is a SHACL verdict and nothing else (§2). VSON defines no constraint component and no extension: [`shapes/vson-shapes.ttl`](../shapes/vson-shapes.ttl) is Core SHACL plus one `sh:sparql` constraint where Core cannot reach. What VSON does not take is SHACL-AF's rule layer — a shape here rejects, it never infers.
+
+**Motik, B., Cuenca Grau, B., Horrocks, I., Wu, Z., Fokoue, A., & Lutz, C. (eds.). *OWL 2 Web Ontology Language Profiles (Second Edition)*. W3C Recommendation, 11 December 2012.**
+The document that defines the fragment §2's second gate materializes. VSON's TBox is written to stay inside **OWL 2 RL** so that closure is a fixed-point computation rather than a tableau search; §5.9's "what the OWL 2 RL layer actually infers" is the concrete list, and the eight untyped bridge properties that put the full graph outside OWL 2 DL are recorded in the ontology header rather than hidden.
+
+**Prud'hommeaux, E., & Carothers, G. (eds.). *RDF 1.1 Turtle: Terse RDF Triple Language*. W3C Recommendation, 25 February 2014.**
+VSON-T's syntax (§4.1), with no deviation. The `<< s p o >>` quoted-triple form §5.11 admits belongs to the later RDF 1.2 / Turtle 1.2 work, which is on the Recommendation track; this document states no publication status for that suite, because the only fact that bears on a VSON implementation is the measured one in §5.14.2 — the pinned engine parses neither spelling — and §4.6 already requires the RDF 1.1-portable reduction before canonicalization.
+
+**Harris, S., & Seaborne, A. (eds.). *SPARQL 1.1 Query Language*. W3C Recommendation, 21 March 2013.**
+The language the competency-question pack of §5.14 is written in, and the reason it stops where it does: 28 of the 29 questions are SPARQL 1.1 with no extension, and the twenty-ninth needs quoted-triple patterns that this Recommendation does not define. §5.14.2 is the capability matrix.
+
+**Miles, A., & Bechhofer, S. (eds.). *SKOS Simple Knowledge Organization System Reference*. W3C Recommendation, 18 August 2009.**
+Two uses, both deliberately weak. `skos:closeMatch` and `skos:relatedMatch` carry every alignment this project asserts — in [`ontology/rcc8.ttl`](../ontology/rcc8.ttl), [`ontology/allen.ttl`](../ontology/allen.ttl) and §5.17's layer — precisely because SKOS mapping properties import no OWL entailment, which is the whole claim. And §5.17.4's generated view spells the six closed value vocabularies as concept schemes so a thesaurus tool can read them. What VSON does not use is the rest of SKOS: no `broader`/`narrower`, no collections, no `skos:exactMatch` anywhere.
+
 **Sanderson, R., Ciccarese, P., & Young, B. (eds.). *Web Annotation Data Model*. W3C Recommendation, 2017.**
-The body/target separation is the same shape as `vso:Annotation` (§5.11); VSON keeps its own minimal class rather than adopting the model, because its targets are triples rather than media fragments.
+The body/target separation is the same shape as `vso:Annotation` (§5.11); VSON keeps its own minimal class rather than adopting the model, because its targets are triples rather than media fragments. §5.17 records that as a `skos:relatedMatch` — related, not interchangeable, because the model defines no target for a statement.
+
+**Brickley, D., & Miller, L. *FOAF Vocabulary Specification*. Namespace `http://xmlns.com/foaf/0.1/`.**
+Not a W3C Recommendation and named here for one term: `foaf:depicts`, the long-standing way to say an image shows a thing. §5.17 close-matches nothing to it and relates `vso:depicts` to it, because `foaf:depicts` starts at an image and `vso:depicts` starts at a `vso:Composition` — and this vocabulary has no term for the image at all.
 
 **Lebo, T., Sahoo, S., & McGuinness, D. (eds.). *PROV-O: The PROV Ontology*. W3C Recommendation, 2013.**
 The natural target for extractor provenance; VSON v1.1 records only a free-text `vso:source` on annotations and envelope-level `extraction` metadata (§6.1), so PROV-O alignment is future work, not a shipped feature.
@@ -2168,7 +2265,36 @@ The standard §4.6 borrows whole: label every blank node from the graph's own sh
 **OASIS. *Static Analysis Results Interchange Format (SARIF) Version 2.1.0*. OASIS Standard, 27 March 2020.**
 The report format §5.16.4 emits, and the reason `vson validate` emits one at all: a violation only becomes a mark on the offending line if something already reads the file, and every code scanner already reads this. VSON adds nothing to it — one `run`, one `result` per violation, the VSON-specific fields parked in `result.properties` where the format says extensions belong. No URL is cited here for the same reason the emitted log carries no `$schema`: this document does not name a location it has not checked.
 
-### E.7 Ontology engineering methodology
+### E.7 Spatial annotation standards
+
+The section this appendix was missing, and the one that most changes what §3.3 may claim. Everything below annotates **language** rather than pictures, which is why none of it appeared here before — and every one of them had already made the two decisions §3.3 presents as VSON's design: name the two arguments of a spatial relation asymmetrically, and require both. Reading this section as a list of things VSON did first is reading it wrong. It is the record of what was already standardized, so that the narrow thing VSON does add is legible as narrow.
+
+Two conventions apply throughout. The ISO entries are cited **by number and title only**: this project has not verified a copy of either standard's text, and paraphrasing a paywalled clause would be asserting something it cannot show. Where a fact about ISO-Space is stated below, it is stated from the open-access ISA-14 paper immediately after it, which is the source that was read. And no inter-annotator agreement number is restated from any entry here — the studies are named and their designs described, because that is what was verified; their tables were not.
+
+**ISO 24617-7:2020. *Language resource management — Semantic annotation framework — Part 7: Spatial information*. International Organization for Standardization.**
+The standard for annotating spatial and spatiotemporal information in natural-language text: locations, spatial entities, spatial relations with topological, orientational and metric values, motion events, paths and event-paths. The 2020 edition is the second, superseding ISO 24617-7:2014, whose title carried the scheme's common name, *ISOspace*. Its link structures are required to carry a relation type and two arguments — the triplet structure ISO 24617-6 mandates of a link — and in the revised movement link those two arguments are named, literally, `@figure` and `@ground`. That is established below from the open-access ISA-14 paper, not from this standard's text. **What VSON takes:** nothing it needed to be told — but the reification pattern of §3.4 and §5.7, a relation made into a structure with two distinct named arguments and a relation type, is this standard's structure, published before this project began. **What VSON leaves:** the entire text layer. ISO-Space anchors its structures to *markables* — spans of a document — and VSON has no document to point into; and its motion apparatus (motion events, paths, event-paths) has no VSON counterpart at all, since §5.9's Allen relations hold between Perdurants inside one depicted moment and nothing in v1.x describes a trajectory.
+
+**Lee, K., Pustejovsky, J., & Bunt, H. (2018). The Revision of ISO-Space, Focused on the Movement Link. *Proceedings of the 14th Joint ACL–ISO Workshop on Interoperable Semantic Annotation (ISA-14)*.**
+The open-access record of the revision that became the 2020 edition, and the source the paragraph above rests on rather than on a standard this project has not read. Its attribute-value specification for the movement link lists `figure`, `ground` and `relType` among the **required** attributes, and states that this instantiates the general triplet link structure ⟨η, E, ρ⟩ that ISO 24617-6 requires of a link — η the figure, E the ground, ρ the relation type. That triplet is, slot for slot, a `vso:SpatialFact` carrying `vso:figure`, `vso:ground` and exactly one relation value. The names are Talmy's on both sides; the requirement that both be present is standardized on the ISO side and enforced by a shape on the VSON side, and those are different things but not different ideas.
+
+**ISO 24617-14:2023. *Language resource management — Semantic annotation framework (SemAF) — Part 14: Spatial semantics*. International Organization for Standardization.**
+Part 7's companion: a formal semantics for the annotation structures Part 7 defines, translating them into semantic forms in a type-theoretic first-order logic and interpreting those against a model. Named here for what VSON does **not** have. §7's FOL exporter renders a document into first-order syntax and no clause of this specification interprets that syntax against a model; "machine-checkable" here means SHACL, an OWL 2 RL closure and a geometry procedure (§2.1, §5.13), never model-theoretic truth. A reader looking for the semantics half of a spatial annotation scheme should read this standard, not this document.
+
+**Bateman, J. A., Hois, J., Ross, R., & Tenbrink, T. (2010). A linguistic ontology of space for natural language processing. *Artificial Intelligence*, 174(14).**
+GUM-Space: the spatial extension of the Generalized Upper Model, a detailed semantics for linguistic spatial expressions built with the methods of formal ontology, covering space, action in space, and spatial relationships. It is the fully-worked version of what §5.7's six directional and five proximal values are a deliberate coarsening of, and it is cited here for the same reason §5.6 cites FrameNet: the finer analysis is the one a vision-language model cannot reliably produce from a still image, so VSON took the smaller inventory on purpose and owes the reader the name of what it gave up.
+
+**Hois, J. (2010). Inter-Annotator Agreement on a Linguistic Ontology for Spatial Language — A Case Study for GUM-Space. *Proceedings of the 7th International Conference on Language Resources and Evaluation (LREC 2010)*.**
+The published agreement study for GUM-Space, and the entry that says most about this project. Its design, from the abstract: four uninformed annotators, instructed by a manual, annotating 200 sentences of varying length and complexity, with the authors' own expert annotation of the same sentences included in the computation. **This document does not restate its figures.** The abstract reports "encouraging results" without quantifying them, this project verified the abstract and not the tables, and a number cited from something unread is exactly the failure §2.1 exists to prevent. What is verified, and what matters: a scheme that asks people to apply it publishes a study like this one, and VSON has not. §2.1 and §5.15.5 already say this repository reports no agreement figure, because it has no annotated corpus and no second annotator; this is the shape of the study that would have to exist before it could.
+
+**Mani, I., Doran, C., Harris, D., et al. (2010). SpatialML: annotation scheme, resources, and evaluation. *Language Resources and Evaluation*, 44.** (The author list is given as the indexing record gives it; this document does not spell names it has not seen on the paper.)
+The place-focused ancestor: named and nominal references to places, grounded in geo-coordinates where possible, with relations among places characterized in a region calculus — the same RCC family §5.7 draws its eight values from — plus an annotation editor and annotated corpora, and a published agreement evaluation whose figures this document likewise does not restate. **VSON takes the opposite line on grounding, deliberately.** SpatialML grounds a place in the world: coordinates, gazetteer identity, a referent that exists whether or not anyone wrote about it. VSON grounds nothing outside the picture — a `vso:PhysicalObject` carries a `vso:bbox2d` in normalized image coordinates (§5.10) and makes no claim about the Earth, and §2.1 states that a green verdict is not even a claim about the image. Two schemes with a shared calculus and opposite referential commitments.
+
+**Kordjamshidi, P., Bethard, S., & Moens, M.-F. (2012). SemEval-2012 Task 3: Spatial Role Labeling. *\*SEM 2012: The First Joint Conference on Lexical and Computational Semantics*.**
+The shared task that turned the figure/ground pair into an evaluated unit under different names: *trajector*, *landmark*, and the *spatial indicator* that triggers the relation, with a relation type assigned to each ⟨trajector, spatial indicator, landmark⟩ triple. `vso:figure` and `vso:ground` are those two roles with Talmy's names. VSON has no counterpart to the spatial indicator, and cannot: there is no text to point at, so the trigger of a `vso:SpatialFact` is a producer's decision about a picture rather than a word in a sentence. What this entry costs the project is what the ISO entries cost it — naming the two arguments and requiring both is prior art, with a shared task and a leaderboard behind it.
+
+**What is left over.** Every scheme above annotates language; VSON annotates a picture, and the trade that comes with the move is worth stating in both directions. What VSON gives up: a text layer, a semantics (24617-14), a motion apparatus, world-grounded referents (SpatialML), and — the one that is not a design decision — an annotated corpus and a published agreement figure, which several entries here have and this project has neither of. What VSON adds is one thing: the constraints are executed by a **validator that rejects documents**, not written in a manual an annotator is asked to follow. C5 is not a stronger claim about space than ISO-Space's `@figure`/`@ground`; it is the same claim with an exit code attached. §3.3 says this, and earlier drafts of it did not.
+
+### E.8 Ontology engineering methodology
 
 **Grüninger, M., & Fox, M. S. (1995). Methodology for the Design and Evaluation of Ontologies. *Proceedings of the IJCAI-95 Workshop on Basic Ontological Issues in Knowledge Sharing*.**
 Where competency questions come from: the requirements an ontology is evaluated against are stated as questions it must be able to answer, and the evaluation is whether it answers them. §5.14 takes the second half literally — each question ships as a query with a frozen answer, so "can answer" is a thing CI decides rather than a thing the author asserts.
