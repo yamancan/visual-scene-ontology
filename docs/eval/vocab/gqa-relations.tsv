@@ -1,0 +1,324 @@
+# dataset: gqa
+# source: https://downloads.cs.stanford.edu/nlp/data/gqa/sceneGraphs.zip
+# sha256: 59f6a3f6ac5227bac6cc615508e542dd546e309c7dbbdb666de05e42d7c51989
+# retrieved: 2026-08-03
+# format_documentation: https://cs.stanford.edu/people/dorarad/gqa/download.html
+# images: 85638 (train_sceneGraphs.json 74942 + val_sceneGraphs.json 10696)
+# method: every objects[*].relations[*].name / objects[*].attributes[*] / objects[*].name counted once per occurrence, lower-cased with whitespace collapsed
+# licence: not stated on the GQA site pages retrieved 2026-08-03; see docs/eval/attribution.md
+# axis: relation predicates
+# total_types: 310
+# total_tokens: 4330796
+# rows: the complete measured vocabulary
+# ---
+count	name
+1929591	to the right of
+1929591	to the left of
+103515	on
+61335	wearing
+39442	of
+37512	near
+35687	in
+21672	behind
+21626	in front of
+11801	holding
+11336	on top of
+10810	next to
+10541	above
+8639	with
+8215	below
+6445	by
+5590	sitting on
+4136	under
+3691	on the side of
+3217	beside
+2956	standing on
+2530	inside
+2325	carrying
+2098	at
+1862	walking on
+1860	riding
+1845	standing in
+1691	around
+1682	covered by
+1622	hanging on
+1608	lying on
+1557	eating
+1477	watching
+1455	looking at
+1404	covering
+1194	sitting in
+1162	on the front of
+1051	hanging from
+968	parked on
+916	riding on
+826	using
+746	covered in
+676	flying in
+609	sitting at
+575	walking in
+568	playing with
+561	full of
+555	filled with
+547	on the back of
+544	crossing
+516	swinging
+506	surrounded by
+501	standing next to
+482	reflected in
+456	covered with
+441	contain
+427	touching
+419	pulling
+418	pulled by
+416	flying
+393	leaning on
+393	hitting
+371	lying in
+371	standing by
+362	driving on
+344	sitting on top of
+340	throwing
+336	walking down
+332	surrounding
+331	parked in
+327	underneath
+311	growing in
+308	growing on
+304	standing behind
+299	standing near
+292	playing
+286	printed on
+279	attached to
+277	beneath
+274	mounted on
+269	facing
+265	talking on
+256	leaning against
+255	cutting
+239	resting on
+239	lying on top of
+228	driving
+228	floating in
+227	worn on
+223	catching
+211	grazing on
+193	standing in front of
+192	playing in
+189	topped with
+188	drinking
+187	on the bottom of
+184	walking with
+173	swimming in
+170	driving down
+169	hanging over
+165	waiting for
+160	close to
+159	pushed by
+159	pushing
+157	sitting next to
+152	playing on
+151	feeding
+138	between
+135	reading
+133	running on
+132	holding onto
+130	on the edge of
+128	tied to
+127	eating from
+127	painted on
+127	talking to
+121	reaching for
+121	perched on
+118	grazing in
+116	parked by
+115	sleeping on
+112	skiing on
+111	hanging above
+110	connected to
+107	stacked on
+104	stuck in
+103	standing beside
+103	standing at
+103	floating on
+103	wrapped around
+101	parked near
+100	parked next to
+99	working on
+98	parked at
+98	hanging in
+96	walking across
+94	plugged into
+93	seen through
+89	flying over
+88	parked along
+87	stuck on
+87	selling
+86	parked in front of
+86	looking out
+85	drinking from
+84	coming from
+84	sitting by
+84	wrapped in
+82	sitting in front of
+80	serving
+79	kicking
+76	petting
+75	standing on top of
+73	walking by
+73	lying inside
+72	hung on
+71	sitting with
+71	sitting inside
+69	walking along
+69	making
+68	sitting behind
+68	standing under
+67	walking through
+67	walking near
+66	running in
+65	going down
+64	followed by
+64	following
+64	on the other side of
+63	mounted to
+62	hanging off
+62	leading
+62	riding in
+61	chasing
+60	flying through
+59	flying above
+59	sniffing
+59	coming out of
+59	leaving
+59	licking
+57	boarding
+56	sitting near
+56	parked alongside
+56	biting
+55	walking behind
+53	parked behind
+53	looking in
+52	sitting under
+51	parked beside
+51	skiing in
+50	sitting beside
+50	growing near
+50	staring at
+50	helping
+49	walking next to
+49	hanging out of
+48	entering
+48	leaning over
+47	tied around
+47	draped over
+47	hugging
+47	walking toward
+46	growing behind
+45	exiting
+45	balancing on
+45	served on
+44	sewn on
+44	jumping over
+44	drawn on
+43	reflecting in
+43	looking into
+42	growing next to
+41	reflected on
+40	about to hit
+40	looking down at
+39	getting on
+39	walking towards
+39	walking up
+38	traveling on
+38	posing with
+38	observing
+37	approaching
+37	preparing
+36	wading in
+36	eating at
+34	pointing at
+34	jumping on
+34	mixed with
+34	grabbing
+34	displayed on
+33	opening
+32	climbing
+32	lying next to
+31	standing against
+31	scattered on
+31	working in
+31	growing along
+31	growing by
+30	chewing
+30	tossing
+30	going into
+29	taller than
+29	walking to
+28	piled on
+28	looking through
+28	typing on
+28	looking over
+28	eating in
+28	growing from
+28	coming down
+28	picking up
+28	washing
+27	trying to catch
+27	chained to
+27	sleeping in
+27	herding
+27	skiing down
+27	guiding
+27	decorated by
+27	decorating
+26	tying
+26	smoking
+25	running through
+25	decorated with
+24	cleaning
+24	smiling at
+24	slicing
+23	going through
+23	smelling
+23	dragging
+22	walking past
+22	enclosing
+22	shining through
+21	traveling down
+21	falling off
+21	skating on
+21	adjusting
+21	photographing
+21	worn around
+21	cooking
+20	jumping off
+20	walking into
+20	hang from
+20	blowing out
+19	sprinkled on
+19	towing
+19	kissing
+18	running across
+17	moving
+16	kept in
+16	hidden by
+15	splashing
+14	sitting around
+14	looking toward
+12	cooked in
+11	larger than
+11	displayed in
+10	in between
+10	brushing
+10	sitting atop
+8	pouring
+8	standing around
+8	buying
+7	smaller than
+5	longer than
+5	playing at
+4	shorter than
+4	bigger than
+4	higher than
+4	jumping in

@@ -1,0 +1,10 @@
+# Imported from PSG by `python3 -m tools.importers psg` (tools/importers, v1.0.0).
+# Source record: image 000000000139 (val2017/000000000139.jpg). Mapping table: tools/importers/mappings/psg.json.
+# The CameraView is minted by the importer, not annotated by PSG (docs/vson.md C5). Nothing here was read off the image.
+(scene / Composition
+   :framedBy (cam / CameraView)
+   :viewedBy cam
+   :depicts (o0 / PhysicalObject
+               :individuation Skolem :countability Mass
+               :class "sky-other-merged"
+               :bbox2d "0,0,1,0.4695"))

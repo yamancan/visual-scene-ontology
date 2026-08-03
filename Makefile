@@ -7,11 +7,11 @@ TOOLS = -m tools.penman.vson_penman
 EXAMPLE_VSON = examples/throne_room.vson
 EXAMPLE_TTL = examples/throne_room.ttl
 
-.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check fragment-check registry-check geometry-check cq-check grammar-check grammar-gbnf conformance iri-check live-check rdfc10-suite x-check x-skill-check envelope-check web-check web-deploy web-smoke deploy-check site clean
+.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check fragment-check registry-check geometry-check cq-check grammar-check grammar-gbnf conformance importer-check iri-check live-check rdfc10-suite x-check x-skill-check envelope-check web-check web-deploy web-smoke deploy-check site clean
 
 all: check
 
-check: parse-ontology penman-roundtrip shacl owl-consistency test spec-check fragment-check registry-check geometry-check cq-check grammar-check conformance lint-py iri-check
+check: parse-ontology penman-roundtrip shacl owl-consistency test spec-check fragment-check registry-check geometry-check cq-check grammar-check conformance importer-check lint-py iri-check
 
 # Everything the CI runs, minus the web app (which needs pnpm/node).
 check-all: check cli-check x-check x-skill-check envelope-check
@@ -190,6 +190,29 @@ conformance:
 grammar-gbnf:
 	@echo "==> Constrained decoding: regenerate the GBNF from docs/vson.md Appendix D"
 	@$(PY) -m tools.grammar.check --write-gbnf
+
+# The vision-dataset importers (docs/importers.md). Two different things run
+# here, and the second is the reason the target exists at all.
+#
+# The unittest half pins the goldens: every hand-written fixture converts to
+# the same VSON-P and the same lossiness report it did yesterday, every golden
+# passes the three gates `vson validate` runs plus the geometry check, every
+# vso: term the three mapping tables name is read back out of the ontology, and
+# every emitted vso:directional carries a vso:CameraView viewer — C5 checked on
+# the graph rather than trusted from the importer that wrote it.
+#
+# The coverage half is the drift gate. docs/eval/coverage.md reports measured
+# numbers over vocabularies counted from the published dumps, and the tables it
+# reports on are edited by hand; without this check an edited mapping would
+# leave a stale percentage in a document that reads like a measurement. The
+# dumps are not re-downloaded — docs/eval/vocab/*.tsv are frozen measurement
+# artifacts carrying their own sha256s and method — so this stays offline like
+# every other gate in `check`.
+importer-check:
+	@echo "==> Vision-dataset importers: goldens, the three gates, C5, and the mapping tables"
+	@$(PY) -m unittest tests.test_importers 2>&1 | tail -3
+	@echo "==> Coverage study: docs/eval/coverage.md MUST match the measured vocabularies"
+	@$(PY) scripts/coverage_report.py --check
 
 iri-check:
 	@echo "==> Legacy IRI gate: the withdrawn namespace host MUST NOT reappear"

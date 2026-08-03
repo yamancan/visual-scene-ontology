@@ -1,0 +1,959 @@
+{
+  "dataset": "psg",
+  "_provenance": {
+    "vocabulary_source": "the predicate table published in the OpenPSG README, https://github.com/Jingkang50/OpenPSG (retrieved 2026-08-03)",
+    "vocabulary_measured": "56 predicates in seven groups, as published; no token frequencies, because psg.json is not fetchable from a stable public URL",
+    "format_documentation": "openpsg/datasets/psg.py in the same repository (retrieved 2026-08-03)",
+    "note": "the four parenthesised alternates in the published table (picking (grabbing), cleaning (washing, brushing), throwing (tossing), enclosing (surrounding, warping in)) are carried as extra keys marked variant_of, because the exact strings psg.json writes were not read.",
+    "authored": "entries written against the published predicate table; maintained by hand thereafter"
+  },
+  "policy": {
+    "individuation": "Skolem",
+    "_individuation_why": "ontology/vso.ttl reads vso:Skolem as 'a particular but unnamed individual, tracked within the document by a minted handle' — which is exactly what an annotated region with an object id is. Generic would say 'a knight, not a particular knight', which is not what an annotation of one image says.",
+    "countability_default": "Count",
+    "_countability_default_why": "an annotated region is a bounded individual unless the label says otherwise; object_classes carries the Mass and Collective exceptions and the count of defaulted traits is in every lossiness report."
+  },
+  "object_classes": {
+    "baby": {
+      "animacy": "Agentive"
+    },
+    "bear": {
+      "animacy": "Agentive"
+    },
+    "beer": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "bird": {
+      "animacy": "Agentive"
+    },
+    "birds": {
+      "animacy": "Agentive"
+    },
+    "boy": {
+      "animacy": "Agentive"
+    },
+    "bread": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "bull": {
+      "animacy": "Agentive"
+    },
+    "bunch": {
+      "countability": "Collective"
+    },
+    "calf": {
+      "animacy": "Agentive"
+    },
+    "cat": {
+      "animacy": "Agentive"
+    },
+    "cats": {
+      "animacy": "Agentive"
+    },
+    "cattle": {
+      "animacy": "Agentive"
+    },
+    "ceiling": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "cheese": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "chicken": {
+      "animacy": "Agentive"
+    },
+    "child": {
+      "animacy": "Agentive"
+    },
+    "children": {
+      "animacy": "Agentive"
+    },
+    "cloud": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "clouds": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "coffee": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "cow": {
+      "animacy": "Agentive"
+    },
+    "cows": {
+      "animacy": "Agentive"
+    },
+    "crowd": {
+      "animacy": "Agentive",
+      "countability": "Collective"
+    },
+    "deer": {
+      "animacy": "Agentive"
+    },
+    "dirt": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "dog": {
+      "animacy": "Agentive"
+    },
+    "dogs": {
+      "animacy": "Agentive"
+    },
+    "dolphin": {
+      "animacy": "Agentive"
+    },
+    "duck": {
+      "animacy": "Agentive"
+    },
+    "dust": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "eagle": {
+      "animacy": "Agentive"
+    },
+    "elephant": {
+      "animacy": "Agentive"
+    },
+    "elephants": {
+      "animacy": "Agentive"
+    },
+    "fish": {
+      "animacy": "Agentive"
+    },
+    "flock": {
+      "countability": "Collective"
+    },
+    "floor": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "fog": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "foliage": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "fur": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "giraffe": {
+      "animacy": "Agentive"
+    },
+    "giraffes": {
+      "animacy": "Agentive"
+    },
+    "girl": {
+      "animacy": "Agentive"
+    },
+    "goat": {
+      "animacy": "Agentive"
+    },
+    "goose": {
+      "animacy": "Agentive"
+    },
+    "grass": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "grasses": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "gravel": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "ground": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "group": {
+      "countability": "Collective"
+    },
+    "guy": {
+      "animacy": "Agentive"
+    },
+    "hair": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "hawk": {
+      "animacy": "Agentive"
+    },
+    "hen": {
+      "animacy": "Agentive"
+    },
+    "herd": {
+      "countability": "Collective"
+    },
+    "horse": {
+      "animacy": "Agentive"
+    },
+    "horses": {
+      "animacy": "Agentive"
+    },
+    "juice": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "kid": {
+      "animacy": "Agentive"
+    },
+    "kitten": {
+      "animacy": "Agentive"
+    },
+    "lady": {
+      "animacy": "Agentive"
+    },
+    "lamb": {
+      "animacy": "Agentive"
+    },
+    "lion": {
+      "animacy": "Agentive"
+    },
+    "man": {
+      "animacy": "Agentive"
+    },
+    "meat": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "men": {
+      "animacy": "Agentive"
+    },
+    "milk": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "monkey": {
+      "animacy": "Agentive"
+    },
+    "mouse": {
+      "animacy": "Agentive"
+    },
+    "mud": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "ocean": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "owl": {
+      "animacy": "Agentive"
+    },
+    "pack": {
+      "countability": "Collective"
+    },
+    "parrot": {
+      "animacy": "Agentive"
+    },
+    "pasta": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "pavement": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "pedestrian": {
+      "animacy": "Agentive"
+    },
+    "penguin": {
+      "animacy": "Agentive"
+    },
+    "people": {
+      "animacy": "Agentive"
+    },
+    "people's": {
+      "animacy": "Agentive"
+    },
+    "person": {
+      "animacy": "Agentive"
+    },
+    "pigeon": {
+      "animacy": "Agentive"
+    },
+    "pile": {
+      "countability": "Collective"
+    },
+    "player": {
+      "animacy": "Agentive"
+    },
+    "players": {
+      "animacy": "Agentive"
+    },
+    "puppy": {
+      "animacy": "Agentive"
+    },
+    "rabbit": {
+      "animacy": "Agentive"
+    },
+    "rain": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "rice": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "rider": {
+      "animacy": "Agentive"
+    },
+    "road": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "rooster": {
+      "animacy": "Agentive"
+    },
+    "salad": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "sand": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "sauce": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "sea": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "seagull": {
+      "animacy": "Agentive"
+    },
+    "shark": {
+      "animacy": "Agentive"
+    },
+    "sheep": {
+      "animacy": "Agentive"
+    },
+    "sheeps": {
+      "animacy": "Agentive"
+    },
+    "sidewalk": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "skater": {
+      "animacy": "Agentive"
+    },
+    "skier": {
+      "animacy": "Agentive"
+    },
+    "sky": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "smoke": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "snow": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "snowboarder": {
+      "animacy": "Agentive"
+    },
+    "soup": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "squirrel": {
+      "animacy": "Agentive"
+    },
+    "stack": {
+      "countability": "Collective"
+    },
+    "steam": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "surfer": {
+      "animacy": "Agentive"
+    },
+    "swan": {
+      "animacy": "Agentive"
+    },
+    "tea": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "team": {
+      "countability": "Collective"
+    },
+    "tiger": {
+      "animacy": "Agentive"
+    },
+    "toddler": {
+      "animacy": "Agentive"
+    },
+    "wall": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "water": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "whale": {
+      "animacy": "Agentive"
+    },
+    "wine": {
+      "animacy": "Inert",
+      "countability": "Mass"
+    },
+    "woman": {
+      "animacy": "Agentive"
+    },
+    "women": {
+      "animacy": "Agentive"
+    },
+    "zebra": {
+      "animacy": "Agentive"
+    },
+    "zebras": {
+      "animacy": "Agentive"
+    }
+  },
+  "predicates": {
+    "about to hit": {
+      "kind": "drop",
+      "fidelity": "dropped",
+      "reason": "prospective aspect ('about to'): asserting the perdurant would assert an event the annotation says has not happened, and VSON has no modal or prospective layer"
+    },
+    "attached to": {
+      "kind": "spatial",
+      "fidelity": "approximate",
+      "rcc": "EC",
+      "note": "attachment read as contact; the fastening is not asserted"
+    },
+    "beside": {
+      "kind": "spatial",
+      "fidelity": "approximate",
+      "proximal": "next_to",
+      "note": "'beside' is lateral adjacency; vso:next_to fixes no direction and no distance"
+    },
+    "biting": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Event",
+      "lemma": "bite",
+      "subject_role": "agent",
+      "object_role": "patient"
+    },
+    "brushing": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Process",
+      "lemma": "clean",
+      "subject_role": "agent",
+      "object_role": "theme",
+      "variant_of": "cleaning"
+    },
+    "carrying": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Process",
+      "lemma": "carry",
+      "subject_role": "agent",
+      "object_role": "theme"
+    },
+    "catching": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Event",
+      "lemma": "catch",
+      "subject_role": "agent",
+      "object_role": "patient"
+    },
+    "chasing": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Process",
+      "lemma": "chase",
+      "subject_role": "agent",
+      "object_role": "theme"
+    },
+    "cleaning": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Process",
+      "lemma": "clean",
+      "subject_role": "agent",
+      "object_role": "theme"
+    },
+    "cleaning (washing, brushing)": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Process",
+      "lemma": "clean",
+      "subject_role": "agent",
+      "object_role": "theme",
+      "variant_of": "cleaning"
+    },
+    "climbing": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Process",
+      "lemma": "climb",
+      "subject_role": "agent",
+      "object_role": "goal"
+    },
+    "cooking": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Process",
+      "lemma": "cook",
+      "subject_role": "agent",
+      "object_role": "theme"
+    },
+    "crossing": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Process",
+      "lemma": "cross",
+      "subject_role": "agent",
+      "object_role": "theme"
+    },
+    "drinking": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Process",
+      "lemma": "drink",
+      "subject_role": "agent",
+      "object_role": "theme"
+    },
+    "driving": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Process",
+      "lemma": "drive",
+      "subject_role": "agent",
+      "object_role": "theme"
+    },
+    "driving on": {
+      "kind": "perdurant",
+      "fidelity": "approximate",
+      "class": "Process",
+      "lemma": "drive",
+      "subject_role": "agent",
+      "object_role": "location",
+      "note": "the source predicate's spatial part becomes a vso:location role on the perdurant, not a SpatialFact; no topology is asserted"
+    },
+    "eating": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Process",
+      "lemma": "eat",
+      "subject_role": "agent",
+      "object_role": "theme"
+    },
+    "enclosing": {
+      "kind": "spatial",
+      "fidelity": "approximate",
+      "rcc": "NTPPi",
+      "note": "containment read as a non-tangential proper part; partial containment is not distinguished (figure contains ground)"
+    },
+    "enclosing (surrounding, warping in)": {
+      "kind": "spatial",
+      "fidelity": "approximate",
+      "rcc": "NTPPi",
+      "note": "containment read as a non-tangential proper part; partial containment is not distinguished (figure contains ground)",
+      "variant_of": "enclosing"
+    },
+    "entering": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Event",
+      "lemma": "enter",
+      "subject_role": "agent",
+      "object_role": "goal"
+    },
+    "exiting": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Event",
+      "lemma": "exit",
+      "subject_role": "agent",
+      "object_role": "source"
+    },
+    "falling off": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Event",
+      "lemma": "fall",
+      "subject_role": "patient",
+      "object_role": "source"
+    },
+    "feeding": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Process",
+      "lemma": "feed",
+      "subject_role": "agent",
+      "object_role": "recipient"
+    },
+    "flying over": {
+      "kind": "perdurant",
+      "fidelity": "approximate",
+      "class": "Process",
+      "lemma": "fly",
+      "subject_role": "agent",
+      "object_role": "location",
+      "note": "the source predicate's spatial part becomes a vso:location role on the perdurant, not a SpatialFact; no topology is asserted; the 'over' is not a separate SpatialFact"
+    },
+    "going down": {
+      "kind": "perdurant",
+      "fidelity": "approximate",
+      "class": "Process",
+      "lemma": "go",
+      "subject_role": "agent",
+      "object_role": "goal",
+      "note": "the downward path becomes a bare vso:goal"
+    },
+    "grabbing": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Event",
+      "lemma": "pick_up",
+      "subject_role": "agent",
+      "object_role": "patient",
+      "variant_of": "picking"
+    },
+    "guiding": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Process",
+      "lemma": "guide",
+      "subject_role": "agent",
+      "object_role": "theme"
+    },
+    "hanging from": {
+      "kind": "perdurant",
+      "fidelity": "approximate",
+      "class": "Stative",
+      "lemma": "hang",
+      "subject_role": "theme",
+      "object_role": "source",
+      "note": "the suspension point becomes vso:source"
+    },
+    "holding": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Stative",
+      "lemma": "hold",
+      "subject_role": "holder",
+      "object_role": "theme"
+    },
+    "in": {
+      "kind": "spatial",
+      "fidelity": "approximate",
+      "rcc": "NTPP",
+      "note": "containment read as a non-tangential proper part; partial containment is not distinguished"
+    },
+    "in front of": {
+      "kind": "spatial",
+      "fidelity": "approximate",
+      "directional": "in_front_of",
+      "note": "directional in a source with no viewer: the vso:viewer is the CameraView this importer mints for the image, not an annotated one (docs/vson.md C5, §3.3)"
+    },
+    "jumping from": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Event",
+      "lemma": "jump",
+      "subject_role": "agent",
+      "object_role": "source"
+    },
+    "jumping over": {
+      "kind": "perdurant",
+      "fidelity": "approximate",
+      "class": "Event",
+      "lemma": "jump",
+      "subject_role": "agent",
+      "object_role": "location",
+      "note": "the source predicate's spatial part becomes a vso:location role on the perdurant, not a SpatialFact; no topology is asserted"
+    },
+    "kicking": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Event",
+      "lemma": "kick",
+      "subject_role": "agent",
+      "object_role": "patient"
+    },
+    "kissing": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Event",
+      "lemma": "kiss",
+      "subject_role": "agent",
+      "object_role": "patient"
+    },
+    "leaning on": {
+      "kind": "perdurant",
+      "fidelity": "approximate",
+      "class": "Stative",
+      "lemma": "lean",
+      "subject_role": "theme",
+      "object_role": "location",
+      "note": "the source predicate's spatial part becomes a vso:location role on the perdurant, not a SpatialFact; no topology is asserted"
+    },
+    "looking at": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Stative",
+      "lemma": "look_at",
+      "subject_role": "experiencer",
+      "object_role": "stimulus"
+    },
+    "lying on": {
+      "kind": "perdurant",
+      "fidelity": "approximate",
+      "class": "Stative",
+      "lemma": "lie",
+      "subject_role": "theme",
+      "object_role": "location",
+      "note": "the source predicate's spatial part becomes a vso:location role on the perdurant, not a SpatialFact; no topology is asserted"
+    },
+    "on": {
+      "kind": "spatial",
+      "fidelity": "approximate",
+      "rcc": "EC",
+      "note": "support read as topological contact: rcc:EC is the closest closed value, and the load-bearing sense of 'on' is not asserted"
+    },
+    "on the back of": {
+      "kind": "spatial",
+      "fidelity": "approximate",
+      "rcc": "EC",
+      "note": "the object-intrinsic side ('front', 'back', 'side') is lost: VSON's directionals are viewer-anchored, and no intrinsic orientation vocabulary exists (C5); support read as topological contact: rcc:EC is the closest closed value, and the load-bearing sense of 'on' is not asserted"
+    },
+    "opening": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Event",
+      "lemma": "open",
+      "subject_role": "agent",
+      "object_role": "patient"
+    },
+    "over": {
+      "kind": "spatial",
+      "fidelity": "approximate",
+      "directional": "above",
+      "note": "directional in a source with no viewer: the vso:viewer is the CameraView this importer mints for the image, not an annotated one (docs/vson.md C5, §3.3); the covering reading of 'over' is not asserted"
+    },
+    "painted on": {
+      "kind": "spatial",
+      "fidelity": "approximate",
+      "rcc": "EC",
+      "note": "contact only: the inscription reading is not asserted"
+    },
+    "parked on": {
+      "kind": "perdurant",
+      "fidelity": "approximate",
+      "class": "Stative",
+      "lemma": "park",
+      "subject_role": "theme",
+      "object_role": "location",
+      "note": "read as a state rather than an event; the source predicate names a posture, not a change; the source predicate's spatial part becomes a vso:location role on the perdurant, not a SpatialFact; no topology is asserted"
+    },
+    "picking": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Event",
+      "lemma": "pick_up",
+      "subject_role": "agent",
+      "object_role": "patient"
+    },
+    "picking (grabbing)": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Event",
+      "lemma": "pick_up",
+      "subject_role": "agent",
+      "object_role": "patient",
+      "variant_of": "picking"
+    },
+    "playing": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Process",
+      "lemma": "play",
+      "subject_role": "agent",
+      "object_role": "theme"
+    },
+    "playing with": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Process",
+      "lemma": "play",
+      "subject_role": "agent",
+      "object_role": "theme"
+    },
+    "pulling": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Process",
+      "lemma": "pull",
+      "subject_role": "agent",
+      "object_role": "theme"
+    },
+    "pushing": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Process",
+      "lemma": "push",
+      "subject_role": "agent",
+      "object_role": "theme"
+    },
+    "riding": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Process",
+      "lemma": "ride",
+      "subject_role": "agent",
+      "object_role": "theme"
+    },
+    "running on": {
+      "kind": "perdurant",
+      "fidelity": "approximate",
+      "class": "Process",
+      "lemma": "run",
+      "subject_role": "agent",
+      "object_role": "location",
+      "note": "the source predicate's spatial part becomes a vso:location role on the perdurant, not a SpatialFact; no topology is asserted"
+    },
+    "sitting on": {
+      "kind": "perdurant",
+      "fidelity": "approximate",
+      "class": "Stative",
+      "lemma": "sit",
+      "subject_role": "theme",
+      "object_role": "location",
+      "note": "the source predicate's spatial part becomes a vso:location role on the perdurant, not a SpatialFact; no topology is asserted"
+    },
+    "slicing": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Event",
+      "lemma": "slice",
+      "subject_role": "agent",
+      "object_role": "patient"
+    },
+    "standing on": {
+      "kind": "perdurant",
+      "fidelity": "approximate",
+      "class": "Stative",
+      "lemma": "stand",
+      "subject_role": "theme",
+      "object_role": "location",
+      "note": "the source predicate's spatial part becomes a vso:location role on the perdurant, not a SpatialFact; no topology is asserted"
+    },
+    "surrounding": {
+      "kind": "spatial",
+      "fidelity": "approximate",
+      "rcc": "NTPPi",
+      "note": "containment read as a non-tangential proper part; partial containment is not distinguished (figure contains ground)",
+      "variant_of": "enclosing"
+    },
+    "swinging": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Process",
+      "lemma": "swing",
+      "subject_role": "agent",
+      "object_role": "theme"
+    },
+    "talking to": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Process",
+      "lemma": "talk",
+      "subject_role": "agent",
+      "object_role": "recipient"
+    },
+    "throwing": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Event",
+      "lemma": "throw",
+      "subject_role": "agent",
+      "object_role": "patient"
+    },
+    "throwing (tossing)": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Event",
+      "lemma": "throw",
+      "subject_role": "agent",
+      "object_role": "patient",
+      "variant_of": "throwing"
+    },
+    "tossing": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Event",
+      "lemma": "throw",
+      "subject_role": "agent",
+      "object_role": "patient",
+      "variant_of": "throwing"
+    },
+    "touching": {
+      "kind": "spatial",
+      "fidelity": "exact",
+      "rcc": "EC"
+    },
+    "walking on": {
+      "kind": "perdurant",
+      "fidelity": "approximate",
+      "class": "Process",
+      "lemma": "walk",
+      "subject_role": "agent",
+      "object_role": "location",
+      "note": "the source predicate's spatial part becomes a vso:location role on the perdurant, not a SpatialFact; no topology is asserted"
+    },
+    "warping in": {
+      "kind": "spatial",
+      "fidelity": "approximate",
+      "rcc": "NTPPi",
+      "note": "containment read as a non-tangential proper part; partial containment is not distinguished (figure contains ground)",
+      "variant_of": "enclosing"
+    },
+    "washing": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Process",
+      "lemma": "clean",
+      "subject_role": "agent",
+      "object_role": "theme",
+      "variant_of": "cleaning"
+    },
+    "wearing": {
+      "kind": "perdurant",
+      "fidelity": "exact",
+      "class": "Stative",
+      "lemma": "wear",
+      "subject_role": "holder",
+      "object_role": "theme"
+    }
+  },
+  "attributes": {}
+}

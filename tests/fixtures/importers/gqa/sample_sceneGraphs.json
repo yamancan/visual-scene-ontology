@@ -1,0 +1,119 @@
+{
+  "2407890": {
+    "width": 640,
+    "height": 480,
+    "location": "indoors",
+    "objects": {
+      "271881": {
+        "name": "chair",
+        "x": 220,
+        "y": 310,
+        "w": 50,
+        "h": 80,
+        "attributes": ["brown", "wood", "small"],
+        "relations": [
+          {"name": "on", "object": "275312"},
+          {"name": "to the left of", "object": "275313"},
+          {"name": "smaller than", "object": "275313"}
+        ]
+      },
+      "275312": {
+        "name": "floor",
+        "x": 0,
+        "y": 380,
+        "w": 640,
+        "h": 100,
+        "attributes": ["hardwood", "clear"],
+        "relations": []
+      },
+      "275313": {
+        "name": "lamp",
+        "x": 480,
+        "y": 100,
+        "w": 40,
+        "h": 120,
+        "attributes": ["tall", "round"],
+        "relations": [
+          {"name": "of", "object": "275314"}
+        ]
+      },
+      "275314": {
+        "name": "table",
+        "x": 470,
+        "y": 210,
+        "w": 120,
+        "h": 90,
+        "attributes": ["wood"],
+        "relations": [
+          {"name": "next to", "object": "271881"},
+          {"name": "behind", "object": "999999"}
+        ]
+      }
+    }
+  },
+  "2407891": {
+    "width": 500,
+    "height": 375,
+    "location": "outdoors",
+    "weather": "sunny",
+    "objects": {
+      "310010": {
+        "name": "man",
+        "x": 120,
+        "y": 90,
+        "w": 70,
+        "h": 220,
+        "attributes": ["young", "standing", "happy"],
+        "relations": [
+          {"name": "wearing", "object": "310011"},
+          {"name": "walking on", "object": "310012"},
+          {"name": "to the right of", "object": "310013"}
+        ]
+      },
+      "310011": {
+        "name": "hat",
+        "x": 128,
+        "y": 78,
+        "w": 54,
+        "h": 26,
+        "attributes": ["red"],
+        "relations": []
+      },
+      "310012": {
+        "name": "sidewalk",
+        "x": 0,
+        "y": 300,
+        "w": 500,
+        "h": 75,
+        "attributes": ["concrete"],
+        "relations": []
+      },
+      "310013": {
+        "name": "bicycle",
+        "x": 10,
+        "y": 200,
+        "w": 90,
+        "h": 110,
+        "attributes": ["black", "parked"],
+        "relations": [
+          {"name": "near", "object": "310010"}
+        ]
+      }
+    }
+  },
+  "2407892": {
+    "width": 300,
+    "height": 200,
+    "objects": {
+      "440001": {
+        "name": "sky",
+        "x": -5,
+        "y": 0,
+        "w": 320,
+        "h": 90,
+        "attributes": ["blue", "cloudless"],
+        "relations": []
+      }
+    }
+  }
+}

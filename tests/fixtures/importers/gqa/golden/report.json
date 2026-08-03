@@ -1,0 +1,98 @@
+{
+  "attributes": {
+    "approximate": 0,
+    "by_name": {
+      "dropped": {
+        "cloudless": 1,
+        "round": 1
+      },
+      "exact": {
+        "black": 1,
+        "blue": 1,
+        "brown": 1,
+        "concrete": 1,
+        "happy": 1,
+        "hardwood": 1,
+        "parked": 1,
+        "red": 1,
+        "small": 1,
+        "standing": 1,
+        "tall": 1,
+        "wood": 2,
+        "young": 1
+      }
+    },
+    "drop_reasons": {
+      "a scene-level property attached to an object; \u00a75.3.1 puts venue, weather and atmosphere on the SceneContext frame, and the annotation does not license moving it there": 1,
+      "no registry dimension for geometric shape: the twenty-one dimensions of \u00a75.5.1 are closed under vso:, and VSON-P cannot spell a document-namespace dimension": 1
+    },
+    "dropped": 2,
+    "exact": 14,
+    "read": 17,
+    "unmapped": 1,
+    "unmapped_names": {
+      "clear": 1
+    }
+  },
+  "dataset": "gqa",
+  "directionals": {
+    "viewer_inferred": 2
+  },
+  "entities": {
+    "emitted": 9
+  },
+  "geometry": {
+    "clamped to frame": 1,
+    "normalized": 9
+  },
+  "importer": "tools.importers",
+  "importer_version": "1.0.0",
+  "mapping_table": "tools/importers/mappings/gqa.json",
+  "notes": [
+    "GQA carries no viewer and no camera; every vso:CameraView in this output is minted by the importer (docs/vson.md C5)."
+  ],
+  "policy": {
+    "directional": "camera"
+  },
+  "predicates": {
+    "approximate": 5,
+    "by_name": {
+      "approximate": {
+        "of": 1,
+        "on": 1,
+        "to the left of": 1,
+        "to the right of": 1,
+        "walking on": 1
+      },
+      "dropped": {
+        "behind": 1,
+        "smaller than": 1
+      },
+      "exact": {
+        "near": 1,
+        "next to": 1,
+        "wearing": 1
+      }
+    },
+    "drop_reasons": {
+      "comparative between two entities; a vso:Quality is a value on one entity's dimension, and VSON has no binary comparison construct": 1,
+      "endpoint absent from the record's objects": 1
+    },
+    "dropped": 2,
+    "exact": 3,
+    "read": 10,
+    "unmapped": 0,
+    "unmapped_names": {}
+  },
+  "records_read": 3,
+  "records_skipped": {},
+  "scenes_emitted": 3,
+  "source": "tests/fixtures/importers/gqa/sample_sceneGraphs.json",
+  "traits": {
+    "animacy": 4,
+    "animacy_undetermined": 5,
+    "countability": 3,
+    "countability_defaulted": 6,
+    "individuation": 9
+  }
+}

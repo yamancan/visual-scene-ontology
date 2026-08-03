@@ -1,0 +1,67 @@
+{
+  "attributes": {
+    "approximate": 0,
+    "by_name": {},
+    "drop_reasons": {},
+    "dropped": 0,
+    "exact": 0,
+    "read": 0,
+    "unmapped": 0,
+    "unmapped_names": {}
+  },
+  "dataset": "psg",
+  "directionals": {
+    "viewer_inferred": 1
+  },
+  "entities": {
+    "emitted": 6
+  },
+  "geometry": {
+    "normalized": 6
+  },
+  "importer": "tools.importers",
+  "importer_version": "1.0.0",
+  "mapping_table": "tools/importers/mappings/psg.json",
+  "notes": [
+    "PSG carries no viewer and no camera; every vso:CameraView in this output is minted by the importer (docs/vson.md C5)."
+  ],
+  "policy": {
+    "directional": "camera",
+    "relation_order": "subject_object"
+  },
+  "predicates": {
+    "approximate": 4,
+    "by_name": {
+      "approximate": {
+        "enclosing": 1,
+        "lying on": 1,
+        "over": 1,
+        "walking on": 1
+      },
+      "dropped": {
+        "about to hit": 1
+      },
+      "exact": {
+        "holding": 1
+      }
+    },
+    "drop_reasons": {
+      "prospective aspect ('about to'): asserting the perdurant would assert an event the annotation says has not happened, and VSON has no modal or prospective layer": 1
+    },
+    "dropped": 1,
+    "exact": 1,
+    "read": 6,
+    "unmapped": 0,
+    "unmapped_names": {}
+  },
+  "records_read": 3,
+  "records_skipped": {},
+  "scenes_emitted": 3,
+  "source": "tests/fixtures/importers/psg/sample_psg.json",
+  "traits": {
+    "animacy": 2,
+    "animacy_undetermined": 4,
+    "countability": 6,
+    "individuation": 6
+  }
+}

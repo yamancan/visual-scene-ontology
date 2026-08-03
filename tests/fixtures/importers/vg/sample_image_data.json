@@ -1,0 +1,8 @@
+[
+  {"image_id": 1, "width": 800, "height": 600, "coco_id": null,
+   "flickr_id": null, "url": "https://example.org/vg/1.jpg"},
+  {"image_id": 2, "width": 640, "height": 640, "coco_id": null,
+   "flickr_id": null, "url": "https://example.org/vg/2.jpg"},
+  {"image_id": 3, "width": 800, "height": 600, "coco_id": null,
+   "flickr_id": null, "url": "https://example.org/vg/3.jpg"}
+]

@@ -1,0 +1,11 @@
+# Imported from GQA by `python3 -m tools.importers gqa` (tools/importers, v1.0.0).
+# Source record: image 2407892. Mapping table: tools/importers/mappings/gqa.json.
+# The CameraView is minted by the importer, not annotated by GQA (docs/vson.md C5). Nothing here was read off the image.
+(scene / Composition
+   :framedBy (cam / CameraView)
+   :viewedBy cam
+   :depicts (o440001 / PhysicalObject
+               :individuation Skolem :animacy Inert :countability Mass
+               :class "sky"
+               :bbox2d "0,0,1,0.45"
+               :hasQuality (o440001_q1 / Quality :dimension Color :value "blue")))

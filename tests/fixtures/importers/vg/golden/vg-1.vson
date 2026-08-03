@@ -1,0 +1,33 @@
+# Imported from Visual Genome by `python3 -m tools.importers vg` (tools/importers, v1.0.0).
+# Source record: image 1. Mapping table: tools/importers/mappings/vg.json.
+# The CameraView is minted by the importer, not annotated by VG (docs/vson.md C5). Nothing here was read off the image.
+(scene / Composition
+   :framedBy (cam / CameraView)
+   :viewedBy cam
+   :depicts (o1058498 / PhysicalObject
+               :individuation Skolem :countability Count
+               :class "clock"
+               :bbox2d "0.5263,0.1517,0.0988,0.565"
+               :hasQuality (o1058498_q1 / Quality :dimension Color :value "green")
+               :hasQuality (o1058498_q2 / Quality :dimension Size :value "tall"))
+   :depicts (o5046 / PhysicalObject
+               :individuation Skolem :countability Count
+               :class "street"
+               :bbox2d "0.0963,0.5467,0.8925,0.4367")
+   :depicts (o1058529 / PhysicalObject
+               :individuation Skolem :animacy Agentive :countability Count
+               :class "man"
+               :bbox2d "0.2975,0.415,0.075,0.4367")
+   :depicts (o5048 / PhysicalObject
+               :individuation Skolem :countability Count
+               :class "shirt"
+               :bbox2d "0.3,0.4517,0.07,0.1233"
+               :hasQuality (o5048_q1 / Quality :dimension Color :value "white"))
+   :depicts (sf1 / SpatialFact
+               :figure o1058498 :ground o5046
+               :rcc EC)
+   :depicts (sf2 / SpatialFact
+               :figure o1058529 :ground o5046
+               :rcc EC)
+   :depicts (e1 / Stative :lemma wear
+               :holder o1058529 :theme o5048))

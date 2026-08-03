@@ -1,0 +1,653 @@
+# dataset: vg
+# source: https://homes.cs.washington.edu/~ranjay/visualgenome/data/dataset/
+# retrieved: 2026-08-03
+# images: 108077
+# method: the released dumps streamed record by record; every predicate / attribute string counted once per occurrence, lower-cased with whitespace collapsed
+# licence: not read from a first-party page: visualgenome.org served unrelated content when retrieved 2026-08-03; see docs/eval/attribution.md
+# archive_sha256: relationships.json.zip e648867b8087e4aeb10019a959f914e2580909f1c3e50a21b25de8741679182f
+# axis: relation predicates
+# total_types: 36383
+# total_tokens: 2316104
+# rows: every type the mapping table covers, plus the 200 most frequent it does not; a type absent from this file is a type the table does not cover
+# ---
+count	name
+667990	on
+245977	has
+225353	in
+129214	of
+124834	wearing
+63608	with
+39961	behind
+37483	holding
+31575	on top of
+27677	on a
+26445	near
+24867	next to
+23510	has a
+18459	under
+16013	of a
+15909	by
+14959	wears
+13844	above
+13782	sitting on
+13204	in front of
+10882	wearing a
+10845	on side of
+9781	in a
+9685	are on
+9668	attached to
+9154	at
+8973	over
+8673	for
+7638	around
+7594	standing on
+7571	beside
+7551	riding
+6502	inside
+5898	standing in
+5412	hanging on
+5360	have
+4744	are in
+4630	carrying
+4587	on front of
+4446	holds
+4436	eating
+4416	walking on
+4073	hanging from
+3693	covering
+3677	playing
+3582	inside of
+3545	laying on
+3520	sitting in
+3499	along
+3387	between
+3371	below
+3313	and
+3290	watching
+3287	belonging to
+3017	painted on
+2998	against
+2984	looking at
+2802	has an
+2785	from
+2666	with a
+2653	parked on
+2342	to
+2332	made of
+2249	covered in
+2241	says
+2220	mounted on
+1950	across
+1932	flying in
+1927	part of
+1848	on back of
+1802	lying on
+1782	growing on
+1731	using
+1660	walking in
+1601	outside
+1594	crossing
+1512	worn by
+1509	underneath
+1491	printed on
+1490	sitting at
+1382	full of
+1379	filled with
+1374	flying
+1369	hanging in
+1356	beneath
+1314	sitting on top of
+1302	swinging
+1294	covered with
+1260	in middle of
+1187	riding a
+1176	standing next to
+1154	built into
+1144	pulling
+1102	touching
+1076	adorning
+1059	a
+1030	hitting
+1004	laying in
+1002	supporting
+989	written on
+987	leaning on
+971	holding up
+967	of an
+957	growing in
+954	standing
+950	lying on top of
+943	next
+923	driving on
+920	parked in
+918	are behind
+908	playing with
+908	resting on
+907	standing behind
+891	riding on
+885	contains
+882	held by
+876	standing by
+855	walking
+852	connected to
+826	walking down
+825	sitting on a
+818	is on
+815	surrounding
+797	has on
+793	cutting
+793	on bottom of
+776	throwing
+764	sitting
+757	are on top of
+752	lining
+747	through
+744	standing near
+740	floating in
+735	covered
+731	shows
+720	sits on
+714	on the
+713	on top of a
+712	facing
+711	on top
+699	talking on
+691	front
+682	grazing in
+680	casting
+680	containing
+670	sticking out of
+665	hanging over
+660	catching
+657	lying in
+632	to right of
+630	drinking
+630	near a
+626	playing in
+619	atop
+614	reflected in
+609	close to
+603	leaning against
+590	on side
+589	showing
+585	are
+582	covers
+561	driving
+554	looking
+553	beyond
+549	standing in front of
+542	to left of
+540	front of
+530	in front
+525	playing on
+523	carrying a
+521	leading to
+512	reading
+506	rides
+502	swimming in
+491	in back of
+490	wears a
+487	are on a
+487	dressed in
+474	worn on
+468	alongside
+463	belongs to
+460	surrounded by
+460	white
+459	outside of
+453	walking with
+443	hanging
+439	tied to
+438	on edge of
+430	coming out of
+427	hanging above
+426	driving down
+425	off
+423	behind a
+423	eats
+421	coming from
+419	at a
+417	seen
+415	shining on
+414	at top of
+413	pushing
+405	next to a
+402	on an
+399	are in a
+392	skiing on
+391	carries
+390	grazing on
+390	left of
+386	waiting for
+381	surfing in
+378	down
+376	making
+374	on side of a
+364	feeding
+362	enjoying
+362	running on
+359	taking
+358	covered by
+358	wrapped around
+355	reads
+354	surfing
+350	going down
+349	that
+347	parked at
+342	are attached to
+341	standing on top of
+339	at end of
+332	stuck in
+331	standing at
+329	colored
+329	parked by
+327	are near
+327	topping
+323	reflecting on
+322	stacked on
+320	hold
+313	out of
+312	sitting next to
+309	are above
+307	inside a
+305	black
+305	having
+305	standing with
+304	has on a
+302	in the
+299	cast on
+299	parked
+299	sleeping on
+299	standing on a
+298	surfing on
+296	flying over
+296	located on
+293	under a
+293	wrapped in
+291	are under
+290	have a
+290	placed on
+288	stuck on
+287	into
+286	at bottom of
+285	held in
+283	holding an
+281	for a
+277	parked on side of
+277	walking across
+275	overlooking
+274	forming
+274	plugged into
+272	parked near
+271	by a
+270	without
+269	doing
+268	parked next to
+267	perched on
+265	floating on
+265	on h
+265	side
+264	being
+263	kicking
+262	hanging off
+261	on surface of
+258	reflecting
+255	among
+254	visible on
+253	are next to
+253	parked in front of
+252	in front of a
+252	wear
+249	brushing
+248	standing beside
+248	watches
+247	seen in
+247	sitting in a
+242	blue
+240	reflected on
+238	reaching for
+238	surrounds
+237	looking out
+237	watch
+236	holding onto
+236	working on
+235	are at
+235	hung on
+235	supports
+232	on mans
+230	petting
+229	right of
+228	are in front of
+228	casts
+228	line
+227	talking to
+226	plays
+225	are enjoying
+224	flying a
+224	left
+223	across from
+221	on front
+221	skiing down
+220	bordering
+219	standing in a
+218	in center of
+217	running in
+216	parked along
+215	drawn on
+212	at edge of
+211	lying next to
+210	in between
+210	sticking out
+207	hangs from
+206	side of
+205	looks at
+205	seen through
+203	are by
+201	eating from
+201	green
+200	parked alongside
+199	color
+198	
+198	walking through
+197	decorating
+197	on face of
+197	over a
+196	cast by
+195	mounted to
+194	attached
+194	lying inside
+194	sewn on
+192	wearing black
+191	beside of
+191	drinking from
+191	sitting by
+190	riding in
+189	stands on
+188	i
+187	topped with
+186	is in
+185	connecting
+183	growing
+183	of the
+183	sitting in front of
+182	red
+181	on right side of
+180	are wearing
+180	cover
+180	on left side of
+180	skiing in
+179	eating a
+179	standing under
+178	top of
+177	using a
+174	holds a
+173	hanging on a
+173	in an
+173	painted
+172	on end of
+172	right
+171	shining through
+171	sitting inside
+171	stopped at
+170	walking along
+170	walking by
+169	brown
+169	carry
+168	are for
+166	laying
+166	serving
+165	grazing
+163	appearing in
+163	are beside
+163	attached to a
+163	looking in
+163	with no
+162	grabbing
+162	securing
+160	besides
+160	casted on
+160	leading
+159	and a
+159	are inside
+159	following
+158	are sitting on
+158	flying above
+158	standing inside
+157	leaving
+157	to a
+156	along side of
+155	gripping
+155	has no
+154	flying through
+154	walking near
+153	boarding
+152	has black
+152	on other side of
+152	waiting on
+151	on her
+151	sniffing
+150	separating
+149	on left of
+148	pointing
+147	and white
+147	displayed on
+146	growing behind
+146	growing next to
+146	laying on a
+145	growing near
+145	hangs on
+145	holding a
+144	hits
+144	sitting behind
+143	apart of
+143	draped over
+143	reflecting in
+142	around a
+142	licking
+142	reflecting off
+141	growing from
+140	are on side of
+140	in corner of
+140	sits in
+140	sitting near
+139	are inside of
+139	crashing on
+139	sitting under
+138	chasing
+138	formed in
+138	uses
+137	walking on a
+136	entering
+136	selling
+135	walking up
+135	with an
+134	sitting with
+133	pulling a
+132	leaning over
+132	on head of
+132	served on
+131	swinging a
+130	biting
+130	makes
+130	parked behind
+130	train
+129	lines
+128	are over
+128	displaying
+128	matches
+128	wearing an
+127	has white
+126	ten
+125	before
+124	hugging
+124	parked beside
+123	located in
+122	are holding
+122	within
+121	light
+121	on right of
+120	balancing on
+120	hanging out of
+119	in h
+119	swings
+118	moving
+117	jumping on
+116	approaching
+116	herding
+116	kneeling on
+116	made from
+116	tied around
+116	walking behind
+114	are around
+114	are playing at
+114	jumping
+114	stands in
+114	visible in
+113	helping
+113	inside of a
+113	looking over
+113	skiing
+113	waiting at
+113	walking next to
+113	walking to
+113	wearing blue
+112	marking
+112	walking towards
+111	carried by
+111	seated on
+111	shown in
+110	are watching
+110	meets
+110	sit on
+110	surround
+109	in mans
+109	jumping over
+109	say
+109	staring at
+108	out
+108	taken
+107	lifting
+107	posted on
+106	blocking
+106	grasping
+106	passing
+106	pulls
+106	raising
+106	traveling on
+105	cooking in
+105	has many
+105	on back
+105	swinging at
+104	leads to
+104	past
+104	up
+104	up in
+103	mixed with
+103	number
+103	pulled by
+103	skateboarding on
+102	affixed to
+102	being held by
+102	eating in
+102	protecting
+102	yellow
+101	dividing
+101	getting
+101	opening
+99	growing by
+99	pointing at
+96	growing along
+93	getting on
+93	looking into
+92	pouring
+90	coming down
+89	scattered on
+89	splashing
+88	piled on
+88	running through
+87	going through
+87	preparing
+87	walking toward
+87	washing
+84	enclosing
+84	looking down at
+84	spraying
+83	sleeping in
+82	kept in
+81	blowing out
+81	exiting
+81	tying
+80	climbing
+79	jumping in
+79	wading in
+78	going into
+78	lying
+78	skating on
+76	about to hit
+75	sitting around
+75	sitting beside
+73	observing
+73	standing against
+72	displayed in
+72	working in
+70	cooking
+70	hang from
+69	chained to
+69	looking through
+69	typing on
+68	falling off
+68	posing with
+68	running across
+67	smelling
+67	trying to catch
+66	cleaning
+66	traveling down
+65	eating at
+65	jumping off
+65	smiling at
+63	photographing
+62	dragging
+61	walking into
+59	picking up
+58	adjusting
+58	chewing
+58	guiding
+58	walking past
+56	adjacent to
+56	sprinkled on
+54	hidden by
+53	kissing
+49	taller than
+49	tossing
+49	worn around
+47	smoking
+45	slicing
+43	waving
+40	crashing
+40	sitting atop
+40	towing
+37	buying
+36	looking toward
+24	cooked in
+22	contain
+19	is
+16	smaller than
+15	larger than
+15	writing
+12	higher than
+12	owned by
+11	playing at
+9	bigger than
+9	jumping from
+9	shorter than
+8	longer than
+6	grouped
+6	pushed by
+5	followed by
+4	on the side of
+4	the
+3	on the edge of
+2	be
+1	decorated by
+1	in the middle of
+1	on the bottom of

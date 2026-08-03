@@ -1,0 +1,89 @@
+{
+  "attributes": {
+    "approximate": 1,
+    "by_name": {
+      "approximate": {
+        "on": 1
+      },
+      "dropped": {
+        "striped": 1
+      },
+      "exact": {
+        "blue": 1,
+        "green": 1,
+        "silver": 1,
+        "tall": 1,
+        "white": 1
+      }
+    },
+    "drop_reasons": {
+      "no registry dimension for surface pattern (striped, plaid, floral): \u00a75.5.1's twenty-one are closed under vso:": 1
+    },
+    "dropped": 1,
+    "exact": 5,
+    "read": 8,
+    "unmapped": 1,
+    "unmapped_names": {
+      "lit \"walk\"": 1
+    }
+  },
+  "dataset": "vg",
+  "directionals": {
+    "viewer_inferred": 1
+  },
+  "entities": {
+    "emitted": 8
+  },
+  "geometry": {
+    "normalized": 8
+  },
+  "importer": "tools.importers",
+  "importer_version": "1.0.0",
+  "mapping_table": "tools/importers/mappings/vg.json",
+  "notes": [
+    "Visual Genome carries no viewer and no camera; every vso:CameraView in this output is minted by the importer (docs/vson.md C5)."
+  ],
+  "policy": {
+    "directional": "camera",
+    "image_data": "tests/fixtures/importers/vg/sample_image_data.json"
+  },
+  "predicates": {
+    "approximate": 4,
+    "by_name": {
+      "approximate": {
+        "has": 1,
+        "on": 1,
+        "on a": 1,
+        "to left of": 1
+      },
+      "dropped": {
+        "white": 1
+      },
+      "exact": {
+        "carrying": 1,
+        "wears": 1
+      }
+    },
+    "drop_reasons": {
+      "an attribute string in the predicate slot \u2014 a Visual Genome annotation error, not a relation": 1
+    },
+    "dropped": 1,
+    "exact": 2,
+    "read": 8,
+    "unmapped": 1,
+    "unmapped_names": {
+      "shining on": 1
+    }
+  },
+  "records_read": 3,
+  "records_skipped": {},
+  "scenes_emitted": 3,
+  "source": "tests/fixtures/importers/vg/sample_scene_graphs.json",
+  "traits": {
+    "animacy": 3,
+    "animacy_undetermined": 5,
+    "countability": 1,
+    "countability_defaulted": 7,
+    "individuation": 8
+  }
+}

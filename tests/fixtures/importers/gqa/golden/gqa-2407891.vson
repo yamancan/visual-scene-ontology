@@ -1,0 +1,40 @@
+# Imported from GQA by `python3 -m tools.importers gqa` (tools/importers, v1.0.0).
+# Source record: image 2407891. Mapping table: tools/importers/mappings/gqa.json.
+# The CameraView is minted by the importer, not annotated by GQA (docs/vson.md C5). Nothing here was read off the image.
+(scene / Composition
+   :framedBy (ctx / SceneContext :venue "outdoors" :weather "sunny")
+   :framedBy (cam / CameraView)
+   :viewedBy cam
+   :depicts (o310010 / PhysicalObject
+               :individuation Skolem :animacy Agentive :countability Count
+               :class "man"
+               :bbox2d "0.24,0.24,0.14,0.5867"
+               :hasQuality (o310010_q1 / Quality :dimension Age :value "young")
+               :hasQuality (o310010_q2 / Quality :dimension ActionState :value "standing")
+               :hasQuality (o310010_q3 / Quality :dimension Affect :value "happy"))
+   :depicts (o310011 / PhysicalObject
+               :individuation Skolem :countability Count
+               :class "hat"
+               :bbox2d "0.256,0.208,0.108,0.0693"
+               :hasQuality (o310011_q1 / Quality :dimension Color :value "red"))
+   :depicts (o310012 / PhysicalObject
+               :individuation Skolem :animacy Inert :countability Mass
+               :class "sidewalk"
+               :bbox2d "0,0.8,1,0.2"
+               :hasQuality (o310012_q1 / Quality :dimension Material :value "concrete"))
+   :depicts (o310013 / PhysicalObject
+               :individuation Skolem :countability Count
+               :class "bicycle"
+               :bbox2d "0.02,0.5333,0.18,0.2933"
+               :hasQuality (o310013_q1 / Quality :dimension Color :value "black")
+               :hasQuality (o310013_q2 / Quality :dimension ActionState :value "parked"))
+   :depicts (sf1 / SpatialFact
+               :figure o310010 :ground o310013
+               :directional right_of :viewer cam)
+   :depicts (sf2 / SpatialFact
+               :figure o310013 :ground o310010
+               :proximal near)
+   :depicts (e1 / Stative :lemma wear
+               :holder o310010 :theme o310011)
+   :depicts (e2 / Process :lemma walk
+               :agent o310010 :location o310012))

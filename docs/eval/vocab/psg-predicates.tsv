@@ -1,0 +1,70 @@
+# dataset: psg
+# axis: relation predicates
+# source: the predicate table published in the OpenPSG README, https://github.com/Jingkang50/OpenPSG
+# retrieved: 2026-08-03
+# format_documentation: openpsg/datasets/psg.py in the same repository
+# images: not measured: psg.json is not fetchable from a stable public URL
+# method: transcribed from the published table's seven groups (6+5+31+4+4+3+3 = 56)
+# token_counts: none — the annotation file was not read, so this axis has no frequencies
+# total_types: 56
+# total_tokens: unknown
+# rows: the complete published predicate vocabulary
+# licence: OpenPSG's repository LICENSE is MIT; the PSG annotations' own licence is not stated there — see docs/eval/attribution.md
+# ---
+count	name
+-	about to hit
+-	attached to
+-	beside
+-	biting
+-	carrying
+-	catching
+-	chasing
+-	cleaning
+-	climbing
+-	cooking
+-	crossing
+-	drinking
+-	driving
+-	driving on
+-	eating
+-	enclosing
+-	entering
+-	exiting
+-	falling off
+-	feeding
+-	flying over
+-	going down
+-	guiding
+-	hanging from
+-	holding
+-	in
+-	in front of
+-	jumping from
+-	jumping over
+-	kicking
+-	kissing
+-	leaning on
+-	looking at
+-	lying on
+-	on
+-	on the back of
+-	opening
+-	over
+-	painted on
+-	parked on
+-	picking
+-	playing
+-	playing with
+-	pulling
+-	pushing
+-	riding
+-	running on
+-	sitting on
+-	slicing
+-	standing on
+-	swinging
+-	talking to
+-	throwing
+-	touching
+-	walking on
+-	wearing

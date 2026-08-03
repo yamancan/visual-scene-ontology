@@ -1,0 +1,86 @@
+{
+  "thing_classes": ["person", "bicycle", "car", "dog", "handbag", "bottle"],
+  "stuff_classes": ["pavement-merged", "grass-merged", "sky-other-merged",
+                    "tree-merged", "wall-brick"],
+  "predicate_classes": [
+    "over", "in front of", "beside", "on", "in", "attached to",
+    "hanging from", "on the back of", "falling off", "going down",
+    "painted on",
+    "walking on", "running on", "crossing", "standing on", "lying on",
+    "sitting on", "leaning on", "flying over", "jumping over",
+    "jumping from", "wearing", "holding", "carrying", "looking at",
+    "guiding", "kissing", "eating", "drinking", "feeding", "biting",
+    "catching", "picking", "playing with", "chasing", "climbing",
+    "cleaning", "playing", "touching", "pushing", "pulling", "opening",
+    "cooking", "talking to", "throwing", "slicing",
+    "driving", "riding", "parked on", "driving on",
+    "about to hit", "kicking", "swinging",
+    "entering", "exiting", "enclosing"
+  ],
+  "test_image_ids": ["000000000139"],
+  "data": [
+    {
+      "file_name": "train2017/000000000009.jpg",
+      "pan_seg_file_name": "panoptic_train2017/000000000009.png",
+      "image_id": "000000000009",
+      "coco_image_id": "9",
+      "width": 640,
+      "height": 480,
+      "segments_info": [
+        {"id": 3937500, "category_id": 0, "iscrowd": 0, "isthing": true,
+         "area": 42000},
+        {"id": 6053120, "category_id": 6, "iscrowd": 0, "isthing": false,
+         "area": 64000},
+        {"id": 7895160, "category_id": 4, "iscrowd": 0, "isthing": true,
+         "area": 4800}
+      ],
+      "annotations": [
+        {"bbox": [200, 100, 280, 400], "bbox_mode": 0, "category_id": 0,
+         "iscrowd": 0},
+        {"bbox": [0, 380, 640, 480], "bbox_mode": 0, "category_id": 6,
+         "iscrowd": 0},
+        {"bbox": [260, 220, 320, 300], "bbox_mode": 0, "category_id": 4,
+         "iscrowd": 0}
+      ],
+      "relations": [[0, 1, 11], [0, 2, 22], [0, 1, 0], [0, 2, 50]]
+    },
+    {
+      "file_name": "train2017/000000000025.jpg",
+      "pan_seg_file_name": "panoptic_train2017/000000000025.png",
+      "image_id": "000000000025",
+      "coco_image_id": "25",
+      "width": 500,
+      "height": 333,
+      "segments_info": [
+        {"id": 4210752, "category_id": 3, "iscrowd": 0, "isthing": true,
+         "area": 22500},
+        {"id": 5263440, "category_id": 7, "iscrowd": 0, "isthing": false,
+         "area": 41500}
+      ],
+      "annotations": [
+        {"bbox": [50, 150, 200, 300], "bbox_mode": 0, "category_id": 3,
+         "iscrowd": 0},
+        {"bbox": [0, 100, 500, 333], "bbox_mode": 0, "category_id": 7,
+         "iscrowd": 0}
+      ],
+      "relations": [[0, 1, 15], [1, 0, 55]]
+    },
+    {
+      "file_name": "val2017/000000000139.jpg",
+      "pan_seg_file_name": "panoptic_val2017/000000000139.png",
+      "image_id": "000000000139",
+      "coco_image_id": "139",
+      "width": 640,
+      "height": 426,
+      "segments_info": [
+        {"id": 3158064, "category_id": 8, "iscrowd": 0, "isthing": false,
+         "area": 120000}
+      ],
+      "annotations": [
+        {"bbox": [0, 0, 640, 200], "bbox_mode": 0, "category_id": 8,
+         "iscrowd": 0}
+      ],
+      "relations": []
+    }
+  ]
+}

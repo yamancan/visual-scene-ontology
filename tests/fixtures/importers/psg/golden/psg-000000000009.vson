@@ -1,0 +1,25 @@
+# Imported from PSG by `python3 -m tools.importers psg` (tools/importers, v1.0.0).
+# Source record: image 000000000009 (train2017/000000000009.jpg). Mapping table: tools/importers/mappings/psg.json.
+# The CameraView is minted by the importer, not annotated by PSG (docs/vson.md C5). Nothing here was read off the image.
+(scene / Composition
+   :framedBy (cam / CameraView)
+   :viewedBy cam
+   :depicts (o0 / PhysicalObject
+               :individuation Skolem :animacy Agentive :countability Count
+               :class "person"
+               :bbox2d "0.3125,0.2083,0.125,0.625")
+   :depicts (o1 / PhysicalObject
+               :individuation Skolem :countability Mass
+               :class "pavement-merged"
+               :bbox2d "0,0.7917,1,0.2083")
+   :depicts (o2 / PhysicalObject
+               :individuation Skolem :countability Count
+               :class "handbag"
+               :bbox2d "0.4063,0.4583,0.0938,0.1667")
+   :depicts (sf1 / SpatialFact
+               :figure o0 :ground o1
+               :directional above :viewer cam)
+   :depicts (e1 / Process :lemma walk
+               :agent o0 :location o1)
+   :depicts (e2 / Stative :lemma hold
+               :holder o0 :theme o2))

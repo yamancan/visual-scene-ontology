@@ -1,0 +1,39 @@
+# Imported from GQA by `python3 -m tools.importers gqa` (tools/importers, v1.0.0).
+# Source record: image 2407890. Mapping table: tools/importers/mappings/gqa.json.
+# The CameraView is minted by the importer, not annotated by GQA (docs/vson.md C5). Nothing here was read off the image.
+(scene / Composition
+   :framedBy (ctx / SceneContext :venue "indoors")
+   :framedBy (cam / CameraView)
+   :viewedBy cam
+   :depicts (o271881 / PhysicalObject
+               :individuation Skolem :countability Count
+               :class "chair"
+               :bbox2d "0.3438,0.6458,0.0781,0.1667"
+               :hasQuality (o271881_q1 / Quality :dimension Color :value "brown")
+               :hasQuality (o271881_q2 / Quality :dimension Material :value "wood")
+               :hasQuality (o271881_q3 / Quality :dimension Size :value "small"))
+   :depicts (o275312 / PhysicalObject
+               :individuation Skolem :animacy Inert :countability Mass
+               :class "floor"
+               :bbox2d "0,0.7917,1,0.2083"
+               :hasQuality (o275312_q1 / Quality :dimension Material :value "hardwood"))
+   :depicts (o275313 / PhysicalObject
+               :individuation Skolem :countability Count
+               :class "lamp"
+               :bbox2d "0.75,0.2083,0.0625,0.25"
+               :partOf o275314
+               :hasQuality (o275313_q1 / Quality :dimension Size :value "tall"))
+   :depicts (o275314 / PhysicalObject
+               :individuation Skolem :countability Count
+               :class "table"
+               :bbox2d "0.7344,0.4375,0.1875,0.1875"
+               :hasQuality (o275314_q1 / Quality :dimension Material :value "wood"))
+   :depicts (sf1 / SpatialFact
+               :figure o271881 :ground o275312
+               :rcc EC)
+   :depicts (sf2 / SpatialFact
+               :figure o271881 :ground o275313
+               :directional left_of :viewer cam)
+   :depicts (sf3 / SpatialFact
+               :figure o275314 :ground o271881
+               :proximal next_to))

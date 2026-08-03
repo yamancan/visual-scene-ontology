@@ -1,0 +1,115 @@
+[
+  {
+    "image_id": 1,
+    "objects": [
+      {
+        "object_id": 1058498,
+        "names": ["clock"],
+        "synsets": ["clock.n.01"],
+        "x": 421,
+        "y": 91,
+        "w": 79,
+        "h": 339,
+        "attributes": ["green", "tall"]
+      },
+      {
+        "object_id": 5046,
+        "names": ["street"],
+        "synsets": ["street.n.01"],
+        "x": 77,
+        "y": 328,
+        "w": 714,
+        "h": 262
+      },
+      {
+        "object_id": 1058529,
+        "names": ["man"],
+        "synsets": ["man.n.01"],
+        "x": 238,
+        "y": 249,
+        "w": 60,
+        "h": 262
+      },
+      {
+        "object_id": 5048,
+        "names": ["shirt"],
+        "synsets": ["shirt.n.01"],
+        "x": 240,
+        "y": 271,
+        "w": 56,
+        "h": 74,
+        "attributes": ["white", "striped"]
+      }
+    ],
+    "relationships": [
+      {"relationship_id": 15927, "predicate": "ON", "synsets": ["along.r.01"],
+       "subject_id": 1058498, "object_id": 5046},
+      {"relationship_id": 15928, "predicate": "wears", "synsets": ["wear.v.01"],
+       "subject_id": 1058529, "object_id": 5048},
+      {"relationship_id": 15929, "predicate": "on a", "synsets": [],
+       "subject_id": 1058529, "object_id": 5046},
+      {"relationship_id": 15930, "predicate": "shining on", "synsets": [],
+       "subject_id": 1058498, "object_id": 1058529}
+    ]
+  },
+  {
+    "image_id": 2,
+    "objects": [
+      {
+        "object_id": 5069,
+        "names": ["walk sign"],
+        "synsets": [],
+        "x": 463,
+        "y": 141,
+        "w": 43,
+        "h": 103,
+        "attributes": ["on", "lit \"walk\""]
+      },
+      {
+        "object_id": 5071,
+        "names": ["backpack"],
+        "synsets": ["backpack.n.01"],
+        "x": 359,
+        "y": 362,
+        "w": 72,
+        "h": 81,
+        "attributes": ["silver"]
+      },
+      {
+        "object_id": 5072,
+        "names": ["woman"],
+        "synsets": ["woman.n.01"],
+        "x": 330,
+        "y": 250,
+        "w": 96,
+        "h": 300
+      }
+    ],
+    "relationships": [
+      {"relationship_id": 15931, "predicate": "carrying", "synsets": [],
+       "subject_id": 5072, "object_id": 5071},
+      {"relationship_id": 15932, "predicate": "to left of", "synsets": [],
+       "subject_id": 5072, "object_id": 5069},
+      {"relationship_id": 15933, "predicate": "has", "synsets": ["have.v.01"],
+       "subject_id": 5072, "object_id": 5071},
+      {"relationship_id": 15934, "predicate": "white", "synsets": [],
+       "subject_id": 5069, "object_id": 5071}
+    ]
+  },
+  {
+    "image_id": 3,
+    "objects": [
+      {
+        "object_id": 7001,
+        "names": ["sky"],
+        "synsets": ["sky.n.01"],
+        "x": 0,
+        "y": 0,
+        "w": 800,
+        "h": 220,
+        "attributes": ["blue"]
+      }
+    ],
+    "relationships": []
+  }
+]
