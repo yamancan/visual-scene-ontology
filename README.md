@@ -87,6 +87,9 @@ tools/render/     Deterministic graph → English caption renderer
 tools/metrics/    Smatch graph agreement behind `vson diff` — per-layer precision/recall/F1
 tools/canon.py    RDFC-1.0 canonical form — the §4.6 test for "the same scene", + frozen hashes
 tools/schema/     JSON Schema files (extractor envelope + JSON-LD form)
+vson/             `import vson` — the stable Python surface over tools/: validate() -> Verdict,
+                  p2t/x2t, caption/FOL, diff, canonical form, a typed Envelope, and
+                  validate_and_repair(chat_fn, image) — the studio's repair loop, no vendor SDK
 tools/extractor/  Image-to-graph extractor — orchestrator prompts + bare-VLM baseline
 skills/           Portable extractor skills (SKILL.md + conformance fixtures) — exercised by make x-skill-check
 scripts/          Envelope check, smoke eval, deploy preflight
@@ -122,7 +125,7 @@ cli/target/release/vson export caption examples/throne_room.vson
 cli/target/release/vson diff examples/throne_room.ttl examples/gallery/11_throne_room.vson
 
 # Run all tests (Python + Rust)
-make check        # 392 Python tests + 16-scene gallery + 2 schema parses
+make check        # 490 Python tests + 16-scene gallery + 2 schema parses
                   # includes the 29 frozen canonical hashes of §4.6
 make conformance  # the 218-entry conformance suite — what claiming VSON v1 means
 make cq-check     # the 28 executable competency questions vs their frozen answers
@@ -132,6 +135,50 @@ make x-check      # VSON-X gallery round-trip parity (12 pairs)
 ```
 
 See [`docs/vson.md`](docs/vson.md) for the full spec, [`cli/README.md`](cli/README.md) for the CLI, and [`web/README.md`](web/README.md) for the studio.
+
+## Python: `import vson`
+
+The CLI is one consumer of the reference implementations. [`vson/`](vson/) is the other — a facade over [`tools/`](tools/) with a stable import path, typed results and its own exceptions, running the same three gates in the same order as `vson validate` and re-implementing nothing.
+
+```bash
+pip install -e .   # editable: the package reads skills/ and tools/schema/ from the checkout
+```
+
+```python
+import vson
+
+verdict = vson.validate("examples/throne_room.vson")  # a path or the text; .ttl / .vson / .x.vson
+verdict.conforms, verdict.gate, verdict.messages      # True, None, []
+
+vson.to_turtle(penman)          # p2t              vson.diff(a, b).f1         # agreement, §5.15
+vson.from_x(vson_x)             # x2t              vson.canonical_hash(doc)   # §4.6
+vson.caption(doc)               # graph → English, deterministic, no model in the loop
+vson.fol(doc)                   # graph → predicate logic
+```
+
+### Image → validated envelope
+
+`validate_and_repair` is the studio's emit → validate → feed-the-SHACL-messages-back loop as a library call. It takes **your** chat function and nothing else: no vendor SDK is imported, no API key is read, no environment variable is consulted, and whatever you pass as `image_or_doc` is forwarded to round 0 untouched and uninspected — bytes, a path, a base64 string, a list of content blocks.
+
+```python
+import vson
+
+def chat(turn):                        # turn.round, turn.system, turn.user, turn.attachment
+    ...                                # your model call, your key, your SDK
+    return reply_text
+
+result = vson.validate_and_repair(chat, image_or_doc=jpeg_bytes)
+print(result.conforms, result.shacl_retries)          # e.g. True 1
+
+envelope = result.to_envelope("kitchen_01", source=vson.Source(kind="image"))
+assert envelope.errors() == []                        # valid against ENVELOPE_SCHEMA
+```
+
+`extraction.shacl_retries` has been in the envelope schema since v1.0, and until now only the studio could put a number in it. The loop is bounded at two repair rounds — the studio's own `MAX_REPAIR_RETRIES`, mirrored so live envelopes stay comparable with the baked demo corpus, and pinned against [`web/src/lib/extract/limits.ts`](web/src/lib/extract/limits.ts) by a test that reads it back.
+
+`SKILL_PROMPT`, `SKILL_X_PROMPT`, the two repair templates and `ENVELOPE_SCHEMA` are read from [`skills/`](skills/) and [`tools/schema/`](tools/schema/) at import, not restated. `response_format()` / `tool_schema()` / `ollama_format()` wrap that schema in the OpenAI, Anthropic and Ollama shapes and do nothing else — no request, no client, no key.
+
+**None of it reads an image.** A `conforms=True` verdict says the document is well-formed under the shapes, the ontology and the vocabulary — never that it describes the picture ([§2.1](docs/vson.md#21-what-conformance-establishes)).
 
 ## Fail a build on it
 
