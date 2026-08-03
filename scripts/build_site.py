@@ -81,6 +81,14 @@ COPY = (
     ("ontology/allen.ttl", "v1/allen.ttl"),
     ("shapes/vson-shapes.ttl", "v1/shapes.ttl"),
     ("shapes/vson-shapes-relaxed.ttl", "v1/shapes-relaxed.ttl"),
+    # The alignment layer. Published, and named by no redirect rule: it is not
+    # one of the five documents the w3id rule routes, and no claim in
+    # scripts/check_live_claims.py asserts it dereferences. It ships because a
+    # layer nobody can fetch aligns nothing — see the header of the file, and
+    # docs/vson.md §5.17. It is NOT in MERGE_SOURCES below: the merged
+    # distribution is the import closure of the canonical name, and the whole
+    # point of this layer is that the canonical name does not import it.
+    ("ontology/alignments.ttl", "v1/alignments.ttl"),
     ("ontology/context.jsonld", "v1/context.jsonld"),
     (
         "tools/schema/vson-output.schema.json",

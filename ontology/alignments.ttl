@@ -1,0 +1,470 @@
+#################################################################
+# VSON — external alignments and the SKOS view
+#
+#   <https://w3id.org/vson/v1/alignments>
+#
+# NOTHING IMPORTS THIS FILE. It is absent from ontology/vso.ttl's owl:imports
+# closure, absent from tools/shacl_helper.py's ONTOLOGY_FILES, and no VSON gate
+# loads it: `vson validate`'s three gates, `make check`'s SHACL and OWL 2 RL
+# steps, and the studio's Pyodide worker all see exactly the graph they saw
+# before this file existed. That is deliberate. Every triple below is a
+# statement about how a VSON term relates to a vocabulary VSON does not depend
+# on, and a consumer that did not ask for those statements should not receive
+# them by parsing the canonical name. docs/vson.md §5.17 is the account.
+#
+# WHAT THE TRIPLES ARE, AND ARE NOT
+# ---------------------------------
+# Two predicates appear here, and only two:
+#
+#   skos:closeMatch    the two terms have the same reading and could be
+#                      interchanged in most applications;
+#   skos:relatedMatch  the two terms are associated, and one is NOT a
+#                      substitute for the other.
+#
+# Neither imports an OWL entailment. There is no owl:sameAs, no
+# owl:equivalentClass, no owl:equivalentProperty, no rdfs:subClassOf, no
+# rdfs:subPropertyOf and no skos:exactMatch anywhere in this file, and
+# tests/test_alignments.py fails the build if one appears. A consumer that
+# wants the aligned vocabulary's triples must rewrite them itself, and no VSON
+# gate checks that rewrite. This is the posture ontology/rcc8.ttl and
+# ontology/allen.ttl already take toward OGC GeoSPARQL and W3C OWL-Time
+# (docs/vson.md §5.9 design note) — advisory, never substitutive.
+#
+# WHAT IS DELIBERATELY ABSENT
+# ---------------------------
+# Four alignments a reader might look for are not here, and each is recorded as
+# an rdfs:comment on the document below rather than left as a silence:
+# ISO-Space, the vision datasets' label vocabularies, PROV-O, and
+# schema:ImageObject. An alignment whose target has no IRI is a sentence, not a
+# triple; this file ships the triples and docs/vson.md §5.17.3 ships the
+# sentences.
+#
+# THE NAME OF THIS DOCUMENT
+# -------------------------
+# `https://w3id.org/vson/v1/alignments` names this document. It carries NO
+# dereference promise and is not in scripts/check_live_claims.py's claim table:
+# the w3id.org rule routes the five v1 namespace documents explicitly and sends
+# every other path to the landing page, and adding a sixth rule is a change
+# only the maintainer can file. `make site` publishes these bytes at
+# /v1/alignments.ttl on the namespace host, which is where the rule would point
+# when it exists. Until then this is a name and a file, not a resolvable name —
+# stated here for the same reason ontology/vso.ttl states it of its
+# owl:versionIRI.
+#################################################################
+
+@prefix vsa:   <https://w3id.org/vson/v1/alignments#> .
+@prefix vso:   <https://w3id.org/vson/v1/ontology#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix dc:    <http://purl.org/dc/terms/> .
+@prefix vann:  <http://purl.org/vocab/vann/> .
+@prefix vs:    <http://www.w3.org/2003/06/sw-vocab-status/ns#> .
+
+# The aligned-to vocabularies. Every prefix below is a real, published
+# namespace; docs/vson.md Appendix E gives the citation for each.
+@prefix gufo:  <http://purl.org/nemo/gufo#> .
+@prefix oa:    <http://www.w3.org/ns/oa#> .
+@prefix foaf:  <http://xmlns.com/foaf/0.1/> .
+
+#################################################################
+# 0. Document header
+#################################################################
+
+<https://w3id.org/vson/v1/alignments>
+    a owl:Ontology ;
+    rdfs:label "VSON external alignments and SKOS view"@en ;
+    rdfs:comment "Additive layer over the VSON vocabulary: skos:closeMatch / skos:relatedMatch statements toward external vocabularies, and a SKOS concept-scheme view of the six closed value vocabularies. Imported by nothing and loaded by no VSON gate."@en ;
+    dc:title "VSON external alignments and SKOS view" ;
+    dc:description "Alignment and SKOS-view layer for the Visual Scene Ontology. Every statement is additive: removing this document leaves the VSON graph and every VSON verdict unchanged." ;
+    dc:creator "yamancan" ;
+    dc:publisher "yamancan" ;
+    dc:license <https://www.apache.org/licenses/LICENSE-2.0> ;
+    # This layer versions on its own axis and starts at 1.0. It is NOT part of
+    # the 1.2 vocabulary: it adds no VSO term, changes no VSO term's meaning,
+    # and an application that never fetches it is unaffected by anything in it.
+    # docs/vson.md §8.1 is the version model that makes three axes legal.
+    owl:versionInfo "1.0" ;
+    vann:preferredNamespacePrefix "vsa" ;
+    vann:preferredNamespaceUri "https://w3id.org/vson/v1/alignments#" ;
+    dc:source <https://w3id.org/vson/v1/ontology> ;
+
+    # ---- The recorded gaps. Each is an alignment that was looked for and not
+    # ---- minted, with the reason. They are rdfs:comment rather than prose so
+    # ---- that a consumer holding only this graph gets the reason too.
+    rdfs:comment "GAP — ISO 24617-7:2020 (SemAF Part 7, spatial information). Its link structures take two required arguments named @figure and @ground, which is the same asymmetry vso:figure / vso:ground carries. No alignment triple is minted because the standard is specified as an abstract syntax with XML concrete syntaxes and publishes no RDF namespace: there is no IRI for @figure to close-match. docs/vson.md §E.7 states the correspondence in prose, which is the only form it can honestly take."@en ;
+    rdfs:comment "GAP — the vision datasets' label vocabularies (Visual Genome, GQA, PSG, Open Images V7). vso:class is an open dimension and the natural target for a mapping to them, and none is minted: PSG's 133 object and 56 predicate classes and GQA's cleaned vocabulary ship as label lists, not as IRIs, and Open Images V7's classes are identified by Freebase / Google Knowledge Graph MIDs (e.g. /m/01g317), which are identifiers rather than names that resolve today. A per-dataset mapping table is data, not an alignment, and belongs with an importer."@en ;
+    rdfs:comment "GAP — PROV-O. VSON records producer provenance only as envelope JSON (docs/vson.md §6.1) and as a free-text value, so there is no TBox term for prov:wasGeneratedBy or prov:wasAttributedTo to match. The one property whose name invites the mapping, vso:source, is already the source thematic role of a motion (docs/vson.md §5.6); aligning it to provenance would make one IRI carry two unrelated readings."@en ;
+    rdfs:comment "GAP — schema:ImageObject. VSON models the scene, not the file: no term in this vocabulary denotes the image, its bytes, its dimensions or its URL, so schema:ImageObject has no counterpart to match. vso:Composition is the mereological root of a scene, not a depiction of one, which is why the depiction alignment below sits on vso:depicts and is skos:relatedMatch."@en .
+
+#################################################################
+# 1. Upper ontology — gUFO
+#
+# VSON's four-way top (docs/vson.md §3.1) is DOLCE-INSPIRED: it borrows the
+# category names and the endurant/perdurant cut, imports no DOLCE IRI and
+# asserts no DOLCE axiom. gUFO — the OWL-lightweight rendering of the Unified
+# Foundational Ontology, namespace <http://purl.org/nemo/gufo#> — is the
+# nearest published vocabulary whose terms are IRIs, so the borrowing is
+# recorded against it rather than against DOLCE.
+#
+# WHAT IS NOT CLAIMED. VSON is not a gUFO extension and does not satisfy gUFO's
+# axioms. The taxonomy shapes differ where it matters: gufo:Quantity and
+# gufo:Collection are both subclasses of gufo:Object, whereas vso:Substance and
+# vso:Aggregate are SIBLINGS of vso:PhysicalObject under vso:Endurant. Three
+# closeMatches below therefore hold term-by-term and do not compose into a
+# subsumption mapping — which is exactly the difference between skos:closeMatch
+# and rdfs:subClassOf, and the reason only the first appears.
+#################################################################
+
+vso:Endurant       skos:closeMatch gufo:Endurant .
+vso:Perdurant      skos:closeMatch gufo:Event .
+vso:PhysicalObject skos:closeMatch gufo:Object .
+vso:Substance      skos:closeMatch gufo:Quantity .
+vso:Aggregate      skos:closeMatch gufo:Collection .
+vso:Quality        skos:closeMatch gufo:Quality .
+
+# relatedMatch, not closeMatch: vso:Region is DOLCE's Region — a space or an
+# interval that a value is drawn from — while gufo:QualityValue is the VALUE,
+# an abstract individual a quality is associated with. Neighbouring ideas in
+# the same construction; not interchangeable.
+vso:Region         skos:relatedMatch gufo:QualityValue .
+
+# Mereology. Both are transitive proper-parthood in the same direction (part is
+# the subject, whole is the object). VSON's vso:partOf and vso:hasPart have no
+# gUFO counterpart at this level and are deliberately left unaligned.
+vso:properPartOf   skos:closeMatch gufo:isProperPartOf .
+
+#################################################################
+# 2. Triple reification — RDF 1.1
+#
+# vso:Annotation and its three properties ARE RDF reification, spelled in the
+# VSON namespace. Recording that is the single most useful alignment in this
+# file: a consumer that already knows rdf:Statement can read a VSON annotation
+# without reading docs/vson.md §5.11 first.
+#
+# WHAT IS NOT CLAIMED, and why VSON did not simply use rdf:Statement: the VSON
+# node carries the annotation payload (vso:probability, vso:confidence) on the
+# same node, and it is a member of the AllDisjointClasses set that separates the
+# reification kinds from the Frame layer (ontology/vso.ttl §3) — a membership
+# rdf:Statement could not be given without constraining RDF's own vocabulary.
+# The match is close, not exact: RDF 1.1 §3.4 gives rdf:Statement no
+# entailment, and this file gives it none either.
+#################################################################
+
+vso:Annotation         skos:closeMatch rdf:Statement .
+vso:annotatedSubject   skos:closeMatch rdf:subject .
+vso:annotatedPredicate skos:closeMatch rdf:predicate .
+vso:annotatedObject    skos:closeMatch rdf:object .
+
+#################################################################
+# 3. Web Annotation — oa:
+#
+# The body/target separation of the W3C Web Annotation Data Model is the same
+# shape as vso:Annotation (docs/vson.md §5.11, Appendix E.6).
+#
+# WHAT IS NOT CLAIMED. relatedMatch, and not closeMatch, because the targets are
+# different kinds of thing: an oa:Annotation targets a resource or a media
+# fragment, and a vso:Annotation targets a TRIPLE. A rewrite from one to the
+# other has to invent an oa:hasTarget for a statement, which the Web Annotation
+# model does not define. No oa:hasBody / oa:hasTarget alignment is minted for
+# the same reason: vso:annotatedSubject / Predicate / Object split the target
+# three ways, and oa:hasTarget is one property.
+#################################################################
+
+vso:Annotation skos:relatedMatch oa:Annotation .
+
+#################################################################
+# 4. Depiction — foaf:
+#
+# WHAT IS NOT CLAIMED. relatedMatch is the strongest honest predicate here.
+# foaf:depicts runs from an IMAGE to a thing shown in it; vso:depicts runs from
+# a vso:Composition — the mereological root of a scene — to a vso:Entity. VSON
+# has no term for the image (see the schema:ImageObject gap above), so a
+# consumer rewriting vso:depicts into foaf:depicts must first decide which
+# image the Composition belongs to, and this vocabulary does not say.
+#################################################################
+
+vso:depicts skos:relatedMatch foaf:depicts .
+
+#################################################################
+# 5. The SKOS view of the closed value vocabularies
+#
+# Six of VSON's value spaces are CLOSED (docs/vson.md §5.12): a producer may
+# not invent a value, and the members are IRIs rather than strings. That is the
+# shape of a controlled vocabulary, and the interchange form for a controlled
+# vocabulary is SKOS — which is what a term browser, a registry, and a
+# thesaurus tool ask for and what the VSON namespace could not give them.
+#
+# The block below is GENERATED from ontology/vso.ttl by
+# scripts/build_alignments.py, so it cannot drift from the value declarations
+# it views: every skos:prefLabel is that value's rdfs:label and every
+# skos:definition is its rdfs:comment, copied, never re-worded.
+#
+# WHAT IS NOT CLAIMED. Adding `a skos:Concept` to a value does not remove it
+# from its VSO class, does not make it an owl:Class, and does not make
+# skos:broader / skos:narrower meaningful: these vocabularies are flat, so
+# every concept is a top concept of its scheme and no hierarchy is asserted.
+# The eight rcc: relations and the thirteen allen: properties are NOT viewed
+# here — the first are aligned in their own document and the second are
+# properties rather than values, and a concept scheme of properties would be a
+# category error.
+
+#################################################################
+# BEGIN GENERATED — scripts/build_alignments.py
+#
+# Do not edit by hand: `python3 scripts/build_alignments.py --write`
+# regenerates it, and `make check` fails while it is stale.
+#
+# 6 concept scheme(s), 25 concept(s). Every skos:prefLabel below is
+# the value's own rdfs:label and every skos:definition its own rdfs:comment,
+# copied from ontology/vso.ttl — so this view cannot say something the
+# vocabulary does not.
+#################################################################
+
+
+# vso:individuation — 4 value(s). IndividuationKind
+vsa:IndividuationScheme
+    a skos:ConceptScheme ;
+    rdfs:label "IndividuationKind scheme"@en ;
+    rdfs:comment "SKOS view of the closed value vocabulary vso:IndividuationKind, which is the value space of vso:individuation (docs/vson.md §5.12)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/vson/v1/alignments> ;
+    vs:term_status "stable" ;
+    dc:source vso:IndividuationKind ;
+    skos:prefLabel "IndividuationKind scheme"@en ;
+    skos:hasTopConcept vso:Generic ,
+        vso:Kind ,
+        vso:Named ,
+        vso:Skolem .
+
+vso:Generic
+    a skos:Concept ;
+    skos:inScheme vsa:IndividuationScheme ;
+    skos:topConceptOf vsa:IndividuationScheme ;
+    skos:prefLabel "Generic"@en ;
+    skos:definition "An unnamed instance of a class — 'a knight', not a particular knight tracked across scenes."@en .
+vso:Kind
+    a skos:Concept ;
+    skos:inScheme vsa:IndividuationScheme ;
+    skos:topConceptOf vsa:IndividuationScheme ;
+    skos:prefLabel "Kind"@en ;
+    skos:definition "The class itself rather than any instance of it — reference to horses as a kind."@en .
+vso:Named
+    a skos:Concept ;
+    skos:inScheme vsa:IndividuationScheme ;
+    skos:topConceptOf vsa:IndividuationScheme ;
+    skos:prefLabel "Named"@en ;
+    skos:definition "A specific individual bearing a proper name (Alice, Excalibur)."@en .
+vso:Skolem
+    a skos:Concept ;
+    skos:inScheme vsa:IndividuationScheme ;
+    skos:topConceptOf vsa:IndividuationScheme ;
+    skos:prefLabel "Skolem"@en ;
+    skos:definition "A particular but unnamed individual, tracked within the document by a minted handle."@en .
+
+
+# vso:animacy — 2 value(s). AnimacyKind
+vsa:AnimacyScheme
+    a skos:ConceptScheme ;
+    rdfs:label "AnimacyKind scheme"@en ;
+    rdfs:comment "SKOS view of the closed value vocabulary vso:AnimacyKind, which is the value space of vso:animacy (docs/vson.md §5.12)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/vson/v1/alignments> ;
+    vs:term_status "stable" ;
+    dc:source vso:AnimacyKind ;
+    skos:prefLabel "AnimacyKind scheme"@en ;
+    skos:hasTopConcept vso:Agentive ,
+        vso:Inert .
+
+vso:Agentive
+    a skos:Concept ;
+    skos:inScheme vsa:AnimacyScheme ;
+    skos:topConceptOf vsa:AnimacyScheme ;
+    skos:prefLabel "Agentive"@en ;
+    skos:definition "An agent — human, animal, or animated mechanism — capable of initiating action."@en .
+vso:Inert
+    a skos:Concept ;
+    skos:inScheme vsa:AnimacyScheme ;
+    skos:topConceptOf vsa:AnimacyScheme ;
+    skos:prefLabel "Inert"@en ;
+    skos:definition "Inanimate matter: furniture, vegetation, weapons at rest."@en .
+
+
+# vso:countability — 3 value(s). CountabilityKind
+vsa:CountabilityScheme
+    a skos:ConceptScheme ;
+    rdfs:label "CountabilityKind scheme"@en ;
+    rdfs:comment "SKOS view of the closed value vocabulary vso:CountabilityKind, which is the value space of vso:countability (docs/vson.md §5.12)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/vson/v1/alignments> ;
+    vs:term_status "stable" ;
+    dc:source vso:CountabilityKind ;
+    skos:prefLabel "CountabilityKind scheme"@en ;
+    skos:hasTopConcept vso:Collective ,
+        vso:Count ,
+        vso:Mass .
+
+vso:Collective
+    a skos:Concept ;
+    skos:inScheme vsa:CountabilityScheme ;
+    skos:topConceptOf vsa:CountabilityScheme ;
+    skos:prefLabel "Collective"@en ;
+    skos:definition "A plurality carried on one node rather than enumerated; the countability of vso:Aggregate."@en .
+vso:Count
+    a skos:Concept ;
+    skos:inScheme vsa:CountabilityScheme ;
+    skos:topConceptOf vsa:CountabilityScheme ;
+    skos:prefLabel "Count"@en ;
+    skos:definition "An individuable thing that can be counted one by one."@en .
+vso:Mass
+    a skos:Concept ;
+    skos:inScheme vsa:CountabilityScheme ;
+    skos:topConceptOf vsa:CountabilityScheme ;
+    skos:prefLabel "Mass"@en ;
+    skos:definition "An uncountable substance measured rather than counted; the countability of vso:Substance."@en .
+
+
+# vso:affordance — 5 value(s). Affordance
+vsa:AffordanceScheme
+    a skos:ConceptScheme ;
+    rdfs:label "Affordance scheme"@en ;
+    rdfs:comment "SKOS view of the closed value vocabulary vso:Affordance, which is the value space of vso:affordance (docs/vson.md §5.12)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/vson/v1/alignments> ;
+    vs:term_status "stable" ;
+    dc:source vso:Affordance ;
+    skos:prefLabel "Affordance scheme"@en ;
+    skos:hasTopConcept vso:Container ,
+        vso:Edible ,
+        vso:Holdable ,
+        vso:Mountable ,
+        vso:Wearable .
+
+vso:Container
+    a skos:Concept ;
+    skos:inScheme vsa:AffordanceScheme ;
+    skos:topConceptOf vsa:AffordanceScheme ;
+    skos:prefLabel "Container"@en ;
+    skos:definition "Can hold other things inside it."@en .
+vso:Edible
+    a skos:Concept ;
+    skos:inScheme vsa:AffordanceScheme ;
+    skos:topConceptOf vsa:AffordanceScheme ;
+    skos:prefLabel "Edible"@en ;
+    skos:definition "Can be eaten or drunk."@en .
+vso:Holdable
+    a skos:Concept ;
+    skos:inScheme vsa:AffordanceScheme ;
+    skos:topConceptOf vsa:AffordanceScheme ;
+    skos:prefLabel "Holdable"@en ;
+    skos:definition "Can be grasped and carried in the hand."@en .
+vso:Mountable
+    a skos:Concept ;
+    skos:inScheme vsa:AffordanceScheme ;
+    skos:topConceptOf vsa:AffordanceScheme ;
+    skos:prefLabel "Mountable"@en ;
+    skos:definition "Can be climbed onto, sat on, or ridden."@en .
+vso:Wearable
+    a skos:Concept ;
+    skos:inScheme vsa:AffordanceScheme ;
+    skos:topConceptOf vsa:AffordanceScheme ;
+    skos:prefLabel "Wearable"@en ;
+    skos:definition "Can be worn on the body."@en .
+
+
+# vso:directional — 6 value(s). Direction
+vsa:DirectionScheme
+    a skos:ConceptScheme ;
+    rdfs:label "Direction scheme"@en ;
+    rdfs:comment "SKOS view of the closed value vocabulary vso:Direction, which is the value space of vso:directional (docs/vson.md §5.12)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/vson/v1/alignments> ;
+    vs:term_status "stable" ;
+    dc:source vso:Direction ;
+    skos:prefLabel "Direction scheme"@en ;
+    skos:hasTopConcept vso:above ,
+        vso:behind ,
+        vso:below ,
+        vso:in_front_of ,
+        vso:left_of ,
+        vso:right_of .
+
+vso:above
+    a skos:Concept ;
+    skos:inScheme vsa:DirectionScheme ;
+    skos:topConceptOf vsa:DirectionScheme ;
+    skos:prefLabel "above"@en ;
+    skos:definition "The figure is higher than the ground in the viewer's frame."@en .
+vso:behind
+    a skos:Concept ;
+    skos:inScheme vsa:DirectionScheme ;
+    skos:topConceptOf vsa:DirectionScheme ;
+    skos:prefLabel "behind"@en ;
+    skos:definition "The figure is further from the viewer than the ground is."@en .
+vso:below
+    a skos:Concept ;
+    skos:inScheme vsa:DirectionScheme ;
+    skos:topConceptOf vsa:DirectionScheme ;
+    skos:prefLabel "below"@en ;
+    skos:definition "The figure is lower than the ground in the viewer's frame."@en .
+vso:in_front_of
+    a skos:Concept ;
+    skos:inScheme vsa:DirectionScheme ;
+    skos:topConceptOf vsa:DirectionScheme ;
+    skos:prefLabel "in_front_of"@en ;
+    skos:definition "The figure is nearer to the viewer than the ground is."@en .
+vso:left_of
+    a skos:Concept ;
+    skos:inScheme vsa:DirectionScheme ;
+    skos:topConceptOf vsa:DirectionScheme ;
+    skos:prefLabel "left_of"@en ;
+    skos:definition "The figure is to the viewer's left of the ground."@en .
+vso:right_of
+    a skos:Concept ;
+    skos:inScheme vsa:DirectionScheme ;
+    skos:topConceptOf vsa:DirectionScheme ;
+    skos:prefLabel "right_of"@en ;
+    skos:definition "The figure is to the viewer's right of the ground."@en .
+
+
+# vso:proximal — 5 value(s). ProximityKind
+vsa:ProximityScheme
+    a skos:ConceptScheme ;
+    rdfs:label "ProximityKind scheme"@en ;
+    rdfs:comment "SKOS view of the closed value vocabulary vso:ProximityKind, which is the value space of vso:proximal (docs/vson.md §5.12)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/vson/v1/alignments> ;
+    vs:term_status "stable" ;
+    dc:source vso:ProximityKind ;
+    skos:prefLabel "ProximityKind scheme"@en ;
+    skos:hasTopConcept vso:adjacent ,
+        vso:facing ,
+        vso:far ,
+        vso:near ,
+        vso:next_to .
+
+vso:adjacent
+    a skos:Concept ;
+    skos:inScheme vsa:ProximityScheme ;
+    skos:topConceptOf vsa:ProximityScheme ;
+    skos:prefLabel "adjacent"@en ;
+    skos:definition "The figure is immediately beside the ground, with nothing between them."@en .
+vso:facing
+    a skos:Concept ;
+    skos:inScheme vsa:ProximityScheme ;
+    skos:topConceptOf vsa:ProximityScheme ;
+    skos:prefLabel "facing"@en ;
+    skos:definition "The figure is turned toward the ground."@en .
+vso:far
+    a skos:Concept ;
+    skos:inScheme vsa:ProximityScheme ;
+    skos:topConceptOf vsa:ProximityScheme ;
+    skos:prefLabel "far"@en ;
+    skos:definition "The figure is distant from the ground relative to the scale of the scene."@en .
+vso:near
+    a skos:Concept ;
+    skos:inScheme vsa:ProximityScheme ;
+    skos:topConceptOf vsa:ProximityScheme ;
+    skos:prefLabel "near"@en ;
+    skos:definition "The figure is close to the ground relative to the scale of the scene."@en .
+vso:next_to
+    a skos:Concept ;
+    skos:inScheme vsa:ProximityScheme ;
+    skos:topConceptOf vsa:ProximityScheme ;
+    skos:prefLabel "next_to"@en ;
+    skos:definition "The figure is beside the ground, without the no-gap reading vso:adjacent asserts."@en .

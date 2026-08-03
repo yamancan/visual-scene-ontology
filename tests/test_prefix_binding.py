@@ -64,6 +64,7 @@ PUBLISHED_NAMESPACES = (
     "https://w3id.org/vson/v1/rcc8#",
     "https://w3id.org/vson/v1/allen#",
     "https://w3id.org/vson/v1/shapes#",
+    "https://w3id.org/vson/v1/alignments#",
 )
 # The document IRIs themselves — the subjects the owl:Ontology headers sit on,
 # which are names of documents rather than namespaces of terms.
@@ -73,6 +74,7 @@ DOCUMENT_IRIS = (
     "https://w3id.org/vson/v1/allen",
     "https://w3id.org/vson/v1/shapes",
     "https://w3id.org/vson/v1/shapes-relaxed",
+    "https://w3id.org/vson/v1/alignments",
     "https://w3id.org/vson/v1.2/ontology",
 )
 
@@ -83,8 +85,17 @@ TURTLE_FILES = (
     "shapes/vson-shapes.ttl",
     "shapes/vson-shapes-relaxed.ttl",
     "examples/throne_room.ttl",
+    # The alignment layer. Included here for the binding invariant — it names
+    # VSO terms and must survive a re-binding like every other document — and
+    # deliberately NOT in ONTOLOGY_FILES below, which is the graph the gates
+    # load (docs/vson.md §5.17, tests/test_alignments.py).
+    "ontology/alignments.ttl",
 )
 ONTOLOGY_FILES = TURTLE_FILES[:3]
+# The documents the stray-IRI scan reads. The alignment layer joins it because
+# it mints the project's fifth namespace; the shapes files do not, because they
+# were never in it and this change is not the place to widen it.
+NAMED_FILES = ONTOLOGY_FILES + ("ontology/alignments.ttl",)
 CANONICAL_EXAMPLE = "examples/throne_room.ttl"
 
 # The two bindings under test: the one every document writes, and the one the
@@ -254,7 +265,7 @@ class PublishedNamesDidNotMove(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.ontology = rdflib.Graph()
-        for rel in ONTOLOGY_FILES:
+        for rel in NAMED_FILES:
             cls.ontology.parse(os.path.join(ROOT, rel), format="turtle")
 
     def _objects(self, local: str) -> "list[str]":

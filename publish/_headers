@@ -36,6 +36,12 @@
 /v1/shapes-relaxed.ttl
   Content-Type: text/turtle; charset=utf-8
 
+# The alignment layer. Published like the documents above and routed by no
+# w3id rule: nothing imports it and no canonical IRI resolves to it, so a
+# consumer reaches it by this path or not at all.
+/v1/alignments.ttl
+  Content-Type: text/turtle; charset=utf-8
+
 /v1/context.jsonld
   Content-Type: application/ld+json; charset=utf-8
 
