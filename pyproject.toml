@@ -45,7 +45,13 @@ dependencies = [
 dev = ["lark>=1.1,<2"]
 
 [tool.setuptools.packages.find]
-include = ["tools*"]
+# Two packages, one distribution. `tools` is the reference implementation the
+# gate matrix runs and docs/vson.md §10 lists; `vson` is the stable import
+# surface over it (`import vson; vson.validate(...)`) and holds no second
+# implementation of anything. They ship together because `vson` is a facade —
+# every call in it lands in `tools`, so a `vson` installed without `tools`
+# would import and then fail on first use.
+include = ["tools*", "vson*"]
 namespaces = false
 
 [tool.setuptools.package-data]

@@ -65,7 +65,7 @@ test:
 
 lint-py:
 	@echo "==> Python lint (ruff: pyflakes + pycodestyle errors)"
-	@$(PY) -m ruff check tools tests scripts
+	@$(PY) -m ruff check tools tests scripts vson
 
 spec-check:
 	@echo "==> Spec gallery: every example MUST SHACL-conform"
