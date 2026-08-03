@@ -352,12 +352,14 @@ class CoverageTests(unittest.TestCase):
                 self.assertIn("%-8s uncovered" % section, text)
 
     def test_the_uncovered_sections_are_the_ones_the_spec_names(self) -> None:
-        # §5.14/§5.15/§5.16 constrain a tool, §6.1/§6.2 are the envelope schema,
-        # §6.3 is a reference table — all six are named in §2.2's prose. This
-        # pins the list so a section that silently loses its coverage shows up.
+        # §5.14/§5.15/§5.16 constrain a tool, §5.17 constrains an artifact no
+        # gate loads and no document can violate, §6.1/§6.2 are the envelope
+        # schema, §6.3 is a reference table — all seven are named in §2.2's
+        # prose. This pins the list so a section that silently loses its
+        # coverage shows up.
         self.assertEqual(
             self.coverage.uncovered(),
-            ["§5.14", "§5.15", "§5.16", "§6.1", "§6.2", "§6.3"],
+            ["§5.14", "§5.15", "§5.16", "§5.17", "§6.1", "§6.2", "§6.3"],
         )
 
 
