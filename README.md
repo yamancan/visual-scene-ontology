@@ -36,6 +36,10 @@ A scene in VSON-P, the Penman authoring syntax — [`examples/gallery/03_spatial
 Eye level medium shot, 50mm lens. An animal, and a furniture. The animal touches the furniture.
 ```
 
+## Why not just a JSON schema?
+
+Most of the time you should. If your extractor emits one object per image, a pydantic model handed to a structured-output endpoint is the right tool and VSON is ceremony — and a grammar compiled from that schema makes the wrong token unemittable, which beats validating after the fact outright. **[`docs/why-not-json-schema.md`](docs/why-not-json-schema.md)** is the honest version of the comparison: the scene model a competent engineer ships today, as real pydantic, beside the four constraints it structurally cannot express — a directional relation whose viewer must resolve to a camera, a Composition that must depict at least one *Entity*, closed value sets dispatched on the class of the bearer, and figure/ground asymmetry on a reified fact. Each one is paired with the SHACL shape that expresses it and the checked-in fixture that JSON Schema accepts and a `vson` gate rejects, with the command to run it. It also names the alternatives — Instructor, Outlines, XGrammar, BAML, vendor JSON modes — and where each one wins, and lists when VSON is the wrong choice.
+
 ## What's in the box
 
 A curated **visual-scene profile of RDF-star** with:
@@ -64,6 +68,8 @@ VSON does not invent a parser, grammar, or formal semantics. It rides on:
 ```
 docs/vson.md      ★ Canonical single-file spec (Quick Start, reference, JSON Schema, gallery)
                     + vson-x-semantics.md (VSON-X surface semantics)
+                    + why-not-json-schema.md (the four constraints a JSON schema
+                      cannot express, each with its shape, fixture and command)
 docs/strategy/    Productization plan, UI flows, extractor architecture
 spec/             Historical normative spec (v1.0) + v0.1 deprecation record
 ontology/         VSO TBox (OWL 2 RL) + VSV vocabulary

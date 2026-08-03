@@ -59,6 +59,10 @@ web/build/
 # Repo-policy files GitHub surfaces from the root.
 !SECURITY.md
 !CONTRIBUTING.md
+# The competitive page. Prose, not runtime input — but every claim on it names a
+# checked-in fixture and a command, and README.md links it as its second section,
+# so a repository without it ships a dangling link.
+!docs/why-not-json-schema.md
 
 # Generated eval artifacts (scripts/d_smoke_eval.sh writes here)
 reports/
