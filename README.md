@@ -125,7 +125,7 @@ cli/target/release/vson export caption examples/throne_room.vson
 cli/target/release/vson diff examples/throne_room.ttl examples/gallery/11_throne_room.vson
 
 # Run all tests (Python + Rust)
-make check        # 490 Python tests + 16-scene gallery + 2 schema parses
+make check        # 535 Python tests + 16-scene gallery + 2 schema parses
                   # includes the 29 frozen canonical hashes of §4.6
 make conformance  # the 218-entry conformance suite — what claiming VSON v1 means
 make cq-check     # the 28 executable competency questions vs their frozen answers
@@ -179,6 +179,38 @@ assert envelope.errors() == []                        # valid against ENVELOPE_S
 `SKILL_PROMPT`, `SKILL_X_PROMPT`, the two repair templates and `ENVELOPE_SCHEMA` are read from [`skills/`](skills/) and [`tools/schema/`](tools/schema/) at import, not restated. `response_format()` / `tool_schema()` / `ollama_format()` wrap that schema in the OpenAI, Anthropic and Ollama shapes and do nothing else — no request, no client, no key.
 
 **None of it reads an image.** A `conforms=True` verdict says the document is well-formed under the shapes, the ontology and the vocabulary — never that it describes the picture ([§2.1](docs/vson.md#21-what-conformance-establishes)).
+
+## Use it from an agent
+
+The loop above — emit, validate, feed the messages back, rewrite — is a tool call when the caller is an agent. `vson mcp` serves it as an [MCP](https://modelcontextprotocol.io) stdio server: JSON-RPC over stdin and stdout, no port, no host, no key.
+
+```bash
+claude mcp add vson -- python3 -m vson.mcp          # from a checkout
+claude mcp add vson -- /path/to/vson mcp            # or the built binary, anywhere
+```
+
+Or check in [`.mcp.json`](.mcp.json), which this repository already does, so a session opened here is offered the server:
+
+```json
+{ "mcpServers": { "vson": { "command": "python3", "args": ["-m", "vson.mcp"] } } }
+```
+
+Four tools, and what each one actually returns:
+
+| Tool | Give it | You get back |
+|---|---|---|
+| `vson_validate` | `document` (the text) or `path`; optional `syntax`, `profile` | the three gates' verdict as JSON — `conforms`, the `gate` that fired, and one finding per violation carrying the `sh:message` string, the shape, the focus node and the result path. A document that fails is a **result**, not an error: that JSON is the repair prompt |
+| `vson_convert` | `direction: p2t\|x2t` and the document | the Turtle. No reverse direction exists ([§6.1](docs/vson.md#61-the-extractor-envelope-schema)) |
+| `vson_export` | `format: caption\|fol\|cypher` and the document | the rendering, as text |
+| `vson_skill_prompt` | optional `notation: p\|x` | [`skills/vson-extractor/SKILL.md`](skills/vson-extractor/SKILL.md), verbatim — the closed vocabulary, the trait bundles and the clauses, **before** the agent writes rather than after it is rejected |
+
+Three things stated plainly, because a tool description is a promise:
+
+- **`cypher` needs the binary.** That renderer exists only in the Rust CLI, and the server shells out to it rather than keeping a second copy. Under `vson mcp` it is always there; under `python3 -m vson.mcp` it works when a `vson` is on `PATH` or built in the checkout, and returns an error result saying so when it is not. `caption` and `fol` are pure Python.
+- **No image, no network.** Every tool is [`vson/api.py`](vson/api.py) behind a JSON envelope. A green `vson_validate` is [§2.1](docs/vson.md#21-what-conformance-establishes)'s verdict and nothing more.
+- **`path` reads your filesystem** with the server's own privileges — it is a local stdio server you started, the same trust boundary `vson validate` has always had.
+
+[`vson/mcp.py`](vson/mcp.py) is standard library only and adds no dependency to this project; [§5.18](docs/vson.md#518-agent-tool-surface-vson-mcp) documents the MCP revisions it speaks, why the protocol is hand-rolled rather than taken from an SDK, and what it deliberately does not serve.
 
 ## Fail a build on it
 

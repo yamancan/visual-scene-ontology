@@ -10,7 +10,7 @@ cargo build --release
 # binary lands at target/release/vson
 ```
 
-The release binary links nothing beyond libc, and it carries the repository files its subcommands read — the ontology, the shapes and the Python reference implementations — so it runs from any directory, with no checkout and no `VSON_HOME`. What it does **not** carry is a Python runtime: `validate`, `verify`, `diff` and the three Python-backed convert/export subcommands spawn `pyshacl` and `python3`.
+The release binary links nothing beyond libc, and it carries the repository files its subcommands read — the ontology, the shapes and the Python reference implementations — so it runs from any directory, with no checkout and no `VSON_HOME`. What it does **not** carry is a Python runtime: `validate`, `verify`, `diff`, `mcp` and the three Python-backed convert/export subcommands spawn `pyshacl` and `python3`.
 
 ```bash
 pip install pyshacl rdflib owlrl   # required for `vson validate` (or: make deps)
@@ -31,6 +31,7 @@ vson convert x2t <file.x.vson>   # VSON-X -> Turtle on stdout
 vson export cypher <file.vson>   # one Cypher CREATE statement on stdout
 vson export caption <file.vson>  # deterministic English caption on stdout
 vson export fol <file.vson>      # Prolog-style first-order-logic facts on stdout
+vson mcp                         # serve the above to an agent as MCP tools, on stdio
 vson --version
 vson --help
 ```
@@ -376,16 +377,57 @@ database (or import into a fresh one) between loads.
 no `SET` clause, and every relationship endpoint bound by a node pattern in the
 same `CREATE`. It is not checked against a live Neo4j server.
 
+## `mcp`
+
+```bash
+vson mcp        # speaks MCP on this process's own stdin and stdout
+```
+
+Serves `validate`, `convert`, `export` and the extractor skill to an agent as
+[Model Context Protocol](https://modelcontextprotocol.io) tools — JSON-RPC 2.0
+over newline-delimited JSON on stdio, no port and no host. The four tools, what
+they take and what they return are documented once, in
+[`docs/vson.md` §5.18](../docs/vson.md#518-agent-tool-surface-vson-mcp);
+[`../vson/mcp.py`](../vson/mcp.py) is the server and `python3 -m vson.mcp` runs
+the same thing without this binary.
+
+Register it with a client, either way round:
+
+```bash
+claude mcp add vson -- /path/to/vson mcp
+claude mcp add vson -- python3 -m vson.mcp     # from a checkout
+```
+
+Three things about this subcommand specifically, all of them consequences of
+being a server rather than a command:
+
+- **Nothing but protocol goes to stdout.** All three streams are inherited by
+  the Python child, so the client's stdin and stdout *are* the server's. A
+  buffered bridge like the one `export caption` uses would deadlock on the
+  first call — a conversation cannot be captured and replayed at exit.
+- **Relative paths resolve where you ran it**, not where the child runs. The
+  child is started in the resolved home so `python3 -m` can import the package,
+  and `$VSON_MCP_CWD` carries the real directory across.
+- **`export cypher` comes back through this binary.** That renderer is native
+  Rust with no Python counterpart, so the server shells back out to `$VSON_CLI`
+  — which this subcommand sets to its own path. Started as `python3 -m
+  vson.mcp` instead, Cypher works when a `vson` is on `PATH` or built in a
+  checkout, and returns an error result naming the reason when it is not.
+
+Exit codes: 0 when the server shut down cleanly — a client closing stdin is the
+normal shutdown — and 2 otherwise, since a server that could not start reached
+no verdict about anything.
+
 ## What the binary carries
 
-Six of the nine subcommands read files that used to exist only inside a
+Seven of the ten subcommands read files that used to exist only inside a
 checkout — everything except `convert p2t`, `convert t2p` (a stub) and `export
-cypher` — and a binary copied anywhere else exited 2 on all six. The crate now
-embeds those files with `include_str!` and writes them to a per-version cache
-directory the first time one is needed, so a downloaded binary works in a
+cypher` — and a binary copied anywhere else exited 2 on all of them. The crate
+now embeds those files with `include_str!` and writes them to a per-version
+cache directory the first time one is needed, so a downloaded binary works in a
 directory that has never seen this repository.
 
-**Carried** — 22 files, ~305 KiB of source, listed in
+**Carried** — 36 files, ~488 KiB of source, listed in
 [`src/commands/embed.rs`](src/commands/embed.rs):
 
 | Group | Files | Needed by |
@@ -397,13 +439,18 @@ directory that has never seen this repository.
 | Metric | `tools/metrics/smatch.py` | `diff` |
 | Transpilers | `tools/penman/vson_penman.py`, `tools/vson_x/vson_x.py`, `tools/vson_ast.py`, `src/penman/routing-tables.json` | `convert x2t`, `diff`, both renderers |
 | Renderers | `tools/render/caption.py`, `tools/render/fol.py`, `tools/render/verbs.json` | `export caption`, `export fol` |
+| Client library | the `vson/` package — `api.py`, `envelope.py`, `repair.py`, `errors.py`, `_resources.py`, `mcp.py` — plus `tools/canon.py`, which it imports | `mcp` |
+| What the library *reads* | both `skills/*/SKILL.md` bodies, both `tools/extractor/prompts/specialized/repair*.md` templates, `tools/schema/vson-output.schema.json`, `pyproject.toml` | `mcp` — `vson/_resources.py` resolves all six out of the tree the package lives in, at import time, and no import statement mentions any of them |
 
 plus the five `__init__.py` files that make `tools/`, `tools/penman/`,
 `tools/render/`, `tools/vson_x/` and `tools/metrics/` importable packages —
 without them Python resolves each directory as a namespace package and the
 relative imports inside fail. `routing-tables.json` is written back to
 `cli/src/penman/routing-tables.json` inside the materialized tree, because that
-is the path `tools/penman/vson_penman.py` computes from its own location.
+is the path `tools/penman/vson_penman.py` computes from its own location, and
+`pyproject.toml` lands at the materialized root because that is where
+`vson.__version__` — the version an MCP client is told in `serverInfo` — is
+read from.
 
 **Not carried, and still required of the host:**
 
@@ -442,11 +489,11 @@ A *home* is a directory laid out like this repository. Four kinds of thing can
 be one — a path you name, a checkout above the input file, a checkout above the
 working directory, or the copy inside the binary — tried in this order:
 
-| Step | `validate`, `verify`, `diff` | `convert x2t`, `export caption`, `export fol` |
+| Step | `validate`, `verify`, `diff`, `mcp` | `convert x2t`, `export caption`, `export fol` |
 | --- | --- | --- |
 | 1 | `--home <dir>` | — (no flag) |
 | 2 | `$VSON_HOME` | `$VSON_HOME` |
-| 3 | — (several inputs, so no single directory to walk up from) | the input file's directory, then each parent, up to `/` |
+| 3 | — (several inputs, or none, so no single directory to walk up from) | the input file's directory, then each parent, up to `/` |
 | 4 | the working directory, then each parent | the working directory, then each parent |
 | 5 | the copy embedded in the binary | the copy embedded in the binary |
 
@@ -473,14 +520,16 @@ The payload is a byte-identical mirror under `cli/assets/`, not a second
 source. It has to be a copy rather than a path out of the checkout because
 `include_str!` may not reach outside the crate root (see [Source of
 truth](#source-of-truth)), and `scripts/check_embedded_assets.py` — run by `make
-cli-check` — is what keeps the copy a copy. It fails the build on four things:
+cli-check` — is what keeps the copy a copy. It fails the build on five things:
 a mirrored file that differs from the repository original by one byte; a
-`tools.…` import that escapes the embedded closure (one new `from tools.canon
-import …` inside `smatch.py` would break `vson diff` for everyone outside a
-checkout, and no test that runs from the checkout could see it); a repository
-path named anywhere in `cli/src/` that is not embedded, which is what makes a
-*new* Python-backed subcommand fail in CI instead of in a user's terminal; and
-an orphan file under `cli/assets/` that nothing lists.
+`tools.…` or `vson.…` import that escapes the embedded closure (one new `from
+tools.canon import …` inside `smatch.py` would break `vson diff` for everyone
+outside a checkout, and no test that runs from the checkout could see it); a
+file the embedded Python *reads* rather than imports that is not carried, which
+is the case no import closure can see and the one `vson mcp` depends on most; a
+repository path named anywhere in `cli/src/` that is not embedded, which is what
+makes a *new* Python-backed subcommand fail in CI instead of in a user's
+terminal; and an orphan file under `cli/assets/` that nothing lists.
 
 ```bash
 python3 scripts/check_embedded_assets.py          # the gate
@@ -492,24 +541,26 @@ Edit the original, run `--sync`, commit both.
 ## Verification
 
 ```bash
-cd cli && cargo test               # 108 tests: 49 unit, 59 integration
+cd cli && cargo test               # 109 tests: 49 unit, 60 integration
 make cli-check                     # fmt + clippy + build + test + embedded-payload gate + standalone-binary test + graph-isomorphic check vs Python ref
 ```
 
-The 59 integration tests split seven ways: 9 golden-fixture tests
+The 60 integration tests split seven ways: 9 golden-fixture tests
 (`tests/golden_throne_room.rs`), 5 validate-fixture tests
 (`tests/golden_validate.rs`), 9 geometry-gate tests
 (`tests/geometry_gate.rs`), 9 diff tests (`tests/diff_gate.rs`), 11
 report-format tests (`tests/report_format.rs`) holding the JSON and SARIF
 output to a byte-frozen golden and the exit codes to the same three values in
 every format, 6 error-contract tests (`tests/error_contract.rs`) pinning the
-exit-2 "never reached a verdict" half of the interface, and 10 standalone
+exit-2 "never reached a verdict" half of the interface, and 11 standalone
 tests
 (`tests/standalone_home.rs`) that copy the binary **alone** into an empty
 directory outside any checkout, write their fixture there, unset `VSON_HOME`,
-and assert exit 0 — the proof that a downloaded binary works. `make cli-check`
-runs that file a second time against the **release** binary, which is the
-artifact a user would actually copy.
+and assert exit 0 — the proof that a downloaded binary works. The last of them
+drives a whole MCP session over the copied binary's stdio, which is where the
+`vson` package and the six files it reads are proved to have travelled with it.
+`make cli-check` runs that file a second time against the **release** binary,
+which is the artifact a user would actually copy.
 
 Everything else needs `python3`/`pyshacl`. The six error-contract tests, and the
 three standalone cases covering the pure-Rust subcommands and a wrong
