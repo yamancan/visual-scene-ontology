@@ -63,6 +63,12 @@ web/build/
 # checked-in fixture and a command, and README.md links it as its second section,
 # so a repository without it ships a dangling link.
 !docs/why-not-json-schema.md
+# The vision-dataset importers: their reference, the measured coverage study
+# `make importer-check` re-derives, and the licence/attribution draft that holds
+# publication of anything dataset-derived until a person has reviewed it.
+!docs/importers.md
+!docs/eval/coverage.md
+!docs/eval/attribution.md
 
 # Generated eval artifacts (scripts/d_smoke_eval.sh writes here)
 reports/
