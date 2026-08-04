@@ -580,6 +580,58 @@ predicates and the language tags stripped each file's graph is isomorphic to
 its predecessor. The trio goes 942 → 1322 triples and `owl:versionInfo` stays
 at `1.2`, which is §8.1's model working rather than drift.
 
+*Annotation, 2026-08-04 — a demo withdrawn, and what its counts move.* Nothing
+in the entries above is retracted and no envelope is rewritten. `street.jpg`
+and its baked envelope are removed from the studio: the photograph's subject is
+an identifiable woman, and the envelope published a machine-readable inference
+about her face — `vso:dimension vso:Affect ; vso:value :thoughtful`. The demo
+images are Unsplash photographs re-served through Lorem Picsum, and the
+Unsplash License is a grant from the photographer over the photograph; it
+conveys no model release, so nothing in it licenses that assertion. Commit
+`fb446ea` withdrew `lookbook.jpg` on the identifiable-people standard during
+v1.3; this applies the same standard to the rest of the corpus rather than to
+one image. Withdrawn, not replaced: a replacement would need a re-bake, and the
+four that remain are byte-untouched.
+
+The counts the entries above state were measured against the corpus as it stood
+and are left as written; this paragraph is where they are brought forward. **The
+baked studio corpus is 20 envelopes, not 21** — four demos plus the 16-scene
+gallery — wherever a live claim depends on it: `tools/geometry_check.py` and
+`tools/c2_check.py`, `docs/vson.md` §5.13 and §10, and the corpus-size
+assertion in `tests/test_geometry_check.py`. **The studio ships four demos, not
+five**, in `/about` and in both skill acceptance fixtures. Everything else §5.13
+reports is unchanged and re-derivable today, because the withdrawn envelope
+asserted no `vso:rcc` fact at all: 13 relations over two rectangles, 11 a
+match-demanding gate would reject, 4 refuted here, and the same four subjects —
+`kitchen.json` `sf4` and `lamp.json` `sf2`/`sf3`/`sf4`.
+
+One gate was pinned to the withdrawn image and is not weakened by losing it.
+The VSON-X skill fixture and `scripts/d_smoke_eval.sh` both named it as the
+Talmy directional gate — the case where a `vso:directional` fact needs a
+viewer. That requirement is decided by C5 and `vss:DirectionalNeedsViewerShape`
+on every envelope, so the SHACL conformance line beside it already refuses a
+directional fact with no viewer whatever image produced it, and
+`examples/gallery-x/04_directional_with_viewer.x.vson` exercises the case on
+every push. Neither `first_try_pass_rate_min` moves: at 0.8 over four fixtures
+the bar is ⌈0.8 × 4⌉ = 4 of 4, stricter than the five-fixture bar it replaces.
+
+*Annotation, 2026-08-04 — the shipped pixels get their provenance.* The four
+remaining demo images shipped with no recorded source. They are Lorem Picsum
+re-serves of Unsplash photographs, and each JPEG carries the `Picsum ID: N`
+comment that says so, so the provenance was always recoverable by a stranger
+with `exiftool` and never stated by this repository. It is stated now:
+`web/static/demos/manifest.json` carries `credit`, `license` and `source_url`
+per entry, `web/static/demos/CREDITS.md` and the root `NOTICE` carry the same
+four rows with the sha256 of the bytes that ship, the studio's demo strip
+renders the photographers under the thumbnails, and `docs/eval/attribution.md`
+gains a section covering shipped pixels rather than only derived word tables.
+The licence is the **Unsplash License** — never CC0, which Unsplash stopped
+using in 2017, and never "public domain". A vitest
+(`web/tests/demo-credits.test.ts`) fails the build on any manifest entry
+missing a credit, a licence or a source URL, and fails on the strings `CC0` and
+`public domain` wherever a licence is named, so the next image cannot ship the
+way these four did.
+
 ## v1.2.0 — 2026-07-31
 
 Namespace release. Every canonical VSON IRI moves off `https://vson.dev/` and

@@ -83,7 +83,9 @@ Or use the studio (`web/`): drop the image, copy the rendered penman, paste into
 
 A model that claims VSON-extractor support passes if:
 
-- ≥ 4/5 of the [conformance.json](./conformance.json) fixtures emit `conforms: true` on first try.
-- No repair retry needed for ≥ 4/5.
+- ≥ 4/4 of the [conformance.json](./conformance.json) fixtures emit `conforms: true` on first try.
+- No repair retry needed for ≥ 4/4.
+
+`first_try_pass_rate_min` is unchanged at 0.8; the fixture list dropped from five to four when a demo image was withdrawn on 2026-08-04 ([`spec/CHANGELOG.md`](../../spec/CHANGELOG.md)), and ⌈0.8 × 4⌉ = 4. A shorter list makes the bar stricter, never looser.
 
 Studio's repair loop (max 2 retries) is for graceful degradation, not the certification path.

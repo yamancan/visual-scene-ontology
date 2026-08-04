@@ -73,8 +73,8 @@ Or use the studio (`web/`) with the notation toggle set to VSON-X: drop the imag
 
 A model claims `vson-extractor-x` support if:
 
-- ≥ 4/5 of the [conformance.json](./conformance.json) fixtures emit `conforms: true` on first try (no repair retry).
-- The Talmy-gate fixture (`street`) MUST conform — directional facts require `^cam` viewer.
+- ≥ 4/4 of the [conformance.json](./conformance.json) fixtures emit `conforms: true` on first try (no repair retry) — `first_try_pass_rate_min` is unchanged at 0.8 and the list is now four long, so ⌈0.8 × 4⌉ = 4.
+- Directional facts require a `^cam` viewer. One fixture used to carry that gate by name; its image was withdrawn on 2026-08-04 ([`spec/CHANGELOG.md`](../../spec/CHANGELOG.md)) and the requirement did not go with it — C5 and `vss:DirectionalNeedsViewerShape` decide it on **every** fixture above, so a directional fact with no viewer fails the `conforms: true` line already written.
 
 The studio's repair loop (max 2 retries) is for graceful degradation, not the certification path. The repair-x prompt at `tools/extractor/prompts/specialized/repair-x.md` watches for Penman drift (model regressing to `(scene ...)` mid-fix) and aborts after two failed retries rather than auto-switching notations, to keep telemetry clean.
 
@@ -84,8 +84,8 @@ The studio's repair loop (max 2 retries) is for graceful degradation, not the ce
 |---|---|---|
 | Surface parseability (sigil balance, ~scene first line) | ≥ 7/10 | `scripts/d_smoke_eval.sh` |
 | SHACL strict conformance | ≥ 7/10 | same |
-| Talmy directional gate (`street.jpg`) | MUST pass | same |
 | Mass countability gate (`kitchen.jpg`) | SHOULD pass | same |
+| Talmy directional gate (C5 viewer) | folded into SHACL conformance above | `shapes/vson-shapes.ttl` |
 | Corpus conformance over `examples/gallery-x/*.x.vson` | 100% | `make x-skill-check` |
 
 If smoke drops below threshold, iterate on SKILL.md and re-run; do not relax the corpus gate.
