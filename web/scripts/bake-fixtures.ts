@@ -65,33 +65,10 @@ const FIXTURES: Fixture[] = [
    :depicts (sf2 / SpatialFact :figure kettle :ground counter :rcc EC :directional above :viewer cam)
    :depicts (sf3 / SpatialFact :figure bowl :ground counter :rcc EC :directional above :viewer cam))`
 	},
-	{
-		image: 'street.jpg',
-		label: 'Street',
-		mime: 'image/jpeg',
-		vson_p: `(c / Composition
-   :framedBy (cam / CameraView :angle eye_level :focalLength 35mm :framing wide_shot)
-   :framedBy (ctx / SceneContext :venue street :atmosphere urban :timeOfDay day)
-   :framedBy (style / VisualStyle :aesthetic photographic :palette neutral :medium digital)
-   :viewedBy cam
-   :depicts (road / PhysicalObject :class Road
-               :individuation Generic :animacy Inert :countability Count
-               :bbox2d "0.00,0.55,1.00,0.45"
-               :hasQuality (rq1 / Quality :dimension Material :value asphalt))
-   :depicts (building / PhysicalObject :class Building
-               :individuation Generic :animacy Inert :countability Count
-               :bbox2d "0.10,0.05,0.50,0.55")
-   :depicts (car / PhysicalObject :class Car
-               :individuation Generic :animacy Inert :countability Count
-               :bbox2d "0.45,0.50,0.18,0.18"
-               :hasQuality (cq1 / Quality :dimension Color :value silver))
-   :depicts (person / PhysicalObject :class Person
-               :individuation Generic :animacy Agentive :countability Count
-               :bbox2d "0.78,0.52,0.06,0.22")
-   :depicts (sf1 / SpatialFact :figure car :ground road :rcc EC :directional above :viewer cam)
-   :depicts (sf2 / SpatialFact :figure person :ground road :rcc EC :directional above :viewer cam)
-   :depicts (sf3 / SpatialFact :figure building :ground road :rcc DC :directional behind :viewer cam))`
-	},
+	// A fifth fixture stood here for street.jpg. The image was withdrawn on
+	// 2026-08-04 (spec/CHANGELOG.md) and the fixture went with it, because a
+	// fixture whose image is not on disk bakes an envelope no manifest entry
+	// points at.
 	{
 		image: 'forest.jpg',
 		label: 'Forest',

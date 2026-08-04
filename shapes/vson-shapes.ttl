@@ -509,8 +509,11 @@ vss:AnnotationShape a sh:NodeShape ;
 #
 # All four are Violation. Every value they reject contradicts a value space
 # §5.4/§5.10 already defines, and no shipped document carries a value they
-# reject (measured across examples/, the 16-scene gallery and all 21 baked
-# envelopes: 44 bbox2d values, all normalized; zero position3d/scale3d/rotation).
+# reject (measured across examples/, the 16-scene gallery and all 20 baked
+# envelopes: 36 bbox2d values, all normalized; zero position3d/scale3d/rotation).
+# It was 44 across 21 envelopes until 2026-08-04, when one demo was withdrawn
+# with its envelope (spec/CHANGELOG.md); the verdict — zero rejected — did not
+# change, because a withdrawal removes values and adds none.
 #################################################################
 
 vss:GeometryShape a sh:NodeShape ;
@@ -644,9 +647,13 @@ vss:EmbodimentConsistencyShape a sh:NodeShape ;
 #  1. Entity trait completeness. §5.4 types individuation / animacy /
 #     countability / class "required, exactly 1" on every Entity, and its own
 #     Enforcement paragraph records that no shape and no numbered clause
-#     requires them. A minCount shape would fire on 51 entity/trait pairs in 6
-#     shipped documents — examples/throne_room.ttl, examples/throne_room.vson
-#     and the kitchen / lamp / street / books envelopes. The integrity halves
+#     requires them. A minCount shape would fire on 30 entity/trait pairs in 4
+#     shipped documents — examples/throne_room.ttl (7), examples/throne_room
+#     .vson (2) and the kitchen (6) and lamp (15) envelopes; forest and books
+#     carry all four on every Entity. Counted over instances of PhysicalObject,
+#     Substance and Aggregate. It was 51 across five documents until 2026-08-04,
+#     when a demo was withdrawn with its envelope, which was carrying 21 of them
+#     (spec/CHANGELOG.md). The integrity halves
 #     are shaped (vss:EntityClassShape and the three trait shapes cap at one);
 #     the presence half stays a producer obligation until v2.0.
 #
