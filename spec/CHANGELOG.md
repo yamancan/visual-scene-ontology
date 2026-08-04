@@ -605,6 +605,19 @@ asserted no `vso:rcc` fact at all: 13 relations over two rectangles, 11 a
 match-demanding gate would reject, 4 refuted here, and the same four subjects —
 `kitchen.json` `sf4` and `lamp.json` `sf2`/`sf3`/`sf4`.
 
+Two measurements recorded beside the shapes did move, and are re-measured
+rather than left standing. The `vss:GeometryShape` note reads **36 `vso:bbox2d`
+values** across `examples/`, the gallery and the baked envelopes, not 44 — the
+withdrawn envelope carried 8, and the verdict it supports is unchanged, since a
+withdrawal removes values and adds none. The Entity-trait-completeness figure
+the §8.2 sweep *declined* to shape reads **30 entity/trait pairs across four
+documents** — `examples/throne_room.ttl` (7), `examples/throne_room.vson` (2),
+`kitchen.json` (6), `lamp.json` (15), counted over instances of
+`vso:PhysicalObject`, `vso:Substance` and `vso:Aggregate` — not 51 across five:
+the withdrawn envelope was carrying 21 of the 51, which is why re-measuring
+mattered here and nowhere else. The v1.3.0 entry above keeps 51, because 51 is
+what was measured when the decision to decline was taken.
+
 One gate was pinned to the withdrawn image and is not weakened by losing it.
 The VSON-X skill fixture and `scripts/d_smoke_eval.sh` both named it as the
 Talmy directional gate — the case where a `vso:directional` fact needs a
