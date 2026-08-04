@@ -89,3 +89,12 @@ reports/
 examples/*.jpg
 examples/*.jpeg
 examples/*.png
+
+# Local launch tooling, deliberately untracked. It prepares a one-time history
+# rewrite, so it names the file that rewrite removes, that file's blob hash, the
+# commit whose message it replaces, and the replacement text. Committed, it
+# would ship in the public repository and sit in the rewritten history for ever
+# — a searchable pointer to exactly what was withdrawn, which is the state the
+# rewrite exists to end. Keep a copy outside the checkout if you want one after
+# the flip.
+/scripts/launch/
