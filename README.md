@@ -75,6 +75,10 @@ make x-check       # VSON-X gallery round-trip parity (12 pairs)
 VSON-P, the Penman authoring syntax — [`examples/gallery/04_directional_with_viewer.vson`](examples/gallery/04_directional_with_viewer.vson):
 
 ```
+# Directional spatial fact with mandatory viewer (Talmy resolution).
+# Demonstrates: directional + viewer + RCC together.
+# The viewer disambiguates "left of" -- left from whose vantage?
+
 (scene / Composition
    :framedBy (cam / CameraView :angle eye_level :focalLength 35mm :framing wide_shot)
    :viewedBy cam
