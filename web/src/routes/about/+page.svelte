@@ -147,6 +147,13 @@
 				routes through the studio host. Image bytes are never persisted, in either path.
 			</p>
 			<p class="aside">
+				The four photographs are not ours. They are Unsplash photographs, credited under the demo
+				strip and in full — photographer, licence, source and file hash — in
+				<a href="/demos/CREDITS.md" rel="external">CREDITS.md</a>. The licence is the Unsplash
+				License, which covers the photograph and not the people in it; that is why there are four
+				and not five.
+			</p>
+			<p class="aside">
 				The studio is stateless. Refresh the page and the scene is gone. There is no account, no
 				database, no session. The only durable artifact of a run is the envelope you choose to
 				download.
