@@ -44,10 +44,11 @@ For every tracked `*.md` file:
          URLs are `make live-check`'s job.
 
   3. **Markdown links written outside Markdown resolve too.** A module
-     docstring citing `([Appendix E](../docs/vson.md#…))` is a link a reader
-     follows and a link that rots; `tools/canon.py` carried one of the
-     twenty-four broken ones. Every tracked non-Markdown file is swept for
-     `](path.md#fragment)` and each hit is checked on the same terms.
+     docstring citing an appendix of the spec is a link a reader follows and a
+     link that rots; `tools/canon.py` carried one of the twenty-four broken
+     ones. Every tracked non-Markdown file is swept for a Markdown link into a
+     Markdown file, and each hit is checked on the same terms — except the two
+     files in `SWEEP_EXEMPT`, which spell that syntax as data.
 
 The slug algorithm
 ------------------
@@ -303,13 +304,23 @@ _FOREIGN_LINK = re.compile(r"\]\(([^)\s]*\.md#[^)\s]+)\)")
 # report a break in a file nobody edits.
 MIRROR_PREFIX = "cli/assets/"
 
+# Two files spell link syntax as *data* rather than writing links: this gate,
+# which has to state the pattern it hunts for, and its tests, whose fixtures
+# are deliberately unresolvable. Sweeping them would report the examples as
+# breakages. An inventory, not an escape hatch — nothing else may be added
+# here without the same kind of reason.
+SWEEP_EXEMPT = {
+    "scripts/check_md_anchors.py": "this gate; it must spell the pattern it hunts for",
+    "tests/test_doc_gates.py": "the gate's tests; their fixtures are broken on purpose",
+}
+
 
 def foreign_links() -> list[tuple[str, int, str]]:
     """`(file, line, target)` for every `](*.md#…)` outside the Markdown."""
     hits: list[tuple[str, int, str]] = []
     md = set(tracked_markdown())
     for rel in _ls_files():
-        if rel in md or rel.startswith(MIRROR_PREFIX):
+        if rel in md or rel.startswith(MIRROR_PREFIX) or rel in SWEEP_EXEMPT:
             continue
         path = os.path.join(REPO, rel)
         try:

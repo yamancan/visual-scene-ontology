@@ -149,6 +149,23 @@ class AnchorGateGoesRed(unittest.TestCase):
         doc = anchors.Doc("t.md", "Write `[x](#nowhere)` to link.\n")
         self.assertEqual([], doc.links)
 
+    def test_the_sweep_reaches_outside_markdown(self):
+        # tools/canon.py's docstring cites an appendix of the spec; that link
+        # was one of the broken ones, and a sweep that found nothing would be
+        # a gate that had gone quiet.
+        found = anchors.foreign_links()
+        self.assertTrue(found)
+        self.assertIn("tools/canon.py", {rel for rel, _, _ in found})
+
+    def test_sweep_exemptions_are_tracked_files(self):
+        # An inventory that names a file nobody ships is an exemption nobody
+        # asked for.
+        for rel in anchors.SWEEP_EXEMPT:
+            self.assertTrue(
+                os.path.exists(os.path.join(REPO, rel)),
+                f"{rel} is exempt from the sweep but is not in the checkout",
+            )
+
     def test_selftest_mode_is_green(self):
         self.assertEqual(0, _quiet(anchors.selftest))
 
