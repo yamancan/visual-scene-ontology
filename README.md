@@ -38,6 +38,8 @@ That failing document is [`tests/fixtures/bad_no_viewer.vson`](tests/fixtures/ba
 
 **Receipts.** [218-entry conformance suite](tests/conformance/) · [604 Python tests](Makefile) · [29 competency questions, 28 of them run by CI against byte-frozen answers](queries/) · [byte-parity Rust and Python implementations](cli/) · [w3id IRIs that dereference](https://w3id.org/vson/v1/ontology). Every number on this page is checked by a `make` target in this repository.
 
+**The idea.** [*An image is not a sentence*](docs/essay-an-image-is-not-a-sentence.md) — why a claim you cannot reject is not a claim, what this design inherited and from whom, and what a green check refuses to say.
+
 ## Install
 
 **Rung 0 — nothing.** [The studio](https://vson-studio.pages.dev) needs no install, no account and no key.
@@ -302,3 +304,5 @@ Written with heavy LLM assistance: 207 of this repository's 229 commits carry a 
 - [SECURITY.md](SECURITY.md) — threat model and how to report a vulnerability
 - [CITATION.cff](CITATION.cff) — no DOI yet; cite the repository
 - [LICENSE](LICENSE) — Apache-2.0
+
+Built by [yaman](https://github.com/yamancan).
