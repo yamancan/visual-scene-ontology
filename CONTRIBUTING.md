@@ -58,6 +58,17 @@ packaging, `tools/__init__.py` or `vson/_resources.py`. Its offline half —
 hand-written `[tool.setuptools] packages` list still covers the source tree —
 needs no venv and no network.
 
+### What the wheel has to carry
+
+`import vson` reads the canonical files rather than restating them —
+`skills/*/SKILL.md`, `tools/schema/vson-output.schema.json`, the two
+ontology-and-shapes trees, `cli/src/penman/routing-tables.json`. An editable
+install reads them out of the checkout; a plain `pip install .` reads the copies
+the wheel carries under `tools/_data/` (`[tool.setuptools.package-dir]` in
+[`pyproject.toml`](pyproject.toml)). That is the asymmetry `make wheel-check`
+exists to catch, and why it is a release gate rather than part of `make check`:
+installing the declared dependencies needs PyPI.
+
 For the web studio:
 
 ```bash
@@ -105,6 +116,10 @@ pnpm build
   `refactor`, `docs`, `ci`, `style`, `lint`), scoped where it helps:
   `fix(cli): ...`.
 - One logical change per commit.
+
+## Authorship
+
+Judge the work by running the gates above, not by reading the prose.
 
 ## Reporting bugs
 
