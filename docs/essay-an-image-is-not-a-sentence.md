@@ -1,3 +1,10 @@
+<!--
+The canonical long form of this argument, and the only one. The studio's about
+page (web/src/routes/about/+page.svelte) carries two sections distilled from it —
+"Where the ideas come from" and "What a verdict refuses to say" — which make no
+claim this file does not. Change this file first; the two sections follow it.
+-->
+
 # An image is not a sentence
 
 A vision-language model, shown a photograph, returns a paragraph. It may be entirely right. What it
