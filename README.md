@@ -8,6 +8,8 @@
 
 An image is not a sentence. **A vision-language model's description of an image is unvalidated prose: there is no schema it can violate, so nothing can reject one and no build can fail on it.** VSON makes every claim about an image — an object, a property, a spatial relation, an action — a graph assertion a validator can reject, gated by SHACL shapes. It checks the graph, not the picture: [§2.1](docs/vson.md#21-what-conformance-establishes) states exactly what a green result does and does not establish. Built for image-generation pipelines, scene-graph researchers, and people evaluating VLM output.
 
+![Extraction: an image goes to a vision-language model, which emits a document in VSON-P; transpile turns that document into a VSON-T graph. Verification, which is vson validate: the graph passes through three gates in order — SHACL, OWL 2 RL, then C2 closure — and clearing all three exits 0 with the graph, while any gate that fails exits 1 with findings. Every gate reads the document. None of them reads the image.](docs/img/pipeline.svg)
+
 ## Try it — [vson-studio.pages.dev](https://vson-studio.pages.dev)
 
 Drop a photo, get a scene graph. No account, no key, nothing to install: the demo images and the 16-scene gallery replay baked envelopes at $0, and verification runs in your browser — a Pyodide worker executes two of the CLI's three gates (pyshacl SHACL, then owlrl OWL 2 RL); the third, C2 vocabulary closure, is CLI-only. Live extraction of your own images runs on your own OpenRouter key, browser → OpenRouter, never touching a studio host.
