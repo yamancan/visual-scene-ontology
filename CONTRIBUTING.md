@@ -41,6 +41,23 @@ make envelope-check  # every committed studio envelope must SHACL-conform
 
 `make check-all` runs all five in one go.
 
+Two further gates are deliberately outside that set because they need the
+network, and a gate that needs the network is a gate that goes red when the
+network does. Run them before a release:
+
+```bash
+make live-check      # the eight canonical IRIs still redirect as §5.1 says
+make wheel-check     # `pip install .` (not -e .) into a throwaway venv, then the API from outside any checkout
+```
+
+`make wheel-check` is the only gate that runs against the *distribution* rather
+than the checkout: an editable install is the checkout, so nothing else here can
+see a file the wheel fails to carry. Run it after touching `pyproject.toml`
+packaging, `tools/__init__.py` or `vson/_resources.py`. Its offline half —
+`python3 scripts/check_wheel_install.py --preflight`, which checks that the
+hand-written `[tool.setuptools] packages` list still covers the source tree —
+needs no venv and no network.
+
 For the web studio:
 
 ```bash

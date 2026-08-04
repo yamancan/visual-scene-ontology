@@ -138,7 +138,7 @@ cli/target/release/vson export caption examples/throne_room.vson
 cli/target/release/vson diff examples/throne_room.ttl examples/gallery/11_throne_room.vson
 
 # Run all tests (Python + Rust)
-make check        # 535 Python tests + 16-scene gallery + 2 schema parses
+make check        # 555 Python tests + 16-scene gallery + 2 schema parses
                   # includes the 29 frozen canonical hashes of §4.6
 make conformance  # the 218-entry conformance suite — what claiming VSON v1 means
 make cq-check     # the 28 executable competency questions vs their frozen answers
@@ -154,8 +154,10 @@ See [`docs/vson.md`](docs/vson.md) for the full spec, [`cli/README.md`](cli/READ
 The CLI is one consumer of the reference implementations. [`vson/`](vson/) is the other — a facade over [`tools/`](tools/) with a stable import path, typed results and its own exceptions, running the same three gates in the same order as `vson validate` and re-implementing nothing.
 
 ```bash
-pip install -e .   # editable: the package reads skills/ and tools/schema/ from the checkout
+pip install .      # or -e . to develop against the checkout; both work from any cwd
 ```
+
+The package reads the canonical files rather than restating them — `skills/*/SKILL.md`, `tools/schema/vson-output.schema.json`, the two ontology-and-shapes trees, `cli/src/penman/routing-tables.json`. An editable install reads them out of the checkout; a plain `pip install` reads the copies the wheel carries under `tools/_data/` (`[tool.setuptools.package-dir]` in [`pyproject.toml`](pyproject.toml)). `make wheel-check` builds the wheel, installs it into a throwaway virtualenv and exercises the API from outside any checkout — a release gate, not part of `make check`, because installing the declared dependencies needs PyPI.
 
 ```python
 import vson
