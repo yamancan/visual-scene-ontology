@@ -28,6 +28,11 @@
 //! answer is two chances to disagree, so a fixture that the text path
 //! attributes to the C2 gate must be attributed to the C2 gate by the JSON
 //! path as well.
+//!
+//! `--format compact` is pinned here too, and its golden is written out in
+//! this file rather than frozen beside the other two: it carries no crate
+//! version, so a release would not refreeze it, and a line a human is meant to
+//! read is worth reading in the test that asserts it.
 
 use std::io::Write;
 use std::path::PathBuf;
@@ -211,6 +216,71 @@ fn stdin_accepts_turtle_too_and_exits_zero_on_a_clean_document() {
     let out = vson_stdin(&["validate", "-"], &read(CLEAN_FIXTURE));
     assert_eq!(out.status.code(), Some(0), "{}", both_streams(&out));
     assert_eq!(stdout_of(&out).trim_end(), "OK  -");
+}
+
+#[test]
+fn compact_prints_one_line_per_finding_and_then_the_verdict() {
+    // The whole format, byte for byte. This fixture has one finding, so the
+    // run is two lines: where it is, which rule fired, what it said — then the
+    // same `FAIL <file> (<gate>)` line `--format text` prints.
+    let out = vson(&["validate", "--format", "compact", PENMAN_FIXTURE]);
+    assert_eq!(out.status.code(), Some(1), "{}", both_streams(&out));
+    assert_eq!(
+        stdout_of(&out),
+        "tests/fixtures/bad_no_viewer.vson:26:14  \
+         vson/shacl/DirectionalNeedsViewerShape  \
+         Directional spatial facts require exactly one vso:viewer for construal \
+         disambiguation (C5), and that viewer must be a CameraView, never an Entity.\n\
+         FAIL tests/fixtures/bad_no_viewer.vson (shacl)\n",
+        "{}",
+        both_streams(&out)
+    );
+}
+
+#[test]
+fn a_compact_finding_starts_with_a_position_grep_can_cut_on() {
+    // The property the format exists for: every finding line begins
+    // `path:line:col`, and none of them wraps. A log scraper and a person
+    // reading a failing build want the same two things.
+    let out = vson(&["validate", "--format", "compact", PENMAN_FIXTURE]);
+    let text = stdout_of(&out);
+    let mut lines = text.lines();
+    let finding = lines.next().expect("one finding line");
+    let (position, _) = finding.split_once("  ").expect("two-space separated");
+    let parts: Vec<&str> = position.rsplitn(3, ':').collect();
+    assert_eq!(parts[2], PENMAN_FIXTURE, "{finding}");
+    assert_eq!(parts[1].parse::<u32>().ok(), Some(26), "{finding}");
+    assert_eq!(parts[0].parse::<u32>().ok(), Some(14), "{finding}");
+    assert!(lines.next().unwrap().starts_with("FAIL "), "{text}");
+    assert_eq!(lines.next(), None, "{text}");
+}
+
+#[test]
+fn a_clean_compact_run_says_so_rather_than_saying_nothing() {
+    // §5.16's rule for every structured format, in this one's shape: silence
+    // and success must not look alike.
+    let out = vson(&["validate", "--format", "compact", CLEAN_FIXTURE]);
+    assert_eq!(out.status.code(), Some(0), "{}", both_streams(&out));
+    assert_eq!(stdout_of(&out), format!("OK  {CLEAN_FIXTURE}\n"));
+}
+
+#[test]
+fn compact_reaches_the_same_verdict_as_the_other_formats() {
+    // The C2 fixture: a different gate, a finding with no focus node, and a
+    // position resolved from a mention rather than from a declaration. The
+    // format must not move the gate attribution or the exit code.
+    let out = vson(&["validate", "--format", "compact", ORPHAN_FIXTURE]);
+    assert_eq!(out.status.code(), Some(1), "{}", both_streams(&out));
+    let text = stdout_of(&out);
+    assert!(
+        text.starts_with(&format!("{ORPHAN_FIXTURE}:35:")),
+        "the position the JSON path reports, in this format: {text}"
+    );
+    assert!(text.contains("  vson/c2/orphan-term  "), "{text}");
+    assert!(
+        text.ends_with(&format!("FAIL {ORPHAN_FIXTURE} (c2)\n")),
+        "{text}"
+    );
 }
 
 #[test]

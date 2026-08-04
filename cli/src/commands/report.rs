@@ -1,13 +1,14 @@
-//! The machine-readable shapes of a `vson validate` run: `json` and `sarif`.
+//! The machine-readable shapes of a `vson validate` run: `json`, `sarif` and
+//! `compact`.
 //!
-//! `text` is for a person at a terminal and is unchanged. These two are for a
-//! build. The record set behind both is the same one `tools/validate_report.py`
-//! emits — one [`Finding`] per violation, with the shape, the focus node, the
-//! result path and the severity kept as fields rather than rendered into a
-//! sentence — plus the source position this side resolves
-//! ([`super::sourcemap`]). docs/vson.md §5.16 is the normative description of
-//! both; this module is the implementation of that clause and must not drift
-//! from it.
+//! `text` is for a person at a terminal and is unchanged. These three are for a
+//! build. The record set behind all of them is the same one
+//! `tools/validate_report.py` emits — one [`Finding`] per violation, with the
+//! shape, the focus node, the result path and the severity kept as fields
+//! rather than rendered into a sentence — plus the source position this side
+//! resolves ([`super::sourcemap`]). docs/vson.md §5.16 is the normative
+//! description of all three; this module is the implementation of that clause
+//! and must not drift from it.
 //!
 //! **Why SARIF.** It is the one report format GitHub, GitLab and every code
 //! scanner already read, so a violation becomes an annotation on the offending
@@ -17,6 +18,13 @@
 //! and `message.text` on every result — with `ruleId`, `level` and `locations`
 //! filled in as well, because those three are what a scanner needs to group,
 //! rank and place a finding even though the schema leaves them optional.
+//!
+//! **Why compact.** SARIF is for a scanner and JSON is for a parser; neither is
+//! for the two readers who look at a failing build most often — a person
+//! scrolling a log, and a `grep`. `compact` puts one finding on one line, with
+//! the position first, so both get what they came for without `jq`. It is the
+//! only report format that is meant to be *read* rather than consumed, which is
+//! also why it is not versioned: the JSON document stays the contract.
 //!
 //! **What a passing run emits.** A conformant document produces a report with
 //! zero findings, not an empty file: a caller that cannot tell "clean" from
@@ -170,6 +178,56 @@ impl Report {
         serde_json::to_string_pretty(self).expect("a Report always serializes") + "\n"
     }
 
+    /// `--format compact` — one line per finding, then the same verdict line
+    /// `--format text` prints, per input.
+    ///
+    /// ```text
+    /// scene.vson:26:14  vson/shacl/DirectionalNeedsViewerShape  Directional spatial facts …
+    /// FAIL scene.vson (shacl)
+    /// ```
+    ///
+    /// Three decisions, each of them a promise to whoever pipes this into
+    /// something:
+    ///
+    /// * **One finding is one line.** A `sh:message` may carry newlines, so
+    ///   every run of whitespace in it is collapsed to a single space
+    ///   ([`one_line`]). A format that sometimes wraps is a format `grep -c`
+    ///   cannot count.
+    /// * **The position comes first**, in the `path:line:col` shape editors and
+    ///   log scrapers already know. A finding whose position was never
+    ///   established prints its path alone rather than a plausible `:1:1`
+    ///   (§5.16.3) — the fields stay two-space-separated either way, so the
+    ///   split is unambiguous.
+    /// * **The `rule` stands in for the shape.** It *is* the shape's name in
+    ///   the form a reader can grep for — `vson/shacl/<local name>` (§5.16.1) —
+    ///   where the `shape` field is a 50-character IRI on SHACL findings and
+    ///   null on the two gates that have no shapes at all.
+    pub fn to_compact(&self) -> String {
+        let mut out = String::new();
+        for file in &self.files {
+            for finding in &file.findings {
+                let at = match &finding.location {
+                    Some(at) => format!("{}:{}:{}", file.path, at.line, at.column),
+                    None => file.path.clone(),
+                };
+                out.push_str(&format!(
+                    "{}  {}  {}\n",
+                    at,
+                    finding.rule,
+                    one_line(&finding.message)
+                ));
+            }
+            // The verdict line is `text`'s, character for character: the two
+            // formats differ in what precedes it, never in what it says.
+            match (file.conforms, &file.gate) {
+                (true, _) => out.push_str(&format!("OK  {}\n", file.path)),
+                (false, Some(gate)) => out.push_str(&format!("FAIL {} ({})\n", file.path, gate)),
+                (false, None) => out.push_str(&format!("FAIL {}\n", file.path)),
+            }
+        }
+        out
+    }
+
     /// `--format sarif` — one run, one result per finding.
     pub fn to_sarif(&self) -> String {
         let mut rules: Vec<Value> = Vec::new();
@@ -278,6 +336,13 @@ fn level_for(severity: &str) -> &'static str {
         "info" => "note",
         _ => "warning",
     }
+}
+
+/// Collapse every run of whitespace to one space, for a format whose whole
+/// promise is that a finding occupies exactly one line. A `sh:message` written
+/// across three lines in the shapes file arrives here with its newlines intact.
+fn one_line(text: &str) -> String {
+    text.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
 /// A SARIF `artifactLocation.uri`. Relative, with `./` stripped, because that
@@ -397,6 +462,85 @@ mod tests {
             physical.get("region").is_none(),
             "no region is emitted rather than a guessed line 1"
         );
+    }
+
+    #[test]
+    fn compact_puts_the_position_first_and_the_verdict_last() {
+        // The path is the one the caller typed, `./` and all — this format is
+        // read by a person and by whatever they pipe it into, and both of them
+        // want the string that would open the file again. SARIF strips the
+        // `./` because a scanner joins its URIs against a repository root;
+        // nothing joins these.
+        let out = one_bad_file().to_compact();
+        assert_eq!(
+            out,
+            "./tests/fixtures/bad.vson:11:14  vson/shacl/DirectionalNeedsViewerShape  \
+             Directional spatial facts require exactly one vso:viewer\n\
+             FAIL ./tests/fixtures/bad.vson (shacl)\n"
+        );
+    }
+
+    #[test]
+    fn a_compact_finding_is_one_line_however_the_message_was_written() {
+        let mut wrapped = finding();
+        wrapped.message = "Directional spatial facts\nrequire exactly one\n\tvso:viewer".into();
+        let report = Report::new(
+            "strict",
+            vec![FileReport {
+                path: "a.vson".into(),
+                syntax: "penman",
+                conforms: false,
+                gate: Some("shacl".into()),
+                findings: vec![wrapped],
+            }],
+        );
+        let out = report.to_compact();
+        assert_eq!(
+            out.lines().count(),
+            2,
+            "one finding, one verdict, and no wrapping: {out:?}"
+        );
+        assert!(out.starts_with(
+            "a.vson:11:14  vson/shacl/DirectionalNeedsViewerShape  \
+             Directional spatial facts require exactly one vso:viewer\n"
+        ));
+    }
+
+    #[test]
+    fn a_compact_finding_with_no_position_names_its_file_and_stops() {
+        // §5.16.3: a position that was not established is not reported. Not as
+        // a guessed line 1, and not as a `:0:0` that a reader would try to jump
+        // to either — the path alone, with the two-space split still intact.
+        let mut bare = finding();
+        bare.location = None;
+        let report = Report::new(
+            "strict",
+            vec![FileReport {
+                path: "scene.ttl".into(),
+                syntax: "turtle",
+                conforms: false,
+                gate: Some("c2".into()),
+                findings: vec![bare],
+            }],
+        );
+        let first = report.to_compact().lines().next().unwrap().to_string();
+        assert!(first.starts_with("scene.ttl  vson/shacl/"), "{first}");
+        assert_eq!(first.split("  ").count(), 3, "{first}");
+    }
+
+    #[test]
+    fn a_clean_compact_run_is_the_ok_line_the_text_format_prints() {
+        let report = Report::new(
+            "strict",
+            vec![FileReport {
+                path: "examples/throne_room.ttl".into(),
+                syntax: "turtle",
+                conforms: true,
+                gate: None,
+                findings: vec![],
+            }],
+        );
+        assert_eq!(report.to_compact(), "OK  examples/throne_room.ttl\n");
     }
 
     #[test]
