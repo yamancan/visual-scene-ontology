@@ -53,6 +53,14 @@ CorrectionBar  same transpile → validate → repair loop, but the prompt is
 ExportRow      cypher / mermaid / graphml / dot: pure TS, in-page
                caption / FOL: the worker, same renderers as the CLI
 
+ConformancePane
+               "what if the viewer were removed?" — drops one vso:viewer
+               triple from an IN-MEMORY copy and runs the same two gates
+               over it: C5 fires with its own sh:message beside the real
+               verdict. No key, no model, no image read; the envelope is
+               never written, "restore" drops the copy. Renders only for a
+               document with a directional fact (src/lib/validate/tamper.ts)
+
 ScenePanel     view modes — Inspect · Graph · Source, client-side only
 ```
 
