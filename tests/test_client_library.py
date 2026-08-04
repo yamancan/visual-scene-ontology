@@ -452,6 +452,24 @@ class ExtractorTests(unittest.TestCase):
         self.assertIsNone(vson.extract_penman("I cannot help with that."))
         self.assertIsNone(vson.extract_penman(")unbalanced("))
 
+    def test_a_comment_headed_vson_file_extracts_its_tree(self) -> None:
+        # A chat_fn may hand back a complete .vson file, header comment and
+        # all. Parentheses inside `#` comments must not anchor the slice —
+        # validate() accepts the file, so the loop's extractor must too.
+        with open(os.path.join(REPO, "examples", "throne_room.vson")) as fh:
+            text = fh.read()
+        doc = vson.extract_penman(text)
+        self.assertIsNotNone(doc)
+        assert doc is not None
+        self.assertTrue(doc.startswith("(scene"))
+        self.assertTrue(doc.endswith(")"))
+
+    def test_a_trailing_comment_paren_does_not_anchor_the_end(self) -> None:
+        self.assertEqual(
+            vson.extract_penman("(a / B)\n# end (of file)\n"),
+            "(a / B)",
+        )
+
     def test_vson_x_extraction_is_line_anchored_and_keeps_the_newline(self) -> None:
         self.assertEqual(
             vson.extract_vson_x("Sure:\n~scene\n  a /PhysicalObject\n"),
