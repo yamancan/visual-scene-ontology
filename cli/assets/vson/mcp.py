@@ -101,7 +101,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple
 
 from . import api
 from ._resources import path_to, project_version
@@ -236,9 +236,12 @@ EXPORT_DESCRIPTION = (
     "first-order-logic facts, with reified Events, Processes, Statives and "
     "SpatialFacts collapsed back into n-ary predicates. cypher = Neo4j CREATE "
     "statements; that renderer exists only in the Rust CLI, so this tool "
-    "shells out to a `vson` binary for it, reads VSON-P input only, and "
-    "returns an error when no binary is reachable. caption and fol accept all "
-    "three syntaxes and need no binary."
+    "shells out to a `vson` binary for it and reads VSON-P input only. The "
+    "input is settled before the binary is looked for: input that is not "
+    "VSON-P comes back as that error whether or not a binary is reachable, "
+    "and input the renderer would read comes back naming the missing binary "
+    "when there is none. caption and fol accept all three syntaxes and need "
+    "no binary."
 )
 
 SKILL_DESCRIPTION = (
@@ -374,13 +377,33 @@ def base_directory() -> str:
     return os.environ.get(CWD_ENV) or os.getcwd()
 
 
-def _document(arguments: Dict[str, Any]) -> Tuple[str, Optional[str], str]:
-    """`(text_or_path, syntax, label)` from one call's arguments.
+class _Input(NamedTuple):
+    """One call's document argument, resolved — and *which* argument it was.
 
-    Exactly one of `document` and `path`. The library sniffs which of the two
-    it was handed, so a `document` that happens to name an existing file would
-    be read as that file; naming the two separately here is what removes the
-    ambiguity from a surface a model is driving.
+    `path` is the resolved file when the caller gave `path`, and `None` when
+    the caller gave `document`. That field is the whole point of this record:
+    the only honest answer to "was this a file?" is the one the caller gave,
+    and re-deriving it downstream with `os.path.isfile` would make a
+    `document` of `"scene.vson"` — a plausible thing for a model to write —
+    silently mean whatever file the server process is standing next to.
+
+    `text` is what the library is handed: the resolved path for a `path`, the
+    document text for a `document`. `label` is what an error calls the input.
+    """
+
+    text: str
+    syntax: Optional[str]
+    label: str
+    path: Optional[str]
+
+
+def _document(arguments: Dict[str, Any]) -> _Input:
+    """The `_Input` one call's arguments name.
+
+    Exactly one of `document` and `path`. Naming the two separately is what
+    removes the ambiguity from a surface a model is driving, and the record
+    returned here carries that answer so nothing in this module has to guess
+    it a second time.
     """
     document = _string(arguments, "document")
     path = _string(arguments, "path")
@@ -402,12 +425,25 @@ def _document(arguments: Dict[str, Any]) -> Tuple[str, Optional[str], str]:
         resolved = os.path.join(base_directory(), os.path.expanduser(path))
         if not os.path.isfile(resolved):
             raise ToolError("no such file: {}".format(resolved))
-        return resolved, syntax, path
-    return document, syntax, "<document>"
+        return _Input(resolved, syntax, path, resolved)
+    return _Input(document, syntax, "<document>", None)
 
 
 # ---------------------------------------------------------------------------
 # The tools
+#
+# **One order of complaint, for all three document tools.** A call can be wrong
+# in several ways at once, and which wrongness it is told about is a contract,
+# not an accident of the order somebody wrote the lines in. The rule is:
+#
+#   1. the declared arguments — an enum given a value its schema does not list;
+#   2. the document — a `path` that is no file, a text that will not parse;
+#   3. the environment — a `vson` binary for `export cypher`, and nothing else.
+#
+# Cheapest first, and most certainly the caller's own first: a bad enum is
+# wrong on any machine, a missing binary is wrong on this one. A caller who
+# fixes what it was told about and calls again meets the next problem, one per
+# round, in the same order whichever of the three tools it went to.
 # ---------------------------------------------------------------------------
 
 
@@ -420,8 +456,8 @@ def call_validate(arguments: Dict[str, Any]) -> Dict[str, Any]:
     profile out of a report that a `profile` argument can change would be the
     one field a reader cannot recover.
     """
-    text_or_path, syntax, label = _document(arguments)
     profile = _choice(arguments, "profile", ("strict", "relaxed"), "strict")
+    given = _document(arguments)
     shapes = (
         api.DEFAULT_SHAPES
         if profile == "strict"
@@ -429,7 +465,7 @@ def call_validate(arguments: Dict[str, Any]) -> Dict[str, Any]:
     )
     try:
         verdict = api.validate(
-            text_or_path, syntax=syntax, shapes=shapes, label=label
+            given.text, syntax=given.syntax, shapes=shapes, label=given.label
         )
     except VsonError as exc:
         raise ToolError(str(exc))
@@ -442,8 +478,7 @@ def call_convert(arguments: Dict[str, Any]) -> str:
     direction = _choice(arguments, "direction", ("p2t", "x2t"), "")
     if not direction:
         raise ToolError("`direction` is required: p2t or x2t")
-    text_or_path, _syntax, _label = _document(arguments)
-    body = _read(text_or_path)
+    body = _read(_document(arguments))
     try:
         return api.to_turtle(body) if direction == "p2t" else api.from_x(body)
     except VsonError as exc:
@@ -454,13 +489,13 @@ def call_export(arguments: Dict[str, Any]) -> str:
     fmt = _choice(arguments, "format", ("caption", "fol", "cypher"), "")
     if not fmt:
         raise ToolError("`format` is required: caption, fol or cypher")
-    text_or_path, syntax, label = _document(arguments)
+    given = _document(arguments)
     if fmt == "cypher":
-        return _cypher(text_or_path, syntax, label)
+        return _cypher(given)
     try:
         if fmt == "caption":
-            return api.caption(text_or_path, syntax=syntax)
-        return api.fol(text_or_path, syntax=syntax)
+            return api.caption(given.text, syntax=given.syntax)
+        return api.fol(given.text, syntax=given.syntax)
     except VsonError as exc:
         raise ToolError(str(exc))
 
@@ -478,17 +513,15 @@ CALLS = {
 }
 
 
-def _read(text_or_path: str) -> str:
-    """The text of an input that may be a path this server already resolved."""
-    if os.path.isfile(text_or_path):
-        try:
-            with open(text_or_path, encoding="utf-8") as handle:
-                return handle.read()
-        except OSError as exc:
-            raise ToolError(
-                "{}: {}".format(text_or_path, exc.strerror or exc)
-            )
-    return text_or_path
+def _read(given: _Input) -> str:
+    """The document text — off disk when, and only when, `path` was given."""
+    if given.path is None:
+        return given.text
+    try:
+        with open(given.path, encoding="utf-8") as handle:
+            return handle.read()
+    except OSError as exc:
+        raise ToolError("{}: {}".format(given.path, exc.strerror or exc))
 
 
 # ---------------------------------------------------------------------------
@@ -516,7 +549,7 @@ def cli_binary() -> Optional[str]:
     return None
 
 
-def _cypher(text_or_path: str, syntax: Optional[str], label: str) -> str:
+def _cypher(given: _Input) -> str:
     """`vson export cypher`, run as a child process.
 
     Not re-implemented here. The Cypher mapping has exactly one implementation
@@ -526,12 +559,15 @@ def _cypher(text_or_path: str, syntax: Optional[str], label: str) -> str:
     reads VSON-P only, because a native Turtle parser is not shipped in the
     crate; and where there is no binary there is no Cypher.
     """
-    # Input first, environment second: a caller who handed VSON-T gets the
-    # VSON-P sentence whether or not a binary is reachable — that error is
-    # theirs to fix either way, and it is the one the tool's description
-    # promises. The missing-binary error is only reachable with input the
-    # renderer could actually read.
-    source = _penman_source(text_or_path, syntax, label)
+    # Input first, environment second — the rule stated above the tools, and
+    # here it is also the tool's published contract (EXPORT_DESCRIPTION). What
+    # `_penman_source` settles is which syntax the input *presents* as: an
+    # explicit `syntax` argument, or a `.vson` name, or a leading `(`. It is
+    # not a parse and does not claim to be one, so `syntax="p"` over nonsense,
+    # or a document that begins `(((`, passes here and is rejected further
+    # down — by the missing-binary error when there is no binary, and by the
+    # renderer's own parser when there is one.
+    source = _penman_source(given)
     binary = cli_binary()
     if binary is None:
         raise ToolError(
@@ -542,19 +578,21 @@ def _cypher(text_or_path: str, syntax: Optional[str], label: str) -> str:
             "`cargo build --release` in cli/, put `vson` on PATH, or set "
             "${} to it. `caption` and `fol` need none of that.".format(CLI_ENV)
         )
-    handle = None
+    # `source is None` says the caller gave text, not a file — the same answer
+    # `_penman_source` read off `given.path`, and the binary takes a path.
+    staged = None
+    if source is None:
+        staged = source = _staged_penman(given.text)
     try:
-        if source is None:
-            body = _read(text_or_path)
-            handle = tempfile.NamedTemporaryFile(
-                mode="w", suffix=".vson", encoding="utf-8", delete=False
-            )
-            handle.write(body)
-            handle.close()
-            source = handle.name
         try:
+            # `--` before the path: clap ends option parsing there, so the
+            # argument is a filename whatever it starts with. Nothing here
+            # produces a leading dash today — a `path` is joined against the
+            # base directory, a staged file is absolute — but that is a
+            # property of two other functions, and this is the call that would
+            # pay for it changing.
             done = subprocess.run(
-                [binary, "export", "cypher", source],
+                [binary, "export", "cypher", "--", source],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 timeout=60,
@@ -564,8 +602,8 @@ def _cypher(text_or_path: str, syntax: Optional[str], label: str) -> str:
         except subprocess.TimeoutExpired:
             raise ToolError("`{} export cypher` did not finish".format(binary))
     finally:
-        if handle is not None:
-            os.unlink(handle.name)
+        if staged is not None:
+            _discard(staged)
     if done.returncode != 0:
         detail = done.stderr.decode("utf-8", "replace").strip()
         raise ToolError(
@@ -576,38 +614,101 @@ def _cypher(text_or_path: str, syntax: Optional[str], label: str) -> str:
     return done.stdout.decode("utf-8")
 
 
-def _penman_source(
-    text_or_path: str, syntax: Optional[str], label: str
-) -> Optional[str]:
-    """The VSON-P file to hand the binary, `None` for "write a temp file".
+def _staged_penman(body: str) -> str:
+    """A `.vson` file holding `body`, for a caller who gave text not a path.
+
+    The binary takes a path, so text has to become a file, and both halves of
+    becoming one can fail in ways the caller can act on: a lone surrogate that
+    survived `json.loads` is a `str` that cannot be encoded as UTF-8, and a
+    full or read-only temp directory cannot hold what does encode. Neither is
+    left to arrive as an opaque JSON-RPC internal error, and neither leaves the
+    half-written file behind.
+    """
+    try:
+        handle = tempfile.NamedTemporaryFile(
+            mode="w", suffix=".vson", encoding="utf-8", delete=False
+        )
+    except OSError as exc:
+        raise ToolError(
+            "cannot open a temporary file to hand the Cypher renderer, which "
+            "reads a path and not a stream: {}. Pass `path` instead of "
+            "`document` to skip this step.".format(exc)
+        )
+    try:
+        # `close()` is inside the guard because a text file flushes there:
+        # ENOSPC and an unencodable character can both surface at either call.
+        try:
+            handle.write(body)
+        finally:
+            handle.close()
+    except (OSError, UnicodeError) as exc:
+        _discard(handle.name)
+        raise ToolError(
+            "cannot write the document to {}, the temporary file the Cypher "
+            "renderer is handed: {}: {}. Pass `path` instead of `document` to "
+            "skip this step.".format(handle.name, type(exc).__name__, exc)
+        )
+    return handle.name
+
+
+def _discard(path: str) -> None:
+    """Remove a file this server staged, and never fail for it.
+
+    A temp file that will not unlink is a leaked temp file; raising here would
+    replace whatever the caller actually asked about with that.
+    """
+    try:
+        os.unlink(path)
+    except OSError:
+        pass
+
+
+def _penman_source(given: _Input) -> Optional[str]:
+    """The VSON-P file to hand the binary, `None` for "the caller gave text".
 
     Raises when the input is not VSON-P at all, which is the honest answer:
     the Cypher renderer parses Penman, and there is no t2p to reach it from a
     graph (§6.1).
     """
-    is_file = os.path.isfile(text_or_path)
-    actual = syntax
+    actual = given.syntax
     if actual is None:
-        actual = _syntax_of(text_or_path) if is_file else api.sniff(text_or_path)
+        actual = (
+            _syntax_of(given.path) if given.path else api.sniff(given.text)
+        )
     if actual != "p":
         raise ToolError(
             "`export cypher` reads VSON-P (Penman) only, and {} is VSON-{}. "
             "The renderer parses Penman, and no back-conversion from the "
             "graph to an authoring syntax is shipped (§6.1). Use `caption` or "
             "`fol`, which read all three syntaxes.".format(
-                label, actual.upper()
+                given.label, actual.upper()
             )
         )
-    return text_or_path if is_file else None
+    return given.path
 
 
 def _syntax_of(path: str) -> str:
+    """The syntax a filename declares — and nothing when it declares none.
+
+    An unrecognised extension is not evidence of anything, so it is not turned
+    into a guess: guessing `t` here would answer a `.txt` file full of Penman
+    with a confident sentence about VSON-T and advice that cannot work. The
+    recognised set is the one `_DOCUMENT_IN` publishes and `vson/api.py` reads.
+    """
     lower = path.lower()
     if lower.endswith(".x.vson"):
         return "x"
     if lower.endswith(".vson"):
         return "p"
-    return "t"
+    if lower.endswith((".ttl", ".turtle")):
+        return "t"
+    raise ToolError(
+        "{}: the extension {} names no VSON syntax, and this server does not "
+        "guess one. Recognised: .vson (VSON-P), .x.vson (VSON-X), .ttl and "
+        ".turtle (VSON-T). Pass `syntax` to say which one this file is.".format(
+            path, os.path.splitext(path)[1] or "(none)"
+        )
+    )
 
 
 # ---------------------------------------------------------------------------

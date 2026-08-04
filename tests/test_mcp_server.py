@@ -383,6 +383,112 @@ class ToolErrorTests(unittest.TestCase):
     def test_a_document_argument_that_is_not_a_string_is_a_tool_error(self) -> None:
         self.assertIn("string", self.failure("vson_validate", document=7))
 
+    def test_an_extension_that_names_no_syntax_is_not_guessed_at(self) -> None:
+        # A guess here would answer a file of Penman named `.txt` with a
+        # confident sentence about VSON-T and advice that cannot work.
+        message = self.failure(
+            "vson_export",
+            format="cypher",
+            path=os.path.join(REPO, "pyproject.toml"),
+        )
+        self.assertIn(".toml", message)
+        self.assertIn(".x.vson", message)
+        self.assertIn("`syntax`", message)
+        self.assertNotIn("is VSON-T", message)
+
+    def test_every_tool_names_the_bad_argument_before_the_bad_path(self) -> None:
+        # The order stated above the three call_* functions: declared
+        # arguments, then the document, then the environment. A call that is
+        # wrong twice is answered the same way whichever tool it went to.
+        for name, arguments in (
+            ("vson_validate", {"profile": "lenient"}),
+            ("vson_convert", {"direction": "t2p"}),
+            ("vson_export", {"format": "graphml"}),
+        ):
+            message = self.failure(name, path="no/such/scene.vson", **arguments)
+            self.assertIn("must be one of", message, name)
+            self.assertNotIn("no such file", message, name)
+
+
+@unittest.skipIf(mcp is None, "rdflib/pyshacl not installed")
+class CypherOrderTests(unittest.TestCase):
+    """`export cypher` on a machine with no `vson` binary anywhere.
+
+    Every assertion here is about an order — the input is settled before the
+    environment is consulted — and the branch that proves it is unreachable on
+    a machine where `cargo build` has run, which is every machine this suite is
+    normally run on. So `cli_binary` is stubbed to the answer that machine
+    cannot give: without that, reverting the order would stay green.
+    """
+
+    def setUp(self) -> None:
+        self.reachable = mcp.cli_binary
+        mcp.cli_binary = lambda: None
+
+    def tearDown(self) -> None:
+        mcp.cli_binary = self.reachable
+
+    def error(self, **arguments) -> str:
+        with self.assertRaises(mcp.ToolError) as caught:
+            mcp.call_export(dict(arguments, format="cypher"))
+        return str(caught.exception)
+
+    def test_a_graph_is_refused_as_a_graph_before_a_binary_is_looked_for(self):
+        message = self.error(path=BAD_T)
+        self.assertIn("VSON-P", message)
+        self.assertNotIn("cargo", message)
+
+    def test_penman_with_no_binary_says_which_binary_and_how_to_get_one(self):
+        message = self.error(path=GOOD_P)
+        self.assertIn(mcp.CLI_ENV, message)
+        self.assertIn("cargo build", message)
+
+    def test_a_document_that_names_a_file_is_still_a_document(self) -> None:
+        # `document` is text because the caller said `document`. Re-deriving
+        # that with os.path.isfile against the process's own directory is how
+        # a model writing `"scene.vson"` would silently render whatever file
+        # the server happened to be standing next to.
+        previous = os.getcwd()
+        os.chdir(os.path.dirname(GOOD_P))
+        try:
+            message = self.error(document=os.path.basename(GOOD_P))
+        finally:
+            os.chdir(previous)
+        self.assertIn("<document>", message)
+        self.assertIn("VSON-P", message)
+
+
+@unittest.skipIf(mcp is None, "rdflib/pyshacl not installed")
+class StagedFileTests(unittest.TestCase):
+    """Text becoming the file the Cypher binary reads, when that goes wrong."""
+
+    def temporaries(self):
+        import glob
+        import tempfile
+
+        return set(glob.glob(os.path.join(tempfile.gettempdir(), "*.vson")))
+
+    def test_a_document_that_cannot_be_encoded_is_a_tool_error(self) -> None:
+        # A lone surrogate survives json.loads and is a str that has no UTF-8
+        # encoding — an opaque JSON-RPC internal error if it is not caught, and
+        # a temp file left behind if the cleanup assumes a written one.
+        before = self.temporaries()
+        with self.assertRaises(mcp.ToolError) as caught:
+            mcp._staged_penman("(s / Composition)\ud800")
+        self.assertIn("Cypher", str(caught.exception))
+        self.assertEqual(before, self.temporaries())
+
+    def test_a_document_that_encodes_becomes_a_file_with_that_text(self) -> None:
+        body = read(GOOD_P)
+        staged = mcp._staged_penman(body)
+        try:
+            self.assertEqual(read(staged), body)
+            self.assertTrue(staged.endswith(".vson"))
+        finally:
+            mcp._discard(staged)
+        self.assertFalse(os.path.exists(staged))
+        mcp._discard(staged)  # a second removal is not an error
+
 
 @unittest.skipIf(mcp is None, "rdflib/pyshacl not installed")
 class ToolBehaviourTests(unittest.TestCase):
