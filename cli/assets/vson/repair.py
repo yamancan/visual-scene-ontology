@@ -115,12 +115,34 @@ def extract_penman(text: str) -> Optional[str]:
     Forgiving in the one way models are unreliable: a fenced block is unwrapped
     even though the prompt says not to fence, then the slice from the first `(`
     to the last `)` is taken. This is `extractPenman` from
-    `web/src/lib/extract/orchestrator.ts` in Python — the same rules, not a
-    transliteration of its regexes.
+    `web/src/lib/extract/orchestrator.ts` in Python, with one deliberate
+    divergence: parentheses inside `#` comments and `"` string literals do not
+    count. The studio's extractor never sees comment-headed replies (the skill
+    prompt yields bare trees), but this library's `chat_fn` contract is wider —
+    a reply that is a complete `.vson` file, header comment and all, must
+    extract to the same document `validate()` already accepts.
     """
     body = _unfence(text).strip()
-    start = body.find("(")
-    end = body.rfind(")")
+    start = -1
+    end = -1
+    in_comment = False
+    in_string = False
+    for i, ch in enumerate(body):
+        if in_comment:
+            if ch == "\n":
+                in_comment = False
+        elif in_string:
+            if ch == '"':
+                in_string = False
+        elif ch == '"':
+            in_string = True
+        elif ch == "#":
+            in_comment = True
+        elif ch == "(":
+            if start < 0:
+                start = i
+        elif ch == ")":
+            end = i
     if start < 0 or end <= start:
         return None
     return body[start : end + 1].strip()
