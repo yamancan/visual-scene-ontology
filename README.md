@@ -19,16 +19,8 @@ Drop a photo, get a scene graph. No account, no key, nothing to install: the dem
 ## See it fail, then pass
 
 ```console
-$ vson validate tests/fixtures/bad_no_viewer.vson
-Validation Report
-Conforms: False
-Results (1):
-Constraint Violation in MinCountConstraintComponent (http://www.w3.org/ns/shacl#MinCountConstraintComponent):
-	Severity: sh:Violation
-	Source Shape: [ sh:class vso:CameraView ; sh:maxCount Literal("1", datatype=xsd:integer) ; sh:message Literal("Directional spatial facts require exactly one vso:viewer for construal disambiguation (C5), and that viewer must be a CameraView, never an Entity.") ; sh:minCount Literal("1", datatype=xsd:integer) ; sh:not [ sh:class vso:Entity ] ; sh:path vso:viewer ]
-	Focus Node: :sf
-	Result Path: vso:viewer
-	Message: Directional spatial facts require exactly one vso:viewer for construal disambiguation (C5), and that viewer must be a CameraView, never an Entity.
+$ vson validate --format compact tests/fixtures/bad_no_viewer.vson
+tests/fixtures/bad_no_viewer.vson:26:14  vson/shacl/DirectionalNeedsViewerShape  Directional spatial facts require exactly one vso:viewer for construal disambiguation (C5), and that viewer must be a CameraView, never an Entity.
 FAIL tests/fixtures/bad_no_viewer.vson (shacl)
 one or more files failed validation
 $ echo $?
@@ -36,7 +28,7 @@ $ echo $?
 ```
 
 ```console
-$ vson validate examples/gallery/04_directional_with_viewer.vson
+$ vson validate --format compact examples/gallery/04_directional_with_viewer.vson
 OK  examples/gallery/04_directional_with_viewer.vson
 $ echo $?
 0
