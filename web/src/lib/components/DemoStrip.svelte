@@ -8,10 +8,21 @@
 		label?: string;
 		mime?: 'image/jpeg' | 'image/png';
 		envelope_path?: string;
+		credit?: string;
+		license?: string;
+		source_url?: string;
 	}
 
 	let entries = $state<DemoEntry[]>([]);
 	let loading = $state<string | null>(null);
+
+	// The demo photographs are third-party work and this page serves the pixels,
+	// so the people who took them are named on the page that shows them — one
+	// muted line, not a modal. Full provenance (licence URL, the Lorem Picsum
+	// re-serve the bytes came through, and the sha256 of those bytes) lives in
+	// /demos/CREDITS.md and the repository's NOTICE; this is the pointer to it.
+	const credited = $derived(entries.filter((e) => e.credit && e.source_url));
+	const licenses = $derived([...new Set(credited.map((e) => e.license).filter(Boolean))]);
 
 	onMount(async () => {
 		try {
@@ -81,9 +92,13 @@
 					onclick={() => runDemo(entry)}
 					disabled={loading !== null}
 					aria-label={entry.label ?? entry.path}
-					title={entry.envelope_path
-						? `${entry.label ?? entry.path} · prebuilt`
-						: (entry.label ?? entry.path)}
+					title={[
+						entry.label ?? entry.path,
+						entry.envelope_path ? 'prebuilt' : null,
+						entry.credit ? `photo: ${entry.credit}` : null
+					]
+						.filter(Boolean)
+						.join(' · ')}
 				>
 					<img src={entry.path} alt="" loading="lazy" />
 					{#if loading === entry.path}
@@ -92,6 +107,18 @@
 				</button>
 			{/each}
 		</div>
+		{#if credited.length > 0}
+			<p class="demos-credit">
+				photos by {#each credited as entry, i (entry.path)}<a href={entry.source_url} rel="external"
+						>{entry.credit}</a
+					>{i < credited.length - 2
+						? ', '
+						: i === credited.length - 2
+							? ' and '
+							: ''}{/each}{#if licenses.length > 0}
+					· {licenses.join(' · ')}{/if}
+			</p>
+		{/if}
 	</div>
 {/if}
 
@@ -114,6 +141,23 @@
 		display: grid;
 		gap: var(--s2);
 		width: 100%;
+	}
+	.demos-credit {
+		margin: 0;
+		text-align: center;
+		text-wrap: balance;
+		font-size: var(--text-2xs);
+		line-height: 1.5;
+		color: var(--fg-4);
+	}
+	.demos-credit a {
+		color: inherit;
+		text-decoration: none;
+		border-bottom: 1px solid var(--border-1);
+	}
+	.demos-credit a:hover {
+		color: var(--fg-2);
+		border-bottom-color: currentColor;
 	}
 	.thumb {
 		position: relative;

@@ -1,0 +1,61 @@
+VSON — Visual Scene Ontology Notation
+Copyright 2026 The VSON Authors
+
+This product includes software developed by The VSON Authors, licensed under
+the Apache License, Version 2.0. See LICENSE for the full text.
+
+The Apache-2.0 grant above covers the code, the ontology, the shapes, the
+schemas, the queries and the documentation in this repository. It does NOT
+cover the four photographs below. They are third-party work, included under a
+separate licence, and this file is where that is said.
+
+
+-----------------------------------------------------------------------------
+Demo photographs — web/static/demos/
+-----------------------------------------------------------------------------
+
+Four JPEGs ship with the web studio and appear as the clickable demos beneath
+the dropzone. Each is a photograph published on Unsplash and retrieved through
+Lorem Picsum (picsum.photos), which re-serves Unsplash photographs and writes
+its own "Picsum ID: N" comment into the JPEG it returns.
+
+  License: Unsplash License — https://unsplash.com/license
+  Not CC0, and not a public-domain dedication. Unsplash used CC0 until 2017
+  and does not now. The Unsplash License permits use, including commercially,
+  without permission or attribution; the credits below are given because the
+  photographers earned them, not because the licence compels them.
+
+  What the licence does not convey: no model release and no property release.
+  A photograph of an identifiable person is not licensed for every use by this
+  grant, which is why one image was withdrawn from this set on 2026-08-04
+  (spec/CHANGELOG.md).
+
+  Photographer          File          Unsplash photo                                Picsum
+  --------------------  ------------  --------------------------------------------  ------
+  Karl Fredrickson      kitchen.jpg   https://unsplash.com/photos/TYIzeCiZ_60        1060
+  Alexey Topolyanskiy   forest.jpg    https://unsplash.com/photos/-oWyJoSqBRM        1015
+  Lee Roylland          books.jpg     https://unsplash.com/photos/dfZbts6B4yw        684
+  Dominik Martin        lamp.jpg      https://unsplash.com/photos/vf29T22259I        325
+
+  The sha256 of each file as served, the evidence chain behind each row, and
+  the note on what the studio's baked envelopes assert about these photographs
+  are in web/static/demos/CREDITS.md.
+
+  The manifest that ships them (web/static/demos/manifest.json) carries the
+  same credit, licence and source URL per entry, and
+  web/tests/demo-credits.test.ts fails the build if any entry omits one.
+
+
+-----------------------------------------------------------------------------
+Third-party runtime dependencies
+-----------------------------------------------------------------------------
+
+The studio bundles a Pyodide runtime and pure-Python wheels (rdflib, pyshacl,
+owlrl and their dependencies) under web/static/pyodide/. Each carries its own
+licence inside its distribution; none is relicensed here.
+
+Vocabulary frequency tables derived from third-party annotation releases (GQA,
+Visual Genome, PSG) are staged under docs/eval/vocab/ and are held from
+publication pending a licence review. docs/eval/attribution.md states exactly
+what was taken from each and where the licence position could not be
+established.

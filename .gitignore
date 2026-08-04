@@ -69,6 +69,10 @@ web/build/
 !docs/importers.md
 !docs/eval/coverage.md
 !docs/eval/attribution.md
+# The credits for the pixels the studio actually ships. It is deployed with the
+# site (static/ is published verbatim), and web/tests/demo-credits.test.ts fails
+# the build when it is missing or does not cover every manifest entry.
+!web/static/demos/CREDITS.md
 
 # Generated eval artifacts (scripts/d_smoke_eval.sh writes here)
 reports/
