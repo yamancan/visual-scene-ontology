@@ -275,7 +275,8 @@ CLAIMS = [
     Claim(
         "python_tests",
         r"(\d+) Python tests",
-        "the Quick start annotation on `make check` — the number that drifted",
+        "the README's receipts line and its annotation on `make check` — "
+        "the number that drifted",
     ),
     Claim(
         ("rust_tests", "rust_unit_tests", "rust_integration_tests"),
