@@ -73,6 +73,10 @@ web/build/
 # site (static/ is published verbatim), and web/tests/demo-credits.test.ts fails
 # the build when it is missing or does not cover every manifest entry.
 !web/static/demos/CREDITS.md
+# The annotated directory tree the README carried until v1.4.0. README.md links
+# it from the Docs section, so a repository without it ships a dangling link —
+# and `make check`'s anchor gate fails on one.
+!docs/repo-map.md
 
 # Generated eval artifacts (scripts/d_smoke_eval.sh writes here)
 reports/
