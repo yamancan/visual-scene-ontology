@@ -35,6 +35,10 @@
 //! sarif` the report *is* the product, so stdout carries exactly one parseable
 //! document and nothing else — including on a clean run, which emits a report
 //! with no findings rather than nothing at all (docs/vson.md §5.16).
+//! `--format compact` is the report as lines rather than as a document: one
+//! finding per line, `path:line:col` first, then the same verdict line `text`
+//! prints — all of it on stdout, because here the findings *are* what a reader
+//! grepped for.
 //!
 //! Inputs are file paths, or `-` for standard input. For `.vson` inputs — and
 //! for a `-` stream that sniffs as Penman — the source is transpiled to a temp
@@ -75,7 +79,7 @@ const C2_GATE: PyGate = PyGate {
 const REPORTER_MODULE: &str = "tools.validate_report";
 const REPORTER_SCRIPT: &str = "tools/validate_report.py";
 
-const FORMATS: &[&str] = &["text", "json", "sarif"];
+const FORMATS: &[&str] = &["text", "json", "sarif", "compact"];
 
 /// The stdin marker, spelled the way every POSIX tool spells it.
 const STDIN: &str = "-";
@@ -254,7 +258,13 @@ fn records_for(input: &Input, home: &super::home::Home, shapes: &Path) -> Result
     Ok(records)
 }
 
-/// `--format json` / `--format sarif`: one report over every input.
+/// `--format json` / `--format sarif` / `--format compact`: one report over
+/// every input, rendered three ways.
+///
+/// All three take this path rather than the text one because all three carry
+/// findings, and findings come from the structured reporter — including
+/// `compact`, whose lines are the same records with everything but the
+/// position, the rule and the message dropped.
 fn structured(
     inputs: &[Input],
     home: &super::home::Home,
@@ -272,10 +282,10 @@ fn structured(
         ));
     }
     let report = Report::new(profile, files);
-    let document = if format == "sarif" {
-        report.to_sarif()
-    } else {
-        report.to_json()
+    let document = match format {
+        "sarif" => report.to_sarif(),
+        "compact" => report.to_compact(),
+        _ => report.to_json(),
     };
     std::io::stdout().write_all(document.as_bytes())?;
     if report.conforms() {

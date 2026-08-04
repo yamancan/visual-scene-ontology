@@ -8,7 +8,8 @@
 //!   `--format json|sarif` turns each violation into a structured record —
 //!   shape, focus node, result path, severity, and the source line the Penman
 //!   variable was declared on — so a build can annotate the offending line
-//!   (docs/vson.md §5.16).
+//!   (docs/vson.md §5.16). `--format compact` prints the same findings as one
+//!   `path:line:col  rule  message` line each, for a log and for `grep`.
 //! - `verify --geometry <files...>` — the checks that are *not* conformance.
 //!   Today one: whether the spatial relations a document asserts agree with the
 //!   `vso:bbox2d` rectangles it asserts beside them (docs/vson.md §5.13). It
@@ -57,7 +58,8 @@ enum Cmd {
         /// Files to validate (.ttl or .vson), or `-` for standard input.
         #[arg(required = true)]
         files: Vec<PathBuf>,
-        /// Report shape: `text` (default), `json`, or `sarif` (2.1.0).
+        /// Report shape: `text` (default), `json`, `sarif` (2.1.0), or
+        /// `compact` (one grep-friendly line per finding).
         #[arg(long, default_value = "text")]
         format: String,
         /// Validation profile: `strict` (default). See docs/vson.md §6.1.
