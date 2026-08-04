@@ -1,14 +1,21 @@
-# Attribution and licence — the staged dataset material
+# Attribution and licence — the staged dataset material, and the shipped pixels
 
-**Status: DRAFT, held for maintainer review. Nothing derived from these
-datasets is published from this repository until this file has been reviewed
-and this line has been changed by a person.**
+**Status of §1–§4 (the datasets): DRAFT, held for maintainer review. Nothing
+derived from these datasets is published from this repository until this file
+has been reviewed and this line has been changed by a person.** §5 is not
+draft and is not held: it covers images this repository already ships.
 
 This file exists because the coverage study in
 [`coverage.md`](./coverage.md) is derived from three third-party annotation
 releases. It states exactly what was taken, what was written from it, and what
 the licence position is — including where that position could **not** be
 established, which is more of it than one would like.
+
+It grew a fifth section for an uncomfortable reason. §1–§4 held a review gate
+over word-frequency tables — `on`, `to the left of`, `striped` with counts —
+while four actual photographs shipped live in the web studio with no recorded
+source at all. The stricter standard was applied to the lesser exposure. §5 is
+the correction.
 
 ---
 
@@ -122,3 +129,88 @@ That is the state of this file. Concretely:
 
 When they are answered, the corpus is staged as image-ID lists plus derived
 graphs, never pixels, with the attribution lines of §3 beside it.
+
+---
+
+## 5. The demo photographs — pixels this repository does ship
+
+Everything above is about material that is *not* published. This section is
+about material that is: four JPEGs under
+[`web/static/demos/`](../../web/static/demos), served from the studio as the
+clickable demo strip, and committed to this repository.
+
+### 5.1 What they are
+
+Photographs published on Unsplash, retrieved through **Lorem Picsum**
+(`picsum.photos`), which re-serves Unsplash photographs and writes a
+`Picsum ID: N` comment into the JPEG it returns.
+
+| File | Photographer | Licence | Unsplash photo | Picsum ID |
+|---|---|---|---|---|
+| `kitchen.jpg` | Karl Fredrickson | Unsplash License | <https://unsplash.com/photos/TYIzeCiZ_60> | 1060 |
+| `forest.jpg` | Alexey Topolyanskiy | Unsplash License | <https://unsplash.com/photos/-oWyJoSqBRM> | 1015 |
+| `books.jpg` | Lee Roylland | Unsplash License | <https://unsplash.com/photos/dfZbts6B4yw> | 684 |
+| `lamp.jpg` | Dominik Martin | Unsplash License | <https://unsplash.com/photos/vf29T22259I> | 325 |
+
+The sha256 of each file as served is in
+[`web/static/demos/CREDITS.md`](../../web/static/demos/CREDITS.md), which is the
+canonical copy of this table; the root [`NOTICE`](../../NOTICE) carries it too,
+and [`manifest.json`](../../web/static/demos/manifest.json) carries the same
+three facts per entry so the studio can render them.
+
+### 5.2 The licence position, and it is established
+
+Unlike §2, this one is not open. The licence is the **Unsplash License**
+(<https://unsplash.com/license>): an irrevocable, nonexclusive, worldwide
+copyright licence to use the photographs free of charge, including
+commercially, without permission or attribution.
+
+- **Never "CC0", never "public domain".** Unsplash published under CC0 until
+  2017 and stopped. Any statement in this repository's history calling these
+  images CC0 was false, and the string is now rejected by a test wherever a
+  licence is named.
+- **It conveys no model release and no property release.** The photographer
+  licenses the photograph. Nobody depicted in it has licensed anything.
+
+### 5.3 How it was established, and the one step a script cannot take
+
+1. `grep -a 'Picsum ID' web/static/demos/kitchen.jpg` — the file names its own
+   re-server and ID.
+2. `curl -s https://picsum.photos/id/1060/info` — returns the `author` and the
+   `url` of the Unsplash photo page. The table in §5.1 is those two fields for
+   each of the four IDs, retrieved 2026-08-04.
+3. The Unsplash photo page itself is the first-party record. `unsplash.com`
+   answers command-line clients with 401, so confirming each page shows the
+   photographer named above is a **browser step, performed by the maintainer**,
+   not something CI can do or this file can claim on its own.
+
+### 5.4 One image was withdrawn rather than credited
+
+A fifth demo shipped until 2026-08-04. Its subject was an identifiable woman,
+and the byte-frozen envelope beside it published a machine-readable inference
+about her face (`vso:dimension vso:Affect ; vso:value :thoughtful`). No
+copyright licence authorizes that, and the Unsplash License in particular
+conveys no model release. It was removed — image, envelope, index entry and
+manifest entry — on the standard commit `fb446ea` had already set for
+`lookbook.jpg`. It was not replaced: a replacement would require re-baking an
+envelope, and the four that remain are byte-untouched. See
+[`spec/CHANGELOG.md`](../../spec/CHANGELOG.md), annotation 2026-08-04.
+
+### 5.5 What the envelopes beside them assert
+
+Each demo ships with a frozen envelope — a scene graph a vision-language model
+produced from that photograph once. Those are **model claims about a
+photograph**, not the photographer's statements and not verified facts about
+the picture; [`docs/vson.md`](../vson.md) §2.1 states what a green validation
+does and does not establish, and it never establishes that a document describes
+its image. Nothing in the demo set should be read as an assertion by anyone
+depicted or by the person who took the photograph.
+
+### 5.6 The gate
+
+[`web/tests/demo-credits.test.ts`](../../web/tests/demo-credits.test.ts) fails
+`pnpm test` — which CI runs before `pnpm build` — when a manifest entry lacks a
+`credit`, a `license` or a `source_url`, when the credited image is missing,
+when `CREDITS.md` or `NOTICE` does not cover every entry, or when a licence is
+named `CC0` or `public domain`. §1–§4 rest on a review gate a person performs;
+§5 rests on a gate that runs.
