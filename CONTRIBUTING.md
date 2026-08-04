@@ -119,7 +119,7 @@ pnpm build
 
 ## Authorship
 
-This repository was written with heavy LLM assistance: 207 of its 229 commits
+This repository was written with heavy LLM assistance: 224 of its 246 commits
 carry a `Co-Authored-By` trailer and none has been stripped. Recompute both
 numbers at any commit with `git rev-list --count HEAD` and
 `git log --grep='^Co-Authored-By:' --format=%H | wc -l`; judge the result by

@@ -285,7 +285,7 @@ VSON's genuinely-new content (everything else is W3C/ISO):
 
 Solo maintainer, release v1.4.0, zero users and no adopters list. The envelope wire format is stable. There are no release binaries yet, no PyPI package, no crates.io crate and no DOI. The extraction-accuracy eval is pre-registered and has not been run: the pre-registered threshold is 0.80 and it has not been measured ([`tools/extractor/baseline/results.md`](tools/extractor/baseline/results.md)).
 
-Written with heavy LLM assistance: 207 of this repository's 229 commits carry a `Co-Authored-By` trailer and I left every one in. That is also why it is shaped the way it is — 604 Python tests, a 218-entry conformance suite, byte-parity between two independent implementations, frozen RDFC-1.0 hashes, 28 executable competency questions compared byte-for-byte in CI. Do not trust the prose; run `make check`.
+Written with heavy LLM assistance: 224 of this repository's 246 commits carry a `Co-Authored-By` trailer and I left every one in. That is also why it is shaped the way it is — 604 Python tests, a 218-entry conformance suite, byte-parity between two independent implementations, frozen RDFC-1.0 hashes, 28 executable competency questions compared byte-for-byte in CI. Do not trust the prose; run `make check`.
 
 ## Docs
 
