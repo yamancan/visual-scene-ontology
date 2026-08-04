@@ -242,7 +242,7 @@ EXPORT_DESCRIPTION = (
     "shells out to a `vson` binary for it and reads VSON-P input only. The "
     "input is settled before the binary is looked for: input that is not "
     "VSON-P comes back as that error whether or not a binary is reachable, "
-    "and input the renderer would read comes back naming the missing binary "
+    "and input that presents as VSON-P comes back naming the missing binary "
     "when there is none. caption and fol accept all three syntaxes and need "
     "no binary."
 )
