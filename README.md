@@ -221,7 +221,7 @@ Four tools, and what each one actually returns:
 
 Three things stated plainly, because a tool description is a promise:
 
-- **`cypher` needs the binary.** That renderer exists only in the Rust CLI, and the server shells out to it rather than keeping a second copy. Under `vson mcp` it is always there; under `python3 -m vson.mcp` it works when a `vson` is on `PATH` or built in the checkout, and returns an error result saying so when it is not. `caption` and `fol` are pure Python.
+- **`cypher` needs the binary.** That renderer exists only in the Rust CLI, and the server shells out to it rather than keeping a second copy. Under `vson mcp` it is always there; under `python3 -m vson.mcp` it works when a `vson` is on `PATH` or built in the checkout, and returns an error result saying so when it is not — after the input is settled, so a document that is not VSON-P is told that first, on every machine. `caption` and `fol` are pure Python.
 - **No image, no network.** Every tool is [`vson/api.py`](vson/api.py) behind a JSON envelope. A green `vson_validate` is [§2.1](docs/vson.md#21-what-conformance-establishes)'s verdict and nothing more.
 - **`path` reads your filesystem** with the server's own privileges — it is a local stdio server you started, the same trust boundary `vson validate` has always had.
 
