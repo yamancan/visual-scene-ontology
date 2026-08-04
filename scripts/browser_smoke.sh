@@ -46,9 +46,24 @@ grep -q "drop image here" "$DOM" || {
 	echo "browser-smoke: FAIL — prerendered shell missing from DOM"
 	exit 1
 }
+# How many thumbnails hydration must mount is read from the manifest that
+# drives them, never pinned here: this threshold said 5 until a demo was
+# withdrawn on 2026-08-04, at which point a gate about hydration started
+# failing over an image count. Deriving it keeps the gate about the thing it
+# is for. A manifest that cannot be read or lists nothing falls back to 1 —
+# still enough to separate a hydrated page from a dead one, since the
+# prerendered shell carries no <img> at all.
+EXPECT_IMGS="$(python3 -c "
+import json,sys
+try:
+    with open('$BUILD_DIR/demos/manifest.json', encoding='utf-8') as fh:
+        print(max(1, len(json.load(fh).get('entries', []))))
+except Exception:
+    print(1)
+" 2>/dev/null || echo 1)"
 IMG_COUNT="$(grep -o "<img" "$DOM" | wc -l | tr -d ' ')"
-if [ "$IMG_COUNT" -lt 5 ]; then
-	echo "browser-smoke: FAIL — hydration dead ($IMG_COUNT imgs; DemoStrip mounts >=5 thumbnails only after hydration)"
+if [ "$IMG_COUNT" -lt "$EXPECT_IMGS" ]; then
+	echo "browser-smoke: FAIL — hydration dead ($IMG_COUNT imgs; DemoStrip mounts >=$EXPECT_IMGS thumbnails only after hydration)"
 	exit 1
 fi
-echo "browser-smoke: OK — hydration live, $IMG_COUNT imgs, zero uncaught errors"
+echo "browser-smoke: OK — hydration live, $IMG_COUNT imgs (>=$EXPECT_IMGS expected), zero uncaught errors"

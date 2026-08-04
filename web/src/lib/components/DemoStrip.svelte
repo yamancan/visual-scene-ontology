@@ -23,6 +23,11 @@
 	// /demos/CREDITS.md and the repository's NOTICE; this is the pointer to it.
 	const credited = $derived(entries.filter((e) => e.credit && e.source_url));
 	const licenses = $derived([...new Set(credited.map((e) => e.license).filter(Boolean))]);
+	// Built as strings rather than as markup: the separators are the only thing
+	// between two links, and markup whitespace around a Svelte block is not
+	// something the formatter is obliged to preserve — an expression is.
+	const licenceSuffix = $derived(licenses.length > 0 ? ` · ${licenses.join(' · ')}` : '');
+	const joiner = (i: number, n: number) => (i < n - 2 ? ', ' : i === n - 2 ? ' and ' : '');
 
 	onMount(async () => {
 		try {
@@ -111,12 +116,7 @@
 			<p class="demos-credit">
 				photos by {#each credited as entry, i (entry.path)}<a href={entry.source_url} rel="external"
 						>{entry.credit}</a
-					>{i < credited.length - 2
-						? ', '
-						: i === credited.length - 2
-							? ' and '
-							: ''}{/each}{#if licenses.length > 0}
-					· {licenses.join(' · ')}{/if}
+					>{joiner(i, credited.length)}{/each}{licenceSuffix}
 			</p>
 		{/if}
 	</div>
