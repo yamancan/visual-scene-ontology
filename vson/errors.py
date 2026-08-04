@@ -33,6 +33,8 @@ class VsonResourceError(VsonError):
     """A canonical file this package reads is missing or unreadable.
 
     The package resolves `skills/`, `tools/schema/` and `pyproject.toml` out of
-    the checkout it lives in (see `vson/_resources.py`). This is what a caller
-    sees when that checkout is not there.
+    the tree it lives in — a checkout, or the `tools/_data/` a wheel carries
+    (see `vson/_resources.py`). This is what a caller sees when neither has the
+    file: an incomplete install, or a checkout with a file renamed out from
+    under it.
     """

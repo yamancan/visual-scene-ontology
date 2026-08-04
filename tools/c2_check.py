@@ -42,6 +42,8 @@ import sys
 
 import rdflib
 
+from tools import resource
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ONTOLOGY_FILES = ("ontology/vso.ttl", "ontology/rcc8.ttl", "ontology/allen.ttl")
 
@@ -63,7 +65,7 @@ def declared_terms() -> frozenset:
     if _DECLARED is None:
         g = rdflib.Graph()
         for f in ONTOLOGY_FILES:
-            g.parse(os.path.join(ROOT, f), format="turtle")
+            g.parse(resource(f), format="turtle")
         _DECLARED = frozenset(
             str(s)
             for s in g.subjects()

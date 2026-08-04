@@ -29,10 +29,12 @@
 import type { PyodideAPI } from 'pyodide';
 
 // ── repo sources, inlined at build time ────────────────────────────────────
-// The exact tree the Python modules expect: vson_penman anchors the routing
-// tables three dirnames up from itself (cli/src/penman/routing-tables.json),
-// shacl_helper/owlrl_check anchor shapes/ + ontology/ one dirname up from
-// tools/, and caption.py reads verbs.json beside itself. equiv.py and
+// The exact tree the Python modules expect: `tools.resource` resolves
+// repository-relative paths against the directory `tools/` sits in, so the
+// routing tables (cli/src/penman/routing-tables.json), shapes/ and ontology/
+// must be mounted at those paths beside it, and caption.py reads verbs.json
+// beside itself. tools/__init__.py carries that resolver, which is why it is
+// mounted rather than left an empty stub. equiv.py and
 // skill_check.py are deliberately absent — they serve only `make
 // x-skill-check`, never a studio operation.
 import toolsInit from '../../../../tools/__init__.py?raw';

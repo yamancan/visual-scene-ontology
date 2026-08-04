@@ -7,7 +7,7 @@ TOOLS = -m tools.penman.vson_penman
 EXAMPLE_VSON = examples/throne_room.vson
 EXAMPLE_TTL = examples/throne_room.ttl
 
-.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check fragment-check registry-check geometry-check cq-check grammar-check grammar-gbnf conformance importer-check iri-check live-check rdfc10-suite x-check x-skill-check envelope-check web-check web-deploy web-smoke deploy-check site clean
+.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check fragment-check registry-check geometry-check cq-check grammar-check grammar-gbnf conformance importer-check iri-check live-check rdfc10-suite x-check x-skill-check envelope-check wheel-check web-check web-deploy web-smoke deploy-check site clean
 
 all: check
 
@@ -251,6 +251,22 @@ rdfc10-suite:
 envelope-check:
 	@echo "==> Studio envelope corpus: every committed envelope MUST SHACL-conform"
 	@$(PY) scripts/envelope_check.py
+
+# The only gate that runs against the *distribution* rather than the checkout.
+# Everything above installs editable, where the checkout is the package and
+# every checkout-relative path a module reads is a real file; a wheel carries
+# only what pyproject.toml declares, and for three releases that was not the
+# same set — `import vson` raised on its first line outside a checkout.
+#
+# Deliberately absent from `check` and `check-all`: it builds offline
+# (`pip wheel --no-build-isolation` against the venv's own setuptools) but
+# *installing* pulls rdflib, pyshacl, owlrl and jsonschema from PyPI, and a gate
+# that needs the network is a gate that goes red when the network does. Run it
+# before a release and after any change to pyproject.toml packaging,
+# tools/__init__.py or vson/_resources.py. `--preflight` is the offline half.
+wheel-check:
+	@echo "==> Non-editable install: pip install . (not -e) into a throwaway venv"
+	@$(PY) scripts/check_wheel_install.py
 
 deploy-check:
 	@echo "==> Deploy preflight"

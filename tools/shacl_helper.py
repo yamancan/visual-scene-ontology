@@ -14,6 +14,8 @@ from typing import Tuple
 import pyshacl
 import rdflib
 
+from tools import resource
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 ONTOLOGY_FILES = (
@@ -27,13 +29,13 @@ SHAPES_FILE = "shapes/vson-shapes.ttl"
 def _load_ontology() -> rdflib.Graph:
     g = rdflib.Graph()
     for f in ONTOLOGY_FILES:
-        g.parse(os.path.join(ROOT, f), format="turtle")
+        g.parse(resource(f), format="turtle")
     return g
 
 
 def _load_shapes() -> rdflib.Graph:
     g = rdflib.Graph()
-    g.parse(os.path.join(ROOT, SHAPES_FILE), format="turtle")
+    g.parse(resource(SHAPES_FILE), format="turtle")
     return g
 
 

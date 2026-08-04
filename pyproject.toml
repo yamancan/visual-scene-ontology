@@ -44,25 +44,71 @@ dependencies = [
 # extra; the gate exits 2 rather than skipping itself when it is absent.
 dev = ["lark>=1.1,<2"]
 
-[tool.setuptools.packages.find]
+[tool.setuptools]
 # Two packages, one distribution. `tools` is the reference implementation the
 # gate matrix runs and docs/vson.md §10 lists; `vson` is the stable import
 # surface over it (`import vson; vson.validate(...)`) and holds no second
 # implementation of anything. They ship together because `vson` is a facade —
 # every call in it lands in `tools`, so a `vson` installed without `tools`
 # would import and then fail on first use.
-include = ["tools*", "vson*"]
-namespaces = false
+#
+# Written out rather than discovered with `packages.find`, because the four
+# `tools._data.*` entries below are not importable packages and have no source
+# directory of their own: they exist only to give `[tool.setuptools.package-dir]`
+# a name to hang an outside-the-package tree on, which is the one declarative
+# way setuptools carries such a tree into a wheel. `find` cannot discover a
+# package that has no directory, so the two mechanisms do not compose.
+# `scripts/check_wheel_install.py` fails if an importable subpackage of `tools`
+# or `vson` is ever added and not listed here.
+packages = [
+    "tools",
+    "tools.extractor",
+    "tools.extractor.baseline",
+    "tools.grammar",
+    "tools.importers",
+    "tools.metrics",
+    "tools.penman",
+    "tools.render",
+    "tools.vson_x",
+    "vson",
+    "tools._data.ontology",
+    "tools._data.shapes",
+    "tools._data.skills",
+    "tools._data.cli.src.penman",
+]
+
+[tool.setuptools.package-dir]
+# The four trees the reference implementation *reads* but does not live in.
+# `tools/*.py` anchor them to `__file__` — `ROOT/ontology/vso.ttl` and friends,
+# three dirnames up for `routing-tables.json` — which resolves in a checkout and
+# in the home the release binary materializes (cli/src/commands/embed.rs), but
+# resolves to site-packages/ in a non-editable install, where nothing put them.
+#
+# setuptools cannot ship a file from outside a package directory *at its
+# original path*, so the wheel carries each tree under `tools/_data/` at the
+# same repository-relative path beneath it: `tools/_data/ontology/vso.ttl`,
+# `tools/_data/cli/src/penman/routing-tables.json`. `tools.resource()` is the
+# single resolver that knows both layouts, checkout first. Nothing is
+# duplicated in the checkout and no mirror can drift, because the mapping is
+# resolved at build time from the originals.
+#
+# `tools/schema/`, `tools/extractor/prompts/` and `tools/render/verbs.json` are
+# absent from this table on purpose: they already live inside the `tools`
+# package directory, so plain package-data ships them at the very path the
+# readers compute, and no fallback is involved.
+"tools._data.ontology" = "ontology"
+"tools._data.shapes" = "shapes"
+"tools._data.skills" = "skills"
+"tools._data.cli.src.penman" = "cli/src/penman"
 
 [tool.setuptools.package-data]
-# tools.penman has no package data: its routing tables live inside the Rust
-# crate (cli/src/penman/routing-tables.json) so the crate stays self-contained
-# and packageable, and tools/penman/vson_penman.py reads them from the checkout.
-# setuptools cannot reach outside a package directory, so a non-editable
-# `pip install .` of vson-tools cannot carry that file. Every gate here installs
-# editable (`make deps` and CI both run `pip install -e .`), which keeps the
-# checkout paths live.
+"tools" = ["schema/*.json"]
+"tools.extractor" = ["prompts/specialized/*.md"]
 "tools.render" = ["verbs.json"]
+"tools._data.ontology" = ["*.ttl"]
+"tools._data.shapes" = ["*.ttl"]
+"tools._data.skills" = ["*/SKILL.md"]
+"tools._data.cli.src.penman" = ["routing-tables.json"]
 
 [tool.ruff]
 target-version = "py39"

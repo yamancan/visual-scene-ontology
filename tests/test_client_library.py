@@ -145,13 +145,54 @@ class SurfaceTests(unittest.TestCase):
         self.assertEqual(vson.__version__, match.group(1))
 
     def test_the_package_is_declared_in_the_distribution(self) -> None:
-        # A facade nobody can install is a facade nobody can import. The
-        # find-directive must name it, or `pip install .` ships tools/ alone.
+        # A facade nobody can install is a facade nobody can import; a facade
+        # installed without the files it reads imports and then raises on the
+        # first line of vson/envelope.py, which is what `pip install .` did up
+        # to v1.3.0. Both halves are declared in [tool.setuptools]: `packages`
+        # says what is importable, `package-dir` maps the four trees that live
+        # outside any package directory into `tools/_data/` inside the wheel.
+        # `make wheel-check` proves the result actually works; this only proves
+        # the declaration is still there.
         pyproject = read(os.path.join(REPO, "pyproject.toml"))
-        block = pyproject.split("[tool.setuptools.packages.find]", 1)[1]
-        include = re.search(r"^include\s*=\s*\[([^\]]*)\]", block, re.MULTILINE)
-        self.assertIsNotNone(include, "no include= under packages.find")
-        self.assertIn("vson*", include.group(1))
+        block = pyproject.split("[tool.setuptools]", 1)[1]
+        listed = re.search(
+            r"^packages\s*=\s*\[(.*?)\]", block, re.MULTILINE | re.DOTALL
+        )
+        self.assertIsNotNone(listed, "no packages= under [tool.setuptools]")
+        names = re.findall(r"\"([^\"]+)\"", listed.group(1))
+        self.assertIn("vson", names)
+        self.assertIn("tools", names)
+
+        mapping = pyproject.split("[tool.setuptools.package-dir]", 1)[1]
+        for package, source in (
+            ("tools._data.ontology", "ontology"),
+            ("tools._data.shapes", "shapes"),
+            ("tools._data.skills", "skills"),
+            ("tools._data.cli.src.penman", "cli/src/penman"),
+        ):
+            self.assertIn(package, names)
+            self.assertIn('"{}" = "{}"'.format(package, source), mapping)
+
+    def test_resources_resolve_to_the_checkout_and_say_so_when_missing(self) -> None:
+        # `tools.resource` is the one resolver both packages share. In a
+        # checkout it must return the checkout file — an installed `_data`
+        # copy shadowing an edited ontology would make every gate above test
+        # last month's bytes — and for a path in neither layout it must return
+        # the checkout path, so the error a caller sees names a place a reader
+        # can look.
+        from tools import resource
+
+        self.assertEqual(
+            resource("ontology", "vso.ttl"), os.path.join(REPO, "ontology", "vso.ttl")
+        )
+        self.assertEqual(
+            vson._resources.path_to("skills", "vson-extractor", "SKILL.md"),
+            os.path.join(REPO, "skills", "vson-extractor", "SKILL.md"),
+        )
+        self.assertEqual(
+            resource("no", "such", "file.ttl"),
+            os.path.join(REPO, "no", "such", "file.ttl"),
+        )
 
 
 @unittest.skipUnless(vson, "rdflib + pyshacl required")

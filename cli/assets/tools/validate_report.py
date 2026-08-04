@@ -57,7 +57,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 from typing import Any, Dict, List, Optional
 
@@ -66,10 +65,10 @@ import rdflib
 from rdflib import RDF
 from rdflib.namespace import Namespace
 
+from tools import resource
 from tools.c2_check import orphans_in
 from tools.owlrl_check import clashes_for
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ONTOLOGY_FILES = ("ontology/vso.ttl", "ontology/rcc8.ttl", "ontology/allen.ttl")
 DEFAULT_SHAPES = "shapes/vson-shapes.ttl"
 
@@ -100,7 +99,7 @@ def _load_graph(path: str) -> rdflib.Graph:
 def ontology() -> rdflib.Graph:
     g = rdflib.Graph()
     for f in ONTOLOGY_FILES:
-        g.parse(os.path.join(ROOT, f), format="turtle")
+        g.parse(resource(f), format="turtle")
     return g
 
 
@@ -299,7 +298,7 @@ def _parser() -> argparse.ArgumentParser:
     ap.add_argument("file", help="the Turtle document to check")
     ap.add_argument(
         "--shapes",
-        default=os.path.join(ROOT, DEFAULT_SHAPES),
+        default=resource(DEFAULT_SHAPES),
         help="shapes file (default: the strict profile, {})".format(DEFAULT_SHAPES),
     )
     ap.add_argument(

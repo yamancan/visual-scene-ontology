@@ -17,32 +17,35 @@ spells in four places, and the copy-drift gates (`make fragment-check`,
 `make registry-check`) exist because that is exactly how this project has drifted
 before.
 
-**This resolves paths in the checkout, not package data.** `pyproject.toml` says
-why in its `[tool.setuptools.package-data]` comment: `setuptools` cannot reach
-outside a package directory, so a non-editable `pip install .` cannot carry
-`cli/src/penman/routing-tables.json` either — and `tools/penman/vson_penman.py`
-has read that from the checkout since v1.0. Every gate in this repository
-installs editable (`make deps` and CI both run `pip install -e .`), which keeps
-these paths live. Nothing here makes the non-editable install work; it does not
-make it worse.
+**Checkout first, then the installed layout.** `tools.resource` is the single
+resolver both packages share, and it is deliberately not re-implemented here:
+`tools/*.py` read the ontology, the shapes and the routing tables through it
+too, and one resolver is the only way those two sets of paths cannot disagree
+about where a wheel put them. It tries the checkout — which is also the tree an
+editable install and the release binary's materialized home present — and falls
+back to `tools/_data/`, where a non-editable `pip install` carries every file
+that lives outside a package directory in the source tree. `pyproject.toml`'s
+`[tool.setuptools.package-dir]` is the build-time half of that arrangement.
+
+Importing `tools` from here is the sanctioned direction: this package is a
+facade over `tools` and `pyproject.toml` ships the two together for exactly
+that reason, so a `vson` that can import at all can import `tools`.
 """
 
 from __future__ import annotations
 
 import json
-import os
 import re
 from typing import Any, Dict
 
-from .errors import VsonResourceError
+from tools import resource
 
-# vson/_resources.py -> vson/ -> the checkout root.
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from .errors import VsonResourceError
 
 
 def path_to(*parts: str) -> str:
     """An absolute path to a repository-relative file. No existence check."""
-    return os.path.join(REPO_ROOT, *parts)
+    return resource(*parts)
 
 
 def read_text(*parts: str) -> str:
@@ -54,9 +57,11 @@ def read_text(*parts: str) -> str:
     except OSError as exc:
         raise VsonResourceError(
             "vson: cannot read {}: {}. This package resolves the canonical "
-            "skills/, prompt and schema files out of the checkout it lives in; "
-            "install it editable (pip install -e .) from a full checkout."
-            .format(target, exc.strerror or exc)
+            "skills/, prompt and schema files out of the tree it lives in — a "
+            "checkout, or the data an installed vson-tools carries under "
+            "tools/_data/. Neither has this file, so the install is incomplete: "
+            "reinstall vson-tools, or install it editable (pip install -e .) "
+            "from a full checkout.".format(target, exc.strerror or exc)
         ) from exc
 
 

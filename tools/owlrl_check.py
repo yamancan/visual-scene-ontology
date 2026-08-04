@@ -26,6 +26,8 @@ from rdflib import RDF, OWL
 from rdflib.collection import Collection
 from owlrl import DeductiveClosure, OWLRL_Semantics
 
+from tools import resource
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ONTOLOGY_FILES = ("ontology/vso.ttl", "ontology/rcc8.ttl", "ontology/allen.ttl")
 
@@ -33,7 +35,7 @@ ONTOLOGY_FILES = ("ontology/vso.ttl", "ontology/rcc8.ttl", "ontology/allen.ttl")
 def _ontology() -> rdflib.Graph:
     g = rdflib.Graph()
     for f in ONTOLOGY_FILES:
-        g.parse(os.path.join(ROOT, f), format="turtle")
+        g.parse(resource(f), format="turtle")
     return g
 
 

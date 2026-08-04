@@ -21,7 +21,6 @@ tools/parity_check.py, which uses rdflib's `to_isomorphic`.
 from __future__ import annotations
 
 import json
-import os
 import re
 import sys
 from dataclasses import dataclass
@@ -32,6 +31,7 @@ from dataclasses import dataclass
 # Ref/Lit/Node/Term/Triple from this module. The qualified package path keeps
 # import identity stable: `tools.vson_ast.Node is
 # tools.penman.vson_penman.Node`.
+from tools import resource
 from tools.vson_ast import Lit, Node, Ref, Term, Triple  # noqa: F401
 
 # Routing tables live inside the Rust crate, at cli/src/penman/routing-tables.json.
@@ -40,21 +40,20 @@ from tools.vson_ast import Lit, Node, Ref, Term, Triple  # noqa: F401
 # `cargo package`. This reference reads that same file, so the two implementations
 # still cannot drift; `make cli-check` proves it by graph isomorphism.
 #
-# The path is anchored to __file__ (three dirnames up from this file is the repo
-# root — the same idiom as tools/vson_x/skill_check.py), never to the working
-# directory, so it resolves identically under `python3 -m
-# tools.penman.vson_penman` from the repo root, under `unittest discover`, and
-# under an editable install invoked from any cwd.
-_REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-ROUTING_TABLES_PATH = os.path.join(_REPO, "cli", "src", "penman", "routing-tables.json")
+# The path is repository-relative and resolved by `tools.resource`, never
+# against the working directory, so it lands on the same bytes under `python3 -m
+# tools.penman.vson_penman` from the repo root, under `unittest discover`, under
+# an editable install invoked from any cwd, inside the home the release binary
+# materializes, and — via `tools/_data/` — inside a non-editable install.
+ROUTING_TABLES_PATH = resource("cli", "src", "penman", "routing-tables.json")
 try:
     with open(ROUTING_TABLES_PATH, "r", encoding="utf-8") as _f:
         _ROUTING = json.load(_f)
 except FileNotFoundError as _exc:  # pragma: no cover - checkout-shape failure
     raise RuntimeError(
         "VSON routing tables not found at {}. This reference reads them from the "
-        "Rust crate, so it needs a full checkout — a standalone install of the "
-        "vson-tools package does not carry the file.".format(ROUTING_TABLES_PATH)
+        "Rust crate, so it needs either a full checkout or an installed "
+        "vson-tools that carries them under tools/_data/.".format(ROUTING_TABLES_PATH)
     ) from _exc
 
 VSO = _ROUTING["namespaces"]["vso"]
