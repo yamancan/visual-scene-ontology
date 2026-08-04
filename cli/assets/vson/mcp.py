@@ -526,6 +526,12 @@ def _cypher(text_or_path: str, syntax: Optional[str], label: str) -> str:
     reads VSON-P only, because a native Turtle parser is not shipped in the
     crate; and where there is no binary there is no Cypher.
     """
+    # Input first, environment second: a caller who handed VSON-T gets the
+    # VSON-P sentence whether or not a binary is reachable — that error is
+    # theirs to fix either way, and it is the one the tool's description
+    # promises. The missing-binary error is only reachable with input the
+    # renderer could actually read.
+    source = _penman_source(text_or_path, syntax, label)
     binary = cli_binary()
     if binary is None:
         raise ToolError(
@@ -536,7 +542,6 @@ def _cypher(text_or_path: str, syntax: Optional[str], label: str) -> str:
             "`cargo build --release` in cli/, put `vson` on PATH, or set "
             "${} to it. `caption` and `fol` need none of that.".format(CLI_ENV)
         )
-    source = _penman_source(text_or_path, syntax, label)
     handle = None
     try:
         if source is None:
