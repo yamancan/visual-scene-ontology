@@ -63,6 +63,12 @@ web/build/
 # checked-in fixture and a command, and README.md links it as its second section,
 # so a repository without it ships a dangling link.
 !docs/why-not-json-schema.md
+# The essay: the canonical statement of why the notation is shaped the way it is,
+# and the one source the studio's /why route and the README's "The idea" link are
+# to be built from. Prose, not runtime input — but every claim in it names the
+# clause, the shape or the fixture that enforces it, and `make check`'s anchor
+# gate resolves every one of those links.
+!docs/essay-an-image-is-not-a-sentence.md
 # The vision-dataset importers: their reference, the measured coverage study
 # `make importer-check` re-derives, and the licence/attribution draft that holds
 # publication of anything dataset-derived until a person has reviewed it.
