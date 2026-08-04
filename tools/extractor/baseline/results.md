@@ -30,22 +30,30 @@ Three ablations (`ablations/no_worked_example.md`, `no_shacl_section.md`, `no_de
 
 ## Image manifest (n=20)
 
-10 photographic CC0 (Unsplash) + 10 stylized (stablestudio.dev, owned). Filled in once curation completes.
+10 photographic under the **Unsplash License** + 10 stylized (stablestudio.dev, owned). Filled in once
+curation completes.
+
+*Correction, 2026-08-04 — a licence name, not a pre-registered condition.* The ten photographic rows
+read `CC0` until now. Unsplash published under CC0 until 2017 and does not now, so the label was
+false about a source no image had yet been drawn from. Nothing in the hypothesis, the decision rule,
+the ablation gate or the image descriptions moves — the same twenty slots, the same conditions,
+still unmeasured. The Unsplash License conveys no model release, which is a live constraint for the
+rows describing people (see `web/static/demos/CREDITS.md`).
 
 ### Photographic (10)
 
 | # | Filename | Source | License | Description |
 |---|---|---|---|---|
-| 1 | `throne_room.jpg` | TBD | CC0 | canonical happy-path indoor |
-| 2 | `kitchen_busy.jpg` | TBD | CC0 | sparse evidence; Aggregates |
-| 3 | `street_crowd.jpg` | TBD | CC0 | Collective countability stress test |
-| 4 | `water_pouring.jpg` | TBD | CC0 | Substance / Mass |
-| 5 | `empty_room.jpg` | TBD | CC0 | adversarial: emit minimal valid doc |
-| 6 | `forest_path.jpg` | TBD | CC0 | outdoor + natural lighting |
-| 7 | `single_apple.jpg` | TBD | CC0 | thin-evidence path |
-| 8 | `crowd_action.jpg` | TBD | CC0 | dense + action |
-| 9 | `pet_calm.jpg` | TBD | CC0 | animal + Affect dimension |
-| 10 | `bookshelf.jpg` | TBD | CC0 | many static objects |
+| 1 | `throne_room.jpg` | TBD | Unsplash License | canonical happy-path indoor |
+| 2 | `kitchen_busy.jpg` | TBD | Unsplash License | sparse evidence; Aggregates |
+| 3 | `street_crowd.jpg` | TBD | Unsplash License | Collective countability stress test |
+| 4 | `water_pouring.jpg` | TBD | Unsplash License | Substance / Mass |
+| 5 | `empty_room.jpg` | TBD | Unsplash License | adversarial: emit minimal valid doc |
+| 6 | `forest_path.jpg` | TBD | Unsplash License | outdoor + natural lighting |
+| 7 | `single_apple.jpg` | TBD | Unsplash License | thin-evidence path |
+| 8 | `crowd_action.jpg` | TBD | Unsplash License | dense + action |
+| 9 | `pet_calm.jpg` | TBD | Unsplash License | animal + Affect dimension |
+| 10 | `bookshelf.jpg` | TBD | Unsplash License | many static objects |
 
 ### Stylized (10)
 
