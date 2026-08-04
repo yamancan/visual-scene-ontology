@@ -77,6 +77,10 @@ web/build/
 # it from the Docs section, so a repository without it ships a dangling link —
 # and `make check`'s anchor gate fails on one.
 !docs/repo-map.md
+# The pull-request checklist. GitHub reads it from the repository itself — an
+# untracked template is no template — and Markdown is the only form it takes;
+# there is no YAML pull-request form the way there is for issues.
+!.github/PULL_REQUEST_TEMPLATE.md
 
 # Generated eval artifacts (scripts/d_smoke_eval.sh writes here)
 reports/

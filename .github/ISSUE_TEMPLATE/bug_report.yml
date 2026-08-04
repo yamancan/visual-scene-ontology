@@ -1,0 +1,106 @@
+# A bug report that carries the failing document and the verifier's own words
+# can be reproduced in one command. One without them is a conversation.
+#
+# `labels:` below names labels that already exist on this repository; adding a
+# name here that does not exist there stops the form from filing the issue.
+name: Bug report
+description: Something in the ontology, the CLI, the tooling or the studio does not do what it says.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        One person maintains this, in their own time — there is no response
+        time to promise you, and this form does not create one. What it does
+        is make the report reproducible, which is the part that decides
+        whether a bug gets fixed at all.
+
+        **Not for security issues.** An unfixed vulnerability goes to
+        [SECURITY.md](https://github.com/yamancan/visual-scene-ontology/blob/main/SECURITY.md),
+        privately, not into a public issue.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Where you saw it. If it spans two, pick the one you ran.
+      options:
+        - Ontology or SHACL shapes (ontology/, shapes/)
+        - Rust CLI (vson validate / verify / diff / convert / export / mcp)
+        - Python tooling (tools/, the vson package)
+        - GitHub Action or pre-commit hook
+        - Web studio (vson-studio.pages.dev)
+        - Specification or documentation
+        - Something else / not sure
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: >-
+        `vson --version` for the CLI, `python3 -c "import vson; print(vson.__version__)"`
+        for the package, or the commit SHA you have checked out. "main, today" is
+        not a version — the tree moves.
+      placeholder: "vson 1.4.0, or 6d721df"
+    validations:
+      required: true
+
+  - type: textarea
+    id: document
+    attributes:
+      label: The document that fails
+      description: >-
+        The smallest VSON-P, VSON-X or Turtle document that reproduces it —
+        pasted, not described, and not linked to a gist that may disappear. If
+        the bug needs no document (a crash on startup, a broken link, a studio
+        page), say so here instead.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: What `vson validate` printed
+      description: >-
+        Run `vson validate --format compact <file>` and paste the result whole,
+        including the `FAIL` line and the exit code. Do not trim it: the sludge
+        is frequently the bug. `--format text` output is fine too, and the JSON
+        report is better still if the complaint is about a field in it.
+      render: shell
+      placeholder: |
+        $ vson validate --format compact scene.vson
+        scene.vson:26:14  vson/shacl/DirectionalNeedsViewerShape  Directional spatial facts require exactly one vso:viewer …
+        FAIL scene.vson (shacl)
+        $ echo $?
+        1
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+      description: >-
+        And, where you can, the clause or shape you are reading it against —
+        `docs/vson.md` is numbered so that a disagreement can be pinned to a
+        sentence. "A conformant document described my image wrongly" is not a
+        bug in this sense; a green verdict is a statement about the graph, never
+        about the picture (§2.1).
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: >-
+        Operating system, `python3 --version`, and `pip show pyshacl rdflib owlrl`
+        if the CLI or the Python tooling is involved. Every `validate` gate runs
+        in that interpreter, so its versions are part of the report.
+      render: shell
+    validations:
+      required: false
