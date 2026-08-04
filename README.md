@@ -219,9 +219,10 @@ Four tools, and what each one actually returns:
 | `vson_export` | `format: caption\|fol\|cypher` and the document | the rendering, as text |
 | `vson_skill_prompt` | optional `notation: p\|x` | [`skills/vson-extractor/SKILL.md`](skills/vson-extractor/SKILL.md), verbatim — the closed vocabulary, the trait bundles and the clauses, **before** the agent writes rather than after it is rejected |
 
-Three things stated plainly, because a tool description is a promise:
+Four things stated plainly, because a tool description is a promise:
 
 - **`cypher` needs the binary.** That renderer exists only in the Rust CLI, and the server shells out to it rather than keeping a second copy. Under `vson mcp` it is always there; under `python3 -m vson.mcp` it works when a `vson` is on `PATH` or built in the checkout, and returns an error result saying so when it is not — after the input is settled, so a document that is not VSON-P is told that first, on every machine. `caption` and `fol` are pure Python.
+- **`document` is text, `path` is a file** — whichever you gave is what gets read, all the way down. `{"document": "scene.vson"}` is ten characters of a document, never the file of that name next to the server; nothing re-decides that by asking the working directory ([§5.18.1](docs/vson.md#5181-the-four-tools)).
 - **No image, no network.** Every tool is [`vson/api.py`](vson/api.py) behind a JSON envelope. A green `vson_validate` is [§2.1](docs/vson.md#21-what-conformance-establishes)'s verdict and nothing more.
 - **`path` reads your filesystem** with the server's own privileges — it is a local stdio server you started, the same trust boundary `vson validate` has always had.
 
