@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  VSON — an image, a document, three gates, an exit code.
+
+  TWIN: publish/index.html carries the same drawing inline, with identical
+  geometry. Only the palette differs: that copy reads the page's own custom
+  properties (fg, muted, rule), so it follows the visitor's theme. Edit both
+  or neither — one drawing, two artifacts.
+
+  The palette here is one mid-tone on purpose. GitHub renders this file as an
+  image, so it cannot see the page theme, and a light-or-dark choice would be
+  wrong half the time. #7f7f7f clears 4.3:1 against both GitHub backgrounds;
+  nothing is filled pure black or pure white. The two band rules are that same
+  tone at 45% rather than a lighter grey, because a fixed lighter grey reads
+  quieter than the drawing on white and louder than it on black — opacity
+  composites against whichever background is there and stays quieter in both.
+
+  What the geometry asserts: the image reaches the model and stops there. No
+  arrow runs from the image to a gate, because no gate reads it — the gates
+  decide about the document (docs/vson.md §2.1).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 258" width="700" height="258"
+     role="img" aria-labelledby="pipeline-title pipeline-desc"
+     font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <title id="pipeline-title">The VSON pipeline</title>
+  <desc id="pipeline-desc">Extraction: an image goes to a vision-language model, which emits a
+    document in VSON-P. Transpile turns that document into a VSON-T graph. Verification, which is
+    vson validate: the graph passes through three gates in order — SHACL, OWL 2 RL, then C2 closure
+    — and clearing all three exits 0 with the graph. Any gate that fails exits 1 with findings.
+    Every gate reads the document. None of them reads the image.</desc>
+
+  <defs>
+    <marker id="vson-arrowhead" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="8"
+            refX="8" refY="4" orient="auto">
+      <path d="M0 0.6 L8 4 L0 7.4 Z" fill="#7f7f7f"/>
+    </marker>
+  </defs>
+
+  <g fill="none" stroke="#7f7f7f" stroke-width="1.2" marker-end="url(#vson-arrowhead)">
+    <!-- extraction -->
+    <path d="M109 43 H165"/>
+    <path d="M411 43 H467"/>
+    <!-- transpile: the document leaves the model half and enters the gate half -->
+    <path d="M580 64 V78 Q580 84 574 84 H81 Q75 84 75 90 V103"/>
+    <!-- verification, in gate order -->
+    <path d="M143 127 H169"/>
+    <path d="M259 127 H285"/>
+    <path d="M387 127 H413"/>
+    <path d="M525 127 H551"/>
+    <!-- the failure branch: whichever gate fires first, the run ends here -->
+    <path d="M214 148 V168 H622 V183"/>
+  </g>
+  <g fill="none" stroke="#7f7f7f" stroke-width="1.2">
+    <path d="M336 148 V168"/>
+    <path d="M469 148 V168"/>
+  </g>
+
+  <g fill="none" stroke="#7f7f7f" stroke-width="1">
+    <rect x="10" y="22" width="96" height="42" rx="3"/>
+    <rect x="168" y="22" width="240" height="42" rx="3"/>
+    <rect x="470" y="22" width="220" height="42" rx="3"/>
+    <rect x="10" y="106" width="130" height="42" rx="3"/>
+    <rect x="172" y="106" width="84" height="42" rx="3"/>
+    <rect x="288" y="106" width="96" height="42" rx="3"/>
+    <rect x="416" y="106" width="106" height="42" rx="3"/>
+    <rect x="554" y="106" width="136" height="42" rx="3"/>
+    <rect x="554" y="186" width="136" height="42" rx="3"/>
+  </g>
+
+  <!-- Band rules. They stop short of their right-aligned labels, and the
+       transpile arrow crosses the lower one on purpose: that crossing is the
+       document leaving extraction and entering verification. -->
+  <g stroke="#7f7f7f" stroke-opacity="0.45" stroke-width="1">
+    <path d="M10 10.5 H634"/>
+    <path d="M10 96.5 H539"/>
+  </g>
+
+  <g fill="#7f7f7f" font-size="12.5" text-anchor="middle">
+    <text x="58" y="47">image</text>
+    <text x="288" y="47">vision-language model</text>
+    <text x="580" y="47">document · VSON-P</text>
+    <text x="75" y="131">graph · VSON-T</text>
+    <text x="214" y="131">SHACL</text>
+    <text x="336" y="131">OWL 2 RL</text>
+    <text x="469" y="131">C2 closure</text>
+    <text x="622" y="131">exit 0 · graph</text>
+    <text x="622" y="211">exit 1 · findings</text>
+  </g>
+
+  <g fill="#7f7f7f" font-size="10" text-anchor="middle">
+    <text x="137" y="36">reads</text>
+    <text x="439" y="36">emits</text>
+    <text x="330" y="79">transpile</text>
+    <text x="402" y="161">any gate fails</text>
+  </g>
+
+  <g fill="#7f7f7f" font-size="10" text-anchor="end">
+    <text x="690" y="14">extraction</text>
+    <text x="690" y="100">verification · <tspan font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">vson validate</tspan></text>
+  </g>
+
+  <text x="10" y="248" fill="#7f7f7f" font-size="10">Every gate reads the document. None of them reads the image.</text>
+</svg>
