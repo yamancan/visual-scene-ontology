@@ -1,0 +1,35 @@
+# Blank issues stay ON. The two forms beside this file cover the two reports
+# that are worth structuring; anything else — a broken link, a question about
+# the roadmap, a note that the studio will not load on some browser — should
+# not be turned away by a form that has no field for it.
+blank_issues_enabled: true
+
+# GitHub renders these above the template list. Each one is a place where the
+# answer already exists, or a place where the report does not belong in public.
+contact_links:
+  - name: Report a security vulnerability (privately)
+    url: https://github.com/yamancan/visual-scene-ontology/blob/main/SECURITY.md
+    about: >-
+      Do not open a public issue for an unfixed vulnerability. SECURITY.md has
+      the address, what is in scope, and an honest statement of what a
+      one-person project can promise about response times.
+
+  - name: Read the specification
+    url: https://github.com/yamancan/visual-scene-ontology/blob/main/docs/vson.md
+    about: >-
+      The canonical, numbered spec: the vocabulary, the nine conformance
+      clauses, the shapes, both concrete syntaxes and the report formats.
+
+  - name: Try it in the browser first
+    url: https://vson-studio.pages.dev
+    about: >-
+      The studio runs the same two gates in a Pyodide worker. The demos and the
+      gallery need no key and no account, so a verdict you can point at is one
+      click away.
+
+  - name: Before you open a pull request
+    url: https://github.com/yamancan/visual-scene-ontology/blob/main/CONTRIBUTING.md
+    about: >-
+      The gates to run, the commit style, and the one surprise in this
+      repository — `*.md` is gitignored, so a new Markdown file needs an
+      explicit negation before git will see it.

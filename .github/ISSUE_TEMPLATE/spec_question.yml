@@ -1,0 +1,66 @@
+# A question about what the specification requires — as opposed to a bug, which
+# is the implementation disagreeing with it. The two are answered differently:
+# a bug is fixed in code, a question is either answered from a clause or is
+# evidence that the clause does not say what it meant to.
+name: Specification question
+description: What does VSON require here? Which clause, which shape, which term.
+title: "spec: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        `docs/vson.md` is the canonical specification and it is numbered
+        throughout, so most questions can be answered by pointing at a
+        sentence. When one cannot, that is worth knowing: an unanswerable
+        question about a normative clause is a defect in the clause.
+
+        Maintained by one person, answered when there is time — no promise
+        beyond that.
+
+  - type: input
+    id: clause
+    attributes:
+      label: Which section or clause
+      description: >-
+        The section number, clause identifier or shape name you are reading —
+        `§5.9`, `C5`, `vss:DirectionalNeedsViewerShape`. If you could not find
+        one, say where you looked; that is an answer about the document.
+      placeholder: "§4.2, or C2, or vso:visibleFraction"
+    validations:
+      required: true
+
+  - type: textarea
+    id: scene
+    attributes:
+      label: What you are trying to express
+      description: >-
+        The scene, in whatever words you have — "two people, one behind the
+        other, from a camera at eye level". The vocabulary is closed, so the
+        useful answer is usually which term already covers it, and the useful
+        question is what you meant rather than which term you reached for.
+    validations:
+      required: true
+
+  - type: textarea
+    id: attempt
+    attributes:
+      label: What you wrote, and what the verifier said
+      description: >-
+        The document you tried, if you got as far as one, and the output of
+        `vson validate --format compact` on it. A rejected document plus the
+        message that rejected it is the fastest way to a straight answer.
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: reading
+    attributes:
+      label: How you read the clause, and what is ambiguous about it
+      description: >-
+        The two readings you are choosing between, ideally. If the answer turns
+        out to be "the clause admits both", the fix is to the specification and
+        this issue becomes the record of why.
+    validations:
+      required: false
