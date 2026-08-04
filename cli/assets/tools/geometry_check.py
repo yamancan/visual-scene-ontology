@@ -23,7 +23,7 @@ A relation asserted between two *regions* therefore entails something about
 their rectangles, and when the rectangles falsify that entailment the assertion
 is refuted. The converse never holds: a cat sitting on a mat is `rcc:EC` while
 its rectangle overlaps the mat's, so "the rectangles stand in PO" is not
-evidence for `rcc:PO`. Measured on the 21 baked studio envelopes: of the 13
+evidence for `rcc:PO`. Measured on the 20 baked studio envelopes: of the 13
 `vso:rcc` facts they state over two rectangles, a gate that computed the
 rectangles' own relation and demanded a match would reject 11. This one rejects
 4, and each of the 4 is refuted by an entailment (§5.13.3).

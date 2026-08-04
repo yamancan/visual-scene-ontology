@@ -19,7 +19,7 @@ permits only for documents an existing numbered clause already declared
 non-conformant. C2 is that clause, verbatim, so every document this gate newly
 rejects was already non-conformant when it was written. Measured before landing:
 zero orphan terms across `examples/`, the 16-scene gallery, `examples/gallery-x`
-and all 21 baked envelopes.
+and all 20 baked envelopes.
 
 What counts as "declared" is what the ontology files state about a term — any
 triple with the term as subject. That is deliberately the weakest possible

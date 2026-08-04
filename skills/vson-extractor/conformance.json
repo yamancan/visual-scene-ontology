@@ -1,5 +1,5 @@
 {
-  "$comment": "Acceptance fixture for any model that wants to claim VSON-extractor support. Each entry references an image bundled with the studio. A model passes if at least 4/5 envelopes conform on first try (no repair retry) and node/edge counts fall within the recorded ranges.",
+  "$comment": "Acceptance fixture for any model that wants to claim VSON-extractor support. Each entry references an image bundled with the studio. A model passes if at least ceil(0.8 x 4) = 4 of the 4 envelopes conform on first try (no repair retry) and node/edge counts fall within the recorded ranges. A fifth image was withdrawn on 2026-08-04 (spec/CHANGELOG.md) and its fixture went with it; first_try_pass_rate_min is unchanged, so the shorter list makes the bar stricter, never looser.",
   "version": "1.0.0",
   "skill": "vson-extractor",
   "fixtures": [
@@ -7,11 +7,6 @@
       "image": "../../web/static/demos/kitchen.jpg",
       "label": "kitchen",
       "expected": { "conforms": true, "nodes": [12, 28], "edges": [22, 50] }
-    },
-    {
-      "image": "../../web/static/demos/street.jpg",
-      "label": "street",
-      "expected": { "conforms": true, "nodes": [10, 30], "edges": [18, 55] }
     },
     {
       "image": "../../web/static/demos/forest.jpg",

@@ -139,7 +139,7 @@
 		<section>
 			<h2>Why it's free</h2>
 			<p>
-				The five demo images were extracted once, for real, and their envelopes are committed to the
+				The four demo images were extracted once, for real, and their envelopes are committed to the
 				repo with the model's genuine provenance. Clicking a thumbnail fetches the baked envelope —
 				no model call, no API key, no spend. The sixteen gallery scenes are hand-authored conformant
 				fixtures served the same way. That is the keyless $0 path. A new upload is different: it

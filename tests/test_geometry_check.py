@@ -518,7 +518,7 @@ class ThreeLayerContractTests(unittest.TestCase):
 
 @unittest.skipUnless(_HAVE_DEPS, "rdflib + pyshacl required")
 class ShippedEnvelopeTests(unittest.TestCase):
-    """What the gate finds in the 21 baked studio envelopes.
+    """What the gate finds in the 20 baked studio envelopes.
 
     Measured, not assumed: the demo corpus is model output frozen at bake time,
     it passes `make envelope-check` (SHACL) today, and four of its asserted
@@ -536,6 +536,12 @@ class ShippedEnvelopeTests(unittest.TestCase):
     The expected set is pinned rather than counted. If a re-bake ever changes
     it, this test is the notice, and the fix is to re-measure and re-record —
     here and in docs/vson.md §5.13 — not to relax the assertion.
+
+    The corpus size moved once without a re-bake: a demo image was withdrawn on
+    2026-08-04 (spec/CHANGELOG.md) and its envelope went with it. It stated no
+    `vso:rcc` fact at all, so every number this class and §5.13 report — 13
+    relations over two rectangles, 11 a match-demanding gate would reject, 4
+    this one does — is what the remaining 20 still measure.
     """
 
     EXPECTED = {
@@ -558,7 +564,7 @@ class ShippedEnvelopeTests(unittest.TestCase):
         paths = self._corpus()
         if not paths:  # pragma: no cover — the studio corpus is committed
             self.skipTest("no baked envelopes in this checkout")
-        self.assertEqual(len(paths), 21, msg="the corpus size the docstring reports")
+        self.assertEqual(len(paths), 20, msg="the corpus size the docstring reports")
         found = set()
         for path in paths:
             with open(path, encoding="utf-8") as fh:

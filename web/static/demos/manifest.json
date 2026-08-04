@@ -9,13 +9,6 @@
       "model_used": "google/gemini-2.5-flash"
     },
     {
-      "path": "/demos/street.jpg",
-      "label": "Backlit Portrait",
-      "mime": "image/jpeg",
-      "envelope_path": "/demos/envelopes/street.json",
-      "model_used": "google/gemini-2.5-flash"
-    },
-    {
       "path": "/demos/forest.jpg",
       "label": "Fjord Overlook",
       "mime": "image/jpeg",
