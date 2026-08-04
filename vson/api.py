@@ -22,6 +22,23 @@ Every entry point takes `text_or_path` and accepts either:
 A value is treated as a path when `os.path.isfile` says so, and as text
 otherwise; `syntax=` overrides the guess in either direction.
 
+**`is_path=` settles that first guess, and a caller who already knows the answer
+should pass it.** `True` reads the argument as a path, `False` reads it as the
+document text whatever it looks like, and the default `None` keeps the
+convention above. Guessing is a convenience for a person naming their own files;
+for a program relaying input from somewhere else it is a hazard, because
+`os.path.isfile` answers about the directory *this process* stands in — so a
+document whose entire text is `scene.vson`, which is a plausible thing for a
+language model to emit, would otherwise be read as whatever file happens to sit
+beside the caller. `vson/mcp.py` names its two arguments `document` and `path`
+and passes that answer down here rather than letting it be re-derived.
+
+`validate`, `load`, `turtle_of`, `caption` and `fol` take it. `diff`,
+`denotes_same`, `canon` and `canonical_hash` do not: a caller that needs it
+there resolves with `load(..., is_path=...)` first and hands the graph to
+`tools.canon` or `tools.metrics.smatch`, which is what `load` is the escape
+hatch for.
+
 **Sniffing text follows §5.16.5, with one documented extension.** §5.16.5 fixes
 how `vson validate -` decides the syntax of a stream: the first token that is
 neither whitespace nor a comment, `(` for VSON-P and anything else for VSON-T.
@@ -238,7 +255,10 @@ class _Document:
 
 
 def _resolve(
-    text_or_path: str, syntax: Optional[str] = None, label: Optional[str] = None
+    text_or_path: str,
+    syntax: Optional[str] = None,
+    label: Optional[str] = None,
+    is_path: Optional[bool] = None,
 ) -> _Document:
     if not isinstance(text_or_path, str):
         raise TypeError(
@@ -251,7 +271,12 @@ def _resolve(
             "syntax must be one of {}, got {!r}".format(SYNTAXES, syntax)
         )
 
-    path = text_or_path if _is_path(text_or_path) else None
+    # The caller's answer when there is one; `os.path.isfile` only when there
+    # is not. A `False` here is the difference between reading the document a
+    # caller sent and reading a file it merely named.
+    if is_path is None:
+        is_path = _is_path(text_or_path)
+    path = text_or_path if is_path else None
     if path is not None:
         actual = syntax or _syntax_of_path(path)
         try:
@@ -276,6 +301,27 @@ def _resolve(
 
 def _transpile(body: str, syntax: str) -> str:
     return to_turtle(body) if syntax == "p" else from_x(body)
+
+
+def _materialize(document: _Document):
+    """A resolved document's graph — or the honest reason it has none.
+
+    Every parse this module performs goes through here, so that "this is not
+    Turtle" reaches a caller as `VsonSyntaxError` under the document's own
+    label, rather than as whatever `rdflib` raised wherever the text was read.
+    """
+    import rdflib
+
+    graph = rdflib.Graph()
+    try:
+        graph.parse(data=document.turtle, format="turtle")
+    except Exception as exc:
+        raise VsonSyntaxError(
+            "{}: VSON-T parse error: {}: {}".format(
+                document.label, type(exc).__name__, exc
+            )
+        ) from exc
+    return graph
 
 
 def to_turtle(penman: str) -> str:
@@ -311,31 +357,28 @@ def from_x(vson_x: str) -> str:
         ) from exc
 
 
-def turtle_of(text_or_path: str, syntax: Optional[str] = None) -> str:
+def turtle_of(
+    text_or_path: str,
+    syntax: Optional[str] = None,
+    is_path: Optional[bool] = None,
+) -> str:
     """The VSON-T text of any input, transpiling if the surface is P or X."""
-    return _resolve(text_or_path, syntax).turtle
+    return _resolve(text_or_path, syntax, is_path=is_path).turtle
 
 
-def load(text_or_path: str, syntax: Optional[str] = None):
+def load(
+    text_or_path: str,
+    syntax: Optional[str] = None,
+    is_path: Optional[bool] = None,
+):
     """The materialized VSON-T graph of any input, as an `rdflib.Graph`.
 
     The escape hatch. Everything below is defined over this graph, and a caller
     who wants to SPARQL it, serialize it or hand it to `pyshacl` directly should
-    take it from here rather than re-deriving it.
+    take it from here rather than re-deriving it — including a caller who needs
+    `is_path` on one of the calls that does not take it.
     """
-    import rdflib
-
-    document = _resolve(text_or_path, syntax)
-    graph = rdflib.Graph()
-    try:
-        graph.parse(data=document.turtle, format="turtle")
-    except Exception as exc:
-        raise VsonSyntaxError(
-            "{}: VSON-T parse error: {}: {}".format(
-                document.label, type(exc).__name__, exc
-            )
-        ) from exc
-    return graph
+    return _materialize(_resolve(text_or_path, syntax, is_path=is_path))
 
 
 # ---------------------------------------------------------------------------
@@ -343,11 +386,31 @@ def load(text_or_path: str, syntax: Optional[str] = None):
 # ---------------------------------------------------------------------------
 
 
+def _gates(document: _Document, path: str, shapes_path: str) -> Dict[str, Any]:
+    """`tools.validate_report.report_for`, with the parse failure named as one.
+
+    The gates read the document off disk and parse it themselves, three frames
+    down, and `rdflib`'s parse error is not one of this package's three. Which
+    is why the reparse below is on the failure path only: a document that will
+    not parse is the caller's to fix and comes back as `VsonSyntaxError`, a gate
+    that broke on a document that parses is this repository's and keeps its own
+    traceback, and a conformant document pays nothing for the distinction.
+    """
+    from tools import validate_report
+
+    try:
+        return validate_report.report_for(path, shapes_path, document.label)
+    except Exception:
+        _materialize(document)
+        raise
+
+
 def validate(
     text_or_path: str,
     syntax: Optional[str] = None,
     shapes: Optional[str] = None,
     label: Optional[str] = None,
+    is_path: Optional[bool] = None,
 ) -> Verdict:
     """Run the three gates over one document and return a structured verdict.
 
@@ -361,17 +424,16 @@ def validate(
     `shapes/vson-shapes-relaxed.ttl` really does validate against it, and the
     resulting verdict is not a conformance verdict (§6.1).
 
+    `is_path` settles whether `text_or_path` is a file or the document itself,
+    for a caller that already knows — see the module docstring.
+
     Reads no image. §2.1 governs what the answer establishes.
     """
-    from tools import validate_report
-
-    document = _resolve(text_or_path, syntax, label)
+    document = _resolve(text_or_path, syntax, label, is_path)
     shapes_path = shapes or DEFAULT_SHAPES
 
     if document.path is not None:
-        record = validate_report.report_for(
-            document.path, shapes_path, document.label
-        )
+        record = _gates(document, document.path, shapes_path)
     else:
         # `report_for` reads a file, the same way the CLI hands it transpiled
         # Turtle in a temp file. Writing the *transpiled text* rather than a
@@ -383,9 +445,7 @@ def validate(
         try:
             handle.write(document.turtle)
             handle.close()
-            record = validate_report.report_for(
-                handle.name, shapes_path, document.label
-            )
+            record = _gates(document, handle.name, shapes_path)
         finally:
             os.unlink(handle.name)
 
@@ -403,7 +463,11 @@ def validate(
 # ---------------------------------------------------------------------------
 
 
-def caption(text_or_path: str, syntax: Optional[str] = None) -> str:
+def caption(
+    text_or_path: str,
+    syntax: Optional[str] = None,
+    is_path: Optional[bool] = None,
+) -> str:
     """Graph -> English, deterministically and with no model in the loop.
 
     `tools.render.caption.render` (v1.0.5, §7). The same renderer
@@ -411,10 +475,14 @@ def caption(text_or_path: str, syntax: Optional[str] = None) -> str:
     """
     from tools.render import render as render_caption
 
-    return render_caption(load(text_or_path, syntax))
+    return render_caption(load(text_or_path, syntax, is_path))
 
 
-def fol(text_or_path: str, syntax: Optional[str] = None) -> str:
+def fol(
+    text_or_path: str,
+    syntax: Optional[str] = None,
+    is_path: Optional[bool] = None,
+) -> str:
     """Graph -> Prolog-style first-order-logic facts.
 
     `tools.render.fol.render`, behind `vson export fol`. Reified Events,
@@ -424,7 +492,7 @@ def fol(text_or_path: str, syntax: Optional[str] = None) -> str:
     """
     from tools.render.fol import render as render_fol
 
-    return render_fol(load(text_or_path, syntax))
+    return render_fol(load(text_or_path, syntax, is_path))
 
 
 # ---------------------------------------------------------------------------

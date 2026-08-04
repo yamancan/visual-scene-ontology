@@ -171,7 +171,10 @@ class ToolError(Exception):
 _DOCUMENT_IN = {
     "document": {
         "type": "string",
-        "description": "The document text itself. Give this or `path`.",
+        "description": (
+            "The document text itself. Text that happens to name a file is "
+            "still the text, so name a file with `path`. Give this or `path`."
+        ),
     },
     "path": {
         "type": "string",
@@ -396,14 +399,27 @@ class _Input(NamedTuple):
     label: str
     path: Optional[str]
 
+    @property
+    def is_path(self) -> bool:
+        """What `vson/api.py` is told, so that it guesses nothing either.
+
+        Its input convention is `os.path.isfile` when nobody says otherwise,
+        which is the same re-derivation one layer down: without this, a
+        `document` reading `scene.vson` reaches `api.validate` as a string that
+        names a file, and the verdict comes back about that file.
+        """
+        return self.path is not None
+
 
 def _document(arguments: Dict[str, Any]) -> _Input:
     """The `_Input` one call's arguments name.
 
     Exactly one of `document` and `path`. Naming the two separately is what
     removes the ambiguity from a surface a model is driving, and the record
-    returned here carries that answer so nothing in this module has to guess
-    it a second time.
+    returned here carries that answer everywhere the input goes: to `_read` and
+    `_penman_source` in this module, and through `is_path` into `vson/api.py`,
+    whose own input convention would otherwise re-derive it from the filesystem
+    this process happens to stand in.
     """
     document = _string(arguments, "document")
     path = _string(arguments, "path")
@@ -465,7 +481,11 @@ def call_validate(arguments: Dict[str, Any]) -> Dict[str, Any]:
     )
     try:
         verdict = api.validate(
-            given.text, syntax=given.syntax, shapes=shapes, label=given.label
+            given.text,
+            syntax=given.syntax,
+            shapes=shapes,
+            label=given.label,
+            is_path=given.is_path,
         )
     except VsonError as exc:
         raise ToolError(str(exc))
@@ -492,10 +512,9 @@ def call_export(arguments: Dict[str, Any]) -> str:
     given = _document(arguments)
     if fmt == "cypher":
         return _cypher(given)
+    render = api.caption if fmt == "caption" else api.fol
     try:
-        if fmt == "caption":
-            return api.caption(given.text, syntax=given.syntax)
-        return api.fol(given.text, syntax=given.syntax)
+        return render(given.text, syntax=given.syntax, is_path=given.is_path)
     except VsonError as exc:
         raise ToolError(str(exc))
 

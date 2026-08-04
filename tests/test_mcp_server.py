@@ -22,6 +22,10 @@ envelope forwards. What is tested here is everything the adapter *adds*:
     is asserted to be neither: it is an ordinary result whose `conforms` is
     false and whose findings carry the `sh:message` text a repair is written
     from.
+  * **The arguments mean what they are named.** `document` is text and `path`
+    is a file, on every tool and all the way down: the adapter carries the
+    caller's own answer into `vson/api.py` instead of letting either layer
+    re-derive it from the directory the process happens to stand in.
   * **Nothing kills the server.** Unparseable bytes, an unknown method, a
     malformed request, an unknown tool, and a call with contradictory arguments
     each produce a reply and leave the loop running.
@@ -38,8 +42,10 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
+import tempfile
 import unittest
 
 try:
@@ -456,6 +462,67 @@ class CypherOrderTests(unittest.TestCase):
             os.chdir(previous)
         self.assertIn("<document>", message)
         self.assertIn("VSON-P", message)
+
+
+@unittest.skipIf(mcp is None, "rdflib/pyshacl not installed")
+class DocumentIsNotAFileTests(unittest.TestCase):
+    """`document` is the text, on every tool, even when the text names a file.
+
+    A model that writes `{"document": "scene.vson"}` means those ten
+    characters. The only thing that could make them mean a file is
+    `os.path.isfile` asked about whatever directory this process stands in —
+    and wherever that question is asked, the worst answer this server can give
+    becomes reachable: `conforms: true` about a document nobody sent. So the
+    trap is a real, conformant file under the plausible name, in the working
+    directory, and every tool that takes a document is asked about it. The
+    Cypher tool's own version of this is in `CypherOrderTests`, where it needs
+    the binary lookup stubbed out as well.
+    """
+
+    def setUp(self) -> None:
+        self.home = tempfile.mkdtemp(prefix="vson-mcp-trap-")
+        shutil.copyfile(GOOD_P, os.path.join(self.home, "scene.vson"))
+        self.previous = os.getcwd()
+        self.declared = os.environ.pop(mcp.CWD_ENV, None)
+        os.chdir(self.home)
+
+    def tearDown(self) -> None:
+        os.chdir(self.previous)
+        if self.declared is not None:
+            os.environ[mcp.CWD_ENV] = self.declared
+        shutil.rmtree(self.home, ignore_errors=True)
+
+    def refused(self, tool, **arguments) -> str:
+        with self.assertRaises(mcp.ToolError) as caught:
+            tool(dict(arguments, document="scene.vson"))
+        return str(caught.exception)
+
+    def test_validate_answers_about_the_text_and_not_about_the_file(self) -> None:
+        # The honest answer for a file name read as VSON-T is a parse error.
+        # `conforms: true` here would be a verdict about the trap.
+        self.assertIn("parse error", self.refused(mcp.call_validate))
+
+    def test_caption_and_fol_render_the_text_and_not_the_file(self) -> None:
+        for fmt in ("caption", "fol"):
+            self.assertIn(
+                "parse error", self.refused(mcp.call_export, format=fmt), fmt
+            )
+
+    def test_convert_transpiles_the_text_and_not_the_file(self) -> None:
+        self.assertIn(
+            "VSON-P parse error",
+            self.refused(mcp.call_convert, direction="p2t"),
+        )
+
+    def test_the_same_name_given_as_a_path_still_reads_the_file(self) -> None:
+        # The other direction of the one rule: `path` names a file, and the
+        # caller who meant one is not made to pay for the caller who did not.
+        record = mcp.call_validate({"path": "scene.vson"})
+        self.assertIs(record["conforms"], True)
+        self.assertEqual(
+            mcp.call_export({"format": "caption", "path": "scene.vson"}),
+            mcp.call_export({"format": "caption", "path": GOOD_P}),
+        )
 
 
 @unittest.skipIf(mcp is None, "rdflib/pyshacl not installed")

@@ -12,6 +12,11 @@ the facade *adds*, and every one of those is a place it could silently lie:
   * **Verdicts are right on both sides.** A conformant fixture and a known-bad
     one, checked for the verdict, the gate that fired and the message the repair
     loop feeds back.
+  * **The input convention is a guess, and the guess is overrulable.** Whether
+    `text_or_path` is a path is decided by `os.path.isfile`, which answers about
+    the directory *this process* stands in — the wrong directory for any program
+    relaying input from somewhere else. `is_path=` settles it in both
+    directions, and the default stays the guess.
   * **The loop converges, and stops.** A scripted `chat_fn` that fixes the
     document on round 0, 1 and 2, and one that never fixes it — the last is the
     case where `shacl_retries` must equal the bound and `conforms` must be
@@ -284,6 +289,57 @@ class VerdictTests(unittest.TestCase):
         self.assertEqual(
             vson.canonical_hash(GOOD_P), vson.canonical_hash(GOOD_X)
         )
+
+
+@unittest.skipUnless(vson, "rdflib + pyshacl required")
+class InputConventionTests(unittest.TestCase):
+    """`is_path`: the caller who already knows overrules `os.path.isfile`.
+
+    The guess is a convenience for a person naming their own files. For a
+    program relaying input from somewhere else — `vson/mcp.py` is the one in
+    this repository — it is a hazard, because a document whose whole text is
+    `scene.vson` is a plausible thing for a model to emit and the guess would
+    answer it with whatever file the process happens to stand beside. Every
+    test here runs from the gallery, where that collision is real.
+    """
+
+    def setUp(self) -> None:
+        self.previous = os.getcwd()
+        os.chdir(os.path.dirname(GOOD_P))
+        self.name = os.path.basename(GOOD_P)
+
+    def tearDown(self) -> None:
+        os.chdir(self.previous)
+
+    def test_the_default_is_still_the_documented_guess(self) -> None:
+        self.assertEqual(vson.turtle_of(self.name), vson.turtle_of(GOOD_P))
+
+    def test_a_text_that_names_a_file_is_the_text_when_the_caller_says_so(self):
+        # `turtle_of` hands VSON-T back unparsed, so this is the exact string;
+        # the calls that do parse it fail on it, which is the honest answer.
+        self.assertEqual(vson.turtle_of(self.name, is_path=False), self.name)
+        with self.assertRaises(vson.VsonSyntaxError):
+            vson.load(self.name, is_path=False)
+        with self.assertRaises(vson.VsonSyntaxError):
+            vson.validate(self.name, is_path=False)
+        with self.assertRaises(vson.VsonSyntaxError):
+            vson.caption(self.name, is_path=False)
+
+    def test_a_path_that_is_no_file_is_an_error_and_not_a_document(self) -> None:
+        with self.assertRaises(vson.VsonSyntaxError):
+            vson.turtle_of("(scene / Composition)", is_path=True)
+
+    def test_the_file_is_still_read_when_the_caller_says_it_is_one(self) -> None:
+        self.assertTrue(vson.validate(self.name, is_path=True).conforms)
+        self.assertEqual(
+            vson.caption(self.name, is_path=True), vson.caption(GOOD_P)
+        )
+
+    def test_an_unreadable_document_reaches_the_caller_as_a_syntax_error(self):
+        # The gates parse the document three frames down, where the failure is
+        # rdflib's. A caller of this package sees one of its own three errors.
+        with self.assertRaises(vson.VsonSyntaxError):
+            vson.validate("@prefix vso: <http://x/> . not turtle", syntax="t")
 
 
 @unittest.skipUnless(vson, "rdflib + pyshacl required")

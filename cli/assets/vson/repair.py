@@ -504,4 +504,6 @@ def _try_transpile(document: str, notation: str, drifted: bool):
 
 def _validate(turtle: str, notation: str) -> Verdict:
     label = "<vson-{}>".format(notation)
-    return api.validate(turtle, syntax="t", label=label)
+    # `is_path=False`: this is transpiler output, and the one thing that could
+    # turn it into a filename is a guess about the working directory.
+    return api.validate(turtle, syntax="t", label=label, is_path=False)
