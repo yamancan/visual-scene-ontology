@@ -645,6 +645,56 @@ missing a credit, a licence or a source URL, and fails on the strings `CC0` and
 `public domain` wherever a licence is named, so the next image cannot ship the
 way these four did.
 
+*Annotation, 2026-08-04 — the two claims on the page that nothing ran.* No
+entry above is retracted; two defects in how this repository states things are
+fixed, and each gets the gate that would have caught it.
+
+**The appendix anchors were Pandoc's, not GitHub's.** The five appendix
+headings of `docs/vson.md` carried `{#appendix-a}` … `{#appendix-e}` attribute
+blocks. GitHub Flavored Markdown has no heading-attribute extension: it
+rendered the braces as heading text and minted its own slug from the whole
+line, so every link written against the short name resolved to nothing — 22
+inside `docs/vson.md`, one in `README.md` (item 3 of *What's new here*, the
+citation into the paragraph that retracts the SpatialFact novelty claim, which
+is the most reputationally load-bearing link on that page), and one more in the
+`tools/canon.py` module docstring. The braces are stripped and every link now
+carries the slug the renderer computes, em dash and all —
+`#appendix-e--related-work-and-bibliography`. No heading text, no prose and no
+normative statement moves; only the attribute suffix and the link fragments.
+
+**`555 Python tests` was three releases stale.** The suite ran 571 when the
+claim was re-derived, one line above the `make check` that runs it. The README
+now states what unittest discovery counts — **602**, the 571 plus the 31 tests
+that establish the two new gates go red — and nothing hand-maintains that
+number again.
+
+Both are now gated inside `make check`, in the idiom of `fragment-check` and
+`iri-check` and offline like them:
+
+- **`make anchor-check`** (`scripts/check_md_anchors.py`) computes the
+  `github-slugger` slug for every heading in every tracked `.md`, resolves
+  every in-repo link and reference definition against it — plus every
+  `](path.md#fragment)` written outside Markdown, which is how the
+  `tools/canon.py` docstring is covered — and fails on any unresolved anchor,
+  any link target that is not in the checkout, and any heading that carries an
+  attribute block at all. `--selftest` pins the slug algorithm against worked
+  vectors and asserts the comparator can go red.
+- **`make counts-check`** (`scripts/check_counts_drift.py`) compares every
+  counted claim in the prose against the count, computed from the artifact the
+  claim is about: Python tests from unittest discovery, Rust tests from the
+  `#[test]` attributes under `cli/src` and `cli/tests` (109 = 49 + 60),
+  conformance entries from the manifest's own `mf:entries` collection (218),
+  the competency questions from `queries/` (29, 28 with a frozen answer), the
+  canonical hashes from the frozen §4.6 table (29), and the gallery, VSON-X and
+  corpus sizes from `examples/` (16, 12, 17). A claim pattern that matches
+  nothing fails, and so does a counted claim reworded out of the pattern that
+  checks it — a number that becomes invisible is how `555` survived.
+
+`spec/CHANGELOG.md` is exempt from the counts gate by name, with the other
+dated records. "48 Python tests" in the v1.0 entry is true *of v1.0*; a record
+of what was is not a claim about what is, and asserting it against today's tree
+would demand that this file be falsified.
+
 ## v1.2.0 — 2026-07-31
 
 Namespace release. Every canonical VSON IRI moves off `https://vson.dev/` and
