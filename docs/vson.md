@@ -32,11 +32,11 @@ The keywords **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, **MAY** are int
 11. [Migration from v0.1](#11-migration-from-v01)
 12. [Changelog](#12-changelog)
 13. [Teaching an AI image generator](#13-teaching-an-ai-image-generator)
-14. [Appendix A — Consolidated JSON Schemas](#appendix-a)
-15. [Appendix B — Penman EBNF](#appendix-b)
-16. [Appendix C — Example class profile](#appendix-c)
-17. [Appendix D — VSON-X grammar (normative)](#appendix-d)
-18. [Appendix E — Related work and bibliography](#appendix-e)
+14. [Appendix A — Consolidated JSON Schemas](#appendix-a--consolidated-json-schemas)
+15. [Appendix B — Penman EBNF](#appendix-b--penman-ebnf)
+16. [Appendix C — Example class profile](#appendix-c--example-class-profile)
+17. [Appendix D — VSON-X grammar (normative)](#appendix-d--vson-x-grammar-normative)
+18. [Appendix E — Related work and bibliography](#appendix-e--related-work-and-bibliography)
 
 ---
 
@@ -252,7 +252,7 @@ Four properties of the pinning are normative, because an implementation has to k
 | **Perdurant** | `Event`, `Process`, `Stative` | Reified action/state. Carries thematic roles. |
 | **SpatialFact** | viewer + figure + ground + RCC + directional | Reified spatial relation; directional facts require a viewer. |
 
-Underneath those five kinds, [`ontology/vso.ttl`](../ontology/vso.ttl) declares a **DOLCE-inspired top-level taxonomy** — `vso:Endurant` / `vso:Perdurant` / `vso:Quality` / `vso:Region`, declared pairwise disjoint — after Masolo et al. 2003 ([Appendix E](#appendix-e)). *Inspired*, not aligned: VSON reuses the four category names and the endurant/perdurant cut, but hangs all four under `vso:Entity` (DOLCE puts regions under `Abstract`), imports no DOLCE IRI, and asserts no DOLCE axiom. Nothing in this document depends on a DOLCE reasoner.
+Underneath those five kinds, [`ontology/vso.ttl`](../ontology/vso.ttl) declares a **DOLCE-inspired top-level taxonomy** — `vso:Endurant` / `vso:Perdurant` / `vso:Quality` / `vso:Region`, declared pairwise disjoint — after Masolo et al. 2003 ([Appendix E](#appendix-e--related-work-and-bibliography)). *Inspired*, not aligned: VSON reuses the four category names and the endurant/perdurant cut, but hangs all four under `vso:Entity` (DOLCE puts regions under `Abstract`), imports no DOLCE IRI, and asserts no DOLCE axiom. Nothing in this document depends on a DOLCE reasoner.
 
 ### 3.2 Trait-bundle entity model
 
@@ -275,9 +275,9 @@ Translate:
 
 "The lamp is to the left of the chair." Left from whose vantage? Without a viewer, the assertion is ambiguous. **VSON enforces an explicit viewer at the schema level**: any `vso:SpatialFact` carrying a `vso:directional` value **MUST** also carry exactly one `vso:viewer` pointing at a `vso:CameraView`. Symmetric/topological facts (`rcc:EC`, `rcc:DC`) do not need a viewer.
 
-Directional facts are viewer-anchored by schema — VSON commits to the relative frame of reference (Levinson 2003) and makes the anchor explicit and machine-checkable; intrinsic and absolute frames are out of scope for v1.x. Figure/ground asymmetry follows Talmy 2000: `vso:figure` is the located thing, `vso:ground` the reference thing, and the two slots are not interchangeable. Both citations are in [Appendix E](#appendix-e). (Shapes, tests, and tooling comments in this repository call the constraint "Talmy resolution" for historical reasons; the mechanism is the one described here.)
+Directional facts are viewer-anchored by schema — VSON commits to the relative frame of reference (Levinson 2003) and makes the anchor explicit and machine-checkable; intrinsic and absolute frames are out of scope for v1.x. Figure/ground asymmetry follows Talmy 2000: `vso:figure` is the located thing, `vso:ground` the reference thing, and the two slots are not interchangeable. Both citations are in [Appendix E](#appendix-e--related-work-and-bibliography). (Shapes, tests, and tooling comments in this repository call the constraint "Talmy resolution" for historical reasons; the mechanism is the one described here.)
 
-**What is new here, stated narrowly.** Neither half of this design is an invention of this project, and earlier drafts of this document and of the README implied otherwise. Reifying a spatial relation with distinct, required figure and ground slots is standardized practice: ISO 24617-7:2020 requires a link structure to carry a relation type and two arguments, and names those two `@figure` and `@ground` in the revised movement link; the SemEval-2012 spatial-role-labeling task ran on the same asymmetry under the names *trajector* and *landmark* ([Appendix E.7](#appendix-e)). Anchoring a directional relation to a frame of reference is Levinson's analysis, not a schema decision. What VSON contributes is narrower and checkable: it **fixes one of the three frames** rather than annotating which one is in use, and it makes the anchor a **structural obligation a validator enforces** — C5, `vss:DirectionalNeedsViewerShape`, a document rejected with an exit code — rather than an annotation guideline a human is asked to follow. The value of that is not novelty; it is that "which viewer?" stops being answerable by reading the annotator's mind. [Appendix E.7](#appendix-e) states what each prior scheme does that this one does not.
+**What is new here, stated narrowly.** Neither half of this design is an invention of this project, and earlier drafts of this document and of the README implied otherwise. Reifying a spatial relation with distinct, required figure and ground slots is standardized practice: ISO 24617-7:2020 requires a link structure to carry a relation type and two arguments, and names those two `@figure` and `@ground` in the revised movement link; the SemEval-2012 spatial-role-labeling task ran on the same asymmetry under the names *trajector* and *landmark* ([Appendix E.7](#appendix-e--related-work-and-bibliography)). Anchoring a directional relation to a frame of reference is Levinson's analysis, not a schema decision. What VSON contributes is narrower and checkable: it **fixes one of the three frames** rather than annotating which one is in use, and it makes the anchor a **structural obligation a validator enforces** — C5, `vss:DirectionalNeedsViewerShape`, a document rejected with an exit code — rather than an annotation guideline a human is asked to follow. The value of that is not novelty; it is that "which viewer?" stops being answerable by reading the annotator's mind. [Appendix E.7](#appendix-e--related-work-and-bibliography) states what each prior scheme does that this one does not.
 
 ### 3.4 Reification — the universal pattern
 
@@ -324,7 +324,7 @@ The reference transpiler is [`tools/penman/vson_penman.py`](../tools/penman/vson
 
 VSON-X is a bracket-free sigil syntax targeting LLM emission and human authoring. Nine sigils, bearer-class dispatch, newlines insignificant. Canonical media type: `text/vson-x` (proposed). File extension: `.x.vson` (the `.vson` suffix is preserved so the file still reads as a VSON document; the `vson` CLI selects the surface form by subcommand — `convert x2t` — not by sniffing the extension).
 
-This section is the overview. The **normative grammar** — lexical productions, syntactic productions, the closed token vocabularies, and the complete parse-time error set — is [Appendix D](#appendix-d), reconciled line by line against the reference parser [`tools/vson_x/vson_x.py`](../tools/vson_x/vson_x.py). The per-key routing rationale is [`docs/vson-x-semantics.md`](./vson-x-semantics.md).
+This section is the overview. The **normative grammar** — lexical productions, syntactic productions, the closed token vocabularies, and the complete parse-time error set — is [Appendix D](#appendix-d--vson-x-grammar-normative), reconciled line by line against the reference parser [`tools/vson_x/vson_x.py`](../tools/vson_x/vson_x.py). The per-key routing rationale is [`docs/vson-x-semantics.md`](./vson-x-semantics.md).
 
 **Sigil set (closed):**
 
@@ -340,7 +340,7 @@ This section is the overview. The **normative grammar** — lexical productions,
 | `&` | Symmetric SpatialFact (emits 2 nodes, figure/ground swapped) | `a & near & b` |
 | `^` | Viewer anchor | `^cam` |
 
-**Item boundaries.** Newlines are insignificant — no syntactic production has a NEWLINE terminal (the only line break the lexer notices is the one that ends a `#` comment). A new item begins when the parser sees a lead token at top level (`~`, `/Concept`, `^`, or a handle followed by `/`, `>`, `>>`, `!`, or `&`), so a single declaration may span several lines with arbitrary indentation, and a whole scene may equally be written on one line. Full rule and lookahead budget: [Appendix D](#appendix-d) §D.4; rationale in [`docs/vson-x-semantics.md`](./vson-x-semantics.md) §3.7.
+**Item boundaries.** Newlines are insignificant — no syntactic production has a NEWLINE terminal (the only line break the lexer notices is the one that ends a `#` comment). A new item begins when the parser sees a lead token at top level (`~`, `/Concept`, `^`, or a handle followed by `/`, `>`, `>>`, `!`, or `&`), so a single declaration may span several lines with arbitrary indentation, and a whole scene may equally be written on one line. Full rule and lookahead budget: [Appendix D](#appendix-d--vson-x-grammar-normative) §D.4; rationale in [`docs/vson-x-semantics.md`](./vson-x-semantics.md) §3.7.
 
 **Bearer-class dispatch for `*K V`** (the central rule):
 
@@ -387,7 +387,7 @@ Three surfaces for one graph is the premise of this whole section, and "the same
 1. **Materialize.** Parse the document under the surface it is written in (§4.1–§4.3) into one RDF graph. Everything below is defined over that graph, so the surface cannot affect the answer — which is the property the section exists to establish. **Asserted triples only**: no entailment regime, no reasoner, no TBox, as in §5.14 and §5.15.
 2. **N1 — anonymize.** Replace every IRI that begins with the **document namespace** and that the document types as one of the classes in the table below with a **fresh blank node**, one per IRI. The map is injective by construction: N1 loses names and can never merge two nodes the document kept apart.
 3. **N2 — normalize the Composition edges.** Rewrite `vso:hasFact` and `vso:occurs` to `vso:depicts`. §5.2 declares the three interchangeable for the same target, and the VSON-X parser emits only the first; a scene written with `:hasFact` in one surface and `:depicts` in another is not a disagreement this specification recognizes. §5.15.1 normalizes the same three the same way for the same reason.
-4. **Canonicalize.** Serialize the result under **RDFC-1.0** — *RDF Dataset Canonicalization*, W3C Recommendation 2024-05-21 ([Appendix E.6](#appendix-e)) — with its default hash algorithm SHA-256, in the canonical N-Quads form of Appendix A of that Recommendation. A VSON document is one RDF graph, which is the dataset whose default graph it is and which has no named graphs, so the graph-name position is empty in every quad.
+4. **Canonicalize.** Serialize the result under **RDFC-1.0** — *RDF Dataset Canonicalization*, W3C Recommendation 2024-05-21 ([Appendix E.6](#appendix-e--related-work-and-bibliography)) — with its default hash algorithm SHA-256, in the canonical N-Quads form of Appendix A of that Recommendation. A VSON document is one RDF graph, which is the dataset whose default graph it is and which has no named graphs, so the graph-name position is empty in every quad.
 
 The **document namespace** is what `:` resolves to — the namespace bound to the empty prefix — falling back to the document's base IRI. A document with neither has no document namespace, and N1 rewrites nothing in it.
 
@@ -720,7 +720,7 @@ Snake_case verb naming the perdurant.
 
 **Thematic roles (zero or more, depending on class)**
 
-The role inventory below is closed and deliberately coarse — VerbNet-style thematic roles (Kipper Schuler 2005) rather than predicate-specific argument slots. PropBank (Palmer, Gildea & Kingsbury 2005) numbers arguments per verb sense (`ARG0` of *give* is not `ARG0` of *melt*), and FrameNet (Baker, Fillmore & Lowe 1998) names them per semantic frame (`Donor`, `Recipient`, `Theme`); both give a finer analysis than a vision-language model can reliably produce from a still image, and both require a per-predicate lexicon that VSON does not ship. VSON therefore takes the third option: one small, frame-independent role set a producer can memorize. It is closed by C2 (§2) — an invented `vso:` role is an orphan VSO term — and not by any SHACL shape; since v1.3 `vson validate`'s third gate reports it anyway, because C2 closure is what that gate decides. The VSON-X parser still emits an unlisted role verbatim without complaint, which Appendix D §D.8 note 6 records. Citations in [Appendix E](#appendix-e); the AMR exporter mapping in §7 is where PropBank's per-sense numbering resurfaces.
+The role inventory below is closed and deliberately coarse — VerbNet-style thematic roles (Kipper Schuler 2005) rather than predicate-specific argument slots. PropBank (Palmer, Gildea & Kingsbury 2005) numbers arguments per verb sense (`ARG0` of *give* is not `ARG0` of *melt*), and FrameNet (Baker, Fillmore & Lowe 1998) names them per semantic frame (`Donor`, `Recipient`, `Theme`); both give a finer analysis than a vision-language model can reliably produce from a still image, and both require a per-predicate lexicon that VSON does not ship. VSON therefore takes the third option: one small, frame-independent role set a producer can memorize. It is closed by C2 (§2) — an invented `vso:` role is an orphan VSO term — and not by any SHACL shape; since v1.3 `vson validate`'s third gate reports it anyway, because C2 closure is what that gate decides. The VSON-X parser still emits an unlisted role verbatim without complaint, which Appendix D §D.8 note 6 records. Citations in [Appendix E](#appendix-e--related-work-and-bibliography); the AMR exporter mapping in §7 is where PropBank's per-sense numbering resurfaces.
 
 | Predicate | Used on | Description |
 |---|---|---|
@@ -763,7 +763,7 @@ The role inventory below is closed and deliberately coarse — VerbNet-style the
 
 Reified spatial relation. Carries figure, ground, optional viewer, and one or more of `rcc/directional/proximal`.
 
-`vso:rcc` takes the eight RCC-8 base relation names of Randell, Cui & Cohn 1992 ([Appendix E](#appendix-e)). VSON ships them as a **closed value vocabulary, not as the calculus**: [`ontology/rcc8.ttl`](../ontology/rcc8.ttl) declares the eight as individuals of `rcc:Relation` and asserts only that they denote distinct values. Jointly-exhaustive-pairwise-disjoint holds in the intended interpretation, not as an axiom, and no composition table ships — given `NTPP(a,b)` and `NTPP(b,c)`, VSON derives nothing about `a` and `c`. Each of the eight carries a `skos:closeMatch` to its OGC GeoSPARQL counterpart (`geo:rcc8dc` …); see the design note in §5.9 for why the GeoSPARQL IRIs are not used directly.
+`vso:rcc` takes the eight RCC-8 base relation names of Randell, Cui & Cohn 1992 ([Appendix E](#appendix-e--related-work-and-bibliography)). VSON ships them as a **closed value vocabulary, not as the calculus**: [`ontology/rcc8.ttl`](../ontology/rcc8.ttl) declares the eight as individuals of `rcc:Relation` and asserts only that they denote distinct values. Jointly-exhaustive-pairwise-disjoint holds in the intended interpretation, not as an axiom, and no composition table ships — given `NTPP(a,b)` and `NTPP(b,c)`, VSON derives nothing about `a` and `c`. Each of the eight carries a `skos:closeMatch` to its OGC GeoSPARQL counterpart (`geo:rcc8dc` …); see the design note in §5.9 for why the GeoSPARQL IRIs are not used directly.
 
 | Field | Type | Required | Description | Validation |
 |---|---|---|---|---|
@@ -814,7 +814,7 @@ Every characteristic in the third column is an axiom [`ontology/vso.ttl`](../ont
 
 #### Allen interval (Perdurant ↔ Perdurant)
 
-`allen:before`, `allen:after`, `allen:meets`, `allen:metBy`, `allen:overlaps`, `allen:overlappedBy`, `allen:starts`, `allen:startedBy`, `allen:during`, `allen:contains`, `allen:finishes`, `allen:finishedBy`, `allen:equals` — the thirteen base relations of Allen 1983 ([Appendix E](#appendix-e)). Inverses are declared in [`ontology/allen.ttl`](../ontology/allen.ttl); `owl:TransitiveProperty` is asserted on exactly the members that compose with themselves (`before/after`, `during/contains`, `starts/startedBy`, `finishes/finishedBy`, `equals`), so `meets` and `overlaps` carry no transitivity axiom. As with RCC-8, the composition table itself is out of scope. Each of the thirteen carries a `skos:closeMatch` to its W3C OWL-Time counterpart (`time:intervalBefore` …).
+`allen:before`, `allen:after`, `allen:meets`, `allen:metBy`, `allen:overlaps`, `allen:overlappedBy`, `allen:starts`, `allen:startedBy`, `allen:during`, `allen:contains`, `allen:finishes`, `allen:finishedBy`, `allen:equals` — the thirteen base relations of Allen 1983 ([Appendix E](#appendix-e--related-work-and-bibliography)). Inverses are declared in [`ontology/allen.ttl`](../ontology/allen.ttl); `owl:TransitiveProperty` is asserted on exactly the members that compose with themselves (`before/after`, `during/contains`, `starts/startedBy`, `finishes/finishedBy`, `equals`), so `meets` and `overlaps` carry no transitivity axiom. As with RCC-8, the composition table itself is out of scope. Each of the thirteen carries a `skos:closeMatch` to its W3C OWL-Time counterpart (`time:intervalBefore` …).
 
 #### Design note — why not reuse the `time:` and `geo:` IRIs directly
 
@@ -1007,7 +1007,7 @@ The reference implementation is [`tools/geometry_check.py`](../tools/geometry_ch
 
 ### 5.14 Competency questions (`queries/`)
 
-A competency question is the question a vocabulary must be able to answer (Grüninger & Fox 1995; the artefact the NeOn methodology carries through ontology design — [Appendix E](#appendix-e)). Written down, it is a design record. Written down *as a query, against a corpus, beside its frozen answer*, it is a test, and the difference is why [`queries/`](../queries/) exists: every expressiveness claim §3–§5 makes is either reachable by one of these queries or it is not made good on.
+A competency question is the question a vocabulary must be able to answer (Grüninger & Fox 1995; the artefact the NeOn methodology carries through ontology design — [Appendix E](#appendix-e--related-work-and-bibliography)). Written down, it is a design record. Written down *as a query, against a corpus, beside its frozen answer*, it is a test, and the difference is why [`queries/`](../queries/) exists: every expressiveness claim §3–§5 makes is either reachable by one of these queries or it is not made good on.
 
 **Twenty-nine questions**, `queries/CQ-01-*.rq` … `CQ-29-*.rq`. Each `.rq` carries a header stating the natural-language question, the persona who asks it (P1–P3 as defined in [`docs/strategy/productization.md`](./strategy/productization.md) §1), the section of this document that authorizes it, and its form. **Twenty-eight are executed** on every `make check` by [`tools/cq_check.py`](../tools/cq_check.py) (`make cq-check`) and compared byte-for-byte against a frozen answer in `queries/expected/`. One is not — see the capability matrix below.
 
@@ -1060,7 +1060,7 @@ What it does establish is the thing an expressiveness claim otherwise cannot hav
 
 Two extractions of one image produce two documents. Nothing so far in this specification says how far apart they are, and no string comparison can say it either: one run writes `:cat` where the other writes `_:e3`, one bases its IRIs on `.../anonymous#` and the other on `.../scene-42#`, and both may be describing the same animal. The node names are arbitrary. What is not arbitrary is the structure they carry, and this section defines the measurement over it — precision, recall and F1 over triples, under the variable alignment that maximizes matches.
 
-That is **Smatch** (Cai & Knight 2013, for AMR — [Appendix E](#appendix-e)), which is the point: VSON-P borrows AMR's Penman surface (§4.2), so it inherits AMR's evaluation problem — variables whose names carry no information — and there is an answer already in the literature for it. This section states what the metric is over *VSON's* graph, adds the per-layer sub-scores a layered scheme owes its readers, and pins the determinism that lets two people compare two numbers.
+That is **Smatch** (Cai & Knight 2013, for AMR — [Appendix E](#appendix-e--related-work-and-bibliography)), which is the point: VSON-P borrows AMR's Penman surface (§4.2), so it inherits AMR's evaluation problem — variables whose names carry no information — and there is an answer already in the literature for it. This section states what the metric is over *VSON's* graph, adds the per-layer sub-scores a layered scheme owes its readers, and pins the determinism that lets two people compare two numbers.
 
 **It is not a fifth construct.** §2.1's table and §5.13's fourth row are properties of *one* document — is it well-formed, does it agree with itself. Agreement is a relation between **two**, and no verdict about either one follows from it. F1 = 1.0 says the two documents assert the same graph up to variable renaming; it does not say either describes the picture. Two runs of one model agreeing on the same hallucination score 1.0, and a run that scores 0.4 against a hand-annotated reference may be the one that is right. No image is read here either, and §2.1's prohibition stands unchanged over every number this section produces. Nor is it §4.6's denotation test: equal canonical forms imply F1 = 1.0 and F1 = 1.0 does not imply equal canonical forms, because this section compares document-local IRIs by local name and §4.6 compares them as written.
 
@@ -1181,7 +1181,7 @@ What it is *for* is the two things a scheme cannot otherwise have: a regression 
 |---|---|---|
 | `text` (default) | `OK` / `FAIL <file> (<gate>)`; each checker's own report goes to stderr | a person at a terminal |
 | `json` | one document carrying the records of §5.16.1 | a script, a dashboard, a repair loop |
-| `sarif` | a SARIF 2.1.0 log (OASIS, March 2020 — [Appendix E.6](#appendix-e)) | code scanners: GitHub, GitLab, and everything that reads them |
+| `sarif` | a SARIF 2.1.0 log (OASIS, March 2020 — [Appendix E.6](#appendix-e--related-work-and-bibliography)) | code scanners: GitHub, GitLab, and everything that reads them |
 
 The verdict does not move with the format. An implementation **MUST** reach the same conformance decision and return the same exit code whichever format it was asked for: the formats differ in what a run *says*, never in what it decides. A structured run **MAY** report more violations than the text run prints — the reference text gate passes `--abort` to `pyshacl` and stops at the first, while a report of the first violation is not a report — and the set of documents each calls conformant is nonetheless identical.
 
@@ -1296,18 +1296,18 @@ The alignments themselves, and what each one does *not* claim:
 
 | VSON term | Predicate | Target | The claim, and its limit |
 |---|---|---|---|
-| `vso:Endurant`, `vso:Perdurant`, `vso:PhysicalObject`, `vso:Substance`, `vso:Aggregate`, `vso:Quality` | `closeMatch` | `gufo:Endurant`, `gufo:Event`, `gufo:Object`, `gufo:Quantity`, `gufo:Collection`, `gufo:Quality` | §3.1's top is DOLCE-*inspired*, and gUFO ([E.3](#appendix-e)) is the nearest published vocabulary whose terms are IRIs. The matches hold **term by term and do not compose**: `gufo:Quantity` and `gufo:Collection` are subclasses of `gufo:Object`, while `vso:Substance` and `vso:Aggregate` are siblings of `vso:PhysicalObject`. That is exactly the difference between `skos:closeMatch` and `rdfs:subClassOf`, and the reason only the first is asserted. |
+| `vso:Endurant`, `vso:Perdurant`, `vso:PhysicalObject`, `vso:Substance`, `vso:Aggregate`, `vso:Quality` | `closeMatch` | `gufo:Endurant`, `gufo:Event`, `gufo:Object`, `gufo:Quantity`, `gufo:Collection`, `gufo:Quality` | §3.1's top is DOLCE-*inspired*, and gUFO ([E.3](#appendix-e--related-work-and-bibliography)) is the nearest published vocabulary whose terms are IRIs. The matches hold **term by term and do not compose**: `gufo:Quantity` and `gufo:Collection` are subclasses of `gufo:Object`, while `vso:Substance` and `vso:Aggregate` are siblings of `vso:PhysicalObject`. That is exactly the difference between `skos:closeMatch` and `rdfs:subClassOf`, and the reason only the first is asserted. |
 | `vso:Region` | `relatedMatch` | `gufo:QualityValue` | A region is the space a value is drawn from; a quality value is the value. Neighbours, not substitutes. |
 | `vso:properPartOf` | `closeMatch` | `gufo:isProperPartOf` | Transitive proper parthood, same direction. `vso:partOf` and `vso:hasPart` have no counterpart at that level and are left unaligned. |
 | `vso:Annotation`, `vso:annotatedSubject`, `vso:annotatedPredicate`, `vso:annotatedObject` | `closeMatch` | `rdf:Statement`, `rdf:subject`, `rdf:predicate`, `rdf:object` | §5.11's reified form **is** RDF reification spelled in this namespace. VSON declares its own because the node also carries the payload (`vso:probability`, `vso:confidence`) and because it is a member of the disjointness set that separates the reification kinds from the Frame layer — a membership `rdf:Statement` could not be given without constraining RDF's own vocabulary. |
-| `vso:Annotation` | `relatedMatch` | `oa:Annotation` | The body/target separation is the same shape ([E.6](#appendix-e)); the targets are not. An `oa:Annotation` targets a resource or a media fragment, a `vso:Annotation` targets a **triple**, and the Web Annotation model defines no target for a statement. |
+| `vso:Annotation` | `relatedMatch` | `oa:Annotation` | The body/target separation is the same shape ([E.6](#appendix-e--related-work-and-bibliography)); the targets are not. An `oa:Annotation` targets a resource or a media fragment, a `vso:Annotation` targets a **triple**, and the Web Annotation model defines no target for a statement. |
 | `vso:depicts` | `relatedMatch` | `foaf:depicts` | `foaf:depicts` runs from an image; `vso:depicts` runs from a `vso:Composition`, which is the mereological root of a scene and not a depiction of one. A rewrite has to decide which image the Composition belongs to, and this vocabulary does not say. |
 
 #### 5.17.3 The four gaps, and why each is a sentence rather than a triple
 
 An alignment whose target has no IRI cannot be a triple. Recording it as prose is the honest form; recording it as nothing is what makes a related-work section look complete when it is not. Each of the four below is also an `rdfs:comment` on the alignment document, so a consumer holding only that graph gets the reason too.
 
-- **ISO 24617-7:2020.** Its link structures carry a relation type and two required arguments, and the revised movement link names those two `@figure` and `@ground` — the same asymmetry `vso:figure` / `vso:ground` carries, standardized before this project existed. No triple is minted because the standard is specified as an abstract syntax with XML concrete syntaxes and publishes no RDF namespace: there is no IRI for `@figure` to close-match. [Appendix E.7](#appendix-e) states the correspondence, and §3.3 states what it costs the novelty claim.
+- **ISO 24617-7:2020.** Its link structures carry a relation type and two required arguments, and the revised movement link names those two `@figure` and `@ground` — the same asymmetry `vso:figure` / `vso:ground` carries, standardized before this project existed. No triple is minted because the standard is specified as an abstract syntax with XML concrete syntaxes and publishes no RDF namespace: there is no IRI for `@figure` to close-match. [Appendix E.7](#appendix-e--related-work-and-bibliography) states the correspondence, and §3.3 states what it costs the novelty claim.
 - **The vision datasets' label vocabularies.** `vso:class` is an open dimension (§5.12) and the obvious place to meet Visual Genome, GQA, PSG and Open Images V7. None is minted: PSG's object and predicate classes and GQA's cleaned vocabulary ship as label lists rather than IRIs, and Open Images V7 identifies classes by Freebase / Google Knowledge Graph MIDs (`/m/01g317`), which are identifiers rather than names that resolve today. A per-dataset mapping table is **data**, belongs with an importer, and is not an alignment — which is exactly where the three that ship live: [`tools/importers/mappings/`](../tools/importers/mappings), one JSON file per dataset, keyed on the source label (§7.1).
 - **PROV-O.** VSON records producer provenance only as envelope JSON (§6.1) and as a free-text value, so there is no TBox term for `prov:wasGeneratedBy` or `prov:wasAttributedTo` to match. The one property whose name invites the mapping, `vso:source`, is already the *source* thematic role of a motion (§5.6); aligning it to provenance would make one IRI carry two unrelated readings.
 - **`schema:ImageObject`.** VSON models the scene, not the file: no term denotes the image, its bytes, its dimensions or its URL. That absence is why the depiction alignment above sits on `vso:depicts` and is `relatedMatch`.
@@ -1874,7 +1874,7 @@ The studio's "what is this" page is [`web/src/routes/about/+page.svelte`](../web
 
 ---
 
-## Appendix A — Consolidated JSON Schemas {#appendix-a}
+## Appendix A — Consolidated JSON Schemas
 
 ### A.1 Extractor response envelope
 
@@ -1894,9 +1894,9 @@ Lives at [`shapes/vson-shapes.ttl`](../shapes/vson-shapes.ttl). Normative.
 
 ---
 
-## Appendix B — Penman EBNF {#appendix-b}
+## Appendix B — Penman EBNF
 
-The notation is the one [§D.1](#appendix-d) defines, and the two blocks below are the ones `make grammar-check` extracts, translates and runs against the corpus (§D.10). The reference implementation is [`tools/penman/vson_penman.py`](../tools/penman/vson_penman.py).
+The notation is the one [§D.1](#appendix-d--vson-x-grammar-normative) defines, and the two blocks below are the ones `make grammar-check` extracts, translates and runs against the corpus (§D.10). The reference implementation is [`tools/penman/vson_penman.py`](../tools/penman/vson_penman.py).
 
 The lexer is a single scan over the source text. **Whitespace, including newlines, only separates tokens** — it carries no syntax. Comments are discarded with it. At each position the scanner tries the alternatives below in order; that ordering is what makes `35mm` one `UNIT` rather than a `NUM` followed by an `ID`.
 
@@ -1948,7 +1948,7 @@ Reading the productions:
 
 ---
 
-## Appendix C — Example class profile {#appendix-c}
+## Appendix C — Example class profile
 
 **This is an example profile, not a registry** — the word *registry* was this appendix's title through v1.3, and it invited exactly the reading the paragraph beneath it denied. `vso:class` is an **open** dimension (§5.12): any bareword is conformant, and `Unknown` is the always-safe fallback. What follows is one worked profile for the fantasy-scene domain the gallery depicts — a starting vocabulary sized for those scenes, chosen to make the examples readable, and neither a controlled vocabulary nor a canonical set. Nothing registers a term here, nothing reviews an addition, and no validator checks membership: a document using none of these names is exactly as conformant as one using all of them. Extend or replace it per domain, under your own namespace where you need term identity (§8). §5.17.3 records why no alignment is minted from this list to any vision dataset's labels.
 
@@ -1970,7 +1970,7 @@ Reading the productions:
 
 ---
 
-## Appendix D — VSON-X grammar (normative) {#appendix-d}
+## Appendix D — VSON-X grammar (normative)
 
 This appendix is the single normative grammar for VSON-X. §4.3 is the overview; the per-key routing rationale — which bearer turns `*K V` into a Quality node and which into a direct property — is [`docs/vson-x-semantics.md`](./vson-x-semantics.md) §3.
 
@@ -2224,7 +2224,7 @@ Appendix B and this appendix are the normative grammars for the two syntaxes a p
 
 ---
 
-## Appendix E — Related work and bibliography {#appendix-e}
+## Appendix E — Related work and bibliography
 
 VSON is an assembly of existing ideas, not a new theory. This appendix names the sources the rest of the document leans on and states, for each, exactly what VSON takes and what it leaves behind. Nothing here is an endorsement by, or an affiliation with, the cited authors or standards bodies; entries omit page numbers and DOIs rather than risk an unverified one.
 

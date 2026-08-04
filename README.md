@@ -140,7 +140,7 @@ cli/target/release/vson export caption examples/throne_room.vson
 cli/target/release/vson diff examples/throne_room.ttl examples/gallery/11_throne_room.vson
 
 # Run all tests (Python + Rust)
-make check        # 555 Python tests + 16-scene gallery + 2 schema parses
+make check        # 602 Python tests + 16-scene gallery + 2 schema parses
                   # includes the 29 frozen canonical hashes of §4.6
 make conformance  # the 218-entry conformance suite — what claiming VSON v1 means
 make cq-check     # the 28 executable competency questions vs their frozen answers
@@ -283,7 +283,7 @@ VSON's genuinely-new content (everything else is W3C/ISO):
 
 1. **Frame taxonomy** as a first-class perspectival layer distinct from `Entity`.
 2. **Trait-bundle entity model** — orthogonal axes replace the folk Object/Item/Unique/Attribute mess.
-3. **`SpatialFact` with a viewer a validator enforces** — not a new idea, and this list said otherwise until v1.3. Reifying a spatial relation with required, asymmetric figure and ground slots is standardized practice: ISO 24617-7:2020 requires a link structure to carry a relation type and two arguments, and names those two `@figure` and `@ground` in its revised movement link; SemEval-2012's spatial-role-labeling task ran on the same pair under the names *trajector* and *landmark*. Anchoring a directional to a frame of reference is Levinson's analysis. What VSON commits to is narrower: **one** frame (the relative one) rather than an annotation of which frame is in use, and the anchor as a **structural obligation with an exit code** — C5 and `vss:DirectionalNeedsViewerShape` reject the document, where the prior schemes instruct the annotator. [Appendix E.7](docs/vson.md#appendix-e) states what each of them does that this does not, including the annotated corpora and published agreement studies VSON has neither of.
+3. **`SpatialFact` with a viewer a validator enforces** — not a new idea, and this list said otherwise until v1.3. Reifying a spatial relation with required, asymmetric figure and ground slots is standardized practice: ISO 24617-7:2020 requires a link structure to carry a relation type and two arguments, and names those two `@figure` and `@ground` in its revised movement link; SemEval-2012's spatial-role-labeling task ran on the same pair under the names *trajector* and *landmark*. Anchoring a directional to a frame of reference is Levinson's analysis. What VSON commits to is narrower: **one** frame (the relative one) rather than an annotation of which frame is in use, and the anchor as a **structural obligation with an exit code** — C5 and `vss:DirectionalNeedsViewerShape` reject the document, where the prior schemes instruct the annotator. [Appendix E.7](docs/vson.md#appendix-e--related-work-and-bibliography) states what each of them does that this does not, including the annotated corpora and published agreement studies VSON has neither of.
 4. **Closed VSV vocabulary** curated for visual scenes.
 5. **Penman authoring surface** tuned for VSV.
 6. **VSON-X compact syntax** (v1.1) — nine prefix sigils, no brackets, LL(1), bearer-class dispatch for `*K V`. All 12 gallery scenes that have a VSON-X counterpart denote the same scene as their Penman twin under [§4.6](docs/vson.md#46-denotation--when-two-documents-describe-the-same-scene): identical RDFC-1.0 canonical N-Quads, frozen in [`tests/fixtures/canonical/hashes.txt`](tests/fixtures/canonical/hashes.txt).
