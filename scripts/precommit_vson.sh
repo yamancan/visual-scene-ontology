@@ -3,10 +3,9 @@
 #
 # pre-commit clones this repository, then runs this script with the staged
 # documents as arguments, from the *user's* repository root. What it has to do
-# that the plain `vson validate` line cannot is find a binary: there are no
-# release binaries yet, so a contributor who has never built the CLI has
-# nothing on PATH, and a hook that fails with `command not found` teaches
-# nobody anything.
+# that the plain `vson validate` line cannot is find a binary: this hook never
+# downloads one, so a contributor who has never built the CLI has nothing on
+# PATH, and a hook that fails with `command not found` teaches nobody anything.
 #
 # The search order, and the reason for each step:
 #

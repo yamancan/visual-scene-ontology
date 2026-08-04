@@ -1,6 +1,6 @@
 # Gate a build on VSON conformance.
 #
-#   - uses: yamancan/visual-scene-ontology/.github/actions/validate@main
+#   - uses: yamancan/visual-scene-ontology/.github/actions/validate@v1.4.0
 #     with:
 #       files: 'scenes/**/*.vson'
 #
@@ -13,13 +13,14 @@
 # describe an image incorrectly — docs/vson.md §2.1 says exactly what a green
 # result establishes, and the summary table repeats it on every run.
 #
-# COLD START. No release binaries exist yet (the repository is private and
-# publishing is a later release), so this builds the CLI from source with cargo.
-# That is the cost of using it today: about twenty seconds of compile time on a
-# developer laptop with a warm cargo registry, and more on a hosted runner that
-# downloads the crates first. Put `Swatinem/rust-cache@v2` with
-# `workspaces: cli` ahead of this step and later runs skip it. When binaries
-# ship, this action downloads one and the build step disappears.
+# COLD START. This action has no download step: it builds the CLI from source
+# with cargo, from the checkout the `@ref` above pinned. That is the cost of
+# using it today: about twenty seconds of compile time on a developer laptop
+# with a warm cargo registry, and more on a hosted runner that downloads the
+# crates first. Put `Swatinem/rust-cache@v2` with `workspaces: cli` ahead of
+# this step and later runs skip it. Teaching the action to fetch the release
+# binary for the runner's platform instead is a later change to this file; the
+# build step disappears then.
 #
 # WHAT THE RUNNER MUST ALREADY HAVE: `python3` (with `venv`) and `cargo`. Both
 # are preinstalled on GitHub-hosted `ubuntu-*` and `macos-*` images; a container
@@ -127,7 +128,7 @@ runs:
       shell: bash
       run: |
         set -eo pipefail
-        echo "::group::cargo build --release (no release binaries exist yet — see this action's header)"
+        echo "::group::cargo build --release (this action builds from source — see its header)"
         cargo build --release --quiet --manifest-path "$VSON_ROOT/cli/Cargo.toml"
         echo "::endgroup::"
 

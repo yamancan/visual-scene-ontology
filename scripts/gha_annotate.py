@@ -3,8 +3,8 @@
 
 `.github/actions/validate` runs the CLI and then runs this. Two outputs, both
 of them things a workflow command can produce on any repository — no GitHub
-Advanced Security, no code-scanning upload, nothing that a private repository
-without a paid plan would silently drop:
+Advanced Security, no code-scanning upload, nothing whose delivery depends on
+the repository's visibility or on the plan it is billed under:
 
   * **annotations** — one `::error file=…,line=…,col=…::message` per finding.
     GitHub renders those inline on the diff of the offending line, which is the

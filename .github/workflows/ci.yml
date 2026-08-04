@@ -91,9 +91,9 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
 
-      # The action builds the CLI from source — no release binaries exist yet.
-      # This is the cache its own header tells callers to add, exercised here so
-      # the advice is tested rather than asserted.
+      # The action has no download step — it builds the CLI from source. This
+      # is the cache its own header tells callers to add, exercised here so the
+      # advice is tested rather than asserted.
       - name: Cache cargo build
         uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
         with:

@@ -4,7 +4,7 @@
 #   # .pre-commit-config.yaml, in the repository whose scenes you are gating
 #   repos:
 #     - repo: https://github.com/yamancan/visual-scene-ontology
-#       rev: v1.3.0
+#       rev: v1.4.0   # the first tag that carries these hooks
 #       hooks:
 #         - id: vson-validate
 #
@@ -25,10 +25,11 @@
 # Python and the hook will not install them into your interpreter behind your
 # back; it names them and stops. Plus a `vson` binary: on PATH, at $VSON_BIN,
 # or built from the pinned checkout with cargo the first time (about twenty
-# seconds). There are no release binaries to download yet — the repository is
-# private and publishing is a later release — so building is the honest cost
-# today. `vson-validate-system` is the variant for a machine that already has
-# the binary and should never build one.
+# seconds). The hook never downloads a binary: it uses the one you already have,
+# or builds the checkout `rev:` pinned, so the version that validates is the
+# version you named. On a machine that has never had a `vson`, that one build
+# is the honest cost. `vson-validate-system` is the variant for a machine that
+# already has the binary and should never build one.
 
 - id: vson-validate
   name: vson validate (SHACL + OWL 2 RL + C2)
