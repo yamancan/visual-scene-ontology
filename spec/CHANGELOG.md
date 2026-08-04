@@ -664,7 +664,7 @@ normative statement moves; only the attribute suffix and the link fragments.
 
 **`555 Python tests` was three releases stale.** The suite ran 571 when the
 claim was re-derived, one line above the `make check` that runs it. The README
-now states what unittest discovery counts — **602**, the 571 plus the 31 tests
+now states what unittest discovery counts — **604**, the 571 plus the 33 tests
 that establish the two new gates go red — and nothing hand-maintains that
 number again.
 
