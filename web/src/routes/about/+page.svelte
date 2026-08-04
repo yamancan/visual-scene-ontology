@@ -134,11 +134,9 @@
 				the anchor a structural obligation (<a
 					href="https://github.com/yamancan/visual-scene-ontology/blob/main/docs/vson.md#33-viewer-anchoring-directional-facts"
 					rel="external">C5</a
-				>). That obligation is not new: ISO 24617-7:2020 requires a spatial link to carry a relation
-				type and two arguments — <code>@figure</code> and <code>@ground</code> in its movement link
-				— the asymmetry SemEval-2012 evaluated as <em>trajector</em> and <em>landmark</em>. What
-				VSON adds is one thing wide: those schemes instruct an annotator, this one rejects a
-				document.
+				>). That obligation is not new: ISO 24617-7:2020's movement link already carries
+				<code>@figure</code> and <code>@ground</code>. What VSON adds: those schemes instruct an
+				annotator, this one rejects a document.
 			</p>
 			<p>
 				DOLCE (Masolo et al. 2003) supplies the endurant/perdurant spine — inspired, not aligned: no
@@ -208,8 +206,8 @@
 				and the specification says so itself.
 			</p>
 			<p>
-				The argument at length, with the clause or fixture behind each refusal, is the essay these
-				two sections distill:
+				The essay these two sections distill makes the argument at length, a receipt behind each
+				refusal:
 				<a
 					href="https://github.com/yamancan/visual-scene-ontology/blob/main/docs/essay-an-image-is-not-a-sentence.md"
 					rel="external">An image is not a sentence</a
