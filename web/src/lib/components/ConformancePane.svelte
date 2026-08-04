@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { scene } from '$lib/scene.svelte';
 	import { formatMs, isPrebuilt } from '$lib/utils';
+	// Pure string transform, no Pyodide in its import graph.
+	import { removeOneViewer } from '$lib/validate/tamper';
+	import type { Violation } from '$lib/types';
 	// Type-only: erased at build, so this pane still costs zero Pyodide bytes
 	// until someone presses the button below.
 	import type { WorkerPhase } from '$lib/validate/client';
@@ -36,16 +39,39 @@
 
 	let recheck = $state<Recheck>({ state: 'idle' });
 
+	// The counterfactual: the same two gates, over a COPY of this document with
+	// one vso:viewer triple dropped ($lib/validate/tamper). Every keyless
+	// surface of this studio is green by construction, so nothing here has ever
+	// shown a gate biting — this does, without a key, a model, or a pixel.
+	//
+	// `whatIfSource` is both the qualification test and the payload: it is null
+	// unless the document really carries a directional fact with a viewer, and
+	// the affordance below renders only when it is not. No disabled state.
+	//
+	// The verdict renders BESIDE the real one; scene.envelope is never written.
+	type WhatIf =
+		| { state: 'idle' }
+		| { state: 'running'; note: string }
+		| { state: 'done'; conforms: boolean; violations: Violation[] }
+		| { state: 'failed'; message: string };
+
+	let whatIf = $state<WhatIf>({ state: 'idle' });
+	let whatIfSource = $derived(env?.vson_t ? removeOneViewer(env.vson_t) : null);
+
 	// Every run carries a token. A gate verdict takes ~3s and the document it
 	// was computed over can be replaced meanwhile (a new scene, a second press);
 	// a run whose token is stale settles into nothing rather than printing its
-	// verdict under a document it never saw.
+	// verdict under a document it never saw. The two interactions count
+	// separately so that starting one never strands the other mid-flight.
 	let run = 0;
+	let whatIfRun = 0;
 
 	$effect(() => {
 		void scene.envelope;
 		run += 1;
+		whatIfRun += 1;
 		recheck = { state: 'idle' };
+		whatIf = { state: 'idle' };
 	});
 
 	async function reverify() {
@@ -79,6 +105,45 @@
 			if (token !== run) return;
 			recheck = { state: 'failed', message: (err as Error).message };
 		}
+	}
+
+	// Same worker, same two gates, same progress phases as reverify() above —
+	// the only difference is the document handed over: an in-memory copy that
+	// nothing else ever reads. `restore` drops the copy; the real verdict was
+	// on screen the whole time.
+	async function runWhatIf() {
+		const removal = whatIfSource;
+		if (!removal || whatIf.state === 'running') return;
+		const token = ++whatIfRun;
+		whatIf = { state: 'running', note: 'starting…' };
+		try {
+			const { validationClient, toConformanceReport } = await import('$lib/validate/client');
+			const client = validationClient();
+			const stopWatching = client.subscribe((s) => {
+				if (token !== whatIfRun || whatIf.state !== 'running') return;
+				if (s.state === 'starting') whatIf = { state: 'running', note: PHASE_NOTE[s.phase] };
+				else if (s.state === 'ready') whatIf = { state: 'running', note: PHASE_NOTE.ready };
+			});
+			try {
+				const report = toConformanceReport(await client.validate(removal.turtle));
+				if (token !== whatIfRun) return;
+				whatIf = {
+					state: 'done',
+					conforms: report.conforms,
+					violations: report.violations ?? []
+				};
+			} finally {
+				stopWatching();
+			}
+		} catch (err) {
+			if (token !== whatIfRun) return;
+			whatIf = { state: 'failed', message: (err as Error).message };
+		}
+	}
+
+	function restoreWhatIf() {
+		whatIfRun += 1;
+		whatIf = { state: 'idle' };
 	}
 
 	function shortShape(s: string): string {
@@ -227,6 +292,52 @@
 					</div>
 				{:else if recheck.state === 'failed'}
 					<div class="recheck-out bad font-mono">{recheck.message}</div>
+				{/if}
+			</div>
+		{/if}
+
+		{#if whatIfSource}
+			<div class="whatif">
+				{#if whatIf.state === 'idle'}
+					<button type="button" class="whatif-ask font-mono" onclick={runWhatIf}>
+						what if the viewer were removed?
+					</button>
+				{:else if whatIf.state === 'running'}
+					<span class="whatif-ask running font-mono">{whatIf.note}</span>
+				{:else}
+					<div class="whatif-head">
+						<span class="section-label font-mono">what-if · viewer removed</span>
+						<button type="button" class="whatif-ask font-mono" onclick={restoreWhatIf}>
+							restore
+						</button>
+					</div>
+					<div class="whatif-diff font-mono">
+						<span class="minus" aria-hidden="true">−</span>
+						:{whatIfSource.fact} vso:viewer :{whatIfSource.viewer}
+					</div>
+					{#if whatIf.state === 'failed'}
+						<div class="recheck-out bad font-mono">{whatIf.message}</div>
+					{:else if whatIf.violations.length > 0}
+						<div class="viol-list">
+							{#each whatIf.violations as v, i (i)}
+								<div class="viol">
+									<div class="viol-head">
+										<span class="viol-shape font-mono">{shortShape(v.shape)}</span>
+										{#if v.focus_node}
+											<span class="viol-node font-mono">{v.focus_node}</span>
+										{/if}
+									</div>
+									<div class="viol-msg">{v.message}</div>
+								</div>
+							{/each}
+						</div>
+					{:else}
+						<div class="recheck-out font-mono">both gates still pass on the copy.</div>
+					{/if}
+					<p class="whatif-note">
+						A copy of this scene, with the viewer removed — the loaded document is untouched and
+						nothing was written anywhere. Checked in your browser; no key, no model, no image read.
+					</p>
 				{/if}
 			</div>
 		{/if}
@@ -440,6 +551,59 @@
 	}
 	.recheck-note {
 		font-size: 9px;
+		color: var(--fg-4);
+	}
+	.whatif {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 5px;
+	}
+	/* Quieter than .recheck-btn on purpose: at rest this is one muted line of
+	   text, not a control competing with the verdict above it. */
+	.whatif-ask {
+		font-size: 10px;
+		color: var(--fg-4);
+		background: transparent;
+		border: 0;
+		padding: 0;
+		text-align: left;
+		cursor: pointer;
+		transition: color var(--duration-fast) var(--ease-out);
+	}
+	button.whatif-ask:hover {
+		color: var(--fg-1);
+		text-decoration: underline;
+		text-decoration-style: dotted;
+	}
+	.whatif-ask.running {
+		color: var(--fg-3);
+		cursor: default;
+	}
+	.whatif-head {
+		display: flex;
+		align-items: baseline;
+		gap: var(--s3);
+	}
+	.whatif-head .section-label {
+		margin-bottom: 0;
+	}
+	.whatif-diff {
+		font-size: 10px;
+		color: var(--fg-3);
+		word-break: break-all;
+	}
+	.whatif-diff .minus {
+		color: var(--danger);
+	}
+	.viol-node {
+		font-size: 10px;
+		color: var(--fg-3);
+	}
+	.whatif-note {
+		margin: 0;
+		font-size: 9px;
+		line-height: 1.6;
 		color: var(--fg-4);
 	}
 	.src-line {
