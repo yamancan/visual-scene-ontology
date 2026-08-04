@@ -48,7 +48,12 @@ jobs:
       # make check = parse-ontology + penman-roundtrip + shacl + owl-consistency
       #            + python tests + spec-check + fragment-check + registry-check
       #            + geometry-check + cq-check + grammar-check + conformance
-      #            + lint-py (ruff) + iri-check
+      #            + importer-check + lint-py (ruff) + iri-check + anchor-check
+      #            + counts-check
+      #
+      # anchor-check and counts-check read the tracked tree through `git
+      # ls-files`, so this job needs the checkout it already has — they are the
+      # two gates that decide whether the *prose* is still true.
       - name: make check
         run: make check
 

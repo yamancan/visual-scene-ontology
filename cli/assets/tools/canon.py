@@ -11,12 +11,13 @@ are byte-identical**. This module is that section, executable.
 
 The algorithm
 -------------
-**RDFC-1.0** — *RDF Dataset Canonicalization*, W3C Recommendation
-2024-05-21 ([Appendix E](../docs/vson.md#appendix-e)), the standard that
-assigns every blank node a deterministic label (`_:c14n0`, `_:c14n1`, …)
-computed from the graph's own shape, so that two isomorphic datasets
-serialize to the same bytes and two non-isomorphic ones do not. Default hash
-algorithm SHA-256, canonical N-Quads per Appendix A of that Recommendation.
+**RDFC-1.0** — *RDF Dataset Canonicalization*, W3C Recommendation 2024-05-21
+([Appendix E](../docs/vson.md#appendix-e--related-work-and-bibliography)),
+the standard that assigns every blank node a deterministic label (`_:c14n0`,
+`_:c14n1`, …) computed from the graph's own shape, so that two isomorphic
+datasets serialize to the same bytes and two non-isomorphic ones do not.
+Default hash algorithm SHA-256, canonical N-Quads per Appendix A of that
+Recommendation.
 
 **Why this file carries its own implementation.** rdflib 7.6 has no RDFC-1.0.
 What `rdflib.compare` implements is **RGDA1** (McCusker 2015) — a different

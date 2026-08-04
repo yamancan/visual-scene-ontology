@@ -7,11 +7,11 @@ TOOLS = -m tools.penman.vson_penman
 EXAMPLE_VSON = examples/throne_room.vson
 EXAMPLE_TTL = examples/throne_room.ttl
 
-.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check fragment-check registry-check geometry-check cq-check grammar-check grammar-gbnf conformance importer-check iri-check live-check rdfc10-suite x-check x-skill-check envelope-check wheel-check web-check web-deploy web-smoke deploy-check site clean
+.PHONY: all check check-all test parse-ontology penman-roundtrip shacl owl-consistency deps lint-py cli-check spec-check fragment-check registry-check geometry-check cq-check grammar-check grammar-gbnf conformance importer-check iri-check anchor-check counts-check live-check rdfc10-suite x-check x-skill-check envelope-check wheel-check web-check web-deploy web-smoke deploy-check site clean
 
 all: check
 
-check: parse-ontology penman-roundtrip shacl owl-consistency test spec-check fragment-check registry-check geometry-check cq-check grammar-check conformance importer-check lint-py iri-check
+check: parse-ontology penman-roundtrip shacl owl-consistency test spec-check fragment-check registry-check geometry-check cq-check grammar-check conformance importer-check lint-py iri-check anchor-check counts-check
 
 # Everything the CI runs, minus the web app (which needs pnpm/node).
 check-all: check cli-check x-check x-skill-check envelope-check
@@ -217,6 +217,31 @@ importer-check:
 iri-check:
 	@echo "==> Legacy IRI gate: the withdrawn namespace host MUST NOT reappear"
 	@$(PY) scripts/check_legacy_iri.py
+
+# The two prose gates, and they are here for the reason every other drift gate
+# is: this repository's argument is that a claim should be a thing you can run,
+# so a claim on its own pages that nothing runs is the claim that costs the
+# most.
+#
+# `anchor-check` computes the slug GitHub computes for every heading in every
+# tracked .md and resolves every in-repo link against it. Through v1.3 the five
+# appendix headings of docs/vson.md carried Pandoc `{#appendix-e}` attributes,
+# which GFM has no extension for: it rendered the braces and minted its own
+# slug, so twenty-three links — including the README's one citation into the
+# paragraph that retracts the SpatialFact novelty claim — pointed at nothing.
+# A broken anchor fails silently in a browser, which is why it needed a gate.
+#
+# `counts-check` compares every counted claim in the prose against the count,
+# computed from the artifact the claim is about. The README said "555 Python
+# tests" one line above the command that runs them. Both are offline, so both
+# belong in `check`.
+anchor-check:
+	@echo "==> Markdown anchors: every in-repo link MUST resolve to a real GFM slug"
+	@$(PY) scripts/check_md_anchors.py
+
+counts-check:
+	@echo "==> Counted claims: every number in the prose MUST match the tree"
+	@$(PY) scripts/check_counts_drift.py
 
 # Deliberately absent from `check` and from `check-all`, and deliberately not a
 # CI job: this is the one gate that leaves the checkout. It resolves the
