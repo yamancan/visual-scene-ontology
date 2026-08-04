@@ -118,6 +118,41 @@
 		</section>
 
 		<section>
+			<h2>Where the ideas come from</h2>
+			<p>
+				Almost none of this thinking is ours;
+				<a
+					href="https://github.com/yamancan/visual-scene-ontology/blob/main/docs/vson.md#appendix-e--related-work-and-bibliography"
+					rel="external">Appendix E</a
+				> states, per source, what was taken and what was left.
+			</p>
+			<p>
+				Talmy (2000) is why a spatial relation has two slots that cannot be swapped: one names the
+				located thing, the other what it is located against. Levinson (2003) is why a directional
+				fact must name a viewer — three frames of reference exist and
+				<em>left of</em> is a different claim in each, so VSON fixes the relative frame and makes
+				the anchor a structural obligation (<a
+					href="https://github.com/yamancan/visual-scene-ontology/blob/main/docs/vson.md#33-viewer-anchoring-directional-facts"
+					rel="external">C5</a
+				>). That obligation is not new: ISO 24617-7:2020 requires a spatial link to carry a relation
+				type and two arguments — <code>@figure</code> and <code>@ground</code> in its movement link
+				— the asymmetry SemEval-2012 evaluated as <em>trajector</em> and <em>landmark</em>. What
+				VSON adds is one thing wide: those schemes instruct an annotator, this one rejects a
+				document.
+			</p>
+			<p>
+				DOLCE (Masolo et al. 2003) supplies the endurant/perdurant spine — inspired, not aligned: no
+				IRI imported, no axiom asserted. AMR (Banarescu et al. 2013) proves a graph can be written
+				by hand;
+				<a
+					href="https://github.com/yamancan/visual-scene-ontology/blob/main/docs/vson.md#42-vson-p-penman-authoring-human"
+					rel="external">VSON-P</a
+				> borrows its Penman surface. RCC-8 and Allen arrive as closed calculi; this notation takes their
+				names, not their inference: no composition table ships.
+			</p>
+		</section>
+
+		<section>
 			<h2>How it stays correct</h2>
 			<p>
 				Every document is checked against a published SHACL shape graph before it is returned. The
@@ -143,6 +178,42 @@
 				If the model emits a non-conformant document, the studio feeds the SHACL report back to the
 				model and asks it to repair. Up to two repair rounds, then it ships whatever it has with the
 				violations attached so you can see what failed. No silent corrections.
+			</p>
+		</section>
+
+		<section>
+			<h2>What a verdict refuses to say</h2>
+			<p>
+				Conformance is three properties, decided by the parser, SHACL over the shapes and an OWL 2
+				RL closure; a pass establishes only what its mechanism examined (<a
+					href="https://github.com/yamancan/visual-scene-ontology/blob/main/docs/vson.md#21-what-conformance-establishes"
+					rel="external">§2.1</a
+				>). None of them reads pixels: a document asserting a red cube left of a blue sphere,
+				describing a photograph containing neither, is fully conformant and entirely false.
+			</p>
+			<p>
+				Geometry narrows that by one step. A box bounds the region it is asserted of, so boxes that
+				cannot support a relation refute it; boxes that agree confirm nothing — a cat on a mat
+				touches its mat while their rectangles overlap with area (<a
+					href="https://github.com/yamancan/visual-scene-ontology/blob/main/docs/vson.md#5132-the-engine-a-bounding-box-refutes-it-does-not-confirm"
+					rel="external">§5.13.2</a
+				>). A box can say no; it can never say yes.
+			</p>
+			<p>
+				Agreement is not correctness: two conformant documents <code>vson diff</code>
+				scores have agreed, and that is all (<a
+					href="https://github.com/yamancan/visual-scene-ontology/blob/main/docs/vson.md#5155-what-a-score-establishes"
+					rel="external">§5.15.5</a
+				>). Groundedness — that each assertion matches what the image depicts — does not exist here,
+				and the specification says so itself.
+			</p>
+			<p>
+				The argument at length, with the clause or fixture behind each refusal, is the essay these
+				two sections distill:
+				<a
+					href="https://github.com/yamancan/visual-scene-ontology/blob/main/docs/essay-an-image-is-not-a-sentence.md"
+					rel="external">An image is not a sentence</a
+				>.
 			</p>
 		</section>
 
@@ -183,6 +254,12 @@
 					rel="external">vson-extractor skill</a
 				>
 				is one such producer.
+			</p>
+			<p class="aside">
+				Built by <a href="https://github.com/yamancan" rel="external">yaman</a>, solo, with heavy
+				LLM assistance the
+				<a href="https://github.com/yamancan/visual-scene-ontology" rel="external">README</a> states rather
+				than hides.
 			</p>
 		</section>
 
