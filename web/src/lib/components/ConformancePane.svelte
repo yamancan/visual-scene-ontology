@@ -1,12 +1,85 @@
 <script lang="ts">
 	import { scene } from '$lib/scene.svelte';
-	import { isPrebuilt } from '$lib/utils';
+	import { formatMs, isPrebuilt } from '$lib/utils';
+	// Type-only: erased at build, so this pane still costs zero Pyodide bytes
+	// until someone presses the button below.
+	import type { WorkerPhase } from '$lib/validate/client';
 
 	let env = $derived(scene.envelope);
 	let conforms = $derived(env?.conformance.conforms ?? false);
 	let violations = $derived(env?.conformance.violations ?? []);
 	let extraction = $derived(env?.extraction);
 	let prebuilt = $derived(isPrebuilt(extraction?.model));
+
+	// Re-verification of a prebuilt envelope. The verdict a demo or a spec
+	// example carries was recorded when the file was baked — it is a record,
+	// not a demonstration, and a visitor has no reason to take it on trust.
+	// This runs the two browser gates over the document actually on screen and
+	// reports what they say, without touching the envelope: the stored verdict
+	// stays the record, this is a second opinion beside it.
+	//
+	// Opt-in by construction. The client — and the ~16 MB runtime behind it —
+	// is dynamic-imported inside the handler, so the keyless demo path still
+	// downloads no Pyodide byte for anyone who never presses this.
+	type Recheck =
+		| { state: 'idle' }
+		| { state: 'running'; note: string }
+		| { state: 'done'; conforms: boolean; gate1: boolean; gate2: boolean | null; ms: number }
+		| { state: 'failed'; message: string };
+
+	const PHASE_NOTE: Record<WorkerPhase, string> = {
+		downloading: 'downloading runtime…',
+		booting: 'booting python…',
+		installing: 'installing gates…',
+		ready: 'running gates…'
+	};
+
+	let recheck = $state<Recheck>({ state: 'idle' });
+
+	// Every run carries a token. A gate verdict takes ~3s and the document it
+	// was computed over can be replaced meanwhile (a new scene, a second press);
+	// a run whose token is stale settles into nothing rather than printing its
+	// verdict under a document it never saw.
+	let run = 0;
+
+	$effect(() => {
+		void scene.envelope;
+		run += 1;
+		recheck = { state: 'idle' };
+	});
+
+	async function reverify() {
+		const turtle = env?.vson_t;
+		if (!turtle || recheck.state === 'running') return;
+		const token = ++run;
+		recheck = { state: 'running', note: 'starting…' };
+		const t0 = performance.now();
+		try {
+			const { validationClient } = await import('$lib/validate/client');
+			const client = validationClient();
+			const stopWatching = client.subscribe((s) => {
+				if (token !== run || recheck.state !== 'running') return;
+				if (s.state === 'starting') recheck = { state: 'running', note: PHASE_NOTE[s.phase] };
+				else if (s.state === 'ready') recheck = { state: 'running', note: PHASE_NOTE.ready };
+			});
+			try {
+				const result = await client.validate(turtle);
+				if (token !== run) return;
+				recheck = {
+					state: 'done',
+					conforms: result.conforms,
+					gate1: result.gate1.conforms,
+					gate2: result.gate2?.conforms ?? null,
+					ms: Math.round(performance.now() - t0)
+				};
+			} finally {
+				stopWatching();
+			}
+		} catch (err) {
+			if (token !== run) return;
+			recheck = { state: 'failed', message: (err as Error).message };
+		}
+	}
 
 	function shortShape(s: string): string {
 		const i = s.indexOf(':');
@@ -126,6 +199,36 @@
 					</div>
 				{/if}
 			</dl>
+		{/if}
+
+		{#if prebuilt && env.vson_t}
+			<div class="recheck">
+				<button
+					type="button"
+					class="recheck-btn font-mono"
+					onclick={reverify}
+					disabled={recheck.state === 'running'}
+					title="Runs pyshacl (Gate 1), then owlrl (Gate 2), over this document in a Pyodide worker in this tab. The first run downloads ~16 MB of runtime; after that it is cached. The CLI's third gate — C2 vocabulary closure — does not run in the browser."
+				>
+					{recheck.state === 'running' ? recheck.note : 'verify in this browser'}
+				</button>
+				{#if recheck.state === 'done'}
+					<div
+						class="recheck-out font-mono"
+						class:ok={recheck.conforms}
+						class:bad={!recheck.conforms}
+					>
+						pyshacl {recheck.gate1 ? 'pass' : 'fail'} · owlrl
+						{recheck.gate2 === null ? 'not run' : recheck.gate2 ? 'pass' : 'fail'} ·
+						{formatMs(recheck.ms)}
+					</div>
+					<div class="recheck-note font-mono">
+						ran here, just now · C2 vocabulary closure is CLI-only
+					</div>
+				{:else if recheck.state === 'failed'}
+					<div class="recheck-out bad font-mono">{recheck.message}</div>
+				{/if}
+			</div>
 		{/if}
 
 		{#if env.source?.sha256}
@@ -295,6 +398,49 @@
 	}
 	.meta dd .warn {
 		color: var(--warning, var(--accent));
+	}
+	.recheck {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 5px;
+	}
+	.recheck-btn {
+		font-size: 10px;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--fg-3);
+		background: transparent;
+		border: 1px solid var(--border-1);
+		border-radius: var(--radius-sm);
+		padding: 3px 8px;
+		cursor: pointer;
+		transition:
+			color var(--duration-fast) var(--ease-out),
+			border-color var(--duration-fast) var(--ease-out);
+	}
+	.recheck-btn:hover:not([disabled]) {
+		color: var(--fg-1);
+		border-color: var(--accent);
+	}
+	.recheck-btn[disabled] {
+		cursor: default;
+		color: var(--fg-4);
+	}
+	.recheck-out {
+		font-size: 10px;
+		color: var(--fg-3);
+		font-variant-numeric: tabular-nums;
+	}
+	.recheck-out.ok {
+		color: var(--success);
+	}
+	.recheck-out.bad {
+		color: var(--danger);
+	}
+	.recheck-note {
+		font-size: 9px;
+		color: var(--fg-4);
 	}
 	.src-line {
 		display: flex;

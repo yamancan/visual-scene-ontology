@@ -69,8 +69,8 @@
 
 		{#if expanded}
 			<p class="gallery-help">
-				Hand-authored VSON documents that pass strict SHACL — one per construct. Load any to see how
-				the studio renders spec-conformant data.
+				Inspect a conformant scene — no model involved. Hand-authored VSON documents that pass
+				strict SHACL, one per construct: load any and read the graph, the source and the verdict.
 			</p>
 
 			<ul class="grid">

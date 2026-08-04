@@ -28,14 +28,24 @@
 		<section>
 			<h2>What you just saw</h2>
 			<p>
-				You uploaded an image. Your browser sent it straight to a vision-language model through
-				OpenRouter, on your own key — the request never touches the studio host — with a
-				<a href="/prompts" rel="self">5 KB system prompt</a> that lists the closed vocabulary, the
-				five hard rules, and a worked example. The model emitted a Penman tree — text that looks
-				like nested S-expressions. A Pyodide worker, also in your browser, rewrote that tree into
-				Turtle 1.2 with the reference emitter CI byte-compares against the <code>vson</code> CLI, then
-				checked it with two of the three gates the CLI runs. If it conformed, you saw the graph. If it
-				didn't, the studio fed the violations back to the model and asked for a fix, up to twice.
+				<strong>If you clicked a demo or a spec example</strong>, no model ran and no key was spent.
+				The studio fetched a committed file: for a demo, the envelope one real extraction produced,
+				kept with its provenance; for a spec example, a hand-authored document. What you are looking
+				at is that file, rendered. The verdict beside it is the one recorded when the file was made
+				— which is why the conformance panel offers to re-run the two browser gates over the
+				document on screen, live, so you can watch them agree rather than take the stored answer on
+				trust.
+			</p>
+			<p>
+				<strong>If you uploaded an image</strong>, your browser sent it straight to a
+				vision-language model through OpenRouter, on your own key — the request never touches the
+				studio host — with a <a href="/prompts" rel="self">5 KB system prompt</a> that lists the
+				closed vocabulary, the five hard rules, and a worked example. The model emitted a Penman
+				tree — text that looks like nested S-expressions. A Pyodide worker, also in your browser,
+				rewrote that tree into Turtle 1.2 with the reference emitter CI byte-compares against the
+				<code>vson</code> CLI, then checked it with two of the three gates the CLI runs. If it conformed,
+				you saw the graph. If it didn't, the studio fed the violations back to the model and asked for
+				a fix, up to twice.
 			</p>
 			<p class="aside">
 				The image goes from your browser to OpenRouter and nowhere else. There is no studio backend
@@ -259,6 +269,10 @@
 	em {
 		color: var(--fg-1);
 		font-style: italic;
+	}
+	strong {
+		color: var(--fg-1);
+		font-weight: 500;
 	}
 	code {
 		font-family: var(--font-mono);
