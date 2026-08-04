@@ -481,6 +481,7 @@ vson diff — Smatch graph agreement (docs/vson.md §5.15)
   other                  0      0      0          —        —        —
   overall               19     23     26     0.8261   0.7308   0.7755
 smatch: the two documents differ (F1 0.7755). Agreement between two documents, not evidence about the image.
+tests/fixtures/diff/run_a.ttl and tests/fixtures/diff/run_b.ttl are not the same graph. This is agreement between two documents; no image was read and neither document is thereby correct (docs/vson.md §2.1).
 ```
 
 A regression lands on **spatial**, not on one aggregate number. Two JSON blobs
