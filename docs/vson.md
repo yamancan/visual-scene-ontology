@@ -1175,13 +1175,14 @@ What it is *for* is the two things a scheme cannot otherwise have: a regression 
 
 §2 says what a verifier decides. This says how it tells a reader that is a **program**, because the two things a verifier has said until now are an exit code — one bit, about a whole run, with no location in it — and a human report beside it. Neither can put a mark on the line that caused the failure, and a build that can only say "something in here is wrong" is a build people learn to ignore.
 
-**Three shapes, one verdict.**
+**Four shapes, one verdict.**
 
 | `--format` | What lands on stdout | For |
 |---|---|---|
 | `text` (default) | `OK` / `FAIL <file> (<gate>)`; each checker's own report goes to stderr | a person at a terminal |
 | `json` | one document carrying the records of §5.16.1 | a script, a dashboard, a repair loop |
 | `sarif` | a SARIF 2.1.0 log (OASIS, March 2020 — [Appendix E.6](#appendix-e--related-work-and-bibliography)) | code scanners: GitHub, GitLab, and everything that reads them |
+| `compact` | one line per finding — §5.16.8 — then the `text` verdict line | a build log, a `grep`, a person reading either |
 
 The verdict does not move with the format. An implementation **MUST** reach the same conformance decision and return the same exit code whichever format it was asked for: the formats differ in what a run *says*, never in what it decides. A structured run **MAY** report more violations than the text run prints — the reference text gate passes `--abort` to `pyshacl` and stops at the first, while a report of the first violation is not a report — and the set of documents each calls conformant is nonetheless identical.
 
@@ -1265,9 +1266,35 @@ The JSON document also names the `profile` that produced it. Only `strict` decid
 
 The reference output is frozen, byte for byte, at [`tests/fixtures/validate_report/`](../tests/fixtures/validate_report/): the JSON and SARIF reports for [`tests/fixtures/bad_no_viewer.vson`](../tests/fixtures/bad_no_viewer.vson), compared against the binary's output by [`cli/tests/report_format.rs`](../cli/tests/report_format.rs) and checked for still being *valid* SARIF — not merely stable — by [`tests/test_validate_report.py`](../tests/test_validate_report.py). They are referenced here rather than reproduced here for the reason §6.1's fragments exist to guard: a quoted copy of a shipped artifact is a copy that drifts, and this document outranks the artifact it would be misquoting.
 
+`compact` carries **no version of its own** and is deliberately not a document format. It is a rendering of the same records for a reader, and the only parts of it a consumer may rely on are the ones §5.16.8 states: the leading position, the two-space field separation, one line per finding, and the verdict line it shares with `text`. A program that needs a field is asking for `json`, which is where the compatibility promise above lives.
+
 #### 5.16.7 What a report establishes
 
 Exactly what §2 and §2.1 say a verdict establishes, and nothing further. A report is the same verdict with its parts named: a finding is a place where the document breaks a shape, a clause or the vocabulary, and an empty report is a document that breaks none of them. No image is read at any point, so a producer, a consumer or a build **MUST NOT** present a green report as evidence that the document describes the picture — and a passing SARIF log, which a scanner will render beside findings from tools that do read the artifact they check, is the easiest place in this specification to forget that.
+
+#### 5.16.8 The compact rendering
+
+The two structured formats above are read by programs that were written for them. `compact` is for the two readers nobody writes a parser for — a person scrolling a failed build, and a `grep` — and it is one line per finding:
+
+```text
+<path>:<line>:<column>  <rule>  <message>
+```
+
+— two spaces between the fields, as in this run of the reference implementation over the negative fixture the goldens of §5.16.6 are frozen from:
+
+```text
+tests/fixtures/bad_no_viewer.vson:26:14  vson/shacl/DirectionalNeedsViewerShape  Directional spatial facts require exactly one vso:viewer for construal disambiguation (C5), and that viewer must be a CameraView, never an Entity.
+FAIL tests/fixtures/bad_no_viewer.vson (shacl)
+```
+
+Each input's findings are followed by that input's `text` verdict line — `OK  <file>` or `FAIL <file> (<gate>)`, character for character, so that a reader who has seen one format has seen the other's answer. Four things are required of the finding lines, and each one is what makes them usable rather than merely short:
+
+* **One finding is one line.** Every run of whitespace in the message — a `sh:message` may be written across several lines — is collapsed to a single space. A format that sometimes wraps cannot be counted with `grep -c` or filtered with `grep -v`.
+* **The position leads**, in the `path:line:col` form a person recognises and an editor's error parser already reads. Where §5.16.3 established no position, the path stands alone: a finding that prints `:1:1` because it had nothing better sends a reader somewhere nothing is wrong.
+* **Fields are separated by two spaces**, and no field but the message may contain a run of two. A split on the separator therefore yields the position, the rule and the message, in that order, whether or not the position resolved.
+* **The `rule` stands in for the shape.** It is the shape's name in the form §5.16.1 defines — `vson/shacl/<local name>` — because the `shape` field is a full IRI on a SHACL finding and null on the two gates that have no shapes to report.
+
+Everything else a record carries is dropped, not summarised: the focus node, the result path, the constraint component, the severity and the syntax appear in `json` and in `sarif`, and a reader who needs one is asking a different question than the one this format answers. Consequently a `compact` run is **not** a report a repair loop should parse; §5.16.6 says which format carries the promise.
 
 ### 5.17 External alignment ([`ontology/alignments.ttl`](../ontology/alignments.ttl))
 
@@ -1789,7 +1816,7 @@ Gallery scenes 01–12 have a VSON-X form under [`examples/gallery-x/`](../examp
 | Python Penman transpiler | [`tools/penman/vson_penman.py`](../tools/penman/vson_penman.py) | Penman → Turtle | 18 round-trip tests (18/18 ✓) |
 | Python VSON-X parser (v1.1) | [`tools/vson_x/vson_x.py`](../tools/vson_x/vson_x.py) | VSON-X → Turtle, nine sigils, bearer-class dispatch | 16 lexer/parser/emitter + 11 gallery round-trip (27/27 ✓) |
 | Caption renderer (v1.0.5) | [`tools/render/caption.py`](../tools/render/caption.py) | graph → English (deterministic, no LLM) | 11 fixture + determinism (11/11 ✓) |
-| Rust CLI (`vson`) | [`cli/`](../cli) | `validate` (`--format text/json/sarif`, `-` for stdin — §5.16), `verify --geometry`, `diff`, `convert p2t/x2t`, `export cypher/caption/fol`, `mcp` (§5.18) | 109 tests (49 lib unit + 6 error-contract + 9 golden throne room + 5 golden validate + 9 geometry gate + 9 diff gate + 11 report format + 11 standalone binary, the last of which drives an MCP session against a copy of the binary in an empty directory ✓) |
+| Rust CLI (`vson`) | [`cli/`](../cli) | `validate` (`--format text/json/sarif/compact`, `-` for stdin — §5.16), `verify --geometry`, `diff`, `convert p2t/x2t`, `export cypher/caption/fol`, `mcp` (§5.18) | 117 tests (53 lib unit + 6 error-contract + 9 golden throne room + 5 golden validate + 9 geometry gate + 9 diff gate + 15 report format + 11 standalone binary, the last of which drives an MCP session against a copy of the binary in an empty directory ✓) |
 | Graph agreement metric (v1.3) | [`tools/metrics/smatch.py`](../tools/metrics/smatch.py) | two documents → triple-level precision/recall/F1 with per-layer sub-scores (§5.15); reads `.ttl`, `.vson` and `.x.vson` | 31 property + fixture tests (31/31 ✓) |
 | Canonical form (v1.3) | [`tools/canon.py`](../tools/canon.py) | RDFC-1.0 canonical N-Quads + the §4.6 denotation test; reads `.ttl`, `.vson` and `.x.vson`; `--freeze` rewrites the frozen table | 34 tests — the Recommendation's own vectors, the two normalizations, the 29 frozen hashes, the 12 cross-syntax pairs (34/34 ✓) |
 | SHACL validator | `pyshacl` (shelled out by `vson validate`) | semantic well-formedness, strict profile (the relaxed profile ships as a shapes file; no command selects it yet) | 5 SHACL tests + 16 gallery passes |

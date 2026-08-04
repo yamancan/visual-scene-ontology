@@ -22,7 +22,7 @@ See [What the binary carries](#what-the-binary-carries) for the exact list, and 
 
 ```bash
 vson validate <files...|->       # exit 0 pass, 1 gate failure, 2 could not run
-                                 # --format text|json|sarif, `-` reads stdin
+                                 # --format text|json|sarif|compact, `-` reads stdin
 vson verify --geometry <files...># non-conformance checks; same three exit codes
 vson diff <a> <b>                # graph agreement: 0 identical, 1 differing, 2 no verdict
 vson convert p2t <file.vson>     # Penman -> Turtle on stdout
@@ -39,7 +39,7 @@ vson --help
 ## `validate`
 
 ```bash
-vson validate [--format text|json|sarif] [--profile strict] <files...|->
+vson validate [--format text|json|sarif|compact] [--profile strict] <files...|->
 ```
 
 `validate` accepts both `.ttl` and `.vson` files, and `-` for standard input. For `.vson` — and for a `-` stream whose first real token is `(` — the binary transpiles to a temp `.ttl` first; all three gates then read that temp file, which is deleted on every exit path.
@@ -112,6 +112,32 @@ Four things worth knowing before you parse either:
 
 Under both structured formats stdout carries exactly one parseable document and
 nothing else, so `| jq` works; the failure summary moves to stderr.
+
+### `--format compact` — one line per finding
+
+The same findings, for the two readers who never get a parser written for them:
+a person scrolling a failed build, and a `grep`.
+
+```console
+$ vson validate --format compact tests/fixtures/bad_no_viewer.vson
+tests/fixtures/bad_no_viewer.vson:26:14  vson/shacl/DirectionalNeedsViewerShape  Directional spatial facts require exactly one vso:viewer for construal disambiguation (C5), and that viewer must be a CameraView, never an Entity.
+FAIL tests/fixtures/bad_no_viewer.vson (shacl)
+$ echo $?
+1
+```
+
+`path:line:col`, then the rule, then the message, two spaces between the three
+— and then the same `OK` / `FAIL` line `--format text` prints, per input
+([`../docs/vson.md`](../docs/vson.md) §5.16.8). A message written across
+several lines in the shapes file is collapsed to one space per whitespace run,
+because a format that sometimes wraps cannot be counted with `grep -c`. A
+finding whose position was never established prints its path alone rather than
+a plausible `:1:1`.
+
+It is a rendering, not a document format: nothing carries a version, and
+everything a record holds beyond those three fields — focus node, result path,
+constraint, severity — is dropped rather than abbreviated. A repair loop wants
+`--format json`.
 
 ### Standard input
 
@@ -542,16 +568,17 @@ Edit the original, run `--sync`, commit both.
 ## Verification
 
 ```bash
-cd cli && cargo test               # 109 tests: 49 unit, 60 integration
+cd cli && cargo test               # 117 tests: 53 unit, 64 integration
 make cli-check                     # fmt + clippy + build + test + embedded-payload gate + standalone-binary test + graph-isomorphic check vs Python ref
 ```
 
-The 60 integration tests split seven ways: 9 golden-fixture tests
+The 64 integration tests split seven ways: 9 golden-fixture tests
 (`tests/golden_throne_room.rs`), 5 validate-fixture tests
 (`tests/golden_validate.rs`), 9 geometry-gate tests
-(`tests/geometry_gate.rs`), 9 diff tests (`tests/diff_gate.rs`), 11
+(`tests/geometry_gate.rs`), 9 diff tests (`tests/diff_gate.rs`), 15
 report-format tests (`tests/report_format.rs`) holding the JSON and SARIF
-output to a byte-frozen golden and the exit codes to the same three values in
+output to a byte-frozen golden, the compact rendering to the line it promises,
+and the exit codes to the same three values in
 every format, 6 error-contract tests (`tests/error_contract.rs`) pinning the
 exit-2 "never reached a verdict" half of the interface, and 11 standalone
 tests
