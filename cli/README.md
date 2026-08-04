@@ -197,7 +197,7 @@ Two wrappers ship, and both are the same three gates.
 **GitHub Actions** — [`../.github/actions/validate/action.yml`](../.github/actions/validate/action.yml), a composite action:
 
 ```yaml
-- uses: yamancan/visual-scene-ontology/.github/actions/validate@main
+- uses: yamancan/visual-scene-ontology/.github/actions/validate@v1.4.0
   with:
     files: 'scenes/**/*.vson'    # spaces or newlines separate patterns
     format: sarif                # or json (the default)
@@ -209,13 +209,14 @@ Inputs `files`, `profile`, `format`, `report`, `annotate` and
 matches nothing **fails**, because a gate that checks nothing is a gate that
 always passes. The action's own header documents the rest.
 
-The cost today is a build: no release binaries exist yet — this repository is
-private and publishing is a later release — so the action compiles the CLI with
-cargo, about twenty seconds on a warm registry, removed on later runs by
-`Swatinem/rust-cache@v2` with `workspaces: cli`. That step goes away when
-binaries ship, and nothing else about the action changes when it does. The
-Python gates go into a venv under `$RUNNER_TEMP` rather than into the runner's
-system interpreter, which recent distributions refuse anyway (PEP 668).
+The cost today is a build: the action has no download step, so it compiles the
+CLI with cargo from the checkout the `@ref` above pinned — about twenty seconds
+on a warm registry, removed on later runs by `Swatinem/rust-cache@v2` with
+`workspaces: cli`. Teaching it to fetch the release binary for the runner's
+platform instead is a later change to that file, and nothing else about the
+action changes when it lands. The Python gates go into a venv under
+`$RUNNER_TEMP` rather than into the runner's system interpreter, which recent
+distributions refuse anyway (PEP 668).
 
 It emits **annotations**, not code-scanning uploads.
 `github/codeql-action/upload-sarif` needs a public repository or GitHub
@@ -233,7 +234,7 @@ an empty glob must fail — in the `action` job of
 ```yaml
 repos:
   - repo: https://github.com/yamancan/visual-scene-ontology
-    rev: main   # the hooks postdate the v1.3.0 tag
+    rev: v1.4.0   # the first tag that carries these hooks
     hooks:
       - id: vson-validate           # builds the CLI once if nothing is on PATH
       # - id: vson-validate-system  # requires `vson` on PATH; never builds
