@@ -191,8 +191,8 @@ and the byte-frozen envelope beside it published a machine-readable inference
 about her face (`vso:dimension vso:Affect ; vso:value :thoughtful`). No
 copyright licence authorizes that, and the Unsplash License in particular
 conveys no model release. It was removed — image, envelope, index entry and
-manifest entry — on the standard commit `fb446ea` had already set for
-`lookbook.jpg`. It was not replaced: a replacement would require re-baking an
+manifest entry — on the standard the earlier `lookbook.jpg` withdrawal had
+already set. It was not replaced: a replacement would require re-baking an
 envelope, and the four that remain are byte-untouched. See
 [`spec/CHANGELOG.md`](../../spec/CHANGELOG.md), annotation 2026-08-04.
 

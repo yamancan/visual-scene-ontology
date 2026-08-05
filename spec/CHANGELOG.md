@@ -625,8 +625,8 @@ an identifiable woman, and the envelope published a machine-readable inference
 about her face — `vso:dimension vso:Affect ; vso:value :thoughtful`. The demo
 images are Unsplash photographs re-served through Lorem Picsum, and the
 Unsplash License is a grant from the photographer over the photograph; it
-conveys no model release, so nothing in it licenses that assertion. Commit
-`fb446ea` withdrew `lookbook.jpg` on the identifiable-people standard during
+conveys no model release, so nothing in it licenses that assertion. The
+withdrawal of `lookbook.jpg` set the identifiable-people standard during
 v1.3; this applies the same standard to the rest of the corpus rather than to
 one image. Withdrawn, not replaced: a replacement would need a re-bake, and the
 four that remain are byte-untouched.
