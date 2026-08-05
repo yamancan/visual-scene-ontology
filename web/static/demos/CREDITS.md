@@ -18,7 +18,7 @@ and, per entry, in [`manifest.json`](./manifest.json) beside this file.
 | `table.jpg` | Chris Reyem | Unsplash License | <https://unsplash.com/photos/wH8y3nslmyo> | `b9e5850002ed40834b67f4a2d1ed686d73c779558a1a469ec5c97c52a42d64e0` |
 | `bicycle.jpg` | Abhishek Ravi | Unsplash License | <https://unsplash.com/photos/czNXupVwHdU> | `af711930c3867f07d7cb1f5bfeb3e0d4f83c16b1752ced57f1ec19b4b87a4ccb` |
 
-The labels the studio shows (`Coffee Pour`, `Cat on a Rug`, `Fallen King`,
+The labels the studio shows (`Coffee Pour`, `Cat on a Rug`, `Toppled Piece`,
 `Block Tower`, `Garden Table`, `Bicycle & Wall`) are this project's captions,
 not the photographers' titles. On 2026-08-05 the set changed shape: two
 landscape demos (`books.jpg`, a mountain range; `forest.jpg`, a fjord) and one
