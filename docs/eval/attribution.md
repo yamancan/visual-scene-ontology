@@ -148,7 +148,7 @@ Photographs published on Unsplash, retrieved through **Lorem Picsum**
 | File | Photographer | Licence | Unsplash photo | Picsum ID |
 |---|---|---|---|---|
 | `kitchen.jpg` | Karl Fredrickson | Unsplash License | <https://unsplash.com/photos/TYIzeCiZ_60> | 1060 |
-| `forest.jpg` | Alexey Topolyanskiy | Unsplash License | <https://unsplash.com/photos/-oWyJoSqBRM> | 1015 |
+| `forest.jpg` | Oleksii Topolianskyi | Unsplash License | <https://unsplash.com/photos/-oWyJoSqBRM> | 1015 |
 | `books.jpg` | Lee Roylland | Unsplash License | <https://unsplash.com/photos/dfZbts6B4yw> | 684 |
 | `lamp.jpg` | Dominik Martin | Unsplash License | <https://unsplash.com/photos/vf29T22259I> | 325 |
 
