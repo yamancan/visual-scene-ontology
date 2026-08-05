@@ -283,9 +283,7 @@ VSON's genuinely-new content (everything else is W3C/ISO):
 
 ## Status and what isn't done
 
-Solo maintainer, release v1.4.0, zero users and no adopters list. The envelope wire format is stable. There are no release binaries yet, no PyPI package, no crates.io crate and no DOI. The extraction-accuracy eval is pre-registered and has not been run: the pre-registered threshold is 0.80 and it has not been measured ([`tools/extractor/baseline/results.md`](tools/extractor/baseline/results.md)).
-
-Do not trust the prose; run `make check`.
+Solo maintainer, release v1.4.0, zero users and no adopters list. The envelope wire format is stable. Release binaries exist for macOS, Linux and Windows; there is no PyPI package, no crates.io crate and no DOI. The extraction-accuracy eval is pre-registered and has not been run: the pre-registered threshold is 0.80 and it has not been measured ([`tools/extractor/baseline/results.md`](tools/extractor/baseline/results.md)).
 
 ## Docs
 
@@ -307,4 +305,4 @@ Do not trust the prose; run `make check`.
 - [CITATION.cff](CITATION.cff) — no DOI yet; cite the repository
 - [LICENSE](LICENSE) — Apache-2.0
 
-Built by [yaman](https://github.com/yamancan).
+Built by [Yaman Can](https://github.com/yamancan) — BSc Philosophy, Boğaziçi University ([LinkedIn](https://www.linkedin.com/in/yaman-can/)).

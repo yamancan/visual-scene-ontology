@@ -254,9 +254,8 @@
 				is one such producer.
 			</p>
 			<p class="aside">
-				Built by <a href="https://github.com/yamancan" rel="external">Yaman Can</a> — BSc
-				Philosophy, Boğaziçi University. The notation is that philosophy put through a build
-				gate.
+				Built by <a href="https://github.com/yamancan" rel="external">Yaman Can</a> — BSc Philosophy,
+				Boğaziçi University. The notation is that philosophy put through a build gate.
 			</p>
 		</section>
 

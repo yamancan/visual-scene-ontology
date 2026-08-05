@@ -2,8 +2,9 @@
 VSON FOL (first-order logic) renderer — deterministic graph -> Prolog-style
 predicate-logic facts.
 
-VSON's RDF-star core IS first-order logic: every triple `s p o` is a binary
-predicate `p(s, o)`. Reified Events / Processes / Statives / SpatialFacts
+VSON's RDF-star core is the ground atomic fragment of first-order logic
+(quantifier-free, function-free, variable-free): every triple `s p o` is a
+ground binary predicate `p(s, o)`. Reified Events / Processes / Statives / SpatialFacts
 encode n-ary relations as conjunctions of binary triples that share a
 Skolem-like blank node; this renderer collapses those clusters back into
 single n-ary facts so the logical content is visible at a glance.

@@ -135,22 +135,27 @@ graphs, never pixels, with the attribution lines of §3 beside it.
 ## 5. The demo photographs — pixels this repository does ship
 
 Everything above is about material that is *not* published. This section is
-about material that is: four JPEGs under
+about material that is: six JPEGs under
 [`web/static/demos/`](../../web/static/demos), served from the studio as the
 clickable demo strip, and committed to this repository.
 
 ### 5.1 What they are
 
-Photographs published on Unsplash, retrieved through **Lorem Picsum**
-(`picsum.photos`), which re-serves Unsplash photographs and writes a
-`Picsum ID: N` comment into the JPEG it returns.
+Photographs published on Unsplash. `kitchen.jpg` was retrieved through
+**Lorem Picsum** (`picsum.photos`), which re-serves Unsplash photographs and
+writes a `Picsum ID: N` comment into the JPEG it returns; the other five were
+retrieved from each photo's own Unsplash download endpoint and carry an
+`Unsplash <photo-id>` comment instead. Both chains are re-walkable, step by
+step, in the canonical copy of this table.
 
-| File | Photographer | Licence | Unsplash photo | Picsum ID |
-|---|---|---|---|---|
-| `kitchen.jpg` | Karl Fredrickson | Unsplash License | <https://unsplash.com/photos/TYIzeCiZ_60> | 1060 |
-| `forest.jpg` | Oleksii Topolianskyi | Unsplash License | <https://unsplash.com/photos/-oWyJoSqBRM> | 1015 |
-| `books.jpg` | Lee Roylland | Unsplash License | <https://unsplash.com/photos/dfZbts6B4yw> | 684 |
-| `lamp.jpg` | Dominik Martin | Unsplash License | <https://unsplash.com/photos/vf29T22259I> | 325 |
+| File | Photographer | Licence | Unsplash photo |
+|---|---|---|---|
+| `kitchen.jpg` | Karl Fredrickson | Unsplash License | <https://unsplash.com/photos/TYIzeCiZ_60> |
+| `cat.jpg` | Jason Leung | Unsplash License | <https://unsplash.com/photos/bEHmVywPcjE> |
+| `chess.jpg` | Felix Mittermeier | Unsplash License | <https://unsplash.com/photos/nAjil1z3eLk> |
+| `blocks.jpg` | Karl Abuid | Unsplash License | <https://unsplash.com/photos/7ezVb0oTQ6M> |
+| `table.jpg` | Chris Reyem | Unsplash License | <https://unsplash.com/photos/wH8y3nslmyo> |
+| `bicycle.jpg` | Abhishek Ravi | Unsplash License | <https://unsplash.com/photos/czNXupVwHdU> |
 
 The sha256 of each file as served is in
 [`web/static/demos/CREDITS.md`](../../web/static/demos/CREDITS.md), which is the
