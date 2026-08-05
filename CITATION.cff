@@ -6,8 +6,8 @@ abstract: >-
   the compact sigil syntax VSON-X) for representing visual scenes as typed,
   validatable graphs.
 type: software
-version: 1.3.0
-date-released: 2026-07-31
+version: 1.4.0
+date-released: 2026-08-05
 repository-code: "https://github.com/yamancan/visual-scene-ontology"
 license: Apache-2.0
 authors:
