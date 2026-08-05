@@ -46,7 +46,7 @@ That failing document is [`tests/fixtures/bad_no_viewer.vson`](tests/fixtures/ba
 
 **Rung 0 — nothing.** [The studio](https://vson-studio.pages.dev) needs no install, no account and no key.
 
-**Rung 1 — a binary.** There are no release binaries yet, so the two rungs below build from source.
+**Rung 1 — a binary.** [Releases](https://github.com/yamancan/visual-scene-ontology/releases/latest) carry `vson` for macOS (arm64 and x86_64), Linux (x86_64, statically linked) and Windows, beside the `SHA256SUMS` file that names their bytes.
 
 **Rung 2 — Python.**
 
