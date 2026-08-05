@@ -1,11 +1,12 @@
 # Changelog
 
-## v1.4.0 — unreleased
+## v1.4.0 — 2026-08-05
 
 The release-plumbing line. Nothing in the ontology, the shapes, the schema or
 either concrete syntax moves; a v1.3.0 document is a v1.4.0 document, byte for
 byte, and the envelope wire format stays at 1.2. What changes is what happens
-around a tag, and one new way of printing a verdict that was already computed.
+around a tag, one new way of printing a verdict that was already computed, and
+a studio that can show a gate biting.
 
 - **`vson validate --format compact`** (new §5.16.8). One line per finding —
   `path:line:col`, the rule, the message, two spaces between them — and then
@@ -37,6 +38,18 @@ around a tag, and one new way of printing a verdict that was already computed.
   vulnerability to `SECURITY.md` before an issue is opened, and a pull-request
   checklist naming the gates. Blank issues stay enabled: two forms cannot cover
   everything, and a form with no field for your problem is a wall.
+- **The gate, watchable.** On a gallery scene with a directional fact, the
+  studio's conformance pane offers one muted line — *what if the viewer were
+  removed?* Activation tampers an in-memory copy of the document, the Pyodide
+  worker re-validates it, and the C5 refusal renders red with the shape's own
+  message; *restore* returns the true verdict. No key, no model call, no byte
+  on disk moves — the point of the interaction is that the check is local.
+- **The essay, and where it echoes.** *An image is not a sentence*
+  (`docs/essay-an-image-is-not-a-sentence.md`) is the canonical statement of
+  why the design is what it is, receipts attached. The about page carries two
+  sections distilling it, the README points at it, and the namespace landing
+  gained a pipeline drawing whose arrows are the honest data flow: no edge
+  runs from the image into the gates, because the gates read the document.
 
 ## v1.3.0 — 2026-07-31
 
