@@ -43,7 +43,7 @@ Two things it does not grant, and they are the reason this file exists:
   woman and the baked envelope beside it published a machine-readable inference
   about her face (`vso:dimension vso:Affect ; vso:value :thoughtful`), which no
   copyright licence authorizes. See [`spec/CHANGELOG.md`](../../../spec/CHANGELOG.md),
-  annotation 2026-08-04, and commit `fb446ea`, which set the standard.
+  annotation 2026-08-04, and the earlier lookbook withdrawal, which set the standard.
 - **No property release**, and no licence over trademarks or logos that happen
   to appear in a frame.
 
