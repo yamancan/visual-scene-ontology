@@ -27,7 +27,7 @@
   },
   {
    "path": "/demos/chess.jpg",
-   "label": "Fallen King",
+   "label": "Toppled Piece",
    "mime": "image/jpeg",
    "envelope_path": "/demos/envelopes/chess.json",
    "model_used": "claude-fable-5",

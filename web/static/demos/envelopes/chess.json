@@ -1,13 +1,13 @@
 {
-  "scene_id": "VqK8aE9RGafA",
+  "scene_id": "FhhRfgSncY8D",
   "version": "1.2",
   "source": {
     "kind": "image",
     "sha256": "888ed92f8a6e1e26e034c64e6c915c34b176e62ee273853848443160c3233364",
     "uri": "/demos/chess.jpg"
   },
-  "vson_p": "(scene / Composition\n   :framedBy (cam / CameraView :angle high :framing close_up)\n   :framedBy (style / VisualStyle :palette monochrome :medium photograph)\n   :viewedBy cam\n   :depicts (board / PhysicalObject :class Chessboard\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.00,0.28,1.00,0.72\")\n   :depicts (king / PhysicalObject :class ChessPiece\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.30,0.42,0.38,0.20\"\n       :hasQuality (q1 / Quality :dimension Color :value white)\n       :hasQuality (q2 / Quality :dimension ActionState :value fallen)\n       :hasQuality (q3 / Quality :dimension Role :value king))\n   :depicts (queen / PhysicalObject :class ChessPiece\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.42,0.13,0.13,0.32\"\n       :hasQuality (q4 / Quality :dimension Color :value black)\n       :hasQuality (q5 / Quality :dimension Role :value queen))\n   :depicts (knightw / PhysicalObject :class ChessPiece\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.56,0.18,0.14,0.22\"\n       :hasQuality (q6 / Quality :dimension Color :value white)\n       :hasQuality (q7 / Quality :dimension Role :value knight))\n   :depicts (knightb / PhysicalObject :class ChessPiece\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.32,0.18,0.12,0.26\"\n       :hasQuality (q8 / Quality :dimension Color :value black)\n       :hasQuality (q9 / Quality :dimension Role :value knight))\n   :depicts (pawns / Aggregate :class ChessPiece\n       :countability Collective\n       :bbox2d \"0.00,0.55,1.00,0.45\")\n   :depicts (sf1 / SpatialFact :figure king :ground board :rcc EC)\n   :depicts (sf2 / SpatialFact :figure queen :ground king :directional behind :viewer cam)\n   :depicts (sf3 / SpatialFact :figure knightw :ground king :directional right_of :viewer cam)\n   :depicts (sf4 / SpatialFact :figure knightb :ground king :directional left_of :viewer cam))",
-  "vson_t": "@prefix vso:   <https://w3id.org/vson/v1/ontology#> .\n@prefix allen: <https://w3id.org/vson/v1/allen#> .\n@prefix rcc:   <https://w3id.org/vson/v1/rcc8#> .\n@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n@prefix :      <https://example.org/scenes/anonymous#> .\n\n:scene a <https://w3id.org/vson/v1/ontology#Composition> .\n:cam a <https://w3id.org/vson/v1/ontology#CameraView> .\n:cam <https://w3id.org/vson/v1/ontology#angle> \"high\" .\n:cam <https://w3id.org/vson/v1/ontology#framing> \"close_up\" .\n:scene <https://w3id.org/vson/v1/ontology#framedBy> :cam .\n:style a <https://w3id.org/vson/v1/ontology#VisualStyle> .\n:style <https://w3id.org/vson/v1/ontology#palette> \"monochrome\" .\n:style <https://w3id.org/vson/v1/ontology#medium> \"photograph\" .\n:scene <https://w3id.org/vson/v1/ontology#framedBy> :style .\n:scene <https://w3id.org/vson/v1/ontology#viewedBy> :cam .\n:board a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:board <https://w3id.org/vson/v1/ontology#class> :Chessboard .\n:board <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:board <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:board <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:board <https://w3id.org/vson/v1/ontology#bbox2d> \"0.00,0.28,1.00,0.72\" .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :board .\n:king a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:king <https://w3id.org/vson/v1/ontology#class> :ChessPiece .\n:king <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:king <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:king <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:king <https://w3id.org/vson/v1/ontology#bbox2d> \"0.30,0.42,0.38,0.20\" .\n:q1 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q1 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Color> .\n:q1 <https://w3id.org/vson/v1/ontology#value> :white .\n:king <https://w3id.org/vson/v1/ontology#hasQuality> :q1 .\n:q2 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q2 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#ActionState> .\n:q2 <https://w3id.org/vson/v1/ontology#value> :fallen .\n:king <https://w3id.org/vson/v1/ontology#hasQuality> :q2 .\n:q3 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q3 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Role> .\n:q3 <https://w3id.org/vson/v1/ontology#value> :king .\n:king <https://w3id.org/vson/v1/ontology#hasQuality> :q3 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :king .\n:queen a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:queen <https://w3id.org/vson/v1/ontology#class> :ChessPiece .\n:queen <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:queen <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:queen <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:queen <https://w3id.org/vson/v1/ontology#bbox2d> \"0.42,0.13,0.13,0.32\" .\n:q4 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q4 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Color> .\n:q4 <https://w3id.org/vson/v1/ontology#value> :black .\n:queen <https://w3id.org/vson/v1/ontology#hasQuality> :q4 .\n:q5 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q5 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Role> .\n:q5 <https://w3id.org/vson/v1/ontology#value> :queen .\n:queen <https://w3id.org/vson/v1/ontology#hasQuality> :q5 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :queen .\n:knightw a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:knightw <https://w3id.org/vson/v1/ontology#class> :ChessPiece .\n:knightw <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:knightw <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:knightw <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:knightw <https://w3id.org/vson/v1/ontology#bbox2d> \"0.56,0.18,0.14,0.22\" .\n:q6 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q6 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Color> .\n:q6 <https://w3id.org/vson/v1/ontology#value> :white .\n:knightw <https://w3id.org/vson/v1/ontology#hasQuality> :q6 .\n:q7 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q7 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Role> .\n:q7 <https://w3id.org/vson/v1/ontology#value> :knight .\n:knightw <https://w3id.org/vson/v1/ontology#hasQuality> :q7 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :knightw .\n:knightb a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:knightb <https://w3id.org/vson/v1/ontology#class> :ChessPiece .\n:knightb <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:knightb <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:knightb <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:knightb <https://w3id.org/vson/v1/ontology#bbox2d> \"0.32,0.18,0.12,0.26\" .\n:q8 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q8 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Color> .\n:q8 <https://w3id.org/vson/v1/ontology#value> :black .\n:knightb <https://w3id.org/vson/v1/ontology#hasQuality> :q8 .\n:q9 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q9 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Role> .\n:q9 <https://w3id.org/vson/v1/ontology#value> :knight .\n:knightb <https://w3id.org/vson/v1/ontology#hasQuality> :q9 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :knightb .\n:pawns a <https://w3id.org/vson/v1/ontology#Aggregate> .\n:pawns <https://w3id.org/vson/v1/ontology#class> :ChessPiece .\n:pawns <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Collective> .\n:pawns <https://w3id.org/vson/v1/ontology#bbox2d> \"0.00,0.55,1.00,0.45\" .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :pawns .\n:sf1 a <https://w3id.org/vson/v1/ontology#SpatialFact> .\n:sf1 <https://w3id.org/vson/v1/ontology#figure> :king .\n:sf1 <https://w3id.org/vson/v1/ontology#ground> :board .\n:sf1 <https://w3id.org/vson/v1/ontology#rcc> <https://w3id.org/vson/v1/rcc8#EC> .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :sf1 .\n:sf2 a <https://w3id.org/vson/v1/ontology#SpatialFact> .\n:sf2 <https://w3id.org/vson/v1/ontology#figure> :queen .\n:sf2 <https://w3id.org/vson/v1/ontology#ground> :king .\n:sf2 <https://w3id.org/vson/v1/ontology#directional> <https://w3id.org/vson/v1/ontology#behind> .\n:sf2 <https://w3id.org/vson/v1/ontology#viewer> :cam .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :sf2 .\n:sf3 a <https://w3id.org/vson/v1/ontology#SpatialFact> .\n:sf3 <https://w3id.org/vson/v1/ontology#figure> :knightw .\n:sf3 <https://w3id.org/vson/v1/ontology#ground> :king .\n:sf3 <https://w3id.org/vson/v1/ontology#directional> <https://w3id.org/vson/v1/ontology#right_of> .\n:sf3 <https://w3id.org/vson/v1/ontology#viewer> :cam .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :sf3 .\n:sf4 a <https://w3id.org/vson/v1/ontology#SpatialFact> .\n:sf4 <https://w3id.org/vson/v1/ontology#figure> :knightb .\n:sf4 <https://w3id.org/vson/v1/ontology#ground> :king .\n:sf4 <https://w3id.org/vson/v1/ontology#directional> <https://w3id.org/vson/v1/ontology#left_of> .\n:sf4 <https://w3id.org/vson/v1/ontology#viewer> :cam .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :sf4 .\n",
+  "vson_p": "(scene / Composition\n   :framedBy (cam / CameraView :angle high :framing close_up)\n   :framedBy (style / VisualStyle :palette monochrome :medium photograph)\n   :viewedBy cam\n   :depicts (board / PhysicalObject :class Chessboard\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.00,0.28,1.00,0.72\")\n   :depicts (toppled / PhysicalObject :class ChessPiece\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.33,0.41,0.355,0.20\"\n       :hasQuality (q1 / Quality :dimension Color :value white)\n       :hasQuality (q2 / Quality :dimension ActionState :value fallen))\n   :depicts (queen / PhysicalObject :class ChessPiece\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.435,0.135,0.115,0.315\"\n       :hasQuality (q4 / Quality :dimension Color :value black)\n       :hasQuality (q5 / Quality :dimension Role :value queen))\n   :depicts (knightright / PhysicalObject :class ChessPiece\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.562,0.18,0.115,0.215\"\n       :hasQuality (q6 / Quality :dimension Color :value white)\n       :hasQuality (q7 / Quality :dimension Role :value knight))\n   :depicts (knightleft / PhysicalObject :class ChessPiece\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.32,0.18,0.12,0.26\"\n       :hasQuality (q8 / Quality :dimension Color :value white)\n       :hasQuality (q9 / Quality :dimension Role :value knight))\n   :depicts (rookleft / PhysicalObject :class ChessPiece\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.03,0.32,0.105,0.25\"\n       :hasQuality (q10 / Quality :dimension Color :value white)\n       :hasQuality (q11 / Quality :dimension Role :value rook))\n   :depicts (rookright / PhysicalObject :class ChessPiece\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.894,0.30,0.094,0.285\"\n       :hasQuality (q12 / Quality :dimension Color :value white)\n       :hasQuality (q13 / Quality :dimension Role :value rook))\n   :depicts (bishopnear / PhysicalObject :class ChessPiece\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.145,0.325,0.09,0.295\"\n       :hasQuality (q14 / Quality :dimension Color :value black)\n       :hasQuality (q15 / Quality :dimension Role :value bishop))\n   :depicts (pawnback / PhysicalObject :class ChessPiece\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.205,0.25,0.085,0.285\"\n       :hasQuality (q16 / Quality :dimension Color :value black)\n       :hasQuality (q17 / Quality :dimension Role :value pawn))\n   :depicts (pawnfar / PhysicalObject :class ChessPiece\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.718,0.31,0.075,0.20\"\n       :hasQuality (q18 / Quality :dimension Color :value black)\n       :hasQuality (q19 / Quality :dimension Role :value pawn))\n   :depicts (pawnnear / PhysicalObject :class ChessPiece\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.797,0.44,0.074,0.19\"\n       :hasQuality (q20 / Quality :dimension Color :value black)\n       :hasQuality (q21 / Quality :dimension Role :value pawn))\n   :depicts (foreground / Aggregate :class ChessPiece\n       :countability Collective\n       :bbox2d \"0.00,0.62,1.00,0.38\"\n       :hasQuality (q22 / Quality :dimension Focal :value out_of_focus))\n   :depicts (sf1 / SpatialFact :figure toppled :ground board :rcc EC)\n   :depicts (sf2 / SpatialFact :figure queen :ground toppled :directional behind :viewer cam)\n   :depicts (sf3 / SpatialFact :figure knightright :ground toppled :directional right_of :viewer cam)\n   :depicts (sf4 / SpatialFact :figure knightleft :ground toppled :directional left_of :viewer cam)\n   :depicts (sf5 / SpatialFact :figure rookleft :ground bishopnear :directional left_of :viewer cam)\n   :depicts (sf6 / SpatialFact :figure rookright :ground pawnnear :directional right_of :viewer cam)\n   :depicts (sf7 / SpatialFact :figure pawnfar :ground pawnnear :directional above :viewer cam)\n   :depicts (sf8 / SpatialFact :figure foreground :ground board :directional below :viewer cam)\n   :depicts (sf9 / SpatialFact :figure knightleft :ground queen :proximal next_to))",
+  "vson_t": "@prefix vso:   <https://w3id.org/vson/v1/ontology#> .\n@prefix allen: <https://w3id.org/vson/v1/allen#> .\n@prefix rcc:   <https://w3id.org/vson/v1/rcc8#> .\n@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n@prefix :      <https://example.org/scenes/anonymous#> .\n\n:scene a <https://w3id.org/vson/v1/ontology#Composition> .\n:cam a <https://w3id.org/vson/v1/ontology#CameraView> .\n:cam <https://w3id.org/vson/v1/ontology#angle> \"high\" .\n:cam <https://w3id.org/vson/v1/ontology#framing> \"close_up\" .\n:scene <https://w3id.org/vson/v1/ontology#framedBy> :cam .\n:style a <https://w3id.org/vson/v1/ontology#VisualStyle> .\n:style <https://w3id.org/vson/v1/ontology#palette> \"monochrome\" .\n:style <https://w3id.org/vson/v1/ontology#medium> \"photograph\" .\n:scene <https://w3id.org/vson/v1/ontology#framedBy> :style .\n:scene <https://w3id.org/vson/v1/ontology#viewedBy> :cam .\n:board a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:board <https://w3id.org/vson/v1/ontology#class> :Chessboard .\n:board <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:board <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:board <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:board <https://w3id.org/vson/v1/ontology#bbox2d> \"0.00,0.28,1.00,0.72\" .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :board .\n:toppled a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:toppled <https://w3id.org/vson/v1/ontology#class> :ChessPiece .\n:toppled <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:toppled <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:toppled <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:toppled <https://w3id.org/vson/v1/ontology#bbox2d> \"0.33,0.41,0.355,0.20\" .\n:q1 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q1 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Color> .\n:q1 <https://w3id.org/vson/v1/ontology#value> :white .\n:toppled <https://w3id.org/vson/v1/ontology#hasQuality> :q1 .\n:q2 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q2 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#ActionState> .\n:q2 <https://w3id.org/vson/v1/ontology#value> :fallen .\n:toppled <https://w3id.org/vson/v1/ontology#hasQuality> :q2 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :toppled .\n:queen a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:queen <https://w3id.org/vson/v1/ontology#class> :ChessPiece .\n:queen <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:queen <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:queen <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:queen <https://w3id.org/vson/v1/ontology#bbox2d> \"0.435,0.135,0.115,0.315\" .\n:q4 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q4 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Color> .\n:q4 <https://w3id.org/vson/v1/ontology#value> :black .\n:queen <https://w3id.org/vson/v1/ontology#hasQuality> :q4 .\n:q5 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q5 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Role> .\n:q5 <https://w3id.org/vson/v1/ontology#value> :queen .\n:queen <https://w3id.org/vson/v1/ontology#hasQuality> :q5 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :queen .\n:knightright a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:knightright <https://w3id.org/vson/v1/ontology#class> :ChessPiece .\n:knightright <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:knightright <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:knightright <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:knightright <https://w3id.org/vson/v1/ontology#bbox2d> \"0.562,0.18,0.115,0.215\" .\n:q6 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q6 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Color> .\n:q6 <https://w3id.org/vson/v1/ontology#value> :white .\n:knightright <https://w3id.org/vson/v1/ontology#hasQuality> :q6 .\n:q7 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q7 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Role> .\n:q7 <https://w3id.org/vson/v1/ontology#value> :knight .\n:knightright <https://w3id.org/vson/v1/ontology#hasQuality> :q7 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :knightright .\n:knightleft a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:knightleft <https://w3id.org/vson/v1/ontology#class> :ChessPiece .\n:knightleft <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:knightleft <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:knightleft <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:knightleft <https://w3id.org/vson/v1/ontology#bbox2d> \"0.32,0.18,0.12,0.26\" .\n:q8 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q8 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Color> .\n:q8 <https://w3id.org/vson/v1/ontology#value> :white .\n:knightleft <https://w3id.org/vson/v1/ontology#hasQuality> :q8 .\n:q9 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q9 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Role> .\n:q9 <https://w3id.org/vson/v1/ontology#value> :knight .\n:knightleft <https://w3id.org/vson/v1/ontology#hasQuality> :q9 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :knightleft .\n:rookleft a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:rookleft <https://w3id.org/vson/v1/ontology#class> :ChessPiece .\n:rookleft <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:rookleft <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:rookleft <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:rookleft <https://w3id.org/vson/v1/ontology#bbox2d> \"0.03,0.32,0.105,0.25\" .\n:q10 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q10 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Color> .\n:q10 <https://w3id.org/vson/v1/ontology#value> :white .\n:rookleft <https://w3id.org/vson/v1/ontology#hasQuality> :q10 .\n:q11 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q11 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Role> .\n:q11 <https://w3id.org/vson/v1/ontology#value> :rook .\n:rookleft <https://w3id.org/vson/v1/ontology#hasQuality> :q11 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :rookleft .\n:rookright a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:rookright <https://w3id.org/vson/v1/ontology#class> :ChessPiece .\n:rookright <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:rookright <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:rookright <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:rookright <https://w3id.org/vson/v1/ontology#bbox2d> \"0.894,0.30,0.094,0.285\" .\n:q12 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q12 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Color> .\n:q12 <https://w3id.org/vson/v1/ontology#value> :white .\n:rookright <https://w3id.org/vson/v1/ontology#hasQuality> :q12 .\n:q13 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q13 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Role> .\n:q13 <https://w3id.org/vson/v1/ontology#value> :rook .\n:rookright <https://w3id.org/vson/v1/ontology#hasQuality> :q13 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :rookright .\n:bishopnear a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:bishopnear <https://w3id.org/vson/v1/ontology#class> :ChessPiece .\n:bishopnear <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:bishopnear <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:bishopnear <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:bishopnear <https://w3id.org/vson/v1/ontology#bbox2d> \"0.145,0.325,0.09,0.295\" .\n:q14 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q14 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Color> .\n:q14 <https://w3id.org/vson/v1/ontology#value> :black .\n:bishopnear <https://w3id.org/vson/v1/ontology#hasQuality> :q14 .\n:q15 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q15 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Role> .\n:q15 <https://w3id.org/vson/v1/ontology#value> :bishop .\n:bishopnear <https://w3id.org/vson/v1/ontology#hasQuality> :q15 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :bishopnear .\n:pawnback a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:pawnback <https://w3id.org/vson/v1/ontology#class> :ChessPiece .\n:pawnback <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:pawnback <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:pawnback <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:pawnback <https://w3id.org/vson/v1/ontology#bbox2d> \"0.205,0.25,0.085,0.285\" .\n:q16 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q16 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Color> .\n:q16 <https://w3id.org/vson/v1/ontology#value> :black .\n:pawnback <https://w3id.org/vson/v1/ontology#hasQuality> :q16 .\n:q17 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q17 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Role> .\n:q17 <https://w3id.org/vson/v1/ontology#value> :pawn .\n:pawnback <https://w3id.org/vson/v1/ontology#hasQuality> :q17 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :pawnback .\n:pawnfar a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:pawnfar <https://w3id.org/vson/v1/ontology#class> :ChessPiece .\n:pawnfar <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:pawnfar <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:pawnfar <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:pawnfar <https://w3id.org/vson/v1/ontology#bbox2d> \"0.718,0.31,0.075,0.20\" .\n:q18 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q18 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Color> .\n:q18 <https://w3id.org/vson/v1/ontology#value> :black .\n:pawnfar <https://w3id.org/vson/v1/ontology#hasQuality> :q18 .\n:q19 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q19 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Role> .\n:q19 <https://w3id.org/vson/v1/ontology#value> :pawn .\n:pawnfar <https://w3id.org/vson/v1/ontology#hasQuality> :q19 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :pawnfar .\n:pawnnear a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:pawnnear <https://w3id.org/vson/v1/ontology#class> :ChessPiece .\n:pawnnear <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:pawnnear <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:pawnnear <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:pawnnear <https://w3id.org/vson/v1/ontology#bbox2d> \"0.797,0.44,0.074,0.19\" .\n:q20 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q20 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Color> .\n:q20 <https://w3id.org/vson/v1/ontology#value> :black .\n:pawnnear <https://w3id.org/vson/v1/ontology#hasQuality> :q20 .\n:q21 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q21 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Role> .\n:q21 <https://w3id.org/vson/v1/ontology#value> :pawn .\n:pawnnear <https://w3id.org/vson/v1/ontology#hasQuality> :q21 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :pawnnear .\n:foreground a <https://w3id.org/vson/v1/ontology#Aggregate> .\n:foreground <https://w3id.org/vson/v1/ontology#class> :ChessPiece .\n:foreground <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Collective> .\n:foreground <https://w3id.org/vson/v1/ontology#bbox2d> \"0.00,0.62,1.00,0.38\" .\n:q22 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q22 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Focal> .\n:q22 <https://w3id.org/vson/v1/ontology#value> :out_of_focus .\n:foreground <https://w3id.org/vson/v1/ontology#hasQuality> :q22 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :foreground .\n:sf1 a <https://w3id.org/vson/v1/ontology#SpatialFact> .\n:sf1 <https://w3id.org/vson/v1/ontology#figure> :toppled .\n:sf1 <https://w3id.org/vson/v1/ontology#ground> :board .\n:sf1 <https://w3id.org/vson/v1/ontology#rcc> <https://w3id.org/vson/v1/rcc8#EC> .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :sf1 .\n:sf2 a <https://w3id.org/vson/v1/ontology#SpatialFact> .\n:sf2 <https://w3id.org/vson/v1/ontology#figure> :queen .\n:sf2 <https://w3id.org/vson/v1/ontology#ground> :toppled .\n:sf2 <https://w3id.org/vson/v1/ontology#directional> <https://w3id.org/vson/v1/ontology#behind> .\n:sf2 <https://w3id.org/vson/v1/ontology#viewer> :cam .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :sf2 .\n:sf3 a <https://w3id.org/vson/v1/ontology#SpatialFact> .\n:sf3 <https://w3id.org/vson/v1/ontology#figure> :knightright .\n:sf3 <https://w3id.org/vson/v1/ontology#ground> :toppled .\n:sf3 <https://w3id.org/vson/v1/ontology#directional> <https://w3id.org/vson/v1/ontology#right_of> .\n:sf3 <https://w3id.org/vson/v1/ontology#viewer> :cam .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :sf3 .\n:sf4 a <https://w3id.org/vson/v1/ontology#SpatialFact> .\n:sf4 <https://w3id.org/vson/v1/ontology#figure> :knightleft .\n:sf4 <https://w3id.org/vson/v1/ontology#ground> :toppled .\n:sf4 <https://w3id.org/vson/v1/ontology#directional> <https://w3id.org/vson/v1/ontology#left_of> .\n:sf4 <https://w3id.org/vson/v1/ontology#viewer> :cam .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :sf4 .\n:sf5 a <https://w3id.org/vson/v1/ontology#SpatialFact> .\n:sf5 <https://w3id.org/vson/v1/ontology#figure> :rookleft .\n:sf5 <https://w3id.org/vson/v1/ontology#ground> :bishopnear .\n:sf5 <https://w3id.org/vson/v1/ontology#directional> <https://w3id.org/vson/v1/ontology#left_of> .\n:sf5 <https://w3id.org/vson/v1/ontology#viewer> :cam .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :sf5 .\n:sf6 a <https://w3id.org/vson/v1/ontology#SpatialFact> .\n:sf6 <https://w3id.org/vson/v1/ontology#figure> :rookright .\n:sf6 <https://w3id.org/vson/v1/ontology#ground> :pawnnear .\n:sf6 <https://w3id.org/vson/v1/ontology#directional> <https://w3id.org/vson/v1/ontology#right_of> .\n:sf6 <https://w3id.org/vson/v1/ontology#viewer> :cam .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :sf6 .\n:sf7 a <https://w3id.org/vson/v1/ontology#SpatialFact> .\n:sf7 <https://w3id.org/vson/v1/ontology#figure> :pawnfar .\n:sf7 <https://w3id.org/vson/v1/ontology#ground> :pawnnear .\n:sf7 <https://w3id.org/vson/v1/ontology#directional> <https://w3id.org/vson/v1/ontology#above> .\n:sf7 <https://w3id.org/vson/v1/ontology#viewer> :cam .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :sf7 .\n:sf8 a <https://w3id.org/vson/v1/ontology#SpatialFact> .\n:sf8 <https://w3id.org/vson/v1/ontology#figure> :foreground .\n:sf8 <https://w3id.org/vson/v1/ontology#ground> :board .\n:sf8 <https://w3id.org/vson/v1/ontology#directional> <https://w3id.org/vson/v1/ontology#below> .\n:sf8 <https://w3id.org/vson/v1/ontology#viewer> :cam .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :sf8 .\n:sf9 a <https://w3id.org/vson/v1/ontology#SpatialFact> .\n:sf9 <https://w3id.org/vson/v1/ontology#figure> :knightleft .\n:sf9 <https://w3id.org/vson/v1/ontology#ground> :queen .\n:sf9 <https://w3id.org/vson/v1/ontology#proximal> <https://w3id.org/vson/v1/ontology#next_to> .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :sf9 .\n",
   "graph": {
     "nodes": [
       {
@@ -45,14 +45,13 @@
         }
       },
       {
-        "id": "king",
+        "id": "toppled",
         "kind": "PhysicalObject",
         "properties": {
           "class": "ChessPiece",
-          "bbox2d": "0.30,0.42,0.38,0.20",
+          "bbox2d": "0.33,0.41,0.355,0.20",
           "q_Color": "white",
-          "q_ActionState": "fallen",
-          "q_Role": "king"
+          "q_ActionState": "fallen"
         },
         "class": "ChessPiece",
         "traits": {
@@ -66,7 +65,7 @@
         "kind": "PhysicalObject",
         "properties": {
           "class": "ChessPiece",
-          "bbox2d": "0.42,0.13,0.13,0.32",
+          "bbox2d": "0.435,0.135,0.115,0.315",
           "q_Color": "black",
           "q_Role": "queen"
         },
@@ -78,11 +77,11 @@
         }
       },
       {
-        "id": "knightw",
+        "id": "knightright",
         "kind": "PhysicalObject",
         "properties": {
           "class": "ChessPiece",
-          "bbox2d": "0.56,0.18,0.14,0.22",
+          "bbox2d": "0.562,0.18,0.115,0.215",
           "q_Color": "white",
           "q_Role": "knight"
         },
@@ -94,12 +93,12 @@
         }
       },
       {
-        "id": "knightb",
+        "id": "knightleft",
         "kind": "PhysicalObject",
         "properties": {
           "class": "ChessPiece",
           "bbox2d": "0.32,0.18,0.12,0.26",
-          "q_Color": "black",
+          "q_Color": "white",
           "q_Role": "knight"
         },
         "class": "ChessPiece",
@@ -110,11 +109,108 @@
         }
       },
       {
-        "id": "pawns",
+        "id": "rookleft",
+        "kind": "PhysicalObject",
+        "properties": {
+          "class": "ChessPiece",
+          "bbox2d": "0.03,0.32,0.105,0.25",
+          "q_Color": "white",
+          "q_Role": "rook"
+        },
+        "class": "ChessPiece",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        }
+      },
+      {
+        "id": "rookright",
+        "kind": "PhysicalObject",
+        "properties": {
+          "class": "ChessPiece",
+          "bbox2d": "0.894,0.30,0.094,0.285",
+          "q_Color": "white",
+          "q_Role": "rook"
+        },
+        "class": "ChessPiece",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        }
+      },
+      {
+        "id": "bishopnear",
+        "kind": "PhysicalObject",
+        "properties": {
+          "class": "ChessPiece",
+          "bbox2d": "0.145,0.325,0.09,0.295",
+          "q_Color": "black",
+          "q_Role": "bishop"
+        },
+        "class": "ChessPiece",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        }
+      },
+      {
+        "id": "pawnback",
+        "kind": "PhysicalObject",
+        "properties": {
+          "class": "ChessPiece",
+          "bbox2d": "0.205,0.25,0.085,0.285",
+          "q_Color": "black",
+          "q_Role": "pawn"
+        },
+        "class": "ChessPiece",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        }
+      },
+      {
+        "id": "pawnfar",
+        "kind": "PhysicalObject",
+        "properties": {
+          "class": "ChessPiece",
+          "bbox2d": "0.718,0.31,0.075,0.20",
+          "q_Color": "black",
+          "q_Role": "pawn"
+        },
+        "class": "ChessPiece",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        }
+      },
+      {
+        "id": "pawnnear",
+        "kind": "PhysicalObject",
+        "properties": {
+          "class": "ChessPiece",
+          "bbox2d": "0.797,0.44,0.074,0.19",
+          "q_Color": "black",
+          "q_Role": "pawn"
+        },
+        "class": "ChessPiece",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        }
+      },
+      {
+        "id": "foreground",
         "kind": "Aggregate",
         "properties": {
           "class": "ChessPiece",
-          "bbox2d": "0.00,0.55,1.00,0.45"
+          "bbox2d": "0.00,0.62,1.00,0.38",
+          "q_Focal": "out_of_focus"
         },
         "class": "ChessPiece",
         "traits": {
@@ -148,6 +244,41 @@
         "properties": {
           "directional": "left_of"
         }
+      },
+      {
+        "id": "sf5",
+        "kind": "SpatialFact",
+        "properties": {
+          "directional": "left_of"
+        }
+      },
+      {
+        "id": "sf6",
+        "kind": "SpatialFact",
+        "properties": {
+          "directional": "right_of"
+        }
+      },
+      {
+        "id": "sf7",
+        "kind": "SpatialFact",
+        "properties": {
+          "directional": "above"
+        }
+      },
+      {
+        "id": "sf8",
+        "kind": "SpatialFact",
+        "properties": {
+          "directional": "below"
+        }
+      },
+      {
+        "id": "sf9",
+        "kind": "SpatialFact",
+        "properties": {
+          "proximal": "next_to"
+        }
       }
     ],
     "edges": [
@@ -173,7 +304,7 @@
       },
       {
         "from": "scene",
-        "to": "king",
+        "to": "toppled",
         "label": "depicts"
       },
       {
@@ -183,22 +314,52 @@
       },
       {
         "from": "scene",
-        "to": "knightw",
+        "to": "knightright",
         "label": "depicts"
       },
       {
         "from": "scene",
-        "to": "knightb",
+        "to": "knightleft",
         "label": "depicts"
       },
       {
         "from": "scene",
-        "to": "pawns",
+        "to": "rookleft",
+        "label": "depicts"
+      },
+      {
+        "from": "scene",
+        "to": "rookright",
+        "label": "depicts"
+      },
+      {
+        "from": "scene",
+        "to": "bishopnear",
+        "label": "depicts"
+      },
+      {
+        "from": "scene",
+        "to": "pawnback",
+        "label": "depicts"
+      },
+      {
+        "from": "scene",
+        "to": "pawnfar",
+        "label": "depicts"
+      },
+      {
+        "from": "scene",
+        "to": "pawnnear",
+        "label": "depicts"
+      },
+      {
+        "from": "scene",
+        "to": "foreground",
         "label": "depicts"
       },
       {
         "from": "sf1",
-        "to": "king",
+        "to": "toppled",
         "label": "figure"
       },
       {
@@ -218,7 +379,7 @@
       },
       {
         "from": "sf2",
-        "to": "king",
+        "to": "toppled",
         "label": "ground"
       },
       {
@@ -233,12 +394,12 @@
       },
       {
         "from": "sf3",
-        "to": "knightw",
+        "to": "knightright",
         "label": "figure"
       },
       {
         "from": "sf3",
-        "to": "king",
+        "to": "toppled",
         "label": "ground"
       },
       {
@@ -253,12 +414,12 @@
       },
       {
         "from": "sf4",
-        "to": "knightb",
+        "to": "knightleft",
         "label": "figure"
       },
       {
         "from": "sf4",
-        "to": "king",
+        "to": "toppled",
         "label": "ground"
       },
       {
@@ -269,6 +430,101 @@
       {
         "from": "scene",
         "to": "sf4",
+        "label": "depicts"
+      },
+      {
+        "from": "sf5",
+        "to": "rookleft",
+        "label": "figure"
+      },
+      {
+        "from": "sf5",
+        "to": "bishopnear",
+        "label": "ground"
+      },
+      {
+        "from": "sf5",
+        "to": "cam",
+        "label": "viewer"
+      },
+      {
+        "from": "scene",
+        "to": "sf5",
+        "label": "depicts"
+      },
+      {
+        "from": "sf6",
+        "to": "rookright",
+        "label": "figure"
+      },
+      {
+        "from": "sf6",
+        "to": "pawnnear",
+        "label": "ground"
+      },
+      {
+        "from": "sf6",
+        "to": "cam",
+        "label": "viewer"
+      },
+      {
+        "from": "scene",
+        "to": "sf6",
+        "label": "depicts"
+      },
+      {
+        "from": "sf7",
+        "to": "pawnfar",
+        "label": "figure"
+      },
+      {
+        "from": "sf7",
+        "to": "pawnnear",
+        "label": "ground"
+      },
+      {
+        "from": "sf7",
+        "to": "cam",
+        "label": "viewer"
+      },
+      {
+        "from": "scene",
+        "to": "sf7",
+        "label": "depicts"
+      },
+      {
+        "from": "sf8",
+        "to": "foreground",
+        "label": "figure"
+      },
+      {
+        "from": "sf8",
+        "to": "board",
+        "label": "ground"
+      },
+      {
+        "from": "sf8",
+        "to": "cam",
+        "label": "viewer"
+      },
+      {
+        "from": "scene",
+        "to": "sf8",
+        "label": "depicts"
+      },
+      {
+        "from": "sf9",
+        "to": "knightleft",
+        "label": "figure"
+      },
+      {
+        "from": "sf9",
+        "to": "queen",
+        "label": "ground"
+      },
+      {
+        "from": "scene",
+        "to": "sf9",
         "label": "depicts"
       }
     ]
