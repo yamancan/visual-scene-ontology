@@ -102,10 +102,12 @@ def _citation_fields() -> "dict[str, str]":
     A three-key line reader rather than a YAML parse: adding a YAML dependency
     to read four scalars off a flat file would be a dependency this repository
     does not otherwise need. The file is CFF 1.2, whose top-level scalars are
-    plain `key: value` lines; `authors` is the one nested read, and it takes
-    the first `- name:` entry.
+    plain `key: value` lines; `authors` is the one nested read. A person entry
+    (`given-names` + `family-names`) composes as "Given Family"; an entity
+    entry (`- name:`) is taken verbatim.
     """
     fields: "dict[str, str]" = {}
+    given = family = None
     with open(os.path.join(ROOT, CITATION), encoding="utf-8") as fh:
         for line in fh:
             stripped = line.strip()
@@ -115,6 +117,14 @@ def _citation_fields() -> "dict[str, str]":
                     fields[key] = stripped[len(prefix):].strip().strip('"')
             if stripped.startswith("- name:") and "author" not in fields:
                 fields["author"] = stripped[len("- name:"):].strip().strip('"')
+            if stripped.startswith("- given-names:") and given is None:
+                given = stripped[len("- given-names:"):].strip().strip('"')
+            elif stripped.startswith("given-names:") and given is None:
+                given = stripped[len("given-names:"):].strip().strip('"')
+            if stripped.startswith("family-names:") and family is None:
+                family = stripped[len("family-names:"):].strip().strip('"')
+    if "author" not in fields and given and family:
+        fields["author"] = f"{given} {family}"
     return fields
 
 

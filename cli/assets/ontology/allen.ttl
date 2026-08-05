@@ -22,7 +22,7 @@
     dc:created "2026-05-02"^^xsd:date ;
     dc:issued "2026-07-31"^^xsd:date ;
     dc:publisher "yamancan" ;
-    dc:bibliographicCitation "yamancan (2026). Visual Scene Ontology Notation (VSON), release 1.4.0. https://github.com/yamancan/visual-scene-ontology (CITATION.cff)" ;
+    dc:bibliographicCitation "Yaman Can (2026). Visual Scene Ontology Notation (VSON), release 1.4.0. https://github.com/yamancan/visual-scene-ontology (CITATION.cff)" ;
     owl:versionInfo "1.2" ;
     # Unchanged. The core vocabulary's preferred prefix moved "vso" -> "vson"
     # because "vso" is already published by another vocabulary (ontology/vso.ttl,

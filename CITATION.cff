@@ -11,4 +11,6 @@ date-released: 2026-08-05
 repository-code: "https://github.com/yamancan/visual-scene-ontology"
 license: Apache-2.0
 authors:
-  - name: "yamancan"
+  - given-names: Yaman
+    family-names: Can
+    alias: yamancan
