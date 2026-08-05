@@ -76,6 +76,10 @@ make x-check       # VSON-X gallery round-trip parity (12 pairs)
 
 ## What a VSON document looks like
 
+![The studio in Source view: on the left a photograph of a garden table with a bounding box drawn over each entity the document names; on the right the VSON-P document itself, 52 lines, declaring the table, the grapes as an Aggregate, the bowl, the tomatoes and the jars, each with its traits, its normalized bbox2d and its colour or material quality. Across the top, the Conforms badge and a count of 10 entities.](docs/img/studio-source.png)
+
+*Pictured: the `Garden Table` demo ([photograph by Chris Reyem, Unsplash License](web/static/demos/CREDITS.md)). Clicking a demo replays [its committed envelope](web/static/demos/envelopes/table.json) — the document one extraction produced, frozen — so no model runs and nothing is spent; the picker in the corner names the model a **new** extraction would use, not the one that wrote this document.*
+
 VSON-P, the Penman authoring syntax — [`examples/gallery/04_directional_with_viewer.vson`](examples/gallery/04_directional_with_viewer.vson):
 
 ```
