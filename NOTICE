@@ -30,12 +30,14 @@ its own "Picsum ID: N" comment into the JPEG it returns.
   grant, which is why one image was withdrawn from this set on 2026-08-04
   (spec/CHANGELOG.md).
 
-  Photographer          File          Unsplash photo                                Picsum
-  --------------------  ------------  --------------------------------------------  ------
-  Karl Fredrickson      kitchen.jpg   https://unsplash.com/photos/TYIzeCiZ_60        1060
-  Oleksii Topolianskyi  forest.jpg    https://unsplash.com/photos/-oWyJoSqBRM        1015
-  Lee Roylland          books.jpg     https://unsplash.com/photos/dfZbts6B4yw        684
-  Dominik Martin        lamp.jpg      https://unsplash.com/photos/vf29T22259I        325
+  Photographer          File          Unsplash photo
+  --------------------  ------------  --------------------------------------------
+  Karl Fredrickson      kitchen.jpg   https://unsplash.com/photos/TYIzeCiZ_60
+  Jason Leung           cat.jpg       https://unsplash.com/photos/bEHmVywPcjE
+  Felix Mittermeier     chess.jpg     https://unsplash.com/photos/nAjil1z3eLk
+  Karl Abuid            blocks.jpg    https://unsplash.com/photos/7ezVb0oTQ6M
+  Chris Reyem           table.jpg     https://unsplash.com/photos/wH8y3nslmyo
+  Abhishek Ravi         bicycle.jpg   https://unsplash.com/photos/czNXupVwHdU
 
   The sha256 of each file as served, the evidence chain behind each row, and
   the note on what the studio's baked envelopes assert about these photographs

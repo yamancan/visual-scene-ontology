@@ -1,53 +1,77 @@
 {
-  "_doc": "Curated demo images shown below the dropzone. Each entry includes a prebuilt envelope so sample clicks render instantly without a model call. Every entry MUST also carry credit, license and source_url: the photographs are third-party work and the studio ships the pixels. web/tests/demo-credits.test.ts fails the build on an entry that omits any of the three, and on the strings CC0 or public domain, which are not what the Unsplash License is. Full provenance, including the sha256 of the bytes served here: CREDITS.md beside this file, mirrored in the repository's root NOTICE.",
-  "entries": [
-    {
-      "path": "/demos/kitchen.jpg",
-      "label": "Coffee Pour",
-      "mime": "image/jpeg",
-      "envelope_path": "/demos/envelopes/kitchen.json",
-      "model_used": "google/gemini-2.5-flash",
-      "credit": "Karl Fredrickson",
-      "license": "Unsplash License",
-      "license_url": "https://unsplash.com/license",
-      "source_url": "https://unsplash.com/photos/TYIzeCiZ_60",
-      "served_via": "https://picsum.photos/id/1060"
-    },
-    {
-      "path": "/demos/forest.jpg",
-      "label": "Fjord Overlook",
-      "mime": "image/jpeg",
-      "envelope_path": "/demos/envelopes/forest.json",
-      "model_used": "google/gemini-2.5-flash",
-      "credit": "Oleksii Topolianskyi",
-      "license": "Unsplash License",
-      "license_url": "https://unsplash.com/license",
-      "source_url": "https://unsplash.com/photos/-oWyJoSqBRM",
-      "served_via": "https://picsum.photos/id/1015"
-    },
-    {
-      "path": "/demos/books.jpg",
-      "label": "Snow Traverse",
-      "mime": "image/jpeg",
-      "envelope_path": "/demos/envelopes/books.json",
-      "model_used": "google/gemini-2.5-flash",
-      "credit": "Lee Roylland",
-      "license": "Unsplash License",
-      "license_url": "https://unsplash.com/license",
-      "source_url": "https://unsplash.com/photos/dfZbts6B4yw",
-      "served_via": "https://picsum.photos/id/684"
-    },
-    {
-      "path": "/demos/lamp.jpg",
-      "label": "Forest Figure",
-      "mime": "image/jpeg",
-      "envelope_path": "/demos/envelopes/lamp.json",
-      "model_used": "google/gemini-2.5-flash",
-      "credit": "Dominik Martin",
-      "license": "Unsplash License",
-      "license_url": "https://unsplash.com/license",
-      "source_url": "https://unsplash.com/photos/vf29T22259I",
-      "served_via": "https://picsum.photos/id/325"
-    }
-  ]
+ "_doc": "Curated demo images shown below the dropzone. Each entry includes a prebuilt envelope so sample clicks render instantly without a model call. Every entry MUST also carry credit, license and source_url: the photographs are third-party work and the studio ships the pixels. web/tests/demo-credits.test.ts fails the build on an entry that omits any of the three, and on the strings CC0 or public domain, which are not what the Unsplash License is. Full provenance, including the sha256 of the bytes served here: CREDITS.md beside this file, mirrored in the repository's root NOTICE.",
+ "entries": [
+  {
+   "path": "/demos/kitchen.jpg",
+   "label": "Coffee Pour",
+   "mime": "image/jpeg",
+   "envelope_path": "/demos/envelopes/kitchen.json",
+   "model_used": "google/gemini-2.5-flash",
+   "credit": "Karl Fredrickson",
+   "license": "Unsplash License",
+   "license_url": "https://unsplash.com/license",
+   "source_url": "https://unsplash.com/photos/TYIzeCiZ_60",
+   "served_via": "https://picsum.photos/id/1060"
+  },
+  {
+   "path": "/demos/cat.jpg",
+   "label": "Cat on a Rug",
+   "mime": "image/jpeg",
+   "envelope_path": "/demos/envelopes/cat.json",
+   "model_used": "claude-fable-5",
+   "credit": "Jason Leung",
+   "license": "Unsplash License",
+   "license_url": "https://unsplash.com/license",
+   "source_url": "https://unsplash.com/photos/bEHmVywPcjE",
+   "served_via": "https://unsplash.com/photos/bEHmVywPcjE/download"
+  },
+  {
+   "path": "/demos/chess.jpg",
+   "label": "Fallen King",
+   "mime": "image/jpeg",
+   "envelope_path": "/demos/envelopes/chess.json",
+   "model_used": "claude-fable-5",
+   "credit": "Felix Mittermeier",
+   "license": "Unsplash License",
+   "license_url": "https://unsplash.com/license",
+   "source_url": "https://unsplash.com/photos/nAjil1z3eLk",
+   "served_via": "https://unsplash.com/photos/nAjil1z3eLk/download"
+  },
+  {
+   "path": "/demos/blocks.jpg",
+   "label": "Block Tower",
+   "mime": "image/jpeg",
+   "envelope_path": "/demos/envelopes/blocks.json",
+   "model_used": "claude-fable-5",
+   "credit": "Karl Abuid",
+   "license": "Unsplash License",
+   "license_url": "https://unsplash.com/license",
+   "source_url": "https://unsplash.com/photos/7ezVb0oTQ6M",
+   "served_via": "https://unsplash.com/photos/7ezVb0oTQ6M/download"
+  },
+  {
+   "path": "/demos/table.jpg",
+   "label": "Garden Table",
+   "mime": "image/jpeg",
+   "envelope_path": "/demos/envelopes/table.json",
+   "model_used": "claude-fable-5",
+   "credit": "Chris Reyem",
+   "license": "Unsplash License",
+   "license_url": "https://unsplash.com/license",
+   "source_url": "https://unsplash.com/photos/wH8y3nslmyo",
+   "served_via": "https://unsplash.com/photos/wH8y3nslmyo/download"
+  },
+  {
+   "path": "/demos/bicycle.jpg",
+   "label": "Bicycle & Wall",
+   "mime": "image/jpeg",
+   "envelope_path": "/demos/envelopes/bicycle.json",
+   "model_used": "claude-fable-5",
+   "credit": "Abhishek Ravi",
+   "license": "Unsplash License",
+   "license_url": "https://unsplash.com/license",
+   "source_url": "https://unsplash.com/photos/czNXupVwHdU",
+   "served_via": "https://unsplash.com/photos/czNXupVwHdU/download"
+  }
+ ]
 }

@@ -1,0 +1,348 @@
+{
+  "scene_id": "TuhMfZ9ABcpU",
+  "version": "1.2",
+  "source": {
+    "kind": "image",
+    "sha256": "382e1366b5b1522a0cda49681f105c28ac2af14a698d1fd76f211b78d135a004",
+    "uri": "/demos/blocks.jpg"
+  },
+  "vson_p": "(scene / Composition\n   :framedBy (cam / CameraView :angle eye_level :framing close_up)\n   :framedBy (style / VisualStyle :palette vibrant :medium photograph)\n   :viewedBy cam\n   :depicts (tower / Aggregate :class Blocks\n       :countability Collective\n       :bbox2d \"0.02,0.00,0.83,1.00\"\n       :hasQuality (q1 / Quality :dimension Material :value wood))\n   :depicts (beamred / PhysicalObject :class Block\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.06,0.02,0.39,0.08\"\n       :hasQuality (q2 / Quality :dimension Color :value red))\n   :depicts (beamteal / PhysicalObject :class Block\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.45,0.02,0.28,0.10\"\n       :hasQuality (q3 / Quality :dimension Color :value teal))\n   :depicts (colpink / PhysicalObject :class Block\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.20,0.08,0.14,0.40\"\n       :hasQuality (q4 / Quality :dimension Color :value pink))\n   :depicts (colorange / PhysicalObject :class Block\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.41,0.09,0.09,0.39\"\n       :hasQuality (q5 / Quality :dimension Color :value orange))\n   :depicts (colteal / PhysicalObject :class Block\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.63,0.11,0.10,0.40\"\n       :hasQuality (q6 / Quality :dimension Color :value teal))\n   :depicts (beamgreen / PhysicalObject :class Block\n       :individuation Generic :animacy Inert :countability Count\n       :bbox2d \"0.57,0.51,0.30,0.08\"\n       :hasQuality (q7 / Quality :dimension Color :value green))\n   :depicts (sf1 / SpatialFact :figure beamred :ground colpink :directional above :viewer cam)\n   :depicts (sf2 / SpatialFact :figure beamred :ground colpink :rcc EC)\n   :depicts (sf3 / SpatialFact :figure beamteal :ground beamred :directional right_of :viewer cam)\n   :depicts (sf4 / SpatialFact :figure colorange :ground colteal :directional left_of :viewer cam)\n   :depicts (sf5 / SpatialFact :figure colteal :ground beamgreen :directional above :viewer cam)\n   :depicts (st1 / Stative :lemma stand :holder tower))",
+  "vson_t": "@prefix vso:   <https://w3id.org/vson/v1/ontology#> .\n@prefix allen: <https://w3id.org/vson/v1/allen#> .\n@prefix rcc:   <https://w3id.org/vson/v1/rcc8#> .\n@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n@prefix :      <https://example.org/scenes/anonymous#> .\n\n:scene a <https://w3id.org/vson/v1/ontology#Composition> .\n:cam a <https://w3id.org/vson/v1/ontology#CameraView> .\n:cam <https://w3id.org/vson/v1/ontology#angle> \"eye_level\" .\n:cam <https://w3id.org/vson/v1/ontology#framing> \"close_up\" .\n:scene <https://w3id.org/vson/v1/ontology#framedBy> :cam .\n:style a <https://w3id.org/vson/v1/ontology#VisualStyle> .\n:style <https://w3id.org/vson/v1/ontology#palette> \"vibrant\" .\n:style <https://w3id.org/vson/v1/ontology#medium> \"photograph\" .\n:scene <https://w3id.org/vson/v1/ontology#framedBy> :style .\n:scene <https://w3id.org/vson/v1/ontology#viewedBy> :cam .\n:tower a <https://w3id.org/vson/v1/ontology#Aggregate> .\n:tower <https://w3id.org/vson/v1/ontology#class> :Blocks .\n:tower <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Collective> .\n:tower <https://w3id.org/vson/v1/ontology#bbox2d> \"0.02,0.00,0.83,1.00\" .\n:q1 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q1 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Material> .\n:q1 <https://w3id.org/vson/v1/ontology#value> :wood .\n:tower <https://w3id.org/vson/v1/ontology#hasQuality> :q1 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :tower .\n:beamred a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:beamred <https://w3id.org/vson/v1/ontology#class> :Block .\n:beamred <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:beamred <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:beamred <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:beamred <https://w3id.org/vson/v1/ontology#bbox2d> \"0.06,0.02,0.39,0.08\" .\n:q2 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q2 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Color> .\n:q2 <https://w3id.org/vson/v1/ontology#value> :red .\n:beamred <https://w3id.org/vson/v1/ontology#hasQuality> :q2 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :beamred .\n:beamteal a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:beamteal <https://w3id.org/vson/v1/ontology#class> :Block .\n:beamteal <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:beamteal <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:beamteal <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:beamteal <https://w3id.org/vson/v1/ontology#bbox2d> \"0.45,0.02,0.28,0.10\" .\n:q3 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q3 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Color> .\n:q3 <https://w3id.org/vson/v1/ontology#value> :teal .\n:beamteal <https://w3id.org/vson/v1/ontology#hasQuality> :q3 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :beamteal .\n:colpink a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:colpink <https://w3id.org/vson/v1/ontology#class> :Block .\n:colpink <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:colpink <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:colpink <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:colpink <https://w3id.org/vson/v1/ontology#bbox2d> \"0.20,0.08,0.14,0.40\" .\n:q4 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q4 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Color> .\n:q4 <https://w3id.org/vson/v1/ontology#value> :pink .\n:colpink <https://w3id.org/vson/v1/ontology#hasQuality> :q4 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :colpink .\n:colorange a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:colorange <https://w3id.org/vson/v1/ontology#class> :Block .\n:colorange <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:colorange <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:colorange <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:colorange <https://w3id.org/vson/v1/ontology#bbox2d> \"0.41,0.09,0.09,0.39\" .\n:q5 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q5 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Color> .\n:q5 <https://w3id.org/vson/v1/ontology#value> :orange .\n:colorange <https://w3id.org/vson/v1/ontology#hasQuality> :q5 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :colorange .\n:colteal a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:colteal <https://w3id.org/vson/v1/ontology#class> :Block .\n:colteal <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:colteal <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:colteal <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:colteal <https://w3id.org/vson/v1/ontology#bbox2d> \"0.63,0.11,0.10,0.40\" .\n:q6 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q6 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Color> .\n:q6 <https://w3id.org/vson/v1/ontology#value> :teal .\n:colteal <https://w3id.org/vson/v1/ontology#hasQuality> :q6 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :colteal .\n:beamgreen a <https://w3id.org/vson/v1/ontology#PhysicalObject> .\n:beamgreen <https://w3id.org/vson/v1/ontology#class> :Block .\n:beamgreen <https://w3id.org/vson/v1/ontology#individuation> <https://w3id.org/vson/v1/ontology#Generic> .\n:beamgreen <https://w3id.org/vson/v1/ontology#animacy> <https://w3id.org/vson/v1/ontology#Inert> .\n:beamgreen <https://w3id.org/vson/v1/ontology#countability> <https://w3id.org/vson/v1/ontology#Count> .\n:beamgreen <https://w3id.org/vson/v1/ontology#bbox2d> \"0.57,0.51,0.30,0.08\" .\n:q7 a <https://w3id.org/vson/v1/ontology#Quality> .\n:q7 <https://w3id.org/vson/v1/ontology#dimension> <https://w3id.org/vson/v1/ontology#Color> .\n:q7 <https://w3id.org/vson/v1/ontology#value> :green .\n:beamgreen <https://w3id.org/vson/v1/ontology#hasQuality> :q7 .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :beamgreen .\n:sf1 a <https://w3id.org/vson/v1/ontology#SpatialFact> .\n:sf1 <https://w3id.org/vson/v1/ontology#figure> :beamred .\n:sf1 <https://w3id.org/vson/v1/ontology#ground> :colpink .\n:sf1 <https://w3id.org/vson/v1/ontology#directional> <https://w3id.org/vson/v1/ontology#above> .\n:sf1 <https://w3id.org/vson/v1/ontology#viewer> :cam .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :sf1 .\n:sf2 a <https://w3id.org/vson/v1/ontology#SpatialFact> .\n:sf2 <https://w3id.org/vson/v1/ontology#figure> :beamred .\n:sf2 <https://w3id.org/vson/v1/ontology#ground> :colpink .\n:sf2 <https://w3id.org/vson/v1/ontology#rcc> <https://w3id.org/vson/v1/rcc8#EC> .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :sf2 .\n:sf3 a <https://w3id.org/vson/v1/ontology#SpatialFact> .\n:sf3 <https://w3id.org/vson/v1/ontology#figure> :beamteal .\n:sf3 <https://w3id.org/vson/v1/ontology#ground> :beamred .\n:sf3 <https://w3id.org/vson/v1/ontology#directional> <https://w3id.org/vson/v1/ontology#right_of> .\n:sf3 <https://w3id.org/vson/v1/ontology#viewer> :cam .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :sf3 .\n:sf4 a <https://w3id.org/vson/v1/ontology#SpatialFact> .\n:sf4 <https://w3id.org/vson/v1/ontology#figure> :colorange .\n:sf4 <https://w3id.org/vson/v1/ontology#ground> :colteal .\n:sf4 <https://w3id.org/vson/v1/ontology#directional> <https://w3id.org/vson/v1/ontology#left_of> .\n:sf4 <https://w3id.org/vson/v1/ontology#viewer> :cam .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :sf4 .\n:sf5 a <https://w3id.org/vson/v1/ontology#SpatialFact> .\n:sf5 <https://w3id.org/vson/v1/ontology#figure> :colteal .\n:sf5 <https://w3id.org/vson/v1/ontology#ground> :beamgreen .\n:sf5 <https://w3id.org/vson/v1/ontology#directional> <https://w3id.org/vson/v1/ontology#above> .\n:sf5 <https://w3id.org/vson/v1/ontology#viewer> :cam .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :sf5 .\n:st1 a <https://w3id.org/vson/v1/ontology#Stative> .\n:st1 <https://w3id.org/vson/v1/ontology#lemma> \"stand\" .\n:st1 <https://w3id.org/vson/v1/ontology#holder> :tower .\n:scene <https://w3id.org/vson/v1/ontology#depicts> :st1 .\n",
+  "graph": {
+    "nodes": [
+      {
+        "id": "scene",
+        "kind": "Composition"
+      },
+      {
+        "id": "cam",
+        "kind": "CameraView",
+        "properties": {
+          "angle": "eye_level",
+          "framing": "close_up"
+        }
+      },
+      {
+        "id": "style",
+        "kind": "VisualStyle",
+        "properties": {
+          "palette": "vibrant",
+          "medium": "photograph"
+        }
+      },
+      {
+        "id": "tower",
+        "kind": "Aggregate",
+        "properties": {
+          "class": "Blocks",
+          "bbox2d": "0.02,0.00,0.83,1.00",
+          "q_Material": "wood"
+        },
+        "class": "Blocks",
+        "traits": {
+          "countability": "Collective"
+        }
+      },
+      {
+        "id": "beamred",
+        "kind": "PhysicalObject",
+        "properties": {
+          "class": "Block",
+          "bbox2d": "0.06,0.02,0.39,0.08",
+          "q_Color": "red"
+        },
+        "class": "Block",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        }
+      },
+      {
+        "id": "beamteal",
+        "kind": "PhysicalObject",
+        "properties": {
+          "class": "Block",
+          "bbox2d": "0.45,0.02,0.28,0.10",
+          "q_Color": "teal"
+        },
+        "class": "Block",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        }
+      },
+      {
+        "id": "colpink",
+        "kind": "PhysicalObject",
+        "properties": {
+          "class": "Block",
+          "bbox2d": "0.20,0.08,0.14,0.40",
+          "q_Color": "pink"
+        },
+        "class": "Block",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        }
+      },
+      {
+        "id": "colorange",
+        "kind": "PhysicalObject",
+        "properties": {
+          "class": "Block",
+          "bbox2d": "0.41,0.09,0.09,0.39",
+          "q_Color": "orange"
+        },
+        "class": "Block",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        }
+      },
+      {
+        "id": "colteal",
+        "kind": "PhysicalObject",
+        "properties": {
+          "class": "Block",
+          "bbox2d": "0.63,0.11,0.10,0.40",
+          "q_Color": "teal"
+        },
+        "class": "Block",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        }
+      },
+      {
+        "id": "beamgreen",
+        "kind": "PhysicalObject",
+        "properties": {
+          "class": "Block",
+          "bbox2d": "0.57,0.51,0.30,0.08",
+          "q_Color": "green"
+        },
+        "class": "Block",
+        "traits": {
+          "individuation": "Generic",
+          "animacy": "Inert",
+          "countability": "Count"
+        }
+      },
+      {
+        "id": "sf1",
+        "kind": "SpatialFact",
+        "properties": {
+          "directional": "above"
+        }
+      },
+      {
+        "id": "sf2",
+        "kind": "SpatialFact",
+        "properties": {
+          "rcc": "EC"
+        }
+      },
+      {
+        "id": "sf3",
+        "kind": "SpatialFact",
+        "properties": {
+          "directional": "right_of"
+        }
+      },
+      {
+        "id": "sf4",
+        "kind": "SpatialFact",
+        "properties": {
+          "directional": "left_of"
+        }
+      },
+      {
+        "id": "sf5",
+        "kind": "SpatialFact",
+        "properties": {
+          "directional": "above"
+        }
+      },
+      {
+        "id": "st1",
+        "kind": "Stative",
+        "properties": {
+          "lemma": "stand"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "scene",
+        "to": "cam",
+        "label": "framedBy"
+      },
+      {
+        "from": "scene",
+        "to": "style",
+        "label": "framedBy"
+      },
+      {
+        "from": "scene",
+        "to": "cam",
+        "label": "viewedBy"
+      },
+      {
+        "from": "scene",
+        "to": "tower",
+        "label": "depicts"
+      },
+      {
+        "from": "scene",
+        "to": "beamred",
+        "label": "depicts"
+      },
+      {
+        "from": "scene",
+        "to": "beamteal",
+        "label": "depicts"
+      },
+      {
+        "from": "scene",
+        "to": "colpink",
+        "label": "depicts"
+      },
+      {
+        "from": "scene",
+        "to": "colorange",
+        "label": "depicts"
+      },
+      {
+        "from": "scene",
+        "to": "colteal",
+        "label": "depicts"
+      },
+      {
+        "from": "scene",
+        "to": "beamgreen",
+        "label": "depicts"
+      },
+      {
+        "from": "sf1",
+        "to": "beamred",
+        "label": "figure"
+      },
+      {
+        "from": "sf1",
+        "to": "colpink",
+        "label": "ground"
+      },
+      {
+        "from": "sf1",
+        "to": "cam",
+        "label": "viewer"
+      },
+      {
+        "from": "scene",
+        "to": "sf1",
+        "label": "depicts"
+      },
+      {
+        "from": "sf2",
+        "to": "beamred",
+        "label": "figure"
+      },
+      {
+        "from": "sf2",
+        "to": "colpink",
+        "label": "ground"
+      },
+      {
+        "from": "scene",
+        "to": "sf2",
+        "label": "depicts"
+      },
+      {
+        "from": "sf3",
+        "to": "beamteal",
+        "label": "figure"
+      },
+      {
+        "from": "sf3",
+        "to": "beamred",
+        "label": "ground"
+      },
+      {
+        "from": "sf3",
+        "to": "cam",
+        "label": "viewer"
+      },
+      {
+        "from": "scene",
+        "to": "sf3",
+        "label": "depicts"
+      },
+      {
+        "from": "sf4",
+        "to": "colorange",
+        "label": "figure"
+      },
+      {
+        "from": "sf4",
+        "to": "colteal",
+        "label": "ground"
+      },
+      {
+        "from": "sf4",
+        "to": "cam",
+        "label": "viewer"
+      },
+      {
+        "from": "scene",
+        "to": "sf4",
+        "label": "depicts"
+      },
+      {
+        "from": "sf5",
+        "to": "colteal",
+        "label": "figure"
+      },
+      {
+        "from": "sf5",
+        "to": "beamgreen",
+        "label": "ground"
+      },
+      {
+        "from": "sf5",
+        "to": "cam",
+        "label": "viewer"
+      },
+      {
+        "from": "scene",
+        "to": "sf5",
+        "label": "depicts"
+      },
+      {
+        "from": "st1",
+        "to": "tower",
+        "label": "holder"
+      },
+      {
+        "from": "scene",
+        "to": "st1",
+        "label": "depicts"
+      }
+    ]
+  },
+  "conformance": {
+    "conforms": true
+  },
+  "extraction": {
+    "model": "claude-fable-5",
+    "prompt_version": "skill@1.0.0",
+    "shacl_retries": 0,
+    "latency_ms": 0,
+    "input_tokens": 0,
+    "output_tokens": 0
+  }
+}

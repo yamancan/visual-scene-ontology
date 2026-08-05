@@ -218,7 +218,7 @@
 		<section>
 			<h2>Why it's free</h2>
 			<p>
-				The four demo images were extracted once, for real, and their envelopes are committed to the
+				The six demo images were extracted once, for real, and their envelopes are committed to the
 				repo with the model's genuine provenance. Clicking a thumbnail fetches the baked envelope —
 				no model call, no API key, no spend. The sixteen gallery scenes are hand-authored conformant
 				fixtures served the same way. That is the keyless $0 path. A new upload is different: it
@@ -226,11 +226,11 @@
 				routes through the studio host. Image bytes are never persisted, in either path.
 			</p>
 			<p class="aside">
-				The four photographs are not ours. They are Unsplash photographs, credited under the demo
+				The six photographs are not ours. They are Unsplash photographs, credited under the demo
 				strip and in full — photographer, licence, source and file hash — in
 				<a href="/demos/CREDITS.md" rel="external">CREDITS.md</a>. The licence is the Unsplash
-				License, which covers the photograph and not the people in it; that is why there are four
-				and not five.
+				License, which covers the photograph and not the people in it; two earlier demos were
+				withdrawn on exactly that ground, and none of the six shows an identifiable person.
 			</p>
 			<p class="aside">
 				The studio is stateless. Refresh the page and the scene is gone. There is no account, no

@@ -79,10 +79,12 @@ describe('what-if corpus', () => {
 		// quietly disappears from the studio — so name them.
 		expect(qualifying).toEqual(
 			expect.arrayContaining([
-				'books.json',
-				'forest.json',
 				'kitchen.json',
-				'lamp.json',
+				'cat.json',
+				'chess.json',
+				'blocks.json',
+				'table.json',
+				'bicycle.json',
 				'04_directional_with_viewer.json',
 				'11_throne_room.json'
 			])

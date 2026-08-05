@@ -539,16 +539,20 @@ class ShippedEnvelopeTests(unittest.TestCase):
 
     The corpus size moved once without a re-bake: a demo image was withdrawn on
     2026-08-04 (spec/CHANGELOG.md) and its envelope went with it. It stated no
-    `vso:rcc` fact at all, so every number this class and §5.13 report — 13
-    relations over two rectangles, 11 a match-demanding gate would reject, 4
-    this one does — is what the remaining 20 still measure.
+    `vso:rcc` fact at all, so the 2026-08-01 numbers — 13 relations over two
+    rectangles, 11 a match-demanding gate would reject, 4 this one does —
+    were what the remaining 20 still measured.
+
+    Re-measured 2026-08-05 after the demo set changed shape (three demos
+    withdrawn editorially, five session-baked scenes added; the same
+    CHANGELOG annotation records it): 22 envelopes, 10 `vso:rcc` facts over
+    two rectangles, 6 a match-demanding gate would reject, and exactly one —
+    kitchen.json sf4, the surviving server-era bake — refuted by this gate.
+    lamp.json took its three refuted facts with it.
     """
 
     EXPECTED = {
         ("kitchen.json", "sf4"),
-        ("lamp.json", "sf2"),
-        ("lamp.json", "sf3"),
-        ("lamp.json", "sf4"),
     }
 
     def _corpus(self):
@@ -564,7 +568,7 @@ class ShippedEnvelopeTests(unittest.TestCase):
         paths = self._corpus()
         if not paths:  # pragma: no cover — the studio corpus is committed
             self.skipTest("no baked envelopes in this checkout")
-        self.assertEqual(len(paths), 20, msg="the corpus size the docstring reports")
+        self.assertEqual(len(paths), 22, msg="the corpus size the docstring reports")
         found = set()
         for path in paths:
             with open(path, encoding="utf-8") as fh:

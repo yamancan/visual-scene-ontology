@@ -57,7 +57,7 @@ BAD_T = os.path.join(REPO, "tests", "fixtures", "bad_no_viewer.ttl")
 BAD_P = os.path.join(REPO, "tests", "fixtures", "bad_no_viewer.vson")
 LIMITS_TS = os.path.join(REPO, "web", "src", "lib", "extract", "limits.ts")
 META_TS = os.path.join(REPO, "web", "src", "lib", "prompts", "meta.ts")
-BAKED = os.path.join(REPO, "web", "static", "demos", "envelopes", "forest.json")
+BAKED = os.path.join(REPO, "web", "static", "demos", "envelopes", "kitchen.json")
 
 
 def read(path: str) -> str:

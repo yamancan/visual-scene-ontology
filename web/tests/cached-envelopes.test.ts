@@ -1,6 +1,6 @@
 // Smoke test for baked demo envelopes. If `web/scripts/bake-demos.ts` has
 // been run, every envelope on disk MUST be a valid VSON envelope:
-//   - version === "1.0"
+//   - version is the wire version its bake produced ("1.0" server-era, "1.2" session)
 //   - vson_p starts with `(`, ends with `)`
 //   - conformance.conforms is true (we only ship demos that conform)
 //   - graph has nodes and edges arrays
@@ -75,8 +75,12 @@ describe('cached demo envelopes', () => {
 		describe(file.split('/').slice(-1)[0], () => {
 			const env = JSON.parse(readFileSync(file, 'utf8')) as Envelope;
 
-			it('declares version 1.0', () => {
-				expect(env.version).toBe('1.0');
+			it('declares the wire version its bake produced', () => {
+				// kitchen.json is the surviving server-era bake (1.0); the
+				// 2026-08-05 session bakes carry the live wire version (1.2).
+				const historic = ['kitchen.json'];
+				const expected = historic.includes(file.split('/').slice(-1)[0]) ? '1.0' : '1.2';
+				expect(env.version).toBe(expected);
 			});
 
 			it('vson_p is a balanced Penman document', () => {
