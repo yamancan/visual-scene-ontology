@@ -19,7 +19,7 @@
       "mime": "image/jpeg",
       "envelope_path": "/demos/envelopes/forest.json",
       "model_used": "google/gemini-2.5-flash",
-      "credit": "Alexey Topolyanskiy",
+      "credit": "Oleksii Topolianskyi",
       "license": "Unsplash License",
       "license_url": "https://unsplash.com/license",
       "source_url": "https://unsplash.com/photos/-oWyJoSqBRM",
