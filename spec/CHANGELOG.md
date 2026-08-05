@@ -51,6 +51,23 @@ a studio that can show a gate biting.
   gained a pipeline drawing whose arrows are the honest data flow: no edge
   runs from the image into the gates, because the gates read the document.
 
+*Annotation, 2026-08-05 — the demo set earns its place, and a measurement
+moves.* Three demos were withdrawn as editorially weak — `books.jpg` (a
+mountain range), `forest.jpg` (a fjord) and `lamp.jpg` (a figure): a
+scene-graph demo earns its place with distinct entities and visible
+relations, and a landscape has neither. Five scenes chosen on that criterion
+replaced them (`cat.jpg`, `chess.jpg`, `blocks.jpg`, `table.jpg`,
+`bicycle.jpg`; provenance per entry in `web/static/demos/CREDITS.md`),
+authored by `claude-fable-5` against the extractor skill and validated by the
+CLI's three gates plus the geometry check before freezing —
+`web/scripts/bake-session-demos.ts` documents the path. This was editorial,
+not a rights withdrawal; the pixels leave HEAD and their history stands. With
+`lamp.json` went three of §5.13.7's four refuted facts, so the geometry
+measurement was re-taken on the 22-envelope corpus: 10 `vso:rcc` facts over
+two rectangles, 6 a match-demanding gate would reject, 1 the refutation
+table does — and the demo strip now ships §5.13.2's own example, a cat on a
+rug asserted `rcc:EC` over overlapping rectangles.
+
 ## v1.3.0 — 2026-07-31
 
 The static studio release. The web studio drops its server entirely: no

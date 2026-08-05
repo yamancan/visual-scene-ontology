@@ -1,27 +1,32 @@
 # Demo image credits
 
-The four photographs in this directory are the studio's demo strip — the
+The six photographs in this directory are the studio's demo strip — the
 thumbnails under the dropzone, and the images the 16-scene gallery sits beside.
 They are **third-party work**. The repository's Apache-2.0 grant covers the code
 and the ontology; it does not cover these pixels, and this file is where that is
-said. The same four rows are in the repository's root [`NOTICE`](../../../NOTICE)
+said. The same six rows are in the repository's root [`NOTICE`](../../../NOTICE)
 and, per entry, in [`manifest.json`](./manifest.json) beside this file.
 
-## The four
+## The six
 
-| File | Photographer | Licence | Unsplash photo | Picsum ID | sha256 of the bytes served here |
-|---|---|---|---|---|---|
-| `kitchen.jpg` | Karl Fredrickson | Unsplash License | <https://unsplash.com/photos/TYIzeCiZ_60> | 1060 | `4b73c6163fb862eca7e0045234386a6098d3e0377d9fc8fc00381d6101f50a5b` |
-| `forest.jpg` | Oleksii Topolianskyi | Unsplash License | <https://unsplash.com/photos/-oWyJoSqBRM> | 1015 | `1024478f7c40b7ebdea4a95689c0f6cddd74fddf4f3d7d4ca8ba8641027d0de8` |
-| `books.jpg` | Lee Roylland | Unsplash License | <https://unsplash.com/photos/dfZbts6B4yw> | 684 | `34ecf96f7c897aaf48f01f962e6ff6dce1c457afdcc0c9008aeca6e9d47d7da8` |
-| `lamp.jpg` | Dominik Martin | Unsplash License | <https://unsplash.com/photos/vf29T22259I> | 325 | `3b27cf51a3fe87ac13a3d8ef34a0369f91b57d24b7fdf94ca9f4a1b416806c77` |
+| File | Photographer | Licence | Unsplash photo | sha256 of the bytes served here |
+|---|---|---|---|---|
+| `kitchen.jpg` | Karl Fredrickson | Unsplash License | <https://unsplash.com/photos/TYIzeCiZ_60> | `4b73c6163fb862eca7e0045234386a6098d3e0377d9fc8fc00381d6101f50a5b` |
+| `cat.jpg` | Jason Leung | Unsplash License | <https://unsplash.com/photos/bEHmVywPcjE> | `5aff60f1810fde510cf4bc4f9f2616442997a72c599a0f3852731e3c4f0159cd` |
+| `chess.jpg` | Felix Mittermeier | Unsplash License | <https://unsplash.com/photos/nAjil1z3eLk> | `888ed92f8a6e1e26e034c64e6c915c34b176e62ee273853848443160c3233364` |
+| `blocks.jpg` | Karl Abuid | Unsplash License | <https://unsplash.com/photos/7ezVb0oTQ6M> | `382e1366b5b1522a0cda49681f105c28ac2af14a698d1fd76f211b78d135a004` |
+| `table.jpg` | Chris Reyem | Unsplash License | <https://unsplash.com/photos/wH8y3nslmyo> | `b9e5850002ed40834b67f4a2d1ed686d73c779558a1a469ec5c97c52a42d64e0` |
+| `bicycle.jpg` | Abhishek Ravi | Unsplash License | <https://unsplash.com/photos/czNXupVwHdU> | `af711930c3867f07d7cb1f5bfeb3e0d4f83c16b1752ced57f1ec19b4b87a4ccb` |
 
-The labels the studio shows (`Coffee Pour`, `Fjord Overlook`, `Snow Traverse`,
-`Forest Figure`) are this project's captions, not the photographers' titles, and
-two of them do not describe their file's name. The file names are historical and
-are not renamed here, because the sha256 index that makes a demo click cost $0
-([`envelopes/index.json`](./envelopes/index.json)) is keyed on bytes and the
-manifest is keyed on paths.
+The labels the studio shows (`Coffee Pour`, `Cat on a Rug`, `Fallen King`,
+`Block Tower`, `Garden Table`, `Bicycle & Wall`) are this project's captions,
+not the photographers' titles. On 2026-08-05 the set changed shape: two
+landscape demos (`books.jpg`, a mountain range; `forest.jpg`, a fjord) and one
+figure demo (`lamp.jpg`) were withdrawn as editorially weak — a scene-graph
+demo earns its place with distinct entities and visible relations, and a
+landscape has neither — and five scenes chosen on that criterion replaced
+them. That withdrawal was editorial, not a rights issue; the earlier
+person-standard withdrawals are documented below.
 
 ## The licence, stated exactly
 
@@ -50,20 +55,31 @@ Two things it does not grant, and they are the reason this file exists:
 ## How the provenance was established, so it can be re-walked
 
 Nothing here rests on memory. Each step is reproducible from the bytes in this
-directory:
+directory. Two chains exist, because the set was assembled in two eras:
 
-1. **The file says where it came from.** Every JPEG carries a comment segment
-   reading `Picsum ID: N`, written by Lorem Picsum when it served the image.
-   `exiftool -Comment web/static/demos/kitchen.jpg` prints it; so does
-   `grep -a 'Picsum ID' web/static/demos/kitchen.jpg`.
+**`kitchen.jpg` (2026-08-04, via Lorem Picsum):**
+
+1. **The file says where it came from.** The JPEG carries a comment segment
+   reading `Picsum ID: 1060`, written by Lorem Picsum when it served the image.
+   `grep -a 'Picsum ID' web/static/demos/kitchen.jpg` prints it.
 2. **Lorem Picsum says who took it.** `curl -s https://picsum.photos/id/1060/info`
    returns `{"id":"1060","author":"Karl Fredrickson", …,"url":"https://unsplash.com/photos/TYIzeCiZ_60", …}`.
-   The four rows above are that endpoint's `author` and `url` fields, retrieved
-   2026-08-04, one request per ID.
-3. **The Unsplash page is the primary record.** Lorem Picsum is a re-server; the
-   photo page it points at is the first-party one. `unsplash.com` returns 401 to
-   command-line clients, so this step is a browser step and the maintainer's, not
-   a script's.
+3. **The Unsplash page is the primary record**, verified in a browser
+   (`unsplash.com` returns 401 to command-line clients).
+
+**The five 2026-08-05 scenes (direct from Unsplash):**
+
+1. **The file says where it came from.** Each JPEG carries a comment segment
+   reading `Unsplash <photo-id>`, written at import:
+   `grep -a 'Unsplash' web/static/demos/cat.jpg` → `Unsplash bEHmVywPcjE`.
+2. **The bytes came from the photo's own download endpoint**
+   (`https://unsplash.com/photos/<photo-id>/download`), then a centre-region
+   crop to the strip's 640×480 frame. The sha256 column above is of the bytes
+   served here, not of Unsplash's original.
+3. **The photo page is the primary record.** Each page was retrieved on
+   2026-08-05 and its licence line read: "Free to use under the Unsplash
+   License" on all five — none is an Unsplash+ (paid-tier) photograph, whose
+   licence is different and whose download endpoint refuses anonymous clients.
 
 ## What the studio asserts about these photographs
 
@@ -73,6 +89,18 @@ regenerated, which is what makes a demo click cost nothing. Those graphs are
 **model output about a photograph**, not statements the photographer made and
 not statements this project verified: `docs/vson.md` §2.1 says what a green
 validation establishes, and it is never that the document describes the image.
+
+Two bakes produced the corpus. `kitchen.json` is a server-era bake
+(`google/gemini-2.5-flash` through the retired `/api/extract` route). The five
+2026-08-05 envelopes were authored by `claude-fable-5` in a Claude Code
+session against the same extractor skill (`skill@1.0.0`), validated by the
+CLI's own three gates plus `vson verify --geometry` until conforming, and
+assembled by [`web/scripts/bake-session-demos.ts`](../../scripts/bake-session-demos.ts)
+through the studio's own `buildPenmanEnvelope` — same walker, same wire
+format as a live extraction. A session is not per-image metered, so those
+envelopes carry `latency_ms`, `input_tokens` and `output_tokens` as `0`; the
+zeros are sentinels meaning "not measured", never measurements. Their
+`shacl_retries` counts are real.
 
 ## The rule going forward
 

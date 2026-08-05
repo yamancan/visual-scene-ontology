@@ -84,10 +84,12 @@ and *monotone* — if one region is inside another, so are their boxes. A relati
 therefore entails something about the boxes, and boxes that falsify the entailment refute the
 relation. The converse never holds: a cat on a mat stands in `rcc:EC`, regions touching, interiors
 disjoint, while their rectangles overlap with area. A box can say *no*; it can never say *yes*.
-Measured: of the thirteen `vso:rcc` facts the baked studio envelopes state over two rectangles, a
-check demanding the rectangles' own relation match would reject eleven; the refutation rule rejects
-four ([§5.13.2](./vson.md#5132-the-engine-a-bounding-box-refutes-it-does-not-confirm)) — four
-self-contradictions in real model output that every conformance gate passes.
+Measured: of the ten `vso:rcc` facts the baked studio envelopes state over two rectangles, a
+check demanding the rectangles' own relation match would reject six; the refutation rule rejects
+one ([§5.13.2](./vson.md#5132-the-engine-a-bounding-box-refutes-it-does-not-confirm)) — a
+self-contradiction in real model output that every conformance gate passes. The cat itself ships:
+the demo strip's `cat.json` asserts `rcc:EC` for a cat on a rug whose rectangles overlap — the
+example above, in frozen extractor output.
 
 Agreement is not correctness. The same throne-room scene — hand-authored once, rendered from the
 gallery once — scores F1 0.767 under `vson diff`; both are conformant, both ship, neither is wrong
@@ -124,4 +126,4 @@ as two correct ones, or accept a category it never declared. None of those refus
 document. Each is a gate with an exit code and a fixture that proves the gate is reached — the
 difference between having a philosophy about a notation and having a notation.
 
-— [yaman](https://github.com/yamancan), 2026
+— [Yaman Can](https://github.com/yamancan), 2026
